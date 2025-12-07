@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #111827;
+  --foreground: #ffffff;
+  --primary: #FF4D67;
+  --accent: #FFCB2B;
+  --dark: #111827;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #111827;
+    --foreground: #ffffff;
+    --primary: #FF4D67;
+    --accent: #FFCB2B;
+    --dark: #111827;
+  }
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .card-bg {
+    background: rgba(30, 41, 59, 0.5);
+    backdrop-filter: blur(10px);
+  }
+  
+  .btn-primary {
+    background: linear-gradient(90deg, #FF4D67, #FFCB2B);
+    color: white;
+  }
+  
+  .gradient-primary {
+    background: linear-gradient(90deg, #FF4D67, #FFCB2B);
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
