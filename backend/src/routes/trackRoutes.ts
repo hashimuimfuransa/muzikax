@@ -1,0 +1,29 @@
+import * as express from 'express';
+import {
+  uploadTrack,
+  getAllTracks,
+  getTrackById,
+  getTracksByCreator,
+  updateTrack,
+  deleteTrack,
+  incrementPlayCount,
+  getTrendingTracks
+} from '../controllers/trackController';
+import { protect, creator, admin } from '../utils/jwt';
+
+const router = express.Router();
+
+// Public routes
+router.route('/').get(getAllTracks);
+router.route('/trending').get(getTrendingTracks);
+router.route('/:id').get(getTrackById);
+router.route('/creator/:creatorId').get(getTracksByCreator);
+
+// Protected routes
+router.route('/upload').post(protect, creator, uploadTrack);
+router.route('/:id/play').put(incrementPlayCount);
+router.route('/:id')
+  .put(protect, updateTrack)
+  .delete(protect, deleteTrack);
+
+export default router;
