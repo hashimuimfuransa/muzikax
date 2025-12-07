@@ -16,9 +16,9 @@ export const generateAccessToken = (user: IUser): string => {
     creatorType: user.creatorType
   };
   
-  const secret = process.env.JWT_ACCESS_SECRET || 'access_secret';
+  const secret = process.env['JWT_ACCESS_SECRET'] || 'access_secret';
   const options: SignOptions = {
-    expiresIn: process.env.JWT_ACCESS_EXPIRE ? process.env.JWT_ACCESS_EXPIRE : ('15m' as any)
+    expiresIn: process.env['JWT_ACCESS_EXPIRE'] ? process.env['JWT_ACCESS_EXPIRE'] : ('15m' as any)
   };
   
   return jwt.sign(payload, secret, options);
@@ -30,9 +30,9 @@ export const generateRefreshToken = (user: IUser): string => {
     id: user._id
   };
   
-  const secret = process.env.JWT_REFRESH_SECRET || 'refresh_secret';
+  const secret = process.env['JWT_REFRESH_SECRET'] || 'refresh_secret';
   const options: SignOptions = {
-    expiresIn: process.env.JWT_REFRESH_EXPIRE ? process.env.JWT_REFRESH_EXPIRE : ('7d' as any)
+    expiresIn: process.env['JWT_REFRESH_EXPIRE'] ? process.env['JWT_REFRESH_EXPIRE'] : ('7d' as any)
   };
   
   return jwt.sign(payload, secret, options);
@@ -41,7 +41,7 @@ export const generateRefreshToken = (user: IUser): string => {
 // Verify access token
 export const verifyAccessToken = (token: string): JwtPayload | null => {
   try {
-    const secret = process.env.JWT_ACCESS_SECRET || 'access_secret';
+    const secret = process.env['JWT_ACCESS_SECRET'] || 'access_secret';
     return jwt.verify(token, secret) as JwtPayload;
   } catch (error) {
     return null;
@@ -51,7 +51,7 @@ export const verifyAccessToken = (token: string): JwtPayload | null => {
 // Verify refresh token
 export const verifyRefreshToken = (token: string): JwtPayload | null => {
   try {
-    const secret = process.env.JWT_REFRESH_SECRET || 'refresh_secret';
+    const secret = process.env['JWT_REFRESH_SECRET'] || 'refresh_secret';
     return jwt.verify(token, secret) as JwtPayload;
   } catch (error) {
     return null;

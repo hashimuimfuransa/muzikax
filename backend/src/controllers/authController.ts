@@ -102,7 +102,7 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
     // Verify refresh token
     const decoded = require('jsonwebtoken').verify(
       refreshToken,
-      process.env.JWT_REFRESH_SECRET || 'refresh_secret'
+      process.env['JWT_REFRESH_SECRET'] || 'refresh_secret'
     );
 
     const user = await User.findById(decoded.id);
