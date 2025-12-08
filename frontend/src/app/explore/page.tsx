@@ -30,7 +30,7 @@ export default function Explore() {
       artist: 'Kizito M',
       plays: 12400,
       likes: 890,
-      coverImage: '/placeholder-track.jpg'
+      coverImage: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'
     },
     {
       id: '2',
@@ -38,7 +38,7 @@ export default function Explore() {
       artist: 'Divine Ikirezi',
       plays: 9800,
       likes: 756,
-      coverImage: '/placeholder-track.jpg'
+      coverImage: 'https://images.unsplash.com/photo-1507838153414-b4b713384a76?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'
     },
     {
       id: '3',
@@ -46,7 +46,7 @@ export default function Explore() {
       artist: 'Benji Flavours',
       plays: 15600,
       likes: 1200,
-      coverImage: '/placeholder-track.jpg'
+      coverImage: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'
     }
   ]
   
@@ -56,37 +56,44 @@ export default function Explore() {
       name: 'Kizito M',
       type: 'Artist',
       followers: 12500,
-      avatar: '/placeholder-avatar.jpg'
+      avatar: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'
     },
     {
       id: '2',
       name: 'Divine Ikirezi',
       type: 'Producer',
       followers: 8900,
-      avatar: '/placeholder-avatar.jpg'
+      avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'
     },
     {
       id: '3',
       name: 'Benji Flavours',
       type: 'DJ',
       followers: 15600,
-      avatar: '/placeholder-avatar.jpg'
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'
     }
   ]
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black">
       {/* Hero Section */}
-      <div className="relative py-12 sm:py-20 lg:py-28 overflow-hidden">
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#FF4D67]/10 rounded-full blur-3xl -z-10"></div>
-        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-[#FFCB2B]/10 rounded-full blur-3xl -z-10"></div>
+      <div className="relative py-8 sm:py-12 lg:py-16 overflow-hidden">
+        {/* Background image with gradient overlay */}
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80)' }}></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-gray-900 via-gray-900/80 to-gray-900/60"></div>
+        </div>
         
-        <div className="container mx-auto px-4 sm:px-8">
+        {/* Decorative elements */}
+        <div className="absolute -top-20 -left-20 w-64 h-64 bg-[#FF4D67]/10 rounded-full blur-3xl -z-10"></div>
+        <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-[#FFCB2B]/10 rounded-full blur-3xl -z-10"></div>
+        
+        <div className="container mx-auto px-4 sm:px-8 relative z-10">
           <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] mb-4 sm:mb-6">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] mb-3 sm:mb-4">
               Explore Rwandan Music
             </h1>
-            <p className="text-base sm:text-lg md:text-xl text-gray-300 max-w-2xl mx-auto mb-8 sm:mb-10">
+            <p className="text-base sm:text-lg text-gray-300 max-w-2xl mx-auto mb-6 sm:mb-8">
               Discover trending tracks and talented creators from Rwanda's vibrant music scene
             </p>
             
@@ -94,9 +101,9 @@ export default function Explore() {
               <input
                 type="text"
                 placeholder="Search tracks, artists, albums..."
-                className="w-full py-3 sm:py-4 px-4 sm:px-6 pl-10 sm:pl-12 bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-full text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm sm:text-base"
+                className="w-full py-2.5 sm:py-3 px-4 sm:px-6 pl-10 sm:pl-12 bg-gray-800/70 backdrop-blur-sm border border-gray-700/50 rounded-full text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm sm:text-base shadow-lg"
               />
-              <div className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-gray-500">
+              <div className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-gray-400">
                 <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                 </svg>

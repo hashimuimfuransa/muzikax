@@ -421,10 +421,29 @@ export default function Home() {
                 {heroSlides[currentSlide].subtitle}
               </p>
               <div className="flex flex-wrap gap-3 sm:gap-4 justify-center animate-fade-in-delay-2">
-                <button className="px-5 py-2.5 sm:px-6 sm:py-3 btn-primary font-medium rounded-lg transition-all hover:scale-105 text-sm sm:text-base">
+                <button 
+                  className="px-5 py-2.5 sm:px-6 sm:py-3 btn-primary font-medium rounded-lg transition-all hover:scale-105 text-sm sm:text-base"
+                  onClick={() => {
+                    // Primary CTA button functionality
+                    if (heroSlides[currentSlide].cta === 'Explore Music') {
+                      window.location.href = '/explore';
+                    } else if (heroSlides[currentSlide].cta === 'Upload Track') {
+                      window.location.href = '/upload';
+                    } else {
+                      window.location.href = '/dashboard';
+                    }
+                  }}
+                >
                   {heroSlides[currentSlide].cta}
                 </button>
-                <button className="px-5 py-2.5 sm:px-6 sm:py-3 bg-transparent border-2 border-white text-white font-medium rounded-lg transition-all hover:bg-white/10 text-sm sm:text-base">
+                <button 
+                  className="px-5 py-2.5 sm:px-6 sm:py-3 bg-transparent border-2 border-white text-white font-medium rounded-lg transition-all hover:bg-white/10 text-sm sm:text-base"
+                  onClick={() => {
+                    // Learn More button functionality
+                    console.log('Learn more clicked for slide:', currentSlide);
+                    // Could show a modal or scroll to a specific section
+                  }}
+                >
                   Learn More
                 </button>
               </div>
