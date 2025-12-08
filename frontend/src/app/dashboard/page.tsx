@@ -1,6 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '../../contexts/AuthContext'
 
 interface StatCard {
   title: string
@@ -20,6 +22,24 @@ interface Track {
 
 export default function Dashboard() {
   const [timeRange, setTimeRange] = useState('30d')
+  const router = useRouter()
+  const { isAuthenticated, userRole } = useAuth()
+
+  // Check authentication and role on component mount
+  useEffect(() => {
+    if (!isAuthenticated) {
+      // If not authenticated, redirect to login
+      router.push('/login')
+    } else if (userRole !== 'creator' && userRole !== 'admin') {
+      // If authenticated but not a creator or admin, redirect to home
+      router.push('/')
+    }
+  }, [isAuthenticated, userRole, router])
+
+  // Don't render the dashboard if not authenticated or not authorized
+  if (!isAuthenticated || (userRole !== 'creator' && userRole !== 'admin')) {
+    return null
+  }
   
   // Mock data
   const stats: StatCard[] = [

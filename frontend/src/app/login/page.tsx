@@ -2,18 +2,118 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '../../contexts/AuthContext'
 
 export default function Login() {
   const [isLogin, setIsLogin] = useState(true)
+  const [step, setStep] = useState(1) // 1: Email, 2: Password, 3: Name (for signup)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
-  const [role, setRole] = useState('fan')
-  const [creatorType, setCreatorType] = useState('artist')
+  const [error, setError] = useState('')
+  const router = useRouter()
+  const { login } = useAuth()
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleEmailSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    console.log(isLogin ? 'Logging in...' : 'Signing up...', { email, password, name, role, creatorType })
+    setError('') // Clear any previous errors
+    if (isLogin) {
+      setStep(2) // Go to password step for login
+    } else {
+      setStep(3) // Go to name step for signup
+    }
+  }
+
+  const handleLoginSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    console.log('Logging in...', { email, password })
+    
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        setError(errorData.message || 'Login failed')
+        return
+      }
+
+      const userData = await response.json()
+      
+      // Store access token in localStorage
+      localStorage.setItem('accessToken', userData.accessToken)
+      
+      // Log in the user with actual data from API
+      login({
+        id: userData._id,
+        name: userData.name,
+        email: userData.email,
+        role: userData.role,
+        creatorType: userData.creatorType
+      })
+      
+      // All users go to home page after login
+      router.push('/')
+    } catch (error) {
+      console.error('Login error:', error)
+      setError('An unexpected error occurred. Please try again.')
+    }
+  }
+
+  const handleSignupSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    console.log('Signing up...', { email, password, name })
+    
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, email, password }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        setError(errorData.message || 'Registration failed')
+        return
+      }
+
+      const userData = await response.json()
+      
+      // Store access token in localStorage
+      localStorage.setItem('accessToken', userData.accessToken)
+      
+      // Log in the user with actual data from API
+      login({
+        id: userData._id,
+        name: userData.name,
+        email: userData.email,
+        role: userData.role,
+        creatorType: userData.creatorType
+      })
+      
+      // All users go to home page after signup
+      router.push('/')
+    } catch (error) {
+      console.error('Signup error:', error)
+      setError('An unexpected error occurred. Please try again.')
+    }
+  }
+
+  const handleBack = () => {
+    setError('') // Clear any previous errors
+    if (step === 2) {
+      setStep(1)
+    } else if (step === 3) {
+      setStep(1)
+    }
   }
 
   return (
@@ -34,6 +134,9 @@ export default function Login() {
               ? 'Sign in to your account to continue' 
               : 'Join our community of Rwandan music creators and fans'}
           </p>
+          <p className="mt-2 text-gray-500 text-xs sm:text-sm">
+            {isLogin ? '' : 'All new accounts start as regular users. You can upgrade to a creator account later.'}
+          </p>
         </div>
 
         <div className="flex bg-gray-800/50 rounded-lg p-1">
@@ -43,7 +146,10 @@ export default function Login() {
                 ? 'bg-[#FF4D67] text-white' 
                 : 'text-gray-400 hover:text-white'
             }`}
-            onClick={() => setIsLogin(true)}
+            onClick={() => {
+              setIsLogin(true)
+              setStep(1)
+            }}
           >
             Login
           </button>
@@ -53,22 +159,108 @@ export default function Login() {
                 ? 'bg-[#FF4D67] text-white' 
                 : 'text-gray-400 hover:text-white'
             }`}
-            onClick={() => setIsLogin(false)}
+            onClick={() => {
+              setIsLogin(false)
+              setStep(1)
+            }}
           >
             Sign Up
           </button>
         </div>
 
-        <form className="mt-6 sm:mt-8 space-y-4 sm:space-y-6" onSubmit={handleSubmit}>
-          {!isLogin && (
+        {/* Step 1: Email */}
+        {step === 1 && (
+          <form className="mt-6 sm:mt-8 space-y-6" onSubmit={handleEmailSubmit}>
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">
+                Email address
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm sm:text-base"
+                placeholder="you@example.com"
+              />
+            </div>
+    
+            {error && (
+              <div className="text-red-500 text-sm py-2">
+                {error}
+              </div>
+            )}
+
+            <div>
+              <button
+                type="submit"
+                className="w-full py-2.5 sm:py-3 px-4 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FF4D67] focus:ring-offset-gray-900 text-sm sm:text-base"
+              >
+                Next
+              </button>
+            </div>
+          </form>
+        )}
+
+        {/* Step 2: Password (Login) */}
+        {step === 2 && isLogin && (
+          <form className="mt-6 sm:mt-8 space-y-6" onSubmit={handleLoginSubmit}>
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label htmlFor="password" className="block text-sm font-medium text-gray-300">
+                  Password
+                </label>
+                <div className="text-sm">
+                  <a href="#" className="font-medium text-[#FF4D67] hover:text-[#FF4D67]/80">
+                    Forgot password?
+                  </a>
+                </div>
+              </div>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm sm:text-base"
+                placeholder="••••••••"
+              />
+            </div>
+    
+            {error && (
+              <div className="text-red-500 text-sm py-2">
+                {error}
+              </div>
+            )}
+
+            <div>
+              <button
+                type="submit"
+                className="w-full py-2.5 sm:py-3 px-4 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FF4D67] focus:ring-offset-gray-900 text-sm sm:text-base"
+              >
+                Sign in
+              </button>
+            </div>
+          </form>
+        )}
+
+        {/* Step 3: Name and Password (Signup) */}
+        {step === 3 && !isLogin && (
+          <form className="mt-6 sm:mt-8 space-y-6" onSubmit={handleSignupSubmit}>
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-1">
-                Full Name
+                Full name
               </label>
               <input
                 id="name"
                 name="name"
                 type="text"
+                autoComplete="name"
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -76,101 +268,48 @@ export default function Login() {
                 placeholder="John Doe"
               />
             </div>
-          )}
 
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">
-              Email Address
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm sm:text-base"
-              placeholder="you@example.com"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-1">
-              Password
-            </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete={isLogin ? "current-password" : "new-password"}
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm sm:text-base"
-              placeholder="••••••••"
-            />
-          </div>
-
-          {!isLogin && (
-            <>
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">
-                  Account Type
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {['fan', 'creator', 'admin'].map((type) => (
-                    <button
-                      key={type}
-                      type="button"
-                      className={`py-2 px-2 sm:px-3 rounded-lg text-sm font-medium transition-all ${
-                        role === type
-                          ? 'bg-[#FF4D67] text-white'
-                          : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50'
-                      }`}
-                      onClick={() => setRole(type)}
-                    >
-                      {type.charAt(0).toUpperCase() + type.slice(1)}
-                    </button>
-                  ))}
-                </div>
+            <div>
+              <label htmlFor="signup-password" className="block text-sm font-medium text-gray-300 mb-1">
+                Password
+              </label>
+              <input
+                id="signup-password"
+                name="password"
+                type="password"
+                autoComplete="new-password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm sm:text-base"
+                placeholder="••••••••"
+              />
+              <p className="mt-2 text-xs text-gray-500">
+                Use 8 or more characters with a mix of letters, numbers & symbols
+              </p>
+            </div>
+    
+            {error && (
+              <div className="text-red-500 text-sm py-2">
+                {error}
               </div>
+            )}
 
-              {role === 'creator' && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
-                    Creator Type
-                  </label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {['artist', 'dj', 'producer'].map((type) => (
-                      <button
-                        key={type}
-                        type="button"
-                        className={`py-2 px-2 sm:px-3 rounded-lg text-sm font-medium transition-all ${
-                          creatorType === type
-                            ? 'bg-[#FFCB2B] text-gray-900'
-                            : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50'
-                        }`}
-                        onClick={() => setCreatorType(type)}
-                      >
-                        {type.charAt(0).toUpperCase() + type.slice(1)}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </>
-          )}
+            {/* Removed role selection - all users are fans by default */}
+            <div className="text-sm text-gray-400">
+              By signing up, you'll be registered as a regular user. You can upgrade to a creator account when you're ready to upload music.
+            </div>
 
-          <div>
-            <button
-              type="submit"
-              className="w-full py-2.5 sm:py-3 px-4 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FF4D67] focus:ring-offset-gray-900 text-sm sm:text-base"
-            >
-              {isLogin ? 'Sign in' : 'Create account'}
-            </button>
-          </div>
-        </form>
+            <div>
+              <button
+                type="submit"
+                className="w-full py-2.5 sm:py-3 px-4 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FF4D67] focus:ring-offset-gray-900 text-sm sm:text-base"
+              >
+                Create account
+              </button>
+            </div>
+          </form>
+        )}
 
         <div className="mt-4 sm:mt-6">
           <div className="relative">
@@ -207,7 +346,10 @@ export default function Login() {
           <p className="text-sm text-gray-400">
             {isLogin ? "Don't have an account? " : "Already have an account? "}
             <button
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={() => {
+                setIsLogin(!isLogin)
+                setStep(1)
+              }}
               className="font-medium text-[#FF4D67] hover:text-[#FF4D67]/80 transition-colors"
             >
               {isLogin ? 'Sign up' : 'Sign in'}

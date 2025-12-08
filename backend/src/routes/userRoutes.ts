@@ -5,7 +5,8 @@ import {
   updateUser,
   deleteUser,
   approveCreator,
-  getCreatorAnalytics
+  getCreatorAnalytics,
+  upgradeToCreator // Add this import
 } from '../controllers/userController';
 import { protect, admin, creator } from '../utils/jwt';
 
@@ -26,5 +27,9 @@ router.route('/:id/approve')
 // Creator routes
 router.route('/analytics')
   .get(protect, creator, getCreatorAnalytics);
+
+// User route for upgrading to creator
+router.route('/upgrade-to-creator')
+  .put(protect, upgradeToCreator); // Users can upgrade themselves
 
 export default router;

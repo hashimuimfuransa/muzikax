@@ -11,6 +11,7 @@ interface Track {
   likes: number
   coverImage: string
   duration?: string
+  category?: string
 }
 
 export default function ForYouPage() {
@@ -26,17 +27,18 @@ export default function ForYouPage() {
       plays: 12400,
       likes: 890,
       coverImage: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '3:45'
+      duration: '3:45',
+      category: 'song'
     },
     {
       id: '2',
-      title: 'Save Your Tears',
-      artist: 'The Weeknd',
-      album: 'After Hours',
-      plays: 9800,
-      likes: 756,
-      coverImage: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '4:22'
+      title: 'Afro Trap Beat',
+      artist: 'Beat Master',
+      plays: 14200,
+      likes: 1100,
+      coverImage: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
+      duration: '2:45',
+      category: 'beats'
     },
     {
       id: '3',
@@ -46,17 +48,18 @@ export default function ForYouPage() {
       plays: 15600,
       likes: 1200,
       coverImage: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '3:18'
+      duration: '3:18',
+      category: 'song'
     },
     {
       id: '4',
-      title: 'Stay',
-      artist: 'The Kid LAROI, Justin Bieber',
-      album: 'F*CK LOVE 3',
-      plays: 8700,
-      likes: 620,
-      coverImage: 'https://images.unsplash.com/photo-1494232410401-ad00d5433cfa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '5:01'
+      title: 'Rwandan Mixtape',
+      artist: 'DJ Rwanda',
+      plays: 18700,
+      likes: 1420,
+      coverImage: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
+      duration: '45:32',
+      category: 'mixes'
     },
     {
       id: '5',
@@ -66,17 +69,18 @@ export default function ForYouPage() {
       plays: 11200,
       likes: 950,
       coverImage: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '4:33'
+      duration: '4:33',
+      category: 'song'
     },
     {
       id: '6',
-      title: 'Montero',
-      artist: 'Lil Nas X',
-      album: 'Montero',
-      plays: 2400,
-      likes: 180,
-      coverImage: 'https://images.unsplash.com/photo-1507838153414-b4b713384a76?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '3:55'
+      title: 'Urban Beats Collection',
+      artist: 'City Producer',
+      plays: 3200,
+      likes: 280,
+      coverImage: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
+      duration: '3:47',
+      category: 'beats'
     },
     {
       id: '7',
@@ -86,17 +90,18 @@ export default function ForYouPage() {
       plays: 1900,
       likes: 150,
       coverImage: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '4:12'
+      duration: '4:12',
+      category: 'song'
     },
     {
       id: '8',
-      title: 'Kiss Me More',
-      artist: 'Doja Cat ft. SZA',
-      album: 'Planet Her',
-      plays: 3200,
-      likes: 280,
-      coverImage: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '3:47'
+      title: 'Kigali Mix Session',
+      artist: 'DJ Kigali',
+      plays: 4500,
+      likes: 380,
+      coverImage: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
+      duration: '32:15',
+      category: 'mixes'
     },
     {
       id: '9',
@@ -106,7 +111,8 @@ export default function ForYouPage() {
       plays: 1500,
       likes: 95,
       coverImage: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '5:22'
+      duration: '5:22',
+      category: 'song'
     },
     {
       id: '10',
@@ -116,7 +122,8 @@ export default function ForYouPage() {
       plays: 8900,
       likes: 650,
       coverImage: 'https://images.unsplash.com/photo-1514320291841-38b60f8f72d7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '3:28'
+      duration: '3:28',
+      category: 'song'
     },
     {
       id: '11',
@@ -126,7 +133,8 @@ export default function ForYouPage() {
       plays: 12300,
       likes: 980,
       coverImage: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '4:05'
+      duration: '4:05',
+      category: 'song'
     },
     {
       id: '12',
@@ -136,7 +144,8 @@ export default function ForYouPage() {
       plays: 7600,
       likes: 520,
       coverImage: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '3:52'
+      duration: '3:52',
+      category: 'song'
     }
   ]
 
@@ -193,7 +202,14 @@ export default function ForYouPage() {
               </div>
               
               <div className="p-4">
-                <h3 className="font-bold text-white text-base mb-1 truncate">{track.title}</h3>
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="font-bold text-white text-base truncate">{track.title}</h3>
+                  {track.category && (
+                    <span className="ml-2 px-2 py-1 bg-gray-800 text-gray-300 text-xs rounded-full capitalize">
+                      {track.category}
+                    </span>
+                  )}
+                </div>
                 <p className="text-gray-400 text-sm truncate">{track.artist}</p>
                 {track.album && <p className="text-gray-500 text-xs mt-1 truncate">{track.album}</p>}
                 

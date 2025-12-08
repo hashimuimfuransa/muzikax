@@ -1,6 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '../contexts/AuthContext'
 
 interface Track {
   id: string
@@ -11,6 +14,7 @@ interface Track {
   likes: number
   coverImage: string
   duration?: string
+  category?: string
 }
 
 interface Creator {
@@ -32,8 +36,10 @@ interface Album {
 }
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<'trending' | 'new' | 'popular'>('trending')
+  const [activeTab, setActiveTab] = useState<'trending' | 'new' | 'popular' | 'beats' | 'mixes'>('trending')
   const [currentSlide, setCurrentSlide] = useState(0)
+  const { isAuthenticated, userRole } = useAuth()
+  const router = useRouter()
   
   // Hero slider images
   const heroSlides = [
@@ -79,7 +85,8 @@ export default function Home() {
       plays: 12400,
       likes: 890,
       coverImage: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '3:45'
+      duration: '3:45',
+      category: 'afrobeat'
     },
     {
       id: '2',
@@ -89,7 +96,8 @@ export default function Home() {
       plays: 9800,
       likes: 756,
       coverImage: 'https://images.unsplash.com/photo-1507838153414-b4b713384a76?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '4:22'
+      duration: '4:22',
+      category: 'traditional'
     },
     {
       id: '3',
@@ -99,7 +107,8 @@ export default function Home() {
       plays: 15600,
       likes: 1200,
       coverImage: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '3:18'
+      duration: '3:18',
+      category: 'hiphop'
     },
     {
       id: '4',
@@ -109,7 +118,8 @@ export default function Home() {
       plays: 8700,
       likes: 620,
       coverImage: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '5:01'
+      duration: '5:01',
+      category: 'rnb'
     },
     {
       id: '5',
@@ -119,7 +129,28 @@ export default function Home() {
       plays: 11200,
       likes: 950,
       coverImage: 'https://images.unsplash.com/photo-1499364615650-ec38552f4f34?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '4:33'
+      duration: '4:33',
+      category: 'gospel'
+    },
+    {
+      id: '10',
+      title: 'Afro Trap Beat',
+      artist: 'Beat Master',
+      plays: 14200,
+      likes: 1100,
+      coverImage: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
+      duration: '2:45',
+      category: 'beats'
+    },
+    {
+      id: '11',
+      title: 'Rwandan Mixtape',
+      artist: 'DJ Rwanda',
+      plays: 18700,
+      likes: 1420,
+      coverImage: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
+      duration: '45:32',
+      category: 'mixes'
     }
   ]
   
@@ -132,7 +163,8 @@ export default function Home() {
       plays: 2400,
       likes: 180,
       coverImage: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '3:55'
+      duration: '3:55',
+      category: 'afrobeat'
     },
     {
       id: '7',
@@ -142,7 +174,8 @@ export default function Home() {
       plays: 1900,
       likes: 150,
       coverImage: 'https://images.unsplash.com/photo-1494293246127-b93bfbafe4f4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '4:12'
+      duration: '4:12',
+      category: 'traditional'
     },
     {
       id: '8',
@@ -152,7 +185,8 @@ export default function Home() {
       plays: 3200,
       likes: 280,
       coverImage: 'https://images.unsplash.com/photo-1516280440080-0adbb0e4e070?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '3:47'
+      duration: '3:47',
+      category: 'hiphop'
     },
     {
       id: '9',
@@ -162,7 +196,28 @@ export default function Home() {
       plays: 1500,
       likes: 95,
       coverImage: 'https://images.unsplash.com/photo-1505228395891-9a51e7f86e1c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '5:22'
+      duration: '5:22',
+      category: 'gospel'
+    },
+    {
+      id: '12',
+      title: 'Urban Beats Collection',
+      artist: 'City Producer',
+      plays: 3200,
+      likes: 280,
+      coverImage: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
+      duration: '3:47',
+      category: 'beats'
+    },
+    {
+      id: '13',
+      title: 'Kigali Mix Session',
+      artist: 'DJ Kigali',
+      plays: 4500,
+      likes: 380,
+      coverImage: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
+      duration: '32:15',
+      category: 'mixes'
     }
   ]
   
@@ -330,62 +385,96 @@ export default function Home() {
         </div>
         
         <nav className="space-y-2">
-          <a href="#" className="flex items-center gap-3 px-4 py-3 rounded-lg bg-[#FF4D67]/10 text-white">
+          <Link href="/" className="flex items-center gap-3 px-4 py-3 rounded-lg bg-[#FF4D67]/10 text-white">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
             </svg>
             <span>Home</span>
-          </a>
+          </Link>
           
-          <a href="/explore" className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800/50 transition-colors">
+          <Link href="/explore" className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800/50 transition-colors">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
             </svg>
             <span>Explore</span>
-          </a>
+          </Link>
           
-          <a href="/upload" className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800/50 transition-colors">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-            </svg>
-            <span>Upload</span>
-          </a>
+          {/* Conditional rendering based on user role */}
+          {isAuthenticated ? (
+            userRole === 'creator' ? (
+              <Link href="/upload" className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800/50 transition-colors">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                </svg>
+                <span>Upload</span>
+              </Link>
+            ) : (
+              <button 
+                onClick={() => {
+                  // Redirect to upload page where they can upgrade
+                  router.push('/upload');
+                }}
+                className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800/50 transition-colors w-full text-left"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                </svg>
+                <span>Upload</span>
+              </button>
+            )
+          ) : (
+            <button 
+              onClick={() => {
+                // Redirect to login page
+                router.push('/login');
+              }}
+              className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800/50 transition-colors w-full text-left"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+              </svg>
+              <span>Upload</span>
+            </button>
+          )}
           
-          <a href="/dashboard" className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800/50 transition-colors">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-            </svg>
-            <span>Dashboard</span>
-          </a>
+          {/* Conditional rendering for dashboard based on user role */}
+          {(isAuthenticated && (userRole === 'creator' || userRole === 'admin')) ? (
+            <Link href="/dashboard" className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800/50 transition-colors">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+              </svg>
+              <span>Dashboard</span>
+            </Link>
+          ) : null}
         </nav>
         
         <div className="mt-8">
           <h2 className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-3">Categories</h2>
           <nav className="space-y-1">
-            <a href="#" className="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors">Afrobeat</a>
-            <a href="#" className="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors">Hip Hop</a>
-            <a href="#" className="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors">R&B</a>
-            <a href="#" className="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors">Afropop</a>
-            <a href="#" className="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors">Gospel</a>
-            <a href="#" className="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors">Traditional</a>
+            <Link href="/explore?category=afrobeat" className="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors">Afrobeat</Link>
+            <Link href="/explore?category=hiphop" className="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors">Hip Hop</Link>
+            <Link href="/explore?category=rnb" className="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors">R&B</Link>
+            <Link href="/explore?category=afropop" className="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors">Afropop</Link>
+            <Link href="/explore?category=gospel" className="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors">Gospel</Link>
+            <Link href="/explore?category=traditional" className="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors">Traditional</Link>
           </nav>
         </div>
         
         <div className="mt-8">
           <h2 className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-3">Library</h2>
           <nav className="space-y-1">
-            <a href="#" className="flex items-center gap-3 px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors">
+            <Link href="/favorites" className="flex items-center gap-3 px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
               </svg>
               <span>Favorites</span>
-            </a>
-            <a href="#" className="flex items-center gap-3 px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors">
+            </Link>
+            <Link href="/recently-played" className="flex items-center gap-3 px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
               </svg>
               <span>Recently Played</span>
-            </a>
+            </Link>
           </nav>
         </div>
       </aside>
@@ -426,11 +515,19 @@ export default function Home() {
                   onClick={() => {
                     // Primary CTA button functionality
                     if (heroSlides[currentSlide].cta === 'Explore Music') {
-                      window.location.href = '/explore';
+                      router.push('/explore');
                     } else if (heroSlides[currentSlide].cta === 'Upload Track') {
-                      window.location.href = '/upload';
+                      // Check authentication and role before allowing upload
+                      if (!isAuthenticated) {
+                        router.push('/login');
+                      } else if (userRole === 'creator') {
+                        router.push('/upload');
+                      } else {
+                        // Fans can upgrade to creator, redirect to upload page
+                        router.push('/upload');
+                      }
                     } else {
-                      window.location.href = '/dashboard';
+                      router.push('/');
                     }
                   }}
                 >
@@ -602,6 +699,96 @@ export default function Home() {
           </div>
         </section>
 
+        {/* Popular Beats Section */}
+        <section className="w-full px-4 md:px-8 py-8 sm:py-10">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-white">Popular Beats</h2>
+            <a href="/tracks?category=beats" className="text-[#FF4D67] hover:text-[#FFCB2B] text-sm sm:text-base transition-colors">
+              View All
+            </a>
+          </div>
+          
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {trendingTracks.filter(track => track.category === 'beats').slice(0, 6).map((track) => (
+              <div key={track.id} className="group card-bg rounded-xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10">
+                <div className="relative">
+                  <img 
+                    src={track.coverImage} 
+                    alt={track.title} 
+                    className="w-full aspect-square object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <button className="w-10 h-10 sm:w-12 sm:h-12 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="p-3">
+                  <h3 className="font-bold text-white text-sm sm:text-base mb-1 truncate">{track.title}</h3>
+                  <p className="text-gray-400 text-xs sm:text-sm truncate">{track.artist}</p>
+                  <div className="flex justify-between items-center mt-2">
+                    <span className="text-gray-500 text-xs">{track.duration}</span>
+                    <div className="flex items-center gap-1">
+                      <svg className="w-3 h-3 sm:w-4 sm:h-4 text-[#FF4D67]" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd"></path>
+                      </svg>
+                      <span className="text-gray-500 text-xs">{track.likes}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Popular Mixes Section */}
+        <section className="w-full px-4 md:px-8 py-8 sm:py-10">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-white">Popular Mixes</h2>
+            <a href="/tracks?category=mixes" className="text-[#FF4D67] hover:text-[#FFCB2B] text-sm sm:text-base transition-colors">
+              View All
+            </a>
+          </div>
+          
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {trendingTracks.filter(track => track.category === 'mixes').slice(0, 6).map((track) => (
+              <div key={track.id} className="group card-bg rounded-xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10">
+                <div className="relative">
+                  <img 
+                    src={track.coverImage} 
+                    alt={track.title} 
+                    className="w-full aspect-square object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <button className="w-10 h-10 sm:w-12 sm:h-12 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="p-3">
+                  <h3 className="font-bold text-white text-sm sm:text-base mb-1 truncate">{track.title}</h3>
+                  <p className="text-gray-400 text-xs sm:text-sm truncate">{track.artist}</p>
+                  <div className="flex justify-between items-center mt-2">
+                    <span className="text-gray-500 text-xs">{track.duration}</span>
+                    <div className="flex items-center gap-1">
+                      <svg className="w-3 h-3 sm:w-4 sm:h-4 text-[#FF4D67]" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd"></path>
+                      </svg>
+                      <span className="text-gray-500 text-xs">{track.likes}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
         {/* Music Lists */}
         <section className="w-full px-4 md:px-8 py-8 sm:py-10 pb-8">
           {/* Tabs */}
@@ -636,6 +823,26 @@ export default function Home() {
                 onClick={() => setActiveTab('popular')}
               >
                 Popular Creators
+              </button>
+              <button
+                className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors whitespace-nowrap ${
+                  activeTab === 'beats'
+                    ? 'text-[#FF4D67] border-b-2 border-[#FF4D67]'
+                    : 'text-gray-500 hover:text-gray-300'
+                }`}
+                onClick={() => setActiveTab('beats')}
+              >
+                Beats
+              </button>
+              <button
+                className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors whitespace-nowrap ${
+                  activeTab === 'mixes'
+                    ? 'text-[#FF4D67] border-b-2 border-[#FF4D67]'
+                    : 'text-gray-500 hover:text-gray-300'
+                }`}
+                onClick={() => setActiveTab('mixes')}
+              >
+                Mixes
               </button>
               <a 
                 href="/tracks" 
@@ -776,6 +983,100 @@ export default function Home() {
                     <button className="px-3 py-1.5 sm:px-4 sm:py-2 bg-transparent border border-[#FFCB2B] text-[#FFCB2B] hover:bg-[#FFCB2B]/10 rounded-full text-xs sm:text-sm font-medium transition-colors">
                       Follow
                     </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Beats */}
+          {activeTab === 'beats' && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              {trendingTracks.slice(0, 6).map((track) => (
+                <div key={track.id} className="group card-bg rounded-2xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10">
+                  <div className="relative">
+                    <img 
+                      src={track.coverImage} 
+                      alt={track.title} 
+                      className="w-full h-40 sm:h-48 object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <button className="w-12 h-12 sm:w-14 sm:h-14 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+                        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
+                        </svg>
+                      </button>
+                    </div>
+                    <div className="absolute top-2 right-2 sm:top-3 sm:right-3">
+                      <button className="p-1.5 sm:p-2 rounded-full bg-black/30 backdrop-blur-sm text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                        <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="p-4 sm:p-5">
+                    <h3 className="font-bold text-white text-lg mb-1 truncate">{track.title}</h3>
+                    <p className="text-gray-400 text-sm sm:text-base mb-1 truncate">{track.artist}</p>
+                    {track.album && <p className="text-gray-500 text-xs sm:text-sm mb-3 truncate">{track.album}</p>}
+                    
+                    <div className="flex justify-between text-xs sm:text-sm text-gray-500">
+                      <span>{track.plays.toLocaleString()} plays</span>
+                      <div className="flex items-center gap-1">
+                        <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                          <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd"></path>
+                        </svg>
+                        <span>{track.likes}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Mixes */}
+          {activeTab === 'mixes' && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              {newTracks.slice(0, 6).map((track) => (
+                <div key={track.id} className="group card-bg rounded-2xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10">
+                  <div className="relative">
+                    <img 
+                      src={track.coverImage} 
+                      alt={track.title} 
+                      className="w-full h-40 sm:h-48 object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <button className="w-12 h-12 sm:w-14 sm:h-14 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+                        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
+                        </svg>
+                      </button>
+                    </div>
+                    <div className="absolute top-2 right-2 sm:top-3 sm:right-3">
+                      <button className="p-1.5 sm:p-2 rounded-full bg-black/30 backdrop-blur-sm text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                        <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="p-4 sm:p-5">
+                    <h3 className="font-bold text-white text-lg mb-1 truncate">{track.title}</h3>
+                    <p className="text-gray-400 text-sm sm:text-base mb-1 truncate">{track.artist}</p>
+                    {track.album && <p className="text-gray-500 text-xs sm:text-sm mb-3 truncate">{track.album}</p>}
+                    
+                    <div className="flex justify-between text-xs sm:text-sm text-gray-500">
+                      <span>{track.plays.toLocaleString()} plays</span>
+                      <div className="flex items-center gap-1">
+                        <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                          <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd"></path>
+                        </svg>
+                        <span>{track.likes}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}

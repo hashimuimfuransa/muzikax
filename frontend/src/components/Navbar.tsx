@@ -2,9 +2,22 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '../contexts/AuthContext'
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const { isAuthenticated, userRole, logout } = useAuth()
+  const router = useRouter()
+  const [searchQuery, setSearchQuery] = useState('') // Add search state
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (searchQuery.trim()) {
+      // Navigate to search results page with query parameter
+      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
+    }
+  }
 
   return (
     <nav className="bg-gray-900/80 backdrop-blur-lg border-b border-gray-800 sticky top-0 z-40">
@@ -26,29 +39,90 @@ export default function Navbar() {
               <Link href="/explore" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">
                 Explore
               </Link>
-              <Link href="/upload" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">
+              
+              {/* Search Bar */}
+              <form onSubmit={handleSearch} className="relative">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search music, artists, albums..."
+                  className="w-48 sm:w-64 px-4 py-1.5 sm:py-2 bg-gray-800/50 border border-gray-700 rounded-full text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent text-sm transition-all"
+                />
+                <button 
+                  type="submit"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                  </svg>
+                </button>
+              </form>
+              
+              {/* Upload button for all users with proper navigation */}
+              <button 
+                onClick={() => {
+                  if (!isAuthenticated) {
+                    // If not authenticated, go to login
+                    router.push('/login');
+                  } else if (userRole === 'creator') {
+                    // If already a creator, go to upload
+                    router.push('/upload');
+                  } else {
+                    // If authenticated but not a creator, go to upload to upgrade
+                    router.push('/upload');
+                  }
+                }}
+                className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base bg-transparent border-none cursor-pointer"
+              >
                 Upload
-              </Link>
-              <Link href="/dashboard" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">
-                Dashboard
-              </Link>
+              </button>
             </div>
           </div>
 
           {/* Auth Buttons */}
           <div className="hidden md:block">
             <div className="flex items-center space-x-3 sm:space-x-4">
-              <Link href="/login" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">
-                Login
-              </Link>
-              <Link href="/login" className="px-3 py-1.5 sm:px-4 sm:py-2 btn-primary text-sm">
-                Sign Up
-              </Link>
+              {isAuthenticated ? (
+                <>
+                  <Link href="/profile" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">
+                    Profile
+                  </Link>
+                  <button 
+                    onClick={() => {
+                      logout();
+                      router.push('/');
+                    }}
+                    className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base bg-transparent border-none cursor-pointer"
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link href="/login" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">
+                    Login
+                  </Link>
+                  <Link href="/login" className="px-3 py-1.5 sm:px-4 sm:py-2 btn-primary text-sm">
+                    Sign Up
+                  </Link>
+                </>
+              )}
             </div>
           </div>
 
           {/* Mobile menu button */}
-          <div className="md:hidden flex items-center">
+          <div className="md:hidden flex items-center space-x-2">
+            {/* Search icon for mobile */}
+            <button
+              onClick={() => router.push('/search')}
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white focus:outline-none"
+            >
+              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+            </button>
+            
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white focus:outline-none"
@@ -85,20 +159,51 @@ export default function Navbar() {
           <Link href="/explore" className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800">
             Explore
           </Link>
-          <Link href="/upload" className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800">
+          {/* Upload button for all users with proper navigation */}
+          <button 
+            onClick={() => {
+              if (!isAuthenticated) {
+                // If not authenticated, go to login
+                router.push('/login');
+              } else if (userRole === 'creator') {
+                // If already a creator, go to upload
+                router.push('/upload');
+              } else {
+                // If authenticated but not a creator, go to upload to upgrade
+                router.push('/upload');
+              }
+            }}
+            className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800 w-full text-left bg-transparent border-none cursor-pointer"
+          >
             Upload
-          </Link>
-          <Link href="/dashboard" className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800">
-            Dashboard
-          </Link>
+          </button>
           <div className="pt-4 pb-3 border-t border-gray-800">
             <div className="flex items-center px-5">
-              <Link href="/login" className="w-full text-center px-4 py-2 text-base font-medium text-gray-300 hover:text-white">
-                Login
-              </Link>
-              <Link href="/login" className="w-full text-center ml-3 px-4 py-2 btn-primary">
-                Sign Up
-              </Link>
+              {isAuthenticated ? (
+                <>
+                  <Link href="/profile" className="w-full text-center px-4 py-2 text-base font-medium text-gray-300 hover:text-white">
+                    Profile
+                  </Link>
+                  <button 
+                    onClick={() => {
+                      logout();
+                      router.push('/');
+                    }}
+                    className="w-full text-center px-4 py-2 text-base font-medium text-gray-300 hover:text-white bg-transparent border-none cursor-pointer"
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link href="/login" className="w-full text-center px-4 py-2 text-base font-medium text-gray-300 hover:text-white">
+                    Login
+                  </Link>
+                  <Link href="/login" className="w-full text-center ml-3 px-4 py-2 btn-primary">
+                    Sign Up
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>

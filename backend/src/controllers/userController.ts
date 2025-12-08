@@ -83,6 +83,49 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
   }
 };
 
+// Upgrade user to creator (user can upgrade themselves)
+export const upgradeToCreator = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = (req as any).user._id;
+    const { creatorType } = req.body;
+
+    // Validate creatorType
+    const validCreatorTypes = ['artist', 'dj', 'producer'];
+    if (!creatorType || !validCreatorTypes.includes(creatorType)) {
+      res.status(400).json({ message: 'Valid creatorType is required: artist, dj, or producer' });
+      return;
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      res.status(404).json({ message: 'User not found' });
+      return;
+    }
+
+    // Update user role and creatorType
+    user.role = 'creator';
+    user.creatorType = creatorType;
+
+    const updatedUser = await user.save();
+
+    res.json({
+      _id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      role: updatedUser.role,
+      creatorType: updatedUser.creatorType,
+      avatar: updatedUser.avatar,
+      bio: updatedUser.bio,
+      followersCount: updatedUser.followersCount,
+      socials: updatedUser.socials,
+      createdAt: updatedUser.createdAt
+    });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // Delete user (admin only)
 export const deleteUser = async (req: Request, res: Response): Promise<void> => {
   try {

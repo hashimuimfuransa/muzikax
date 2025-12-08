@@ -1,7 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useState } from 'react'
 
 interface Track {
   id: string
@@ -10,8 +9,6 @@ interface Track {
   plays: number
   likes: number
   coverImage: string
-  category: string
-  duration?: string
 }
 
 interface Creator {
@@ -20,46 +17,20 @@ interface Creator {
   type: string
   followers: number
   avatar: string
-  verified?: boolean
 }
-
-const categories = [
-  { id: 'afrobeat', name: 'Afrobeat' },
-  { id: 'hiphop', name: 'Hip Hop' },
-  { id: 'rnb', name: 'R&B' },
-  { id: 'afropop', name: 'Afropop' },
-  { id: 'gospel', name: 'Gospel' },
-  { id: 'traditional', name: 'Traditional' },
-  { id: 'beats', name: 'Beats' },
-  { id: 'mixes', name: 'Mixes' }
-]
 
 export default function Explore() {
   const [activeTab, setActiveTab] = useState<'tracks' | 'creators'>('tracks')
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
-  const searchParams = useSearchParams()
-  const router = useRouter()
   
-  // Get category from URL params
-  const categoryParam = searchParams.get('category')
-  
-  useEffect(() => {
-    if (categoryParam) {
-      setSelectedCategory(categoryParam)
-    }
-  }, [categoryParam])
-  
-  // Mock data with categories
-  const allTracks: Track[] = [
+  // Mock data
+  const tracks: Track[] = [
     {
       id: '1',
       title: 'Rwandan Vibes',
       artist: 'Kizito M',
       plays: 12400,
       likes: 890,
-      coverImage: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      category: 'afrobeat',
-      duration: '3:45'
+      coverImage: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'
     },
     {
       id: '2',
@@ -67,9 +38,7 @@ export default function Explore() {
       artist: 'Divine Ikirezi',
       plays: 9800,
       likes: 756,
-      coverImage: 'https://images.unsplash.com/photo-1507838153414-b4b713384a76?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      category: 'traditional',
-      duration: '4:22'
+      coverImage: 'https://images.unsplash.com/photo-1507838153414-b4b713384a76?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'
     },
     {
       id: '3',
@@ -77,122 +46,33 @@ export default function Explore() {
       artist: 'Benji Flavours',
       plays: 15600,
       likes: 1200,
-      coverImage: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      category: 'hiphop',
-      duration: '3:18'
-    },
-    {
-      id: '4',
-      title: 'Sunset Dreams',
-      artist: 'Remy Kayitesi',
-      plays: 8700,
-      likes: 620,
-      coverImage: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      category: 'rnb',
-      duration: '5:01'
-    },
-    {
-      id: '5',
-      title: 'Holy Spirit',
-      artist: 'Gloria Muhire',
-      plays: 22400,
-      likes: 1890,
-      coverImage: 'https://images.unsplash.com/photo-1494232410401-ad00d5433cfa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      category: 'gospel',
-      duration: '4:33'
-    },
-    {
-      id: '6',
-      title: 'Urban Dreams',
-      artist: 'DJ Kigali',
-      plays: 19800,
-      likes: 1560,
-      coverImage: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      category: 'afrobeat',
-      duration: '3:55'
-    },
-    {
-      id: '7',
-      title: 'Afro Trap Beat',
-      artist: 'Beat Master',
-      plays: 14200,
-      likes: 1100,
-      coverImage: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      category: 'beats',
-      duration: '2:45'
-    },
-    {
-      id: '8',
-      title: 'Rwandan Mixtape',
-      artist: 'DJ Rwanda',
-      plays: 18700,
-      likes: 1420,
-      coverImage: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      category: 'mixes',
-      duration: '45:32'
+      coverImage: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'
     }
   ]
-
-  const allCreators: Creator[] = [
+  
+  const creators: Creator[] = [
     {
       id: '1',
       name: 'Kizito M',
       type: 'Artist',
       followers: 12500,
-      avatar: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      verified: true
+      avatar: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'
     },
     {
       id: '2',
       name: 'Divine Ikirezi',
       type: 'Producer',
       followers: 8900,
-      avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      verified: true
+      avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'
     },
     {
       id: '3',
       name: 'Benji Flavours',
       type: 'DJ',
       followers: 15600,
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      verified: true
-    },
-    {
-      id: '4',
-      name: 'Remy Kayitesi',
-      type: 'Artist',
-      followers: 7200,
       avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'
-    },
-    {
-      id: '5',
-      name: 'Gloria Muhire',
-      type: 'Artist',
-      followers: 9800,
-      avatar: 'https://images.unsplash.com/photo-1494232410401-ad00d5433cfa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'
     }
   ]
-
-  // Filter tracks based on selected category
-  const filteredTracks = selectedCategory 
-    ? allTracks.filter(track => track.category === selectedCategory)
-    : allTracks
-
-  // Filter creators based on selected category (for demo, we'll show all creators regardless of category)
-  const filteredCreators = allCreators
-
-  const handleCategoryClick = (categoryId: string) => {
-    if (selectedCategory === categoryId) {
-      // If clicking the same category, clear the filter
-      setSelectedCategory(null)
-      router.push('/explore')
-    } else {
-      // Set the new category filter
-      setSelectedCategory(categoryId)
-      router.push(`/explore?category=${categoryId}`)
-    }
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black">
@@ -233,38 +113,8 @@ export default function Explore() {
         </div>
       </div>
 
-      {/* Category Filters */}
-      <div className="container mx-auto px-4 sm:px-8 py-4">
-        <div className="flex flex-wrap gap-2 sm:gap-3">
-          <button
-            className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-colors ${
-              selectedCategory === null
-                ? 'bg-[#FF4D67] text-white'
-                : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50'
-            }`}
-            onClick={() => handleCategoryClick('')}
-          >
-            All Categories
-          </button>
-          
-          {categories.map((category) => (
-            <button
-              key={category.id}
-              className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-colors ${
-                selectedCategory === category.id
-                  ? 'bg-[#FF4D67] text-white'
-                  : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50'
-              }`}
-              onClick={() => handleCategoryClick(category.id)}
-            >
-              {category.name}
-            </button>
-          ))}
-        </div>
-      </div>
-
       {/* Content Tabs */}
-      <div className="container mx-auto px-4 sm:px-8 py-8 sm:py-12 md:py-16 pb-32 flex-1">
+      <div className="container mx-auto px-4 sm:px-8 py-12 sm:py-16 md:py-20 pb-32 flex-1">
         <div className="flex border-b border-gray-800 mb-8 sm:mb-10">
           <button
             className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors ${
@@ -291,7 +141,7 @@ export default function Explore() {
         {/* Tracks Grid */}
         {activeTab === 'tracks' && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
-            {filteredTracks.map((track) => (
+            {tracks.map((track) => (
               <div key={track.id} className="group card-bg rounded-2xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10">
                 <div className="relative">
                   <img 
@@ -337,7 +187,7 @@ export default function Explore() {
         {/* Creators Grid */}
         {activeTab === 'creators' && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
-            {filteredCreators.map((creator) => (
+            {creators.map((creator) => (
               <div key={creator.id} className="group card-bg rounded-2xl p-4 sm:p-6 transition-all duration-300 hover:border-[#FFCB2B]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FFCB2B]/10">
                 <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-5">
                   <div className="relative">
@@ -346,9 +196,7 @@ export default function Explore() {
                       alt={creator.name} 
                       className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover"
                     />
-                    {creator.verified && (
-                      <div className="absolute bottom-0 right-0 w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-[#FF4D67] border-2 border-gray-900"></div>
-                    )}
+                    <div className="absolute bottom-0 right-0 w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-[#FF4D67] border-2 border-gray-900"></div>
                   </div>
                   <div>
                     <h3 className="font-bold text-white text-base sm:text-lg">{creator.name}</h3>
