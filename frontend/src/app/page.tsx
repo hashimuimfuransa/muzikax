@@ -41,21 +41,21 @@ export default function Home() {
       id: 1,
       title: "Discover Rwandan Music",
       subtitle: "Explore the vibrant sounds of Rwanda",
-      image: "/placeholder-track.jpg",
+      image: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
       cta: "Explore Music"
     },
     {
       id: 2,
       title: "Share Your Talent",
       subtitle: "Upload your music and connect with fans",
-      image: "/placeholder-avatar.jpg",
+      image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
       cta: "Upload Track"
     },
     {
       id: 3,
       title: "Join Our Community",
       subtitle: "Connect with creators and music lovers",
-      image: "/placeholder-track.jpg",
+      image: "https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
       cta: "Join Now"
     }
   ]
@@ -78,7 +78,7 @@ export default function Home() {
       album: 'East African Dreams',
       plays: 12400,
       likes: 890,
-      coverImage: '/placeholder-track.jpg',
+      coverImage: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
       duration: '3:45'
     },
     {
@@ -88,7 +88,7 @@ export default function Home() {
       album: 'Nature Sounds',
       plays: 9800,
       likes: 756,
-      coverImage: '/placeholder-track.jpg',
+      coverImage: 'https://images.unsplash.com/photo-1507838153414-b4b713384a76?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
       duration: '4:22'
     },
     {
@@ -98,7 +98,7 @@ export default function Home() {
       album: 'Urban Nights',
       plays: 15600,
       likes: 1200,
-      coverImage: '/placeholder-track.jpg',
+      coverImage: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
       duration: '3:18'
     },
     {
@@ -108,7 +108,7 @@ export default function Home() {
       album: 'Golden Hour',
       plays: 8700,
       likes: 620,
-      coverImage: '/placeholder-track.jpg',
+      coverImage: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
       duration: '5:01'
     },
     {
@@ -118,7 +118,7 @@ export default function Home() {
       album: 'Water Reflections',
       plays: 11200,
       likes: 950,
-      coverImage: '/placeholder-track.jpg',
+      coverImage: 'https://images.unsplash.com/photo-1499364615650-ec38552f4f34?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
       duration: '4:33'
     }
   ]
@@ -131,7 +131,7 @@ export default function Home() {
       album: 'Capital Chronicles',
       plays: 2400,
       likes: 180,
-      coverImage: '/placeholder-track.jpg',
+      coverImage: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
       duration: '3:55'
     },
     {
@@ -141,7 +141,7 @@ export default function Home() {
       album: 'Village Tales',
       plays: 1900,
       likes: 150,
-      coverImage: '/placeholder-track.jpg',
+      coverImage: 'https://images.unsplash.com/photo-1494293246127-b93bfbafe4f4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
       duration: '4:12'
     },
     {
@@ -151,7 +151,7 @@ export default function Home() {
       album: 'Fire & Earth',
       plays: 3200,
       likes: 280,
-      coverImage: '/placeholder-track.jpg',
+      coverImage: 'https://images.unsplash.com/photo-1516280440080-0adbb0e4e070?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
       duration: '3:47'
     },
     {
@@ -161,7 +161,7 @@ export default function Home() {
       album: 'Wildlife Symphony',
       plays: 1500,
       likes: 95,
-      coverImage: '/placeholder-track.jpg',
+      coverImage: 'https://images.unsplash.com/photo-1505228395891-9a51e7f86e1c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
       duration: '5:22'
     }
   ]
@@ -172,7 +172,7 @@ export default function Home() {
       name: 'Kizito M',
       type: 'Artist',
       followers: 12500,
-      avatar: '/placeholder-avatar.jpg',
+      avatar: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
       verified: true
     },
     {
@@ -180,7 +180,7 @@ export default function Home() {
       name: 'Divine Ikirezi',
       type: 'Producer',
       followers: 8900,
-      avatar: '/placeholder-avatar.jpg',
+      avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
       verified: true
     },
     {
@@ -188,7 +188,7 @@ export default function Home() {
       name: 'Benji Flavours',
       type: 'DJ',
       followers: 15600,
-      avatar: '/placeholder-avatar.jpg',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
       verified: true
     },
     {
@@ -196,7 +196,7 @@ export default function Home() {
       name: 'Remy Kayitesi',
       type: 'Artist',
       followers: 9800,
-      avatar: '/placeholder-avatar.jpg',
+      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
       verified: false
     },
     {
@@ -204,7 +204,7 @@ export default function Home() {
       name: 'Theophile J',
       type: 'Songwriter',
       followers: 7600,
-      avatar: '/placeholder-avatar.jpg',
+      avatar: 'https://images.unsplash.com/photo-1552058544-f2b08422138a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
       verified: true
     },
     {
@@ -212,7 +212,7 @@ export default function Home() {
       name: 'Urban Sound',
       type: 'Band',
       followers: 22400,
-      avatar: '/placeholder-avatar.jpg',
+      avatar: 'https://images.unsplash.com/photo-1503443207922-dff7d543fd0e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
       verified: true
     }
   ]
@@ -222,7 +222,7 @@ export default function Home() {
       id: '1',
       title: 'East African Dreams',
       artist: 'Kizito M',
-      coverImage: '/placeholder-album.jpg',
+      coverImage: 'https://images.unsplash.com/photo-1494232410401-ad00d5433cfa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
       year: 2024,
       tracks: 12
     },
@@ -230,7 +230,7 @@ export default function Home() {
       id: '2',
       title: 'Urban Nights',
       artist: 'Benji Flavours',
-      coverImage: '/placeholder-album.jpg',
+      coverImage: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
       year: 2023,
       tracks: 10
     },
@@ -238,7 +238,7 @@ export default function Home() {
       id: '3',
       title: 'Nature Sounds',
       artist: 'Divine Ikirezi',
-      coverImage: '/placeholder-album.jpg',
+      coverImage: 'https://images.unsplash.com/photo-1507838153414-b4b713384a76?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
       year: 2024,
       tracks: 8
     },
@@ -246,7 +246,7 @@ export default function Home() {
       id: '4',
       title: 'Capital Chronicles',
       artist: 'Urban Sound',
-      coverImage: '/placeholder-album.jpg',
+      coverImage: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
       year: 2023,
       tracks: 15
     },
@@ -254,7 +254,7 @@ export default function Home() {
       id: '5',
       title: 'Golden Hour',
       artist: 'Remy Kayitesi',
-      coverImage: '/placeholder-album.jpg',
+      coverImage: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
       year: 2024,
       tracks: 11
     },
@@ -262,7 +262,7 @@ export default function Home() {
       id: '6',
       title: 'Village Tales',
       artist: 'Peace M',
-      coverImage: '/placeholder-album.jpg',
+      coverImage: 'https://images.unsplash.com/photo-1494293246127-b93bfbafe4f4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
       year: 2023,
       tracks: 9
     }
@@ -277,7 +277,7 @@ export default function Home() {
       album: 'East African Dreams',
       plays: 8900,
       likes: 650,
-      coverImage: '/placeholder-track.jpg',
+      coverImage: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
       duration: '3:28'
     },
     {
@@ -287,7 +287,7 @@ export default function Home() {
       album: 'Urban Nights',
       plays: 12300,
       likes: 980,
-      coverImage: '/placeholder-track.jpg',
+      coverImage: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
       duration: '4:05'
     },
     {
@@ -297,7 +297,7 @@ export default function Home() {
       album: 'Nature Sounds',
       plays: 7600,
       likes: 520,
-      coverImage: '/placeholder-track.jpg',
+      coverImage: 'https://images.unsplash.com/photo-1507838153414-b4b713384a76?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
       duration: '3:52'
     },
     {
@@ -307,7 +307,7 @@ export default function Home() {
       album: 'Capital Chronicles',
       plays: 15600,
       likes: 1320,
-      coverImage: '/placeholder-track.jpg',
+      coverImage: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
       duration: '4:18'
     }
   ]
@@ -393,7 +393,7 @@ export default function Home() {
       {/* Main Content Area - This takes remaining space, offset for fixed sidebar */}
       <main className="flex-1 flex flex-col w-full min-h-screen md:ml-64">
         {/* Enhanced Hero Section with Image Slider */}
-        <section className="relative py-12 md:py-20 lg:py-28 overflow-hidden w-full">
+        <section className="relative py-8 md:py-12 lg:py-16 overflow-hidden w-full">
           <div className="absolute inset-0">
             {heroSlides.map((slide, index) => (
               <div 
@@ -470,7 +470,7 @@ export default function Home() {
         <section className="w-full px-4 md:px-8 py-8 sm:py-10">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl sm:text-2xl font-bold text-white">For You</h2>
-            <a href="#" className="text-[#FF4D67] hover:text-[#FFCB2B] text-sm sm:text-base transition-colors">
+            <a href="/foryou" className="text-[#FF4D67] hover:text-[#FFCB2B] text-sm sm:text-base transition-colors">
               View All
             </a>
           </div>
@@ -506,7 +506,7 @@ export default function Home() {
         <section className="w-full px-4 md:px-8 py-8 sm:py-10">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl sm:text-2xl font-bold text-white">Popular Artists</h2>
-            <a href="#" className="text-[#FF4D67] hover:text-[#FFCB2B] text-sm sm:text-base transition-colors">
+            <a href="/artists" className="text-[#FF4D67] hover:text-[#FFCB2B] text-sm sm:text-base transition-colors">
               View All
             </a>
           </div>
@@ -547,7 +547,7 @@ export default function Home() {
         <section className="w-full px-4 md:px-8 py-8 sm:py-10">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl sm:text-2xl font-bold text-white">Popular Albums</h2>
-            <a href="#" className="text-[#FF4D67] hover:text-[#FFCB2B] text-sm sm:text-base transition-colors">
+            <a href="/albums" className="text-[#FF4D67] hover:text-[#FFCB2B] text-sm sm:text-base transition-colors">
               View All
             </a>
           </div>
@@ -618,6 +618,15 @@ export default function Home() {
               >
                 Popular Creators
               </button>
+              <a 
+                href="/tracks" 
+                className="py-3 px-4 sm:px-6 font-medium text-sm sm:text-base text-[#FF4D67] hover:text-[#FFCB2B] transition-colors whitespace-nowrap flex items-center"
+              >
+                View All
+                <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+              </a>
             </div>
           </div>
 
