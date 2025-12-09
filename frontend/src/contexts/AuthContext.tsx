@@ -18,12 +18,14 @@ interface AuthContextType {
   updateProfile: (updatedData: Partial<User>) => void
   isAuthenticated: boolean
   userRole: 'fan' | 'creator' | 'admin' | null
+  isLoading: boolean // Add loading state
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
+  const [isLoading, setIsLoading] = useState(true) // Add loading state
 
   useEffect(() => {
     // Check if user data exists in localStorage
@@ -38,6 +40,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.error('Error parsing user data:', error)
       }
     }
+    // Set loading to false after checking localStorage
+    setIsLoading(false)
   }, [])
 
   const login = (userData: User) => {
@@ -48,34 +52,103 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     console.log('AuthProvider - logout called');
-    setUser(null)
-    localStorage.removeItem('user')
-    localStorage.removeItem('accessToken')
-  }
+    setUser(null);
+    localStorage.removeItem('user');
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+  };
 
   const upgradeToCreator = async (creatorType: 'artist' | 'dj' | 'producer'): Promise<boolean> => {
     if (!user) {
+      console.error('No user found for upgrade');
       return false;
     }
 
     try {
-      // Make API call to upgrade user to creator
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/upgrade-to-creator`, {
+      // Log the upgrade attempt
+      console.log('Attempting to upgrade to creator:', { creatorType });
+      
+      // Get access token from localStorage
+      let accessToken = localStorage.getItem('accessToken');
+      
+      // Check if token exists
+      if (!accessToken) {
+        console.error('No access token found');
+        alert('Authentication error. Please log in again.');
+        logout(); // Clear user data and redirect to login
+        return false;
+      }
+
+      // Make API call to upgrade user to creator (using new endpoint)
+      let response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upgrade/to-creator`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          'Authorization': `Bearer ${accessToken}`
         },
         body: JSON.stringify({ creatorType })
       });
 
+      console.log('Upgrade response status:', response.status);
+
+      // If token is expired, try to refresh it
+      if (response.status === 401) {
+        console.log('Token might be expired, attempting to refresh...');
+        
+        const refreshToken = localStorage.getItem('refreshToken');
+        if (refreshToken) {
+          // Try to refresh the token
+          const refreshResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh-token`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ refreshToken })
+          });
+          
+          if (refreshResponse.ok) {
+            const refreshData = await refreshResponse.json();
+            // Save new tokens
+            localStorage.setItem('accessToken', refreshData.accessToken);
+            localStorage.setItem('refreshToken', refreshData.refreshToken);
+            
+            // Retry the original request with new token
+            accessToken = refreshData.accessToken;
+            response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upgrade/to-creator`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`
+              },
+              body: JSON.stringify({ creatorType })
+            });
+          } else {
+            // Refresh failed, force logout
+            console.error('Token refresh failed');
+            alert('Session expired. Please log in again.');
+            logout();
+            return false;
+          }
+        } else {
+          // No refresh token available, force logout
+          console.error('No refresh token found');
+          alert('Session expired. Please log in again.');
+          logout();
+          return false;
+        }
+      }
+
       if (!response.ok) {
         const errorData = await response.json();
         console.error('Failed to upgrade to creator:', errorData.message);
+        
+        // Show error to user
+        alert(`Upgrade failed: ${errorData.message || 'Unknown error'}`);
         return false;
       }
 
       const updatedUserData = await response.json();
+      console.log('Upgrade successful:', updatedUserData);
       
       // Update user in context and localStorage
       setUser(updatedUserData);
@@ -84,6 +157,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return true;
     } catch (error) {
       console.error('Error upgrading to creator:', error);
+      alert('An error occurred while upgrading your account. Please try again.');
       return false;
     }
   };
@@ -104,11 +178,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   
   // Debug logging
   useEffect(() => {
-    console.log('AuthContext values:', { user, isAuthenticated, userRole });
-  }, [user, isAuthenticated, userRole]);
+    console.log('AuthContext values:', { user, isAuthenticated, userRole, isLoading });
+  }, [user, isAuthenticated, userRole, isLoading]);
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, upgradeToCreator, updateProfile, isAuthenticated, userRole }}>
+    <AuthContext.Provider value={{ user, login, logout, upgradeToCreator, updateProfile, isAuthenticated, userRole, isLoading }}>
       {children}
     </AuthContext.Provider>
   )

@@ -8,6 +8,11 @@ import authRoutes from './routes/authRoutes';
 import trackRoutes from './routes/trackRoutes';
 import userRoutes from './routes/userRoutes';
 import adminRoutes from './routes/adminRoutes';
+import upgradeRoutes from './routes/upgradeRoutes';
+
+console.log('ROUTES IMPORTED');
+
+console.log('APP FILE LOADED');
 
 // Load env vars
 dotenv.config();
@@ -16,6 +21,15 @@ dotenv.config();
 connectDB();
 
 const app = express();
+
+console.log('APP CREATED');
+
+// Add request logging middleware
+app.use((_req, _res, next) => {
+  console.log(`APP MIDDLEWARE - Incoming request: ${_req.method} ${_req.originalUrl}`);
+  console.log('Headers:', _req.headers);
+  next();
+});
 
 // Middleware
 app.use(helmet());
@@ -32,8 +46,11 @@ app.use('/api/auth', authRoutes);
 console.log('Auth routes registered');
 app.use('/api/tracks', trackRoutes);
 console.log('Tracks routes registered');
+console.log('Registering user routes...');
 app.use('/api/users', userRoutes);
 console.log('Users routes registered');
+app.use('/api/upgrade', upgradeRoutes);
+console.log('Upgrade routes registered');
 
 // Add detailed logging for admin routes
 console.log('Attempting to register admin routes...');
@@ -46,7 +63,14 @@ try {
 
 // Health check
 app.get('/health', (_req: express.Request, res: express.Response) => {
+  console.log('HEALTH CHECK ROUTE HIT');
   res.status(200).json({ message: 'OK', timestamp: new Date().toISOString() });
+});
+
+// Simple test route
+app.get('/test-direct', (_req, res) => {
+  console.log('DIRECT TEST ROUTE HIT');
+  res.json({ message: 'Direct test route working' });
 });
 
 // Error handler

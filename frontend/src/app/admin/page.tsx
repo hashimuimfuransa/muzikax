@@ -42,19 +42,27 @@ export default function AdminDashboard() {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [authChecked, setAuthChecked] = useState(false)
 
   // Check authentication and role on component mount
   useEffect(() => {
-    if (!isAuthenticated) {
-      // If not authenticated, redirect to login
-      router.push('/login')
-    } else if (userRole !== 'admin') {
-      // If authenticated but not an admin, redirect to home
-      router.push('/')
-    } else {
-      // Fetch admin data
-      fetchAdminData()
-    }
+    // Small delay to ensure AuthContext has time to initialize
+    const timer = setTimeout(() => {
+      setAuthChecked(true)
+      
+      if (!isAuthenticated) {
+        // If not authenticated, redirect to login
+        router.push('/login')
+      } else if (userRole !== 'admin') {
+        // If authenticated but not an admin, redirect to home
+        router.push('/')
+      } else {
+        // Fetch admin data
+        fetchAdminData()
+      }
+    }, 100)
+
+    return () => clearTimeout(timer)
   }, [isAuthenticated, userRole, router])
 
   const fetchAdminData = async () => {
@@ -80,6 +88,15 @@ export default function AdminDashboard() {
       setError('Failed to fetch data')
       setLoading(false)
     }
+  }
+
+  // Don't render the dashboard until auth check is complete
+  if (!authChecked) {
+    return (
+      <div className="flex min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF4D67]"></div>
+      </div>
+    )
   }
 
   // Don't render the dashboard if not authenticated or not authorized

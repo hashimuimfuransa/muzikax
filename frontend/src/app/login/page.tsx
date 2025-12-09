@@ -45,9 +45,10 @@ export default function Login() {
       }
 
       const userData = await response.json()
-      
-      // Store access token in localStorage
+    
+      // Store access token and refresh token in localStorage
       localStorage.setItem('accessToken', userData.accessToken)
+      localStorage.setItem('refreshToken', userData.refreshToken)
       
       // Log in the user with actual data from API
       login({
@@ -92,9 +93,10 @@ export default function Login() {
 
       const userData = await response.json()
       
-      // Store access token in localStorage
+      // Store access token and refresh token in localStorage
       localStorage.setItem('accessToken', userData.accessToken)
-      
+      localStorage.setItem('refreshToken', userData.refreshToken)
+    
       // Log in the user with actual data from API
       login({
         id: userData._id,
@@ -103,7 +105,7 @@ export default function Login() {
         role: userData.role,
         creatorType: userData.creatorType
       })
-      
+    
       // Redirect based on user role
       if (userData.role === 'admin') {
         router.push('/admin')

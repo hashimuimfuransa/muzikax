@@ -10,7 +10,30 @@ import {
 } from '../controllers/userController';
 import { protect, admin, creator } from '../utils/jwt';
 
+console.log('USER ROUTES FILE LOADED');
+
 const router = express.Router();
+
+console.log('SETTING UP USER ROUTES');
+
+// Add logging to see which routes are being hit
+router.use((_req, _res, next) => {
+  console.log(`User routes middleware triggered: ${_req.method} ${_req.originalUrl}`);
+  next();
+});
+
+// Test route
+router.get('/test', (req, res) => {
+  console.log('TEST ROUTE HIT - DIRECT LOG');
+  console.log('Request headers:', req.headers);
+  res.json({ message: 'User routes are working' });
+});
+
+// Simple test route without authentication
+router.get('/simple-test', (_req, res) => {
+  console.log('SIMPLE TEST ROUTE HIT');
+  res.json({ message: 'Simple test route working' });
+});
 
 // Admin routes
 router.route('/')
@@ -30,6 +53,29 @@ router.route('/analytics')
 
 // User route for upgrading to creator
 router.route('/upgrade-to-creator')
-  .put(protect, upgradeToCreator); // Users can upgrade themselves
+  .put((req, res, next) => {
+    console.log('Upgrade to creator route hit');
+    console.log('Request headers:', req.headers);
+    
+    // Check if authorization header exists
+    if (!req.headers.authorization) {
+      console.log('No authorization header found');
+      return res.status(401).json({ message: 'Authorization header missing' });
+    }
+    
+    protect(req, res, (err) => {
+      if (err) {
+        console.log('Protect middleware error:', err);
+        return next(err);
+      }
+      console.log('Protect middleware passed, calling upgradeToCreator');
+      console.log('User in request:', (req as any).user);
+      upgradeToCreator(req, res);
+      // Return undefined to satisfy TypeScript
+      return undefined;
+    });
+    // Return undefined to satisfy TypeScript
+    return undefined;
+  }); // Users can upgrade themselves
 
 export default router;

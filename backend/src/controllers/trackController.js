@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getTrendingTracks = exports.incrementPlayCount = exports.deleteTrack = exports.updateTrack = exports.getTracksByCreator = exports.getTrackById = exports.getAllTracks = exports.uploadTrack = void 0;
 const Track_1 = __importDefault(require("../models/Track"));
+// import User from '../models/User'; // Not used in this controller
 // Upload track
 const uploadTrack = async (req, res) => {
     try {
@@ -29,8 +30,8 @@ exports.uploadTrack = uploadTrack;
 // Get all tracks
 const getAllTracks = async (req, res) => {
     try {
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
+        const page = parseInt(req.query['page']) || 1;
+        const limit = parseInt(req.query['limit']) || 10;
         const skip = (page - 1) * limit;
         const tracks = await Track_1.default.find()
             .populate('creatorId', 'name avatar')
@@ -53,7 +54,7 @@ exports.getAllTracks = getAllTracks;
 // Get track by ID
 const getTrackById = async (req, res) => {
     try {
-        const track = await Track_1.default.findById(req.params.id)
+        const track = await Track_1.default.findById(req.params['id'])
             .populate('creatorId', 'name avatar bio socials');
         if (!track) {
             res.status(404).json({ message: 'Track not found' });
@@ -69,14 +70,14 @@ exports.getTrackById = getTrackById;
 // Get tracks by creator
 const getTracksByCreator = async (req, res) => {
     try {
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
+        const page = parseInt(req.query['page']) || 1;
+        const limit = parseInt(req.query['limit']) || 10;
         const skip = (page - 1) * limit;
-        const tracks = await Track_1.default.find({ creatorId: req.params.creatorId })
+        const tracks = await Track_1.default.find({ creatorId: req.params['creatorId'] })
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit);
-        const total = await Track_1.default.countDocuments({ creatorId: req.params.creatorId });
+        const total = await Track_1.default.countDocuments({ creatorId: req.params['creatorId'] });
         res.json({
             tracks,
             page,
@@ -93,7 +94,7 @@ exports.getTracksByCreator = getTracksByCreator;
 const updateTrack = async (req, res) => {
     try {
         const { title, genre, coverURL } = req.body;
-        const track = await Track_1.default.findById(req.params.id);
+        const track = await Track_1.default.findById(req.params['id']);
         if (!track) {
             res.status(404).json({ message: 'Track not found' });
             return;
@@ -117,7 +118,7 @@ exports.updateTrack = updateTrack;
 // Delete track
 const deleteTrack = async (req, res) => {
     try {
-        const track = await Track_1.default.findById(req.params.id);
+        const track = await Track_1.default.findById(req.params['id']);
         if (!track) {
             res.status(404).json({ message: 'Track not found' });
             return;
@@ -139,7 +140,7 @@ exports.deleteTrack = deleteTrack;
 // Increment play count
 const incrementPlayCount = async (req, res) => {
     try {
-        const track = await Track_1.default.findByIdAndUpdate(req.params.id, { $inc: { plays: 1 } }, { new: true });
+        const track = await Track_1.default.findByIdAndUpdate(req.params['id'], { $inc: { plays: 1 } }, { new: true });
         if (!track) {
             res.status(404).json({ message: 'Track not found' });
             return;
@@ -154,7 +155,7 @@ exports.incrementPlayCount = incrementPlayCount;
 // Get trending tracks
 const getTrendingTracks = async (req, res) => {
     try {
-        const limit = parseInt(req.query.limit) || 10;
+        const limit = parseInt(req.query['limit']) || 10;
         const tracks = await Track_1.default.find()
             .sort({ plays: -1, createdAt: -1 })
             .limit(limit)

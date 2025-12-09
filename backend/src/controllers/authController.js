@@ -95,7 +95,7 @@ const refreshToken = async (req, res) => {
             return;
         }
         // Verify refresh token
-        const decoded = require('jsonwebtoken').verify(refreshToken, process.env.JWT_REFRESH_SECRET || 'refresh_secret');
+        const decoded = require('jsonwebtoken').verify(refreshToken, process.env['JWT_REFRESH_SECRET'] || 'refresh_secret');
         const user = await User_1.default.findById(decoded.id);
         if (!user) {
             res.status(401).json({ message: 'Invalid refresh token' });

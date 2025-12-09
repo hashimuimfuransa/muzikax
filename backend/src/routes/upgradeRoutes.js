@@ -34,43 +34,25 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 const express = __importStar(require("express"));
-const userController_1 = require("../controllers/userController");
+const upgradeController_1 = require("../controllers/upgradeController");
 const jwt_1 = require("../utils/jwt");
-console.log('USER ROUTES FILE LOADED');
+console.log('UPGRADE ROUTES FILE LOADED');
 const router = express.Router();
-console.log('SETTING UP USER ROUTES');
+console.log('SETTING UP UPGRADE ROUTES');
 // Add logging to see which routes are being hit
 router.use((_req, _res, next) => {
-    console.log(`User routes middleware triggered: ${_req.method} ${_req.originalUrl}`);
+    console.log(`Upgrade routes middleware triggered: ${_req.method} ${_req.originalUrl}`);
     next();
 });
-// Test route
-router.get('/test', (req, res) => {
-    console.log('TEST ROUTE HIT - DIRECT LOG');
-    console.log('Request headers:', req.headers);
-    res.json({ message: 'User routes are working' });
-});
 // Simple test route without authentication
-router.get('/simple-test', (_req, res) => {
-    console.log('SIMPLE TEST ROUTE HIT');
-    res.json({ message: 'Simple test route working' });
+router.get('/test', (_req, res) => {
+    console.log('UPGRADE TEST ROUTE HIT');
+    res.json({ message: 'Upgrade routes are working' });
 });
-// Admin routes
-router.route('/')
-    .get(jwt_1.protect, jwt_1.admin, userController_1.getUsers);
-router.route('/:id')
-    .get(jwt_1.protect, jwt_1.admin, userController_1.getUserById)
-    .put(jwt_1.protect, jwt_1.admin, userController_1.updateUser)
-    .delete(jwt_1.protect, jwt_1.admin, userController_1.deleteUser);
-router.route('/:id/approve')
-    .put(jwt_1.protect, jwt_1.admin, userController_1.approveCreator);
-// Creator routes
-router.route('/analytics')
-    .get(jwt_1.protect, jwt_1.creator, userController_1.getCreatorAnalytics);
-// User route for upgrading to creator
-router.route('/upgrade-to-creator')
+// User route for upgrading to creator (no admin required)
+router.route('/to-creator')
     .put((req, res, next) => {
-    console.log('Upgrade to creator route hit');
+    console.log('Upgrade to creator route hit in upgradeRoutes');
     console.log('Request headers:', req.headers);
     // Check if authorization header exists
     if (!req.headers.authorization) {
@@ -84,7 +66,7 @@ router.route('/upgrade-to-creator')
         }
         console.log('Protect middleware passed, calling upgradeToCreator');
         console.log('User in request:', req.user);
-        (0, userController_1.upgradeToCreator)(req, res);
+        (0, upgradeController_1.upgradeToCreator)(req, res);
         // Return undefined to satisfy TypeScript
         return undefined;
     });
@@ -92,4 +74,4 @@ router.route('/upgrade-to-creator')
     return undefined;
 }); // Users can upgrade themselves
 exports.default = router;
-//# sourceMappingURL=userRoutes.js.map
+//# sourceMappingURL=upgradeRoutes.js.map

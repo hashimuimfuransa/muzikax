@@ -32,16 +32,24 @@ export default function AnalyticsPage() {
   const [error, setError] = useState('')
   const router = useRouter()
   const { isAuthenticated, userRole } = useAuth()
+  const [authChecked, setAuthChecked] = useState(false)
 
   // Check authentication and role on component mount
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/login')
-    } else if (userRole !== 'admin') {
-      router.push('/')
-    } else {
-      fetchAnalyticsData()
-    }
+    // Small delay to ensure AuthContext has time to initialize
+    const timer = setTimeout(() => {
+      setAuthChecked(true)
+      
+      if (!isAuthenticated) {
+        router.push('/login')
+      } else if (userRole !== 'admin') {
+        router.push('/')
+      } else {
+        fetchAnalyticsData()
+      }
+    }, 100)
+
+    return () => clearTimeout(timer)
   }, [isAuthenticated, userRole, router])
 
   const fetchAnalyticsData = async () => {
@@ -68,6 +76,15 @@ export default function AnalyticsPage() {
       setError('Failed to fetch analytics data')
       setLoading(false)
     }
+  }
+
+  // Don't render the page until auth check is complete
+  if (!authChecked) {
+    return (
+      <div className="flex min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF4D67]"></div>
+      </div>
+    )
   }
 
   // Don't render the page if not authenticated or not authorized

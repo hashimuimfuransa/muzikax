@@ -8,15 +8,25 @@ import { useAuth } from '../../contexts/AuthContext'
 export default function Profile() {
   const [activeTab, setActiveTab] = useState<'profile' | 'favorites'>('profile')
   const router = useRouter()
-  const { isAuthenticated, user } = useAuth()
+  const { isAuthenticated, user, isLoading } = useAuth()
 
   // Check authentication on component mount
   useEffect(() => {
-    if (!isAuthenticated) {
+    // Don't redirect while loading
+    if (!isLoading && !isAuthenticated) {
       // If not authenticated, redirect to login
       router.push('/login')
     }
-  }, [isAuthenticated, router])
+  }, [isAuthenticated, isLoading, router])
+
+  // Show loading state while checking auth
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black flex items-center justify-center">
+        <div className="text-white">Loading...</div>
+      </div>
+    )
+  }
 
   // Don't render the profile if not authenticated
   if (!isAuthenticated) {

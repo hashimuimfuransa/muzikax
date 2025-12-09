@@ -86,6 +86,12 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
 // Upgrade user to creator (user can upgrade themselves)
 export const upgradeToCreator = async (req: Request, res: Response): Promise<void> => {
   try {
+    // Check if user is authenticated
+    if (!(req as any).user) {
+      res.status(401).json({ message: 'Not authorized, no user found' });
+      return;
+    }
+
     const userId = (req as any).user._id;
     const { creatorType } = req.body;
 
@@ -122,6 +128,7 @@ export const upgradeToCreator = async (req: Request, res: Response): Promise<voi
       createdAt: updatedUser.createdAt
     });
   } catch (error: any) {
+    console.error('Error in upgradeToCreator:', error);
     res.status(500).json({ message: error.message });
   }
 };

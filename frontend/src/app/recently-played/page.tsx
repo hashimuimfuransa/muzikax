@@ -18,15 +18,25 @@ interface Track {
 export default function RecentlyPlayed() {
   const [tracks, setTracks] = useState<Track[]>([])
   const router = useRouter()
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, isLoading } = useAuth() // Add isLoading
 
   // Check authentication on component mount
   useEffect(() => {
-    if (!isAuthenticated) {
+    // Don't redirect while loading
+    if (!isLoading && !isAuthenticated) {
       // If not authenticated, redirect to login
       router.push('/login')
     }
-  }, [isAuthenticated, router])
+  }, [isAuthenticated, router, isLoading]) // Add isLoading to dependency array
+
+  // Show loading state while checking auth
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black flex items-center justify-center">
+        <div className="text-white">Loading...</div>
+      </div>
+    )
+  }
 
   // Don't render the recently played if not authenticated
   if (!isAuthenticated) {

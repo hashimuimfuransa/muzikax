@@ -67,44 +67,60 @@ export const protect = async (req: Request, res: Response, next: NextFunction): 
     try {
       token = req.headers.authorization.split(' ')[1];
       
+      // Log token info for debugging
+      console.log('Token extracted from header:', token ? `${token.substring(0, 10)}...` : 'No token');
+      
       if (!token) {
-        res.status(401).json({ message: 'Not authorized, token failed' });
+        res.status(401).json({ message: 'Not authorized, token missing' });
         return;
       }
       
       const decoded = verifyAccessToken(token);
+      
+      // Log decoded token info (without sensitive data)
+      console.log('Token verification result:', decoded ? 'Valid' : 'Invalid');
 
       if (!decoded) {
-        res.status(401).json({ message: 'Not authorized, token failed' });
+        res.status(401).json({ message: 'Not authorized, invalid or expired token' });
         return;
       }
 
       const user = await User.findById(decoded.id).select('-password');
+      
+      console.log('User found from token:', user ? user._id : 'Not found');
 
       if (!user) {
         res.status(401).json({ message: 'Not authorized, user not found' });
         return;
       }
 
+      // Attach user to request object
       (req as any).user = user;
       next();
     } catch (error) {
-      res.status(401).json({ message: 'Not authorized, token failed' });
+      console.error('Authentication error:', error);
+      res.status(401).json({ message: 'Not authorized, token validation failed', error: error instanceof Error ? error.message : 'Unknown error' });
       return;
     }
   }
 
   if (!token) {
-    res.status(401).json({ message: 'Not authorized, no token' });
+    res.status(401).json({ message: 'Not authorized, no token provided' });
     return;
   }
 };
 
 // Middleware for admin authorization
 export const admin = (req: Request, res: Response, next: NextFunction): void => {
+  console.log('ADMIN MIDDLEWARE CALLED');
+  console.log('Request URL:', req.originalUrl);
+  console.log('User in request:', (req as any).user);
+  
   if ((req as any).user && (req as any).user.role === 'admin') {
+    console.log('Admin check passed');
     next();
   } else {
+    console.log('Admin check failed - user role:', (req as any).user?.role);
     res.status(401).json({ message: 'Not authorized as admin' });
     return;
   }

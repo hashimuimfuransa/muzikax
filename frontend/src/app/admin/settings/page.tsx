@@ -11,16 +11,24 @@ export default function SettingsPage() {
   const [error, setError] = useState('')
   const router = useRouter()
   const { isAuthenticated, userRole } = useAuth()
+  const [authChecked, setAuthChecked] = useState(false)
 
   // Check authentication and role on component mount
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/login')
-    } else if (userRole !== 'admin') {
-      router.push('/')
-    } else {
-      setLoading(false)
-    }
+    // Small delay to ensure AuthContext has time to initialize
+    const timer = setTimeout(() => {
+      setAuthChecked(true)
+      
+      if (!isAuthenticated) {
+        router.push('/login')
+      } else if (userRole !== 'admin') {
+        router.push('/')
+      } else {
+        setLoading(false)
+      }
+    }, 100)
+
+    return () => clearTimeout(timer)
   }, [isAuthenticated, userRole, router])
 
   // Form states
@@ -59,6 +67,15 @@ export default function SettingsPage() {
     e.preventDefault()
     // In a real app, this would save to the backend
     alert('Notification settings saved!')
+  }
+
+  // Don't render the page until auth check is complete
+  if (!authChecked) {
+    return (
+      <div className="flex min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF4D67]"></div>
+      </div>
+    )
   }
 
   // Don't render the page if not authenticated or not authorized

@@ -30,16 +30,24 @@ export default function ContentManagementPage() {
   const [trackToDelete, setTrackToDelete] = useState<Track | null>(null)
   const router = useRouter()
   const { isAuthenticated, userRole } = useAuth()
+  const [authChecked, setAuthChecked] = useState(false)
 
   // Check authentication and role on component mount
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/login')
-    } else if (userRole !== 'admin') {
-      router.push('/')
-    } else {
-      fetchTracks()
-    }
+    // Small delay to ensure AuthContext has time to initialize
+    const timer = setTimeout(() => {
+      setAuthChecked(true)
+      
+      if (!isAuthenticated) {
+        router.push('/login')
+      } else if (userRole !== 'admin') {
+        router.push('/')
+      } else {
+        fetchTracks()
+      }
+    }, 100)
+
+    return () => clearTimeout(timer)
   }, [isAuthenticated, userRole, router, currentPage, searchQuery, typeFilter])
 
   const fetchTracks = async () => {
@@ -112,6 +120,15 @@ export default function ContentManagementPage() {
     setTrackToDelete(null)
   }
 
+  // Don't render the page until auth check is complete
+  if (!authChecked) {
+    return (
+      <div className="flex min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF4D67]"></div>
+      </div>
+    )
+  }
+
   // Don't render the page if not authenticated or not authorized
   if (!isAuthenticated || userRole !== 'admin') {
     return null
@@ -160,8 +177,8 @@ export default function ContentManagementPage() {
                 >
                   <option value="all">All Types</option>
                   <option value="song">Song</option>
-                  <option value="podcast">Podcast</option>
-                  <option value="audiobook">Audiobook</option>
+                  <option value="beat">Beat</option>
+                  <option value="mix">Mix</option>
                 </select>
               </div>
             </div>
