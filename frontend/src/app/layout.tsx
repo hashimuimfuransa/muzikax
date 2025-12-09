@@ -3,6 +3,7 @@ import "./globals.css";
 import Navbar from "../components/Navbar";
 import { AuthProvider } from "../contexts/AuthContext";
 import { AudioPlayerProvider } from "../contexts/AudioPlayerContext";
+import ModernAudioPlayer from "../components/ModernAudioPlayer";
 
 export const metadata: Metadata = {
   title: "MuzikaX - Rwanda's Digital Music Ecosystem",
@@ -27,6 +28,7 @@ export default function RootLayout({
           <AudioPlayerProvider>
             <Navbar />
             {children}
+            <ModernAudioPlayer />
           </AudioPlayerProvider>
         </AuthProvider>
       </body>

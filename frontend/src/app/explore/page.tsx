@@ -242,11 +242,17 @@ export default function Explore() {
                             // Find the full track object to get the audioURL
                             const fullTrack = trendingTracksData.find(t => t._id === track.id);
                             if (fullTrack && fullTrack.audioURL) {
-                              playTrack(track.id, fullTrack.audioURL);
+                              playTrack({
+                                id: track.id,
+                                title: track.title,
+                                artist: track.artist,
+                                coverImage: track.coverImage,
+                                audioUrl: fullTrack.audioURL
+                              });
                             }
                           }}
                           className="w-12 h-12 sm:w-14 sm:h-14 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
-                          {currentTrack === track.id && isPlaying ? (
+                          {currentTrack?.id === track.id && isPlaying ? (
                             <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd"></path>
                             </svg>
@@ -260,7 +266,7 @@ export default function Explore() {
                       <div className="absolute top-2 right-2 sm:top-3 sm:right-3">
                         <button className="p-1.5 sm:p-2 rounded-full bg-black/30 backdrop-blur-sm text-white opacity-0 group-hover:opacity-100 transition-opacity">
                           <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4 4 0 000 6.364L12 20.364l7.682-7.682a4 4 0 00-6.364-6.364L12 7.636l-1.318-1.318a4 4 0 000-5.656z"></path>
                           </svg>
                         </button>
                       </div>

@@ -2,12 +2,28 @@
 
 import { createContext, useContext, useState, useRef, ReactNode } from 'react';
 
+interface Track {
+  id: string;
+  title: string;
+  artist: string;
+  coverImage: string;
+  audioUrl: string;
+  duration?: number; // in seconds
+}
+
 interface AudioPlayerContextType {
-  currentTrack: string | null;
+  currentTrack: Track | null;
   isPlaying: boolean;
-  playTrack: (trackId: string, audioUrl: string) => void;
+  isMinimized: boolean;
+  playTrack: (track: Track) => void;
   pauseTrack: () => void;
   stopTrack: () => void;
+  togglePlayPause: () => void;
+  toggleMinimize: () => void;
+  closePlayer: () => void;
+  setProgress: (progress: number) => void;
+  progress: number;
+  duration: number;
 }
 
 const AudioPlayerContext = createContext<AudioPlayerContextType | undefined>(undefined);
@@ -21,20 +37,18 @@ export const useAudioPlayer = () => {
 };
 
 export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
-  const [currentTrack, setCurrentTrack] = useState<string | null>(null);
+  const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [duration, setDuration] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const playTrack = (trackId: string, audioUrl: string) => {
-    // If we're already playing this track, just toggle play/pause
-    if (currentTrack === trackId && audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause();
-        setIsPlaying(false);
-      } else {
-        audioRef.current.play();
-        setIsPlaying(true);
-      }
+  const playTrack = (track: Track) => {
+    // If we're already playing this track, just resume
+    if (currentTrack?.id === track.id && audioRef.current) {
+      audioRef.current.play();
+      setIsPlaying(true);
       return;
     }
 
@@ -45,20 +59,34 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     }
 
     // Create new audio element
-    const audio = new Audio(audioUrl);
+    const audio = new Audio(track.audioUrl);
     audioRef.current = audio;
     
+    // Set up event listeners
     audio.onplay = () => setIsPlaying(true);
     audio.onpause = () => setIsPlaying(false);
     audio.onended = () => {
       setIsPlaying(false);
       setCurrentTrack(null);
+      setProgress(0);
+    };
+    
+    audio.ontimeupdate = () => {
+      if (audio.duration) {
+        setProgress(audio.currentTime);
+        setDuration(audio.duration);
+      }
+    };
+    
+    audio.onloadedmetadata = () => {
+      setDuration(audio.duration || 0);
     };
 
     // Play the new track
     audio.play().then(() => {
-      setCurrentTrack(trackId);
+      setCurrentTrack(track);
       setIsPlaying(true);
+      setIsMinimized(false); // Expand player when new track starts
     }).catch((error) => {
       console.error('Error playing track:', error);
       setIsPlaying(false);
@@ -79,7 +107,28 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
       audioRef.current = null;
       setIsPlaying(false);
       setCurrentTrack(null);
+      setProgress(0);
+      setDuration(0);
     }
+  };
+
+  const togglePlayPause = () => {
+    if (!currentTrack) return;
+    
+    if (isPlaying) {
+      pauseTrack();
+    } else {
+      playTrack(currentTrack);
+    }
+  };
+
+  const toggleMinimize = () => {
+    setIsMinimized(!isMinimized);
+  };
+
+  const closePlayer = () => {
+    stopTrack();
+    setIsMinimized(false);
   };
 
   return (
@@ -87,9 +136,16 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
       value={{
         currentTrack,
         isPlaying,
+        isMinimized,
         playTrack,
         pauseTrack,
-        stopTrack
+        stopTrack,
+        togglePlayPause,
+        toggleMinimize,
+        closePlayer,
+        progress,
+        duration,
+        setProgress
       }}
     >
       {children}

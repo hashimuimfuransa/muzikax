@@ -92,10 +92,15 @@ export default function Profile() {
     // Find the track to get its audio URL
     const track = tracks.find(t => t._id === trackId);
     if (track && track.audioURL) {
-      playTrack(trackId, track.audioURL);
+      playTrack({
+        id: track._id,
+        title: track.title,
+        artist: user?.name || 'Unknown Artist',
+        coverImage: track.coverURL || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
+        audioUrl: track.audioURL
+      });
     }
   };
-
   // Show loading state while checking auth
   if (isLoading) {
     return (
@@ -382,7 +387,7 @@ export default function Profile() {
                               onClick={() => handlePlayTrack(track._id)}
                               className="w-12 h-12 rounded-full gradient-primary flex items-center justify-center text-white"
                             >
-                              {currentTrack === track._id && isPlaying ? (
+                              {currentTrack?.id === track._id && isPlaying ? (
                                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                                   <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd"></path>
                                 </svg>
