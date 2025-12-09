@@ -9,16 +9,22 @@ const Track_1 = __importDefault(require("../models/Track"));
 // Upload track
 const uploadTrack = async (req, res) => {
     try {
-        const { title, genre, type, audioURL, coverURL } = req.body;
+        const { title, description, genre, type, audioURL, coverURL } = req.body;
         const user = req.user;
+        // Validate required fields
+        if (!title || !audioURL) {
+            res.status(400).json({ message: 'Title and audio URL are required' });
+            return;
+        }
         const track = await Track_1.default.create({
             creatorId: user._id,
             creatorType: user.creatorType,
             title,
-            genre,
-            type,
+            description: description || '',
+            genre: genre || 'afrobeat',
+            type: type || 'song',
             audioURL,
-            coverURL
+            coverURL: coverURL || ''
         });
         res.status(201).json(track);
     }
@@ -93,7 +99,7 @@ exports.getTracksByCreator = getTracksByCreator;
 // Update track
 const updateTrack = async (req, res) => {
     try {
-        const { title, genre, coverURL } = req.body;
+        const { title, genre, coverURL, description } = req.body;
         const track = await Track_1.default.findById(req.params['id']);
         if (!track) {
             res.status(404).json({ message: 'Track not found' });
@@ -104,9 +110,15 @@ const updateTrack = async (req, res) => {
             res.status(401).json({ message: 'Not authorized' });
             return;
         }
-        track.title = title || track.title;
-        track.genre = genre || track.genre;
-        track.coverURL = coverURL || track.coverURL;
+        // Update fields if provided
+        if (title !== undefined)
+            track.title = title;
+        if (genre !== undefined)
+            track.genre = genre;
+        if (coverURL !== undefined)
+            track.coverURL = coverURL;
+        if (description !== undefined)
+            track.description = description;
         const updatedTrack = await track.save();
         res.json(updatedTrack);
     }

@@ -4,8 +4,10 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../contexts/AuthContext'
-interface Track {
-  id: string
+import { useTrendingTracks, usePopularCreators } from '../hooks/useTracks'
+import { useAudioPlayer } from '../contexts/AudioPlayerContext'
+
+interface Track {  id: string
   title: string
   artist: string
   album?: string
@@ -38,6 +40,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<'trending' | 'new' | 'popular' | 'beats' | 'mixes'>('trending')
   const [currentSlide, setCurrentSlide] = useState(0)
   const { isAuthenticated, userRole } = useAuth()
+  const { currentTrack, isPlaying, playTrack } = useAudioPlayer()
   const router = useRouter()
   
   // Redirect admin users to admin dashboard
@@ -90,203 +93,39 @@ export default function Home() {
     return () => clearInterval(interval)
   }, [])
   
-  // Mock data for tracks
-  const trendingTracks: Track[] = [
-    {
-      id: '1',
-      title: 'Rwandan Vibes',
-      artist: 'Kizito M',
-      album: 'East African Dreams',
-      plays: 12400,
-      likes: 890,
-      coverImage: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '3:45',
-      category: 'afrobeat'
-    },
-    {
-      id: '2',
-      title: 'Mountain Echoes',
-      artist: 'Divine Ikirezi',
-      album: 'Nature Sounds',
-      plays: 9800,
-      likes: 756,
-      coverImage: 'https://images.unsplash.com/photo-1507838153414-b4b713384a76?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '4:22',
-      category: 'traditional'
-    },
-    {
-      id: '3',
-      title: 'City Lights',
-      artist: 'Benji Flavours',
-      album: 'Urban Nights',
-      plays: 15600,
-      likes: 1200,
-      coverImage: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '3:18',
-      category: 'hiphop'
-    },
-    {
-      id: '4',
-      title: 'Sunset Dreams',
-      artist: 'Remy Kayitesi',
-      album: 'Golden Hour',
-      plays: 8700,
-      likes: 620,
-      coverImage: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '5:01',
-      category: 'rnb'
-    },
-    {
-      id: '5',
-      title: 'Lake Kivu Breeze',
-      artist: 'Theophile J',
-      album: 'Water Reflections',
-      plays: 11200,
-      likes: 950,
-      coverImage: 'https://images.unsplash.com/photo-1499364615650-ec38552f4f34?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '4:33',
-      category: 'gospel'
-    },
-    {
-      id: '10',
-      title: 'Afro Trap Beat',
-      artist: 'Beat Master',
-      plays: 14200,
-      likes: 1100,
-      coverImage: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '2:45',
-      category: 'beats'
-    },
-    {
-      id: '11',
-      title: 'Rwandan Mixtape',
-      artist: 'DJ Rwanda',
-      plays: 18700,
-      likes: 1420,
-      coverImage: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '45:32',
-      category: 'mixes'
-    }
-  ]
+  // Fetch real trending tracks
+  const { tracks: trendingTracksData, loading: trendingLoading } = useTrendingTracks(10);
   
-  const newTracks: Track[] = [
-    {
-      id: '6',
-      title: 'Kigali Nights',
-      artist: 'Urban Sound',
-      album: 'Capital Chronicles',
-      plays: 2400,
-      likes: 180,
-      coverImage: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '3:55',
-      category: 'afrobeat'
-    },
-    {
-      id: '7',
-      title: 'Nyamata Stories',
-      artist: 'Peace M',
-      album: 'Village Tales',
-      plays: 1900,
-      likes: 150,
-      coverImage: 'https://images.unsplash.com/photo-1494293246127-b93bfbafe4f4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '4:12',
-      category: 'traditional'
-    },
-    {
-      id: '8',
-      title: 'Volcano Dreams',
-      artist: 'Jean Paul',
-      album: 'Fire & Earth',
-      plays: 3200,
-      likes: 280,
-      coverImage: 'https://images.unsplash.com/photo-1516280440080-0adbb0e4e070?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '3:47',
-      category: 'hiphop'
-    },
-    {
-      id: '9',
-      title: 'Akagera Sunrise',
-      artist: 'Nature Beats',
-      album: 'Wildlife Symphony',
-      plays: 1500,
-      likes: 95,
-      coverImage: 'https://images.unsplash.com/photo-1505228395891-9a51e7f86e1c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '5:22',
-      category: 'gospel'
-    },
-    {
-      id: '12',
-      title: 'Urban Beats Collection',
-      artist: 'City Producer',
-      plays: 3200,
-      likes: 280,
-      coverImage: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '3:47',
-      category: 'beats'
-    },
-    {
-      id: '13',
-      title: 'Kigali Mix Session',
-      artist: 'DJ Kigali',
-      plays: 4500,
-      likes: 380,
-      coverImage: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '32:15',
-      category: 'mixes'
-    }
-  ]
+  // Fetch real popular creators
+  const { creators: popularCreatorsData, loading: creatorsLoading } = usePopularCreators(6);
   
-  const popularCreators: Creator[] = [
-    {
-      id: '1',
-      name: 'Kizito M',
-      type: 'Artist',
-      followers: 12500,
-      avatar: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      verified: true
-    },
-    {
-      id: '2',
-      name: 'Divine Ikirezi',
-      type: 'Producer',
-      followers: 8900,
-      avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      verified: true
-    },
-    {
-      id: '3',
-      name: 'Benji Flavours',
-      type: 'DJ',
-      followers: 15600,
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      verified: true
-    },
-    {
-      id: '4',
-      name: 'Remy Kayitesi',
-      type: 'Artist',
-      followers: 9800,
-      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      verified: false
-    },
-    {
-      id: '5',
-      name: 'Theophile J',
-      type: 'Songwriter',
-      followers: 7600,
-      avatar: 'https://images.unsplash.com/photo-1552058544-f2b08422138a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      verified: true
-    },
-    {
-      id: '6',
-      name: 'Urban Sound',
-      type: 'Band',
-      followers: 22400,
-      avatar: 'https://images.unsplash.com/photo-1503443207922-dff7d543fd0e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      verified: true
-    }
-  ]
+  // Transform tracks data to match existing interface
+  const trendingTracks: Track[] = trendingTracksData.map(track => ({
+    id: track._id,
+    title: track.title,
+    artist: typeof track.creatorId === 'object' && track.creatorId !== null ? (track.creatorId as any).name : 'Unknown Artist',
+    album: '',
+    plays: track.plays,
+    likes: track.likes,
+    coverImage: track.coverURL || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
+    duration: '',
+    category: track.genre
+  }));
   
+  // For now, use trending tracks for new tracks as well
+  const newTracks: Track[] = trendingTracks;
+  
+  // Transform creators data to match existing interface
+  const popularCreators: Creator[] = popularCreatorsData.map(creator => ({
+    id: creator._id,
+    name: creator.name,
+    type: creator.creatorType || 'Artist',
+    followers: creator.followersCount || 0,
+    avatar: creator.avatar || 'https://images.unsplash.com/photo-1519681393784-d120267933ba?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
+    verified: true // For now, we'll assume all creators are verified
+  }));  
+  // For now, we'll keep the mock data for popular albums
+  // In a real implementation, this would be fetched from the backend
   const popularAlbums: Album[] = [
     {
       id: '1',
@@ -338,52 +177,17 @@ export default function Home() {
     }
   ]
   
-  // For You section - personalized recommendations
-  const forYouTracks: Track[] = [
-    {
-      id: '10',
-      title: 'Morning Mist',
-      artist: 'Kizito M',
-      album: 'East African Dreams',
-      plays: 8900,
-      likes: 650,
-      coverImage: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '3:28'
-    },
-    {
-      id: '11',
-      title: 'Street Life',
-      artist: 'Benji Flavours',
-      album: 'Urban Nights',
-      plays: 12300,
-      likes: 980,
-      coverImage: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '4:05'
-    },
-    {
-      id: '12',
-      title: 'Mountain High',
-      artist: 'Divine Ikirezi',
-      album: 'Nature Sounds',
-      plays: 7600,
-      likes: 520,
-      coverImage: 'https://images.unsplash.com/photo-1507838153414-b4b713384a76?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '3:52'
-    },
-    {
-      id: '13',
-      title: 'City Pulse',
-      artist: 'Urban Sound',
-      album: 'Capital Chronicles',
-      plays: 15600,
-      likes: 1320,
-      coverImage: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '4:18'
-    }
-  ]
+  // For You section - use trending tracks for now
+  const forYouTracks: Track[] = trendingTracks.slice(0, 4);
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black w-full relative overflow-hidden">
+      {/* Loading overlay for initial data fetch */}
+      {trendingLoading && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+          <div className="text-white text-xl">Loading...</div>
+        </div>
+      )}
       {/* Background decorative elements - repositioned to avoid overflow */}
       <div className="absolute top-10 left-10 w-64 h-64 bg-[#FF4D67]/10 rounded-full blur-3xl -z-10 hidden md:block"></div>
       <div className="absolute bottom-10 right-10 w-64 h-64 bg-[#FFCB2B]/10 rounded-full blur-3xl -z-10 hidden md:block"></div>
@@ -626,10 +430,24 @@ export default function Home() {
                     className="w-full aspect-square object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <button className="w-10 h-10 sm:w-12 sm:h-12 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
-                      <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
-                      </svg>
+                    <button 
+                      onClick={() => {
+                        // Find the full track object to get the audioURL
+                        const fullTrack = trendingTracksData.find(t => t._id === track.id);
+                        if (fullTrack && fullTrack.audioURL) {
+                          playTrack(track.id, fullTrack.audioURL);
+                        }
+                      }}
+                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+                      {currentTrack === track.id && isPlaying ? (
+                        <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd"></path>
+                        </svg>
+                      ) : (
+                        <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
+                        </svg>
+                      )}
                     </button>
                   </div>
                 </div>
@@ -893,10 +711,24 @@ export default function Home() {
                       className="w-full h-40 sm:h-48 object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <button className="w-12 h-12 sm:w-14 sm:h-14 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
-                        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
-                        </svg>
+                      <button 
+                        onClick={() => {
+                          // Find the full track object to get the audioURL
+                          const fullTrack = trendingTracksData.find(t => t._id === track.id);
+                          if (fullTrack && fullTrack.audioURL) {
+                            playTrack(track.id, fullTrack.audioURL);
+                          }
+                        }}
+                        className="w-12 h-12 sm:w-14 sm:h-14 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+                        {currentTrack === track.id && isPlaying ? (
+                          <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd"></path>
+                          </svg>
+                        ) : (
+                          <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
+                          </svg>
+                        )}
                       </button>
                     </div>
                     <div className="absolute top-2 right-2 sm:top-3 sm:right-3">
@@ -940,10 +772,24 @@ export default function Home() {
                       className="w-full h-40 sm:h-48 object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <button className="w-12 h-12 sm:w-14 sm:h-14 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
-                        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
-                        </svg>
+                      <button 
+                        onClick={() => {
+                          // Find the full track object to get the audioURL
+                          const fullTrack = trendingTracksData.find(t => t._id === track.id);
+                          if (fullTrack && fullTrack.audioURL) {
+                            playTrack(track.id, fullTrack.audioURL);
+                          }
+                        }}
+                        className="w-12 h-12 sm:w-14 sm:h-14 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+                        {currentTrack === track.id && isPlaying ? (
+                          <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd"></path>
+                          </svg>
+                        ) : (
+                          <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
+                          </svg>
+                        )}
                       </button>
                     </div>
                     <div className="absolute top-2 right-2 sm:top-3 sm:right-3">
@@ -1026,10 +872,24 @@ export default function Home() {
                       className="w-full h-40 sm:h-48 object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <button className="w-12 h-12 sm:w-14 sm:h-14 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
-                        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
-                        </svg>
+                      <button 
+                        onClick={() => {
+                          // Find the full track object to get the audioURL
+                          const fullTrack = trendingTracksData.find(t => t._id === track.id);
+                          if (fullTrack && fullTrack.audioURL) {
+                            playTrack(track.id, fullTrack.audioURL);
+                          }
+                        }}
+                        className="w-12 h-12 sm:w-14 sm:h-14 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+                        {currentTrack === track.id && isPlaying ? (
+                          <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd"></path>
+                          </svg>
+                        ) : (
+                          <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
+                          </svg>
+                        )}
                       </button>
                     </div>
                     <div className="absolute top-2 right-2 sm:top-3 sm:right-3">
@@ -1073,10 +933,24 @@ export default function Home() {
                       className="w-full h-40 sm:h-48 object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <button className="w-12 h-12 sm:w-14 sm:h-14 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
-                        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
-                        </svg>
+                      <button 
+                        onClick={() => {
+                          // Find the full track object to get the audioURL
+                          const fullTrack = trendingTracksData.find(t => t._id === track.id);
+                          if (fullTrack && fullTrack.audioURL) {
+                            playTrack(track.id, fullTrack.audioURL);
+                          }
+                        }}
+                        className="w-12 h-12 sm:w-14 sm:h-14 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+                        {currentTrack === track.id && isPlaying ? (
+                          <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd"></path>
+                          </svg>
+                        ) : (
+                          <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
+                          </svg>
+                        )}
                       </button>
                     </div>
                     <div className="absolute top-2 right-2 sm:top-3 sm:right-3">

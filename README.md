@@ -9,6 +9,7 @@ MuzikaX is a digital music platform connecting creators (artists, DJs, producers
 - React 18
 - Tailwind CSS
 - TypeScript
+- UploadCare for file uploads
 
 ### Backend
 - Node.js
@@ -44,7 +45,7 @@ MuzikaX is a digital music platform connecting creators (artists, DJs, producers
 - JWT authentication with refresh token
 - Role-based access control
 - Audio streaming with player
-- Track upload and management
+- Track upload and management with UploadCare integration
 - Creator profiles and analytics
 - Social features (following, comments)
 - Search and discovery
@@ -55,6 +56,7 @@ MuzikaX is a digital music platform connecting creators (artists, DJs, producers
 - Node.js (v16 or higher)
 - MongoDB instance (local or cloud)
 - npm or yarn
+- UploadCare account for file uploads
 
 ### Installation
 
@@ -92,8 +94,15 @@ JWT_REFRESH_EXPIRE=7d
 #### Frontend (.env.local)
 Create a `.env.local` file in the `frontend` directory:
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:5000/api
+NEXT_PUBLIC_API_URL=http://localhost:5000
+NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY=your_uploadcare_public_key
 ```
+
+### UploadCare Setup
+1. Sign up for an account at [UploadCare](https://uploadcare.com/)
+2. Create a new project and get your public key
+3. Add your public key to the `NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY` environment variable in `.env.local`
+4. Configure any additional UploadCare settings as needed in your dashboard
 
 ### Running the Application
 
@@ -171,6 +180,7 @@ muzikax/
   creatorId: ObjectId,
   creatorType: String,
   title: String,
+  description: String,
   audioURL: String,
   coverURL: String,
   genre: String,

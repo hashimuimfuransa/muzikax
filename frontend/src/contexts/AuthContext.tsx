@@ -8,6 +8,7 @@ interface User {
   email: string
   role: 'fan' | 'creator' | 'admin'
   creatorType?: 'artist' | 'dj' | 'producer'
+  avatar?: string // Add avatar property
 }
 
 interface AuthContextType {

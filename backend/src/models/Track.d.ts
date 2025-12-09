@@ -3,6 +3,7 @@ export interface ITrack extends Document {
     creatorId: mongoose.Types.ObjectId;
     creatorType: 'artist' | 'dj' | 'producer';
     title: string;
+    description: string;
     audioURL: string;
     coverURL: string;
     genre: string;

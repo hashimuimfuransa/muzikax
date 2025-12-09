@@ -9,6 +9,8 @@ import trackRoutes from './routes/trackRoutes';
 import userRoutes from './routes/userRoutes';
 import adminRoutes from './routes/adminRoutes';
 import upgradeRoutes from './routes/upgradeRoutes';
+import uploadRoutes from './routes/uploadRoutes';
+import creatorRoutes from './routes/creatorRoutes';
 
 console.log('ROUTES IMPORTED');
 
@@ -51,6 +53,18 @@ app.use('/api/users', userRoutes);
 console.log('Users routes registered');
 app.use('/api/upgrade', upgradeRoutes);
 console.log('Upgrade routes registered');
+app.use('/api/creator', creatorRoutes);
+console.log('Creator routes registered');
+
+// Add detailed logging for upload routes
+console.log('Attempting to register upload routes...');
+try {
+  console.log('Upload routes object:', uploadRoutes);
+  app.use('/api/upload', uploadRoutes);
+  console.log('Upload routes registered successfully');
+} catch (error) {
+  console.error('Error registering upload routes:', error);
+}
 
 // Add detailed logging for admin routes
 console.log('Attempting to register admin routes...');

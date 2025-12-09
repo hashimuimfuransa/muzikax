@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../contexts/AuthContext'
+// Import UploadCare components
+import { FileUploaderRegular } from "@uploadcare/react-uploader";
+import "@uploadcare/react-uploader/core.css";
 
 export default function Upload() {
   const [dragActive, setDragActive] = useState(false)
@@ -11,12 +14,16 @@ export default function Upload() {
   const [genre, setGenre] = useState('afrobeat')
   const [visibility, setVisibility] = useState('public')
   const [file, setFile] = useState<File | null>(null)
+  const [coverImage, setCoverImage] = useState<string | null>(null) // State for cover image
+  const [audioUrl, setAudioUrl] = useState<string | null>(null) // State for uploaded audio URL
+  const [coverUrl, setCoverUrl] = useState<string | null>(null) // State for uploaded cover URL
   const router = useRouter()
-  const { isAuthenticated, userRole, upgradeToCreator, isLoading } = useAuth() // Add isLoading
+  const { isAuthenticated, userRole, upgradeToCreator, isLoading, user } = useAuth() // Add user to get avatar
 
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false)
   const [selectedCreatorType, setSelectedCreatorType] = useState<'artist' | 'dj' | 'producer'>('artist')
-  const [isUpgrading, setIsUpgrading] = useState(false)
+  const [isUpgrading, setIsUpgrading] = useState(false) // State for upload process
+  const [isUploading, setIsUploading] = useState(false)
 
   // Check authentication and role on component mount
   useEffect(() => {
@@ -70,9 +77,155 @@ export default function Upload() {
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Handle successful audio upload
+  const handleAudioUploadSuccess = (info: any) => {
+    console.log('Audio uploaded successfully:', info);
+    if (info.cdnUrl) {
+      setAudioUrl(info.cdnUrl);
+    }
+  };
+
+  // Handle successful cover image upload
+  const handleCoverUploadSuccess = (info: any) => {
+    console.log('Cover image uploaded successfully:', info);
+    if (info.cdnUrl) {
+      setCoverUrl(info.cdnUrl);
+    }
+  };
+
+  // Function to refresh token
+  const refreshToken = async (): Promise<string | null> => {
+    try {
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (!refreshToken) {
+        console.error('No refresh token found');
+        return null;
+      }
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh-token`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ refreshToken })
+      });
+
+      if (!response.ok) {
+        console.error('Failed to refresh token');
+        return null;
+      }
+
+      const data = await response.json();
+      // Save new tokens
+      localStorage.setItem('accessToken', data.accessToken);
+      localStorage.setItem('refreshToken', data.refreshToken);
+      
+      return data.accessToken;
+    } catch (error) {
+      console.error('Error refreshing token:', error);
+      return null;
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('Uploading:', { title, description, genre, visibility, file })
+    setIsUploading(true)
+    
+    try {
+      // If no cover image is provided, use user's avatar
+      let finalCoverUrl = coverUrl;
+      if (!finalCoverUrl && user?.avatar) {
+        finalCoverUrl = user.avatar;
+      }
+      
+      // If we don't have an audio URL from UploadCare, we can't proceed
+      if (!audioUrl) {
+        alert('Please upload an audio file first');
+        setIsUploading(false);
+        return;
+      }
+      
+      console.log('Uploading:', { title, description, genre, visibility, audioUrl, coverUrl: finalCoverUrl })
+      
+      // Get access token from localStorage
+      let accessToken = localStorage.getItem('accessToken');
+      
+      if (!accessToken) {
+        alert('Authentication error. Please log in again.');
+        router.push('/login');
+        return;
+      }
+      
+      // Try to make the request with current token
+      let response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upload/track`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`
+        },
+        body: JSON.stringify({
+          title,
+          description,
+          genre,
+          type: 'song', // Default type
+          audioURL: audioUrl,
+          coverURL: finalCoverUrl || ''
+        })
+      });
+      
+      // If token is expired, try to refresh it
+      if (response.status === 401) {
+        console.log('Token might be expired, attempting to refresh...');
+        const newToken = await refreshToken();
+        
+        if (newToken) {
+          // Retry the request with new token
+          response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upload/track`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${newToken}`
+            },
+            body: JSON.stringify({
+              title,
+              description,
+              genre,
+              type: 'song', // Default type
+              audioURL: audioUrl,
+              coverURL: finalCoverUrl || ''
+            })
+          });
+        } else {
+          // Refresh failed, force logout
+          alert('Session expired. Please log in again.');
+          router.push('/login');
+          return;
+        }
+      }
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to upload track');
+      }
+      
+      const result = await response.json();
+      console.log('Track uploaded successfully:', result);
+      
+      // Reset form
+      setTitle('');
+      setDescription('');
+      setFile(null);
+      setAudioUrl(null);
+      setCoverUrl(null);
+      
+      alert('Track uploaded successfully!');
+      router.push('/profile'); // Redirect to profile page
+    } catch (error: any) {
+      console.error('Error uploading track:', error);
+      alert(`Error uploading track: ${error.message || 'Unknown error'}`);
+    } finally {
+      setIsUploading(false);
+    }
   }
 
   const handleUpgradeToCreator = async () => {
@@ -168,50 +321,51 @@ export default function Upload() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
-              {/* File Upload Area */}
-              <div 
-                className={`relative border-2 border-dashed rounded-2xl p-6 sm:p-8 text-center transition-all ${
-                  dragActive 
-                    ? 'border-[#FF4D67] bg-[#FF4D67]/5' 
-                    : 'border-gray-700 hover:border-gray-600 card-bg'
-                }`}
-                onDragEnter={handleDrag}
-                onDragLeave={handleDrag}
-                onDragOver={handleDrag}
-                onDrop={handleDrop}
-              >
-                <input 
-                  type="file" 
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  onChange={handleChange}
-                  accept="audio/*"
-                />
+              {/* Audio Upload Section */}
+              <div className="card-bg rounded-2xl p-5 sm:p-6">
+                <h2 className="text-lg sm:text-xl font-medium text-white mb-4">Audio File</h2>
                 
-                <div className="space-y-4">
-                  <div className="mx-auto w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-[#FF4D67]/10 flex items-center justify-center">
-                    <svg className="w-6 h-6 sm:w-8 sm:h-8 text-[#FF4D67]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                    </svg>
+                {!audioUrl ? (
+                  <FileUploaderRegular
+                    pubkey={process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY || "YOUR_PUBLIC_KEY_HERE"}
+                    onFileUploadSuccess={handleAudioUploadSuccess}
+                    multiple={false}
+                    className="my-config"
+                  />
+                ) : (
+                  <div className="p-4 bg-green-900/30 border border-green-700 rounded-lg">
+                    <p className="text-green-400">Audio uploaded successfully!</p>
+                    <p className="text-sm text-gray-400 mt-1">File: {audioUrl.split('/').pop()}</p>
                   </div>
-                  
-                  <div>
-                    <h3 className="text-lg sm:text-xl font-medium text-white mb-2">
-                      {file ? file.name : 'Drag & drop your track here'}
-                    </h3>
-                    <p className="text-gray-500 text-xs sm:text-sm">
-                      {file 
-                        ? `${(file.size / (1024 * 1024)).toFixed(2)} MB` 
-                        : 'MP3, WAV, FLAC up to 100MB'}
+                )}
+              </div>
+
+              {/* Cover Image Upload Section */}
+              <div className="card-bg rounded-2xl p-5 sm:p-6">
+                <h2 className="text-lg sm:text-xl font-medium text-white mb-4">Cover Image</h2>
+                
+                {!coverUrl ? (
+                  <FileUploaderRegular
+                    pubkey={process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY || "YOUR_PUBLIC_KEY_HERE"}
+                    onFileUploadSuccess={handleCoverUploadSuccess}
+                    multiple={false}
+                    className="my-config"
+                  />
+                ) : (
+                  <div className="p-4 bg-green-900/30 border border-green-700 rounded-lg">
+                    <p className="text-green-400">Cover image uploaded successfully!</p>
+                    <img src={coverUrl} alt="Cover" className="mt-2 w-32 h-32 object-cover rounded-lg" />
+                  </div>
+                )}
+                
+                {/* Info about using avatar as cover */}
+                {!coverUrl && user?.avatar && (
+                  <div className="mt-4 p-3 bg-blue-900/20 border border-blue-700 rounded-lg">
+                    <p className="text-blue-400 text-sm">
+                      If you don't upload a cover image, your profile avatar will be used as the track cover.
                     </p>
                   </div>
-                  
-                  <button 
-                    type="button"
-                    className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg text-sm font-medium transition-colors"
-                  >
-                    Browse Files
-                  </button>
-                </div>
+                )}
               </div>
 
               {/* Form Fields */}
@@ -303,14 +457,14 @@ export default function Upload() {
               <div className="flex justify-end">
                 <button
                   type="submit"
-                  disabled={!file}
+                  disabled={!audioUrl || isUploading}
                   className={`px-5 py-2.5 sm:px-6 sm:py-3 rounded-lg font-medium transition-all ${
-                    file
+                    audioUrl && !isUploading
                       ? 'gradient-primary text-white hover:opacity-90'
                       : 'bg-gray-800 text-gray-500 cursor-not-allowed'
                   } text-sm sm:text-base`}
                 >
-                  Upload Track
+                  {isUploading ? 'Uploading...' : 'Upload Track'}
                 </button>
               </div>
             </form>

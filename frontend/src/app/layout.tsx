@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import Navbar from "../components/Navbar";
 import { AuthProvider } from "../contexts/AuthContext";
+import { AudioPlayerProvider } from "../contexts/AudioPlayerContext";
 
 export const metadata: Metadata = {
   title: "MuzikaX - Rwanda's Digital Music Ecosystem",
@@ -23,8 +24,10 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <AuthProvider>
-          <Navbar />
-          {children}
+          <AudioPlayerProvider>
+            <Navbar />
+            {children}
+          </AudioPlayerProvider>
         </AuthProvider>
       </body>
     </html>

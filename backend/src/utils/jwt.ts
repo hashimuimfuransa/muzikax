@@ -1,5 +1,4 @@
 import * as jwt from 'jsonwebtoken';
-import { SignOptions } from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
 import User, { IUser } from '../models/User';
 
@@ -18,10 +17,11 @@ export const generateAccessToken = (user: IUser): string => {
   };
   
   const secret = process.env['JWT_ACCESS_SECRET'] || 'access_secret';
-  const options: SignOptions = {
-    expiresIn: process.env['JWT_ACCESS_EXPIRE'] ? process.env['JWT_ACCESS_EXPIRE'] : ('15m' as any)
+  const options: any = {
+    expiresIn: process.env['JWT_ACCESS_EXPIRE'] || '15m'
   };
   
+  console.log('Generating access token with secret:', secret.substring(0, 10) + '...');
   return jwt.sign(payload, secret, options);
 };
 
@@ -32,10 +32,11 @@ export const generateRefreshToken = (user: IUser): string => {
   };
   
   const secret = process.env['JWT_REFRESH_SECRET'] || 'refresh_secret';
-  const options: SignOptions = {
-    expiresIn: process.env['JWT_REFRESH_EXPIRE'] ? process.env['JWT_REFRESH_EXPIRE'] : ('7d' as any)
+  const options: any = {
+    expiresIn: process.env['JWT_REFRESH_EXPIRE'] || '7d'
   };
   
+  console.log('Generating refresh token with secret:', secret.substring(0, 10) + '...');
   return jwt.sign(payload, secret, options);
 };
 
@@ -43,8 +44,12 @@ export const generateRefreshToken = (user: IUser): string => {
 export const verifyAccessToken = (token: string): JwtPayload | null => {
   try {
     const secret = process.env['JWT_ACCESS_SECRET'] || 'access_secret';
-    return jwt.verify(token, secret) as JwtPayload;
+    console.log('Verifying access token with secret:', secret.substring(0, 10) + '...');
+    const decoded = jwt.verify(token, secret) as JwtPayload;
+    console.log('Token verified successfully');
+    return decoded;
   } catch (error) {
+    console.error('Token verification failed:', error);
     return null;
   }
 };
@@ -53,8 +58,12 @@ export const verifyAccessToken = (token: string): JwtPayload | null => {
 export const verifyRefreshToken = (token: string): JwtPayload | null => {
   try {
     const secret = process.env['JWT_REFRESH_SECRET'] || 'refresh_secret';
-    return jwt.verify(token, secret) as JwtPayload;
+    console.log('Verifying refresh token with secret:', secret.substring(0, 10) + '...');
+    const decoded = jwt.verify(token, secret) as JwtPayload;
+    console.log('Refresh token verified successfully');
+    return decoded;
   } catch (error) {
+    console.error('Refresh token verification failed:', error);
     return null;
   }
 };

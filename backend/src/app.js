@@ -14,6 +14,8 @@ const trackRoutes_1 = __importDefault(require("./routes/trackRoutes"));
 const userRoutes_1 = __importDefault(require("./routes/userRoutes"));
 const adminRoutes_1 = __importDefault(require("./routes/adminRoutes"));
 const upgradeRoutes_1 = __importDefault(require("./routes/upgradeRoutes"));
+const uploadRoutes_1 = __importDefault(require("./routes/uploadRoutes"));
+const creatorRoutes_1 = __importDefault(require("./routes/creatorRoutes"));
 console.log('ROUTES IMPORTED');
 console.log('APP FILE LOADED');
 // Load env vars
@@ -46,6 +48,18 @@ app.use('/api/users', userRoutes_1.default);
 console.log('Users routes registered');
 app.use('/api/upgrade', upgradeRoutes_1.default);
 console.log('Upgrade routes registered');
+app.use('/api/creator', creatorRoutes_1.default);
+console.log('Creator routes registered');
+// Add detailed logging for upload routes
+console.log('Attempting to register upload routes...');
+try {
+    console.log('Upload routes object:', uploadRoutes_1.default);
+    app.use('/api/upload', uploadRoutes_1.default);
+    console.log('Upload routes registered successfully');
+}
+catch (error) {
+    console.error('Error registering upload routes:', error);
+}
 // Add detailed logging for admin routes
 console.log('Attempting to register admin routes...');
 try {

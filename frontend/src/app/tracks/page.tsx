@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
-
+import { useState, useEffect } from 'react'
+import { useTrendingTracks, usePopularCreators } from '../../hooks/useTracks'
+import { useAudioPlayer } from '../../contexts/AudioPlayerContext'
 interface Track {
   id: string
   title: string
@@ -16,245 +17,34 @@ interface Track {
 export default function TracksPage() {
   const [activeTab, setActiveTab] = useState<'trending' | 'new' | 'popular'>('trending')
   const [sortBy, setSortBy] = useState<'popular' | 'recent' | 'alphabetical'>('popular')
+  const { tracks: trendingTracksData, loading: trendingLoading } = useTrendingTracks(20)
+  const { creators: popularCreatorsData, loading: creatorsLoading } = usePopularCreators(10)
+  const { currentTrack, isPlaying, playTrack } = useAudioPlayer()
   
-  // Mock data for tracks with real image URLs
-  const trendingTracks: Track[] = [
-    {
-      id: '1',
-      title: 'Blinding Lights',
-      artist: 'The Weeknd',
-      album: 'After Hours',
-      plays: 12400,
-      likes: 890,
-      coverImage: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '3:45'
-    },
-    {
-      id: '2',
-      title: 'Save Your Tears',
-      artist: 'The Weeknd',
-      album: 'After Hours',
-      plays: 9800,
-      likes: 756,
-      coverImage: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '4:22'
-    },
-    {
-      id: '3',
-      title: 'Levitating',
-      artist: 'Dua Lipa',
-      album: 'Future Nostalgia',
-      plays: 15600,
-      likes: 1200,
-      coverImage: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '3:18'
-    },
-    {
-      id: '4',
-      title: 'Stay',
-      artist: 'The Kid LAROI, Justin Bieber',
-      album: 'F*CK LOVE 3',
-      plays: 8700,
-      likes: 620,
-      coverImage: 'https://images.unsplash.com/photo-1494232410401-ad00d5433cfa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '5:01'
-    },
-    {
-      id: '5',
-      title: 'Good 4 U',
-      artist: 'Olivia Rodrigo',
-      album: 'SOUR',
-      plays: 11200,
-      likes: 950,
-      coverImage: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '4:33'
-    },
-    {
-      id: '6',
-      title: 'Montero',
-      artist: 'Lil Nas X',
-      album: 'Montero',
-      plays: 2400,
-      likes: 180,
-      coverImage: 'https://images.unsplash.com/photo-1507838153414-b4b713384a76?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '3:55'
-    },
-    {
-      id: '7',
-      title: 'Peaches',
-      artist: 'Justin Bieber',
-      album: 'Justice',
-      plays: 1900,
-      likes: 150,
-      coverImage: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '4:12'
-    },
-    {
-      id: '8',
-      title: 'Kiss Me More',
-      artist: 'Doja Cat ft. SZA',
-      album: 'Planet Her',
-      plays: 3200,
-      likes: 280,
-      coverImage: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '3:47'
-    },
-    {
-      id: '9',
-      title: 'Butter',
-      artist: 'BTS',
-      album: 'Butter',
-      plays: 1500,
-      likes: 95,
-      coverImage: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '5:22'
-    },
-    {
-      id: '10',
-      title: 'Heat Waves',
-      artist: 'Glass Animals',
-      album: 'Dreamland',
-      plays: 8900,
-      likes: 650,
-      coverImage: 'https://images.unsplash.com/photo-1514320291841-38b60f8f72d7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '3:28'
-    },
-    {
-      id: '11',
-      title: 'Industry Baby',
-      artist: 'Lil Nas X, Jack Harlow',
-      album: 'Montero',
-      plays: 12300,
-      likes: 980,
-      coverImage: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '4:05'
-    },
-    {
-      id: '12',
-      title: 'Deja Vu',
-      artist: 'Olivia Rodrigo',
-      album: 'SOUR',
-      plays: 7600,
-      likes: 520,
-      coverImage: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '3:52'
-    }
-  ]
+  // Transform real tracks data to match existing interface
+  const trendingTracks: Track[] = trendingTracksData.map(track => ({
+    id: track._id,
+    title: track.title,
+    artist: typeof track.creatorId === 'object' && track.creatorId !== null ? (track.creatorId as any).name : 'Unknown Artist',
+    album: '',
+    plays: track.plays,
+    likes: track.likes,
+    coverImage: track.coverURL || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
+    duration: ''
+  }));
 
-  const newTracks: Track[] = [
-    {
-      id: '13',
-      title: 'Easy On Me',
-      artist: 'Adele',
-      album: '30',
-      plays: 15600,
-      likes: 1320,
-      coverImage: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '4:18'
-    },
-    {
-      id: '14',
-      title: 'Cold Heart',
-      artist: 'Elton John, Dua Lipa',
-      album: 'The Lockdown Sessions',
-      plays: 2400,
-      likes: 180,
-      coverImage: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '3:55'
-    },
-    {
-      id: '15',
-      title: 'Woman',
-      artist: 'Doja Cat',
-      album: 'Planet Her',
-      plays: 1900,
-      likes: 150,
-      coverImage: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '4:12'
-    },
-    {
-      id: '16',
-      title: 'Shivers',
-      artist: 'Ed Sheeran',
-      album: '=',
-      plays: 3200,
-      likes: 280,
-      coverImage: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '3:47'
-    },
-    {
-      id: '17',
-      title: 'Bad Habits',
-      artist: 'Ed Sheeran',
-      album: '=',
-      plays: 1500,
-      likes: 95,
-      coverImage: 'https://images.unsplash.com/photo-1514320291841-38b60f8f72d7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '5:22'
-    },
-    {
-      id: '18',
-      title: 'Ghost',
-      artist: 'Justin Bieber',
-      album: 'Justice',
-      plays: 8900,
-      likes: 650,
-      coverImage: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '3:28'
-    }
-  ]
+  // For now, use trending tracks for new tracks as well
+  const newTracks: Track[] = trendingTracks;
 
-  const popularCreators = [
-    {
-      id: '1',
-      name: 'The Weeknd',
-      type: 'Artist',
-      followers: 12500,
-      avatar: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      verified: true
-    },
-    {
-      id: '2',
-      name: 'Dua Lipa',
-      type: 'Artist',
-      followers: 8900,
-      avatar: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      verified: true
-    },
-    {
-      id: '3',
-      name: 'Justin Bieber',
-      type: 'Artist',
-      followers: 15600,
-      avatar: 'https://images.unsplash.com/photo-1514320291841-38b60f8f72d7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      verified: true
-    },
-    {
-      id: '4',
-      name: 'Olivia Rodrigo',
-      type: 'Artist',
-      followers: 9800,
-      avatar: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      verified: false
-    },
-    {
-      id: '5',
-      name: 'Doja Cat',
-      type: 'Artist',
-      followers: 7600,
-      avatar: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      verified: true
-    },
-    {
-      id: '6',
-      name: 'BTS',
-      type: 'Band',
-      followers: 22400,
-      avatar: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      verified: true
-    }
-  ]
-
+  // Transform creators data to match existing interface
+  const popularCreators: any[] = popularCreatorsData.map(creator => ({
+    id: creator._id,
+    name: creator.name,
+    type: creator.creatorType || 'Artist',
+    followers: creator.followersCount || 0,
+    avatar: creator.avatar || 'https://images.unsplash.com/photo-1519681393784-d120267933ba?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
+    verified: true // For now, we'll assume all creators are verified
+  }));
   // Get current tracks based on active tab
   const currentTracks = activeTab === 'trending' ? trendingTracks : 
                       activeTab === 'new' ? newTracks : 

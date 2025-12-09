@@ -50,6 +50,10 @@ const TrackSchema = new mongoose_1.Schema({
         required: true,
         trim: true
     },
+    description: {
+        type: String,
+        default: ''
+    },
     audioURL: {
         type: String,
         required: true

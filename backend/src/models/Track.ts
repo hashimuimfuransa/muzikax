@@ -4,6 +4,7 @@ export interface ITrack extends Document {
   creatorId: mongoose.Types.ObjectId;
   creatorType: 'artist' | 'dj' | 'producer';
   title: string;
+  description: string;
   audioURL: string;
   coverURL: string;
   genre: string;
@@ -30,6 +31,10 @@ const TrackSchema: Schema = new Schema({
     type: String,
     required: true,
     trim: true
+  },
+  description: {
+    type: String,
+    default: ''
   },
   audioURL: {
     type: String,

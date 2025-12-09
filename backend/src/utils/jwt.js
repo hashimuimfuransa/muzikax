@@ -48,8 +48,9 @@ const generateAccessToken = (user) => {
     };
     const secret = process.env['JWT_ACCESS_SECRET'] || 'access_secret';
     const options = {
-        expiresIn: process.env['JWT_ACCESS_EXPIRE'] ? process.env['JWT_ACCESS_EXPIRE'] : '15m'
+        expiresIn: process.env['JWT_ACCESS_EXPIRE'] || '15m'
     };
+    console.log('Generating access token with secret:', secret.substring(0, 10) + '...');
     return jwt.sign(payload, secret, options);
 };
 exports.generateAccessToken = generateAccessToken;
@@ -60,8 +61,9 @@ const generateRefreshToken = (user) => {
     };
     const secret = process.env['JWT_REFRESH_SECRET'] || 'refresh_secret';
     const options = {
-        expiresIn: process.env['JWT_REFRESH_EXPIRE'] ? process.env['JWT_REFRESH_EXPIRE'] : '7d'
+        expiresIn: process.env['JWT_REFRESH_EXPIRE'] || '7d'
     };
+    console.log('Generating refresh token with secret:', secret.substring(0, 10) + '...');
     return jwt.sign(payload, secret, options);
 };
 exports.generateRefreshToken = generateRefreshToken;
@@ -69,9 +71,13 @@ exports.generateRefreshToken = generateRefreshToken;
 const verifyAccessToken = (token) => {
     try {
         const secret = process.env['JWT_ACCESS_SECRET'] || 'access_secret';
-        return jwt.verify(token, secret);
+        console.log('Verifying access token with secret:', secret.substring(0, 10) + '...');
+        const decoded = jwt.verify(token, secret);
+        console.log('Token verified successfully');
+        return decoded;
     }
     catch (error) {
+        console.error('Token verification failed:', error);
         return null;
     }
 };
@@ -80,9 +86,13 @@ exports.verifyAccessToken = verifyAccessToken;
 const verifyRefreshToken = (token) => {
     try {
         const secret = process.env['JWT_REFRESH_SECRET'] || 'refresh_secret';
-        return jwt.verify(token, secret);
+        console.log('Verifying refresh token with secret:', secret.substring(0, 10) + '...');
+        const decoded = jwt.verify(token, secret);
+        console.log('Refresh token verified successfully');
+        return decoded;
     }
     catch (error) {
+        console.error('Refresh token verification failed:', error);
         return null;
     }
 };

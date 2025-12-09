@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import User from '../models/User';
-import { generateAccessToken, generateRefreshToken } from '../utils/jwt';
+import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../utils/jwt';
 
 // Register user
 export const register = async (req: Request, res: Response): Promise<void> => {
@@ -99,11 +99,13 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
       return;
     }
 
-    // Verify refresh token
-    const decoded = require('jsonwebtoken').verify(
-      refreshToken,
-      process.env['JWT_REFRESH_SECRET'] || 'refresh_secret'
-    );
+    // Verify refresh token using our utility function
+    const decoded = verifyRefreshToken(refreshToken);
+
+    if (!decoded) {
+      res.status(401).json({ message: 'Invalid refresh token' });
+      return;
+    }
 
     const user = await User.findById(decoded.id);
 

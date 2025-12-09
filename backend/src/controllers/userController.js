@@ -178,22 +178,44 @@ exports.approveCreator = approveCreator;
 // Get creator analytics (creator only)
 const getCreatorAnalytics = async (req, res) => {
     try {
+        // Log the incoming request for debugging
+        console.log('getCreatorAnalytics called');
+        console.log('User in request:', req.user);
+        // Check if user is authenticated
+        if (!req.user) {
+            console.log('No user found in request');
+            res.status(401).json({ message: 'Not authorized, no user found' });
+            return;
+        }
         const creatorId = req.user._id;
+        console.log('Creator ID:', creatorId);
+        // Check if user is a creator
+        if (req.user.role !== 'creator') {
+            console.log('User is not a creator, role:', req.user.role);
+            res.status(401).json({ message: 'Not authorized as creator' });
+            return;
+        }
         // Get total tracks
         const totalTracks = await Track_1.default.countDocuments({ creatorId });
+        console.log('Total tracks:', totalTracks);
         // Get total plays for all tracks
         const tracks = await Track_1.default.find({ creatorId });
         const totalPlays = tracks.reduce((sum, track) => sum + track.plays, 0);
+        console.log('Total plays:', totalPlays);
         // Get total likes for all tracks
         const totalLikes = tracks.reduce((sum, track) => sum + track.likes, 0);
-        res.json({
+        console.log('Total likes:', totalLikes);
+        const response = {
             totalTracks,
             totalPlays,
             totalLikes,
             tracks: tracks.length
-        });
+        };
+        console.log('Analytics response:', response);
+        res.json(response);
     }
     catch (error) {
+        console.error('Error in getCreatorAnalytics:', error);
         res.status(500).json({ message: error.message });
     }
 };

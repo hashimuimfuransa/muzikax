@@ -5,17 +5,24 @@ import Track from '../models/Track';
 // Upload track
 export const uploadTrack = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { title, genre, type, audioURL, coverURL } = req.body;
+    const { title, description, genre, type, audioURL, coverURL } = req.body;
     const user = (req as any).user;
+
+    // Validate required fields
+    if (!title || !audioURL) {
+      res.status(400).json({ message: 'Title and audio URL are required' });
+      return;
+    }
 
     const track = await Track.create({
       creatorId: user._id,
       creatorType: user.creatorType,
       title,
-      genre,
-      type,
+      description: description || '',
+      genre: genre || 'afrobeat',
+      type: type || 'song',
       audioURL,
-      coverURL
+      coverURL: coverURL || ''
     });
 
     res.status(201).json(track);
@@ -95,7 +102,7 @@ export const getTracksByCreator = async (req: Request, res: Response): Promise<v
 // Update track
 export const updateTrack = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { title, genre, coverURL } = req.body;
+    const { title, genre, coverURL, description } = req.body;
 
     const track = await Track.findById(req.params['id']);
 
@@ -110,9 +117,11 @@ export const updateTrack = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    track.title = title || track.title;
-    track.genre = genre || track.genre;
-    track.coverURL = coverURL || track.coverURL;
+    // Update fields if provided
+    if (title !== undefined) track.title = title;
+    if (genre !== undefined) track.genre = genre;
+    if (coverURL !== undefined) track.coverURL = coverURL;
+    if (description !== undefined) track.description = description;
 
     const updatedTrack = await track.save();
 
