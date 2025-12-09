@@ -470,7 +470,13 @@ export default function Community() {
               <div className="card-bg rounded-2xl p-5 sm:p-6 mb-6 sm:mb-8 border border-gray-700/50">
                 <h2 className="font-bold text-white text-lg mb-4">Trending Topics</h2>
                 <div className="space-y-3">
-                  {['#RwandanMusic', '#AfroBeats', '#KigaliEvents', '#MusicCollaboration', '#LocalArtists'].map((tag, index) => (
+                  {[
+                    { tag: '#RwandanMusic', posts: 854 },
+                    { tag: '#AfroBeats', posts: 670 },
+                    { tag: '#KigaliEvents', posts: 421 },
+                    { tag: '#MusicCollaboration', posts: 315 },
+                    { tag: '#LocalArtists', posts: 589 }
+                  ].map(({ tag, posts }, index) => (
                     <Link 
                       key={index} 
                       href={`/search?q=${encodeURIComponent(tag)}`}
@@ -478,7 +484,7 @@ export default function Community() {
                     >
                       <span className="text-[#FF4D67]">{tag}</span>
                       <span className="text-gray-500 text-sm ml-2">
-                        {Math.floor(Math.random() * 1000) + 100} posts
+                        {posts.toLocaleString()} posts
                       </span>
                     </Link>
                   ))}

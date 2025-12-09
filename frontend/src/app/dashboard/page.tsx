@@ -30,14 +30,22 @@ export default function Dashboard() {
     if (!isAuthenticated) {
       // If not authenticated, redirect to login
       router.push('/login')
-    } else if (userRole !== 'creator' && userRole !== 'admin') {
-      // If authenticated but not a creator or admin, redirect to home
+    } else if (userRole === 'admin') {
+      // If authenticated as admin, redirect to admin dashboard
+      router.push('/admin')
+    } else if (userRole !== 'creator') {
+      // If authenticated but not a creator, redirect to home
       router.push('/')
     }
   }, [isAuthenticated, userRole, router])
 
   // Don't render the dashboard if not authenticated or not authorized
   if (!isAuthenticated || (userRole !== 'creator' && userRole !== 'admin')) {
+    return null
+  }
+  
+  // If user is admin, don't show creator dashboard
+  if (userRole === 'admin') {
     return null
   }
   
@@ -107,7 +115,7 @@ export default function Dashboard() {
                     )}
                     {stat.icon === 'heart' && (
                       <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4 4 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
                       </svg>
                     )}
                     {stat.icon === 'users' && (

@@ -91,6 +91,11 @@ export default function Navbar() {
                   <Link href="/profile" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">
                     Profile
                   </Link>
+                  {userRole === 'admin' && (
+                    <Link href="/admin" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">
+                      Admin Dashboard
+                    </Link>
+                  )}
                   <button 
                     onClick={() => {
                       logout();
@@ -190,6 +195,11 @@ export default function Navbar() {
                   <Link href="/profile" className="w-full text-center px-4 py-2 text-base font-medium text-gray-300 hover:text-white">
                     Profile
                   </Link>
+                  {userRole === 'admin' && (
+                    <Link href="/admin" className="w-full text-center px-4 py-2 text-base font-medium text-gray-300 hover:text-white">
+                      Admin Dashboard
+                    </Link>
+                  )}
                   <button 
                     onClick={() => {
                       logout();

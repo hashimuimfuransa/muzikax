@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import Track from '../models/Track';
-import User from '../models/User';
+// import User from '../models/User'; // Not used in this controller
 
 // Upload track
 export const uploadTrack = async (req: Request, res: Response): Promise<void> => {
@@ -27,8 +27,8 @@ export const uploadTrack = async (req: Request, res: Response): Promise<void> =>
 // Get all tracks
 export const getAllTracks = async (req: Request, res: Response): Promise<void> => {
   try {
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 10;
+    const page = parseInt(req.query['page'] as string) || 1;
+    const limit = parseInt(req.query['limit'] as string) || 10;
     const skip = (page - 1) * limit;
 
     const tracks = await Track.find()
@@ -53,7 +53,7 @@ export const getAllTracks = async (req: Request, res: Response): Promise<void> =
 // Get track by ID
 export const getTrackById = async (req: Request, res: Response): Promise<void> => {
   try {
-    const track = await Track.findById(req.params.id)
+    const track = await Track.findById(req.params['id'])
       .populate('creatorId', 'name avatar bio socials');
 
     if (!track) {
@@ -70,16 +70,16 @@ export const getTrackById = async (req: Request, res: Response): Promise<void> =
 // Get tracks by creator
 export const getTracksByCreator = async (req: Request, res: Response): Promise<void> => {
   try {
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 10;
+    const page = parseInt(req.query['page'] as string) || 1;
+    const limit = parseInt(req.query['limit'] as string) || 10;
     const skip = (page - 1) * limit;
 
-    const tracks = await Track.find({ creatorId: req.params.creatorId as string })
+    const tracks = await Track.find({ creatorId: req.params['creatorId'] as string })
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
 
-    const total = await Track.countDocuments({ creatorId: req.params.creatorId as string });
+    const total = await Track.countDocuments({ creatorId: req.params['creatorId'] as string });
 
     res.json({
       tracks,
@@ -97,7 +97,7 @@ export const updateTrack = async (req: Request, res: Response): Promise<void> =>
   try {
     const { title, genre, coverURL } = req.body;
 
-    const track = await Track.findById(req.params.id);
+    const track = await Track.findById(req.params['id']);
 
     if (!track) {
       res.status(404).json({ message: 'Track not found' });
@@ -125,7 +125,7 @@ export const updateTrack = async (req: Request, res: Response): Promise<void> =>
 // Delete track
 export const deleteTrack = async (req: Request, res: Response): Promise<void> => {
   try {
-    const track = await Track.findById(req.params.id);
+    const track = await Track.findById(req.params['id']);
 
     if (!track) {
       res.status(404).json({ message: 'Track not found' });
@@ -152,7 +152,7 @@ export const deleteTrack = async (req: Request, res: Response): Promise<void> =>
 export const incrementPlayCount = async (req: Request, res: Response): Promise<void> => {
   try {
     const track = await Track.findByIdAndUpdate(
-      req.params.id,
+      req.params['id'],
       { $inc: { plays: 1 } },
       { new: true }
     );
@@ -171,7 +171,7 @@ export const incrementPlayCount = async (req: Request, res: Response): Promise<v
 // Get trending tracks
 export const getTrendingTracks = async (req: Request, res: Response): Promise<void> => {
   try {
-    const limit = parseInt(req.query.limit as string) || 10;
+    const limit = parseInt(req.query['limit'] as string) || 10;
 
     const tracks = await Track.find()
       .sort({ plays: -1, createdAt: -1 })

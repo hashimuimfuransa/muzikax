@@ -5,8 +5,8 @@ import Track from '../models/Track';
 // Get all users (admin only)
 export const getUsers = async (req: Request, res: Response): Promise<void> => {
   try {
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 10;
+    const page = parseInt(req.query['page'] as string) || 1;
+    const limit = parseInt(req.query['limit'] as string) || 10;
     const skip = (page - 1) * limit;
 
     const users = await User.find()
@@ -31,7 +31,7 @@ export const getUsers = async (req: Request, res: Response): Promise<void> => {
 // Get user by ID
 export const getUserById = async (req: Request, res: Response): Promise<void> => {
   try {
-    const user = await User.findById(req.params.id).select('-password');
+    const user = await User.findById(req.params['id']).select('-password');
 
     if (!user) {
       res.status(404).json({ message: 'User not found' });
@@ -47,7 +47,7 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
 // Update user (admin only)
 export const updateUser = async (req: Request, res: Response): Promise<void> => {
   try {
-    const user = await User.findById(req.params.id);
+    const user = await User.findById(req.params['id']);
 
     if (!user) {
       res.status(404).json({ message: 'User not found' });
@@ -129,7 +129,7 @@ export const upgradeToCreator = async (req: Request, res: Response): Promise<voi
 // Delete user (admin only)
 export const deleteUser = async (req: Request, res: Response): Promise<void> => {
   try {
-    const user = await User.findById(req.params.id);
+    const user = await User.findById(req.params['id']);
 
     if (!user) {
       res.status(404).json({ message: 'User not found' });
@@ -149,7 +149,7 @@ export const deleteUser = async (req: Request, res: Response): Promise<void> => 
 // Approve creator (admin only)
 export const approveCreator = async (req: Request, res: Response): Promise<void> => {
   try {
-    const user = await User.findById(req.params.id);
+    const user = await User.findById(req.params['id']);
 
     if (!user) {
       res.status(404).json({ message: 'User not found' });

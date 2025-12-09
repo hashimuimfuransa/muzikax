@@ -9,7 +9,7 @@ import {
   incrementPlayCount,
   getTrendingTracks
 } from '../controllers/trackController';
-import { protect, creator, admin } from '../utils/jwt';
+import { protect, creator } from '../utils/jwt';
 
 const router = express.Router();
 

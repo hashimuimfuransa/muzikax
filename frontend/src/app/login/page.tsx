@@ -58,8 +58,13 @@ export default function Login() {
         creatorType: userData.creatorType
       })
       
-      // All users go to home page after login
-      router.push('/')
+      // Redirect based on user role
+      if (userData.role === 'admin') {
+        router.push('/admin')
+      } else {
+        // All other users go to home page after login
+        router.push('/')
+      }
     } catch (error) {
       console.error('Login error:', error)
       setError('An unexpected error occurred. Please try again.')
@@ -99,8 +104,13 @@ export default function Login() {
         creatorType: userData.creatorType
       })
       
-      // All users go to home page after signup
-      router.push('/')
+      // Redirect based on user role
+      if (userData.role === 'admin') {
+        router.push('/admin')
+      } else {
+        // All other users go to home page after signup
+        router.push('/')
+      }
     } catch (error) {
       console.error('Signup error:', error)
       setError('An unexpected error occurred. Please try again.')

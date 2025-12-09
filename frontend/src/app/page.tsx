@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../contexts/AuthContext'
-
 interface Track {
   id: string
   title: string
@@ -40,6 +39,22 @@ export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0)
   const { isAuthenticated, userRole } = useAuth()
   const router = useRouter()
+  
+  // Redirect admin users to admin dashboard
+  useEffect(() => {
+    console.log('Checking admin redirect:', { isAuthenticated, userRole });
+    if (isAuthenticated && userRole === 'admin') {
+      console.log('Redirecting admin to /admin');
+      router.replace('/admin')
+      return
+    }
+  }, [isAuthenticated, userRole, router])
+  
+  // Don't render home page content for admin users
+  if (isAuthenticated && userRole === 'admin') {
+    console.log('Rendering null for admin user');
+    return null
+  }
   
   // Hero slider images
   const heroSlides = [
@@ -438,14 +453,24 @@ export default function Home() {
           )}
           
           {/* Conditional rendering for dashboard based on user role */}
-          {(isAuthenticated && (userRole === 'creator' || userRole === 'admin')) ? (
+          {isAuthenticated && userRole === 'creator' && (
             <Link href="/dashboard" className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800/50 transition-colors">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
               </svg>
               <span>Dashboard</span>
             </Link>
-          ) : null}
+          )}
+          
+          {/* Admin dashboard link */}
+          {isAuthenticated && userRole === 'admin' && (
+            <Link href="/admin" className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800/50 transition-colors">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+              </svg>
+              <span>Admin Dashboard</span>
+            </Link>
+          )}
         </nav>
         
         <div className="mt-8">
