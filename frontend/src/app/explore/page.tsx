@@ -4,8 +4,10 @@ import { useState, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useTrendingTracks, usePopularCreators } from '../../hooks/useTracks'
 import { useAudioPlayer } from '../../contexts/AudioPlayerContext'
+import { Suspense } from 'react'
 
-interface Track {  id: string
+interface Track {  
+  id: string
   title: string
   artist: string
   plays: number
@@ -35,13 +37,14 @@ const categories = [
   { id: 'mixes', name: 'Mixes' }
 ]
 
-export default function Explore() {
+// Separate component for the main content that uses useSearchParams
+function ExploreContent() {
   const [activeTab, setActiveTab] = useState<'tracks' | 'creators'>('tracks')
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const searchParams = useSearchParams()
   const router = useRouter()
   const { tracks: trendingTracksData, loading: trendingLoading } = useTrendingTracks(20)
-  const { currentTrack, isPlaying, playTrack } = useAudioPlayer()
+  const { currentTrack, isPlaying, playTrack, setCurrentPlaylist } = useAudioPlayer()
   
   // Get category from URL params
   const categoryParam = searchParams.get('category')
@@ -249,6 +252,18 @@ export default function Explore() {
                                 coverImage: track.coverImage,
                                 audioUrl: fullTrack.audioURL
                               });
+                              
+                              // Set the current playlist to all trending tracks
+                              const playlistTracks = trendingTracksData
+                                .filter(t => t.audioURL) // Only tracks with audio
+                                .map(t => ({
+                                  id: t._id,
+                                  title: t.title,
+                                  artist: typeof t.creatorId === 'object' && t.creatorId !== null ? (t.creatorId as any).name : 'Unknown Artist',
+                                  coverImage: t.coverURL || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
+                                  audioUrl: t.audioURL
+                                }));
+                              setCurrentPlaylist(playlistTracks);
                             }
                           }}
                           className="w-12 h-12 sm:w-14 sm:h-14 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
@@ -258,7 +273,7 @@ export default function Explore() {
                             </svg>
                           ) : (
                             <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
+                              <path fillRule="evenodd" d="M4.318 6.318a4 4 0 000 6.364L12 20.364l7.682-7.682a4 4 0 00-6.364-6.364L12 7.636l-1.318-1.318a4 4 0 000-5.656z" clipRule="evenodd"></path>
                             </svg>
                           )}
                         </button>
@@ -334,5 +349,22 @@ export default function Explore() {
         )}
       </div>
     </div>
+  )
+}
+
+// Loading fallback component
+function ExploreLoading() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black flex items-center justify-center">
+      <div className="text-white">Loading explore page...</div>
+    </div>
+  )
+}
+
+export default function Explore() {
+  return (
+    <Suspense fallback={<ExploreLoading />}>
+      <ExploreContent />
+    </Suspense>
   )
 }

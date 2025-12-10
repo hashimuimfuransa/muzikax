@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { Suspense } from 'react'
 
 interface Track {
   id: string
@@ -33,7 +34,8 @@ interface Album {
   tracks: number
 }
 
-export default function SearchResults() {
+// Separate component for the main content that uses useSearchParams
+function SearchResultsContent() {
   const searchParams = useSearchParams()
   const query = searchParams.get('q') || ''
   const [searchQuery, setSearchQuery] = useState(query)
@@ -391,5 +393,22 @@ export default function SearchResults() {
         </div>
       </div>
     </div>
+  )
+}
+
+// Loading fallback component
+function SearchLoading() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black flex items-center justify-center">
+      <div className="text-white">Loading search results...</div>
+    </div>
+  )
+}
+
+export default function SearchResults() {
+  return (
+    <Suspense fallback={<SearchLoading />}>
+      <SearchResultsContent />
+    </Suspense>
   )
 }

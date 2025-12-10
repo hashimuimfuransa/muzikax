@@ -157,18 +157,15 @@ export const fetchTracksByCreator = async (creatorId: string, page: number = 1, 
  */
 export const fetchPopularCreators = async (limit: number = 10): Promise<any[]> => {
   try {
-    // For now, we'll fetch all users with role 'creator' from the users endpoint
-    // In a production environment, this would likely be a dedicated endpoint
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users?limit=${limit}`);
+    // Use the new public creators endpoint that doesn't require any authentication
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/public/creators?limit=${limit}`);
     
     if (!response.ok) {
       throw new Error(`Failed to fetch popular creators: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
-    // Filter for creators only
-    const creators = data.users.filter((user: any) => user.role === 'creator');
-    return creators.slice(0, limit);
+    return data.users;
   } catch (error) {
     console.error('Error fetching popular creators:', error);
     throw error;

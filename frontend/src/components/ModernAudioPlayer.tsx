@@ -1,7 +1,7 @@
 'use client';
 
 import { useAudioPlayer } from '../contexts/AudioPlayerContext';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 const ModernAudioPlayer = () => {
   const {
@@ -13,10 +13,25 @@ const ModernAudioPlayer = () => {
     closePlayer,
     progress,
     duration,
-    setProgress
+    setProgress,
+    playNextTrack,
+    playPreviousTrack,
+    addToFavorites,
+    removeFromFavorites,
+    addToPlaylist,
+    favorites,
+    audioRef
   } = useAudioPlayer();
 
   const progressRef = useRef<HTMLDivElement>(null);
+  const [isFavorite, setIsFavorite] = useState(false);
+
+  // Check if current track is in favorites
+  useEffect(() => {
+    if (currentTrack) {
+      setIsFavorite(favorites.some(track => track.id === currentTrack.id));
+    }
+  }, [currentTrack, favorites]);
 
   // Format time in MM:SS
   const formatTime = (seconds: number) => {
@@ -27,7 +42,7 @@ const ModernAudioPlayer = () => {
 
   // Handle progress bar click
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!progressRef.current || !currentTrack) return;
+    if (!progressRef.current || !currentTrack || !duration) return;
     
     const rect = progressRef.current.getBoundingClientRect();
     const percent = (e.clientX - rect.left) / rect.width;
@@ -36,11 +51,24 @@ const ModernAudioPlayer = () => {
     // Update progress in context
     setProgress(newProgress);
     
-    // Seek in audio element
-    const audioElement = document.getElementById('audio-player') as HTMLAudioElement;
-    if (audioElement) {
-      audioElement.currentTime = newProgress;
+    // Seek in audio element by accessing it through the context
+    if (audioRef && audioRef.current) {
+      audioRef.current.currentTime = newProgress;
     }
+  };
+
+  // Toggle favorite status
+  const toggleFavorite = () => {
+    if (!currentTrack) return;
+    
+    if (isFavorite) {
+      // Remove from favorites
+      removeFromFavorites(currentTrack.id);
+    } else {
+      // Add to favorites
+      addToFavorites(currentTrack);
+    }
+    setIsFavorite(!isFavorite);
   };
 
   // Don't render if there's no current track
@@ -174,7 +202,10 @@ const ModernAudioPlayer = () => {
             {/* Controls */}
             <div className="px-6 pb-6">
               <div className="flex justify-center items-center space-x-8">
-                <button className="text-gray-400 hover:text-white transition-colors">
+                <button 
+                  onClick={playPreviousTrack}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                     <path d="M8.445 14.832A1 1 0 0010 14v-2.798l5.445 3.63A1 1 0 0017 14V6a1 1 0 00-1.555-.832L10 8.798V6a1 1 0 00-1.555-.832l-6 4a1 1 0 000 1.664l6 4z"></path>
                   </svg>
@@ -195,7 +226,10 @@ const ModernAudioPlayer = () => {
                   )}
                 </button>
                 
-                <button className="text-gray-400 hover:text-white transition-colors">
+                <button 
+                  onClick={playNextTrack}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                     <path d="M4.555 5.168A1 1 0 003 6v8a1 1 0 001.555.832L10 11.202V14a1 1 0 001.555.832l6-4a1 1 0 000-1.664l-6-4A1 1 0 0010 6v2.798l-5.445-3.63z"></path>
                   </svg>
@@ -203,13 +237,19 @@ const ModernAudioPlayer = () => {
               </div>
               
               <div className="flex justify-center items-center mt-6 space-x-6">
-                <button className="text-gray-400 hover:text-white transition-colors">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <button 
+                  onClick={toggleFavorite}
+                  className={`text-gray-400 hover:text-white transition-colors ${isFavorite ? 'text-red-500' : ''}`}
+                >
+                  <svg className="w-5 h-5" fill={isFavorite ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
                   </svg>
                 </button>
                 
-                <button className="text-gray-400 hover:text-white transition-colors">
+                <button 
+                  onClick={() => addToPlaylist(currentTrack)}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                     <path fillRule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V5zm11 1H6v8l4-2 4 2V6z" clipRule="evenodd"></path>
                   </svg>

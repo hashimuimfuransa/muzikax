@@ -19,7 +19,7 @@ export default function TracksPage() {
   const [sortBy, setSortBy] = useState<'popular' | 'recent' | 'alphabetical'>('popular')
   const { tracks: trendingTracksData, loading: trendingLoading } = useTrendingTracks(20)
   const { creators: popularCreatorsData, loading: creatorsLoading } = usePopularCreators(10)
-  const { currentTrack, isPlaying, playTrack } = useAudioPlayer()
+  const { currentTrack, isPlaying, playTrack, setCurrentPlaylist } = useAudioPlayer()
   
   // Transform real tracks data to match existing interface
   const trendingTracks: Track[] = trendingTracksData.map(track => ({
@@ -143,6 +143,18 @@ export default function TracksPage() {
                             coverImage: track.coverImage,
                             audioUrl: fullTrack.audioURL
                           });
+                          
+                          // Set the current playlist to all trending tracks
+                          const playlistTracks = trendingTracksData
+                            .filter(t => t.audioURL) // Only tracks with audio
+                            .map(t => ({
+                              id: t._id,
+                              title: t.title,
+                              artist: typeof t.creatorId === 'object' && t.creatorId !== null ? (t.creatorId as any).name : 'Unknown Artist',
+                              coverImage: t.coverURL || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
+                              audioUrl: t.audioURL
+                            }));
+                          setCurrentPlaylist(playlistTracks);
                         }
                       }}
                       className="w-12 h-12 sm:w-14 sm:h-14 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">

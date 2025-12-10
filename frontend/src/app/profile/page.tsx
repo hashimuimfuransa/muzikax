@@ -24,7 +24,7 @@ export default function Profile() {
   const [tracksPage, setTracksPage] = useState(1)
   const [tracksTotalPages, setTracksTotalPages] = useState(1)
   const [error, setError] = useState<string | null>(null)
-  const { currentTrack, isPlaying, playTrack } = useAudioPlayer()
+  const { currentTrack, isPlaying, playTrack, setCurrentPlaylist } = useAudioPlayer()
   const router = useRouter()
   const { isAuthenticated, user, isLoading } = useAuth()
 
@@ -99,6 +99,18 @@ export default function Profile() {
         coverImage: track.coverURL || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
         audioUrl: track.audioURL
       });
+      
+      // Set the current playlist to all creator tracks
+      const playlistTracks = tracks
+        .filter(t => t.audioURL) // Only tracks with audio
+        .map(t => ({
+          id: t._id,
+          title: t.title,
+          artist: user?.name || 'Unknown Artist',
+          coverImage: t.coverURL || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
+          audioUrl: t.audioURL
+        }));
+      setCurrentPlaylist(playlistTracks);
     }
   };
   // Show loading state while checking auth
@@ -389,7 +401,7 @@ export default function Profile() {
                             >
                               {currentTrack?.id === track._id && isPlaying ? (
                                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd"></path>
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd"></path>
                                 </svg>
                               ) : (
                                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">

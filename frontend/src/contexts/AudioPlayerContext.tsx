@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useRef, ReactNode } from 'react';
+import { createContext, useContext, useState, useRef, ReactNode, useEffect } from 'react';
 
 interface Track {
   id: string;
@@ -11,11 +11,22 @@ interface Track {
   duration?: number; // in seconds
 }
 
+interface Playlist {
+  id: string;
+  name: string;
+  tracks: Track[];
+}
+
 interface AudioPlayerContextType {
   currentTrack: Track | null;
   isPlaying: boolean;
   isMinimized: boolean;
+  playlist: Track[];
+  playlists: Playlist[];
+  favorites: Track[];
   playTrack: (track: Track) => void;
+  playNextTrack: () => void;
+  playPreviousTrack: () => void;
   pauseTrack: () => void;
   stopTrack: () => void;
   togglePlayPause: () => void;
@@ -24,6 +35,14 @@ interface AudioPlayerContextType {
   setProgress: (progress: number) => void;
   progress: number;
   duration: number;
+  addToPlaylist: (track: Track) => void;
+  removeFromPlaylist: (trackId: string) => void;
+  createPlaylist: (name: string) => void;
+  addToFavorites: (track: Track) => void;
+  removeFromFavorites: (trackId: string) => void;
+  setCurrentPlaylist: (tracks: Track[]) => void;
+  currentTrackIndex: number;
+  audioRef: React.RefObject<HTMLAudioElement | null>;
 }
 
 const AudioPlayerContext = createContext<AudioPlayerContextType | undefined>(undefined);
@@ -42,7 +61,28 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
   const [isMinimized, setIsMinimized] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [playlist, setPlaylist] = useState<Track[]>([]);
+  const [playlists, setPlaylists] = useState<Playlist[]>([]);
+  const [favorites, setFavorites] = useState<Track[]>([]);
+  const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Load favorites from localStorage on mount
+  useEffect(() => {
+    const savedFavorites = localStorage.getItem('favorites');
+    if (savedFavorites) {
+      try {
+        setFavorites(JSON.parse(savedFavorites));
+      } catch (e) {
+        console.error('Failed to parse favorites from localStorage', e);
+      }
+    }
+  }, []);
+
+  // Save favorites to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('favorites', JSON.stringify(favorites));
+  }, [favorites]);
 
   const playTrack = (track: Track) => {
     // If we're already playing this track, just resume
@@ -67,8 +107,7 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     audio.onpause = () => setIsPlaying(false);
     audio.onended = () => {
       setIsPlaying(false);
-      setCurrentTrack(null);
-      setProgress(0);
+      playNextTrack();
     };
     
     audio.ontimeupdate = () => {
@@ -87,11 +126,39 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
       setCurrentTrack(track);
       setIsPlaying(true);
       setIsMinimized(false); // Expand player when new track starts
+      
+      // Find track index in playlist if it exists
+      const index = playlist.findIndex(t => t.id === track.id);
+      if (index !== -1) {
+        setCurrentTrackIndex(index);
+      }
     }).catch((error) => {
       console.error('Error playing track:', error);
       setIsPlaying(false);
       setCurrentTrack(null);
     });
+  };
+
+  const playNextTrack = () => {
+    if (playlist.length > 0 && currentTrack) {
+      const currentIndex = playlist.findIndex(track => track.id === currentTrack.id);
+      if (currentIndex !== -1 && currentIndex < playlist.length - 1) {
+        const nextTrack = playlist[currentIndex + 1];
+        playTrack(nextTrack);
+        setCurrentTrackIndex(currentIndex + 1);
+      }
+    }
+  };
+
+  const playPreviousTrack = () => {
+    if (playlist.length > 0 && currentTrack) {
+      const currentIndex = playlist.findIndex(track => track.id === currentTrack.id);
+      if (currentIndex > 0) {
+        const prevTrack = playlist[currentIndex - 1];
+        playTrack(prevTrack);
+        setCurrentTrackIndex(currentIndex - 1);
+      }
+    }
   };
 
   const pauseTrack = () => {
@@ -131,6 +198,47 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     setIsMinimized(false);
   };
 
+  const addToPlaylist = (track: Track) => {
+    setPlaylist(prev => {
+      // Check if track already exists in playlist
+      if (prev.some(t => t.id === track.id)) {
+        return prev;
+      }
+      return [...prev, track];
+    });
+  };
+
+  const removeFromPlaylist = (trackId: string) => {
+    setPlaylist(prev => prev.filter(track => track.id !== trackId));
+  };
+
+  const createPlaylist = (name: string) => {
+    const newPlaylist: Playlist = {
+      id: Date.now().toString(),
+      name,
+      tracks: [...playlist]
+    };
+    setPlaylists(prev => [...prev, newPlaylist]);
+  };
+
+  const addToFavorites = (track: Track) => {
+    setFavorites(prev => {
+      // Check if track already exists in favorites
+      if (prev.some(t => t.id === track.id)) {
+        return prev;
+      }
+      return [...prev, track];
+    });
+  };
+
+  const removeFromFavorites = (trackId: string) => {
+    setFavorites(prev => prev.filter(track => track.id !== trackId));
+  };
+
+  const setCurrentPlaylist = (tracks: Track[]) => {
+    setPlaylist(tracks);
+  };
+
   return (
     <AudioPlayerContext.Provider
       value={{
@@ -138,6 +246,8 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
         isPlaying,
         isMinimized,
         playTrack,
+        playNextTrack,
+        playPreviousTrack,
         pauseTrack,
         stopTrack,
         togglePlayPause,
@@ -145,7 +255,18 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
         closePlayer,
         progress,
         duration,
-        setProgress
+        setProgress,
+        playlist,
+        playlists,
+        favorites,
+        addToPlaylist,
+        removeFromPlaylist,
+        createPlaylist,
+        addToFavorites,
+        removeFromFavorites,
+        setCurrentPlaylist,
+        currentTrackIndex,
+        audioRef
       }}
     >
       {children}

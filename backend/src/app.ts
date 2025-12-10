@@ -11,6 +11,7 @@ import adminRoutes from './routes/adminRoutes';
 import upgradeRoutes from './routes/upgradeRoutes';
 import uploadRoutes from './routes/uploadRoutes';
 import creatorRoutes from './routes/creatorRoutes';
+import publicRoutes from './routes/publicRoutes';
 
 console.log('ROUTES IMPORTED');
 
@@ -55,6 +56,9 @@ app.use('/api/upgrade', upgradeRoutes);
 console.log('Upgrade routes registered');
 app.use('/api/creator', creatorRoutes);
 console.log('Creator routes registered');
+// Register public routes - these are accessible to everyone
+app.use('/api/public', publicRoutes);
+console.log('Public routes registered');
 
 // Add detailed logging for upload routes
 console.log('Attempting to register upload routes...');

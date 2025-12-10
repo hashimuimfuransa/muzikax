@@ -6,6 +6,7 @@ import {
   deleteUser,
   approveCreator,
   getCreatorAnalytics,
+  getPublicCreators, // Add this import
   upgradeToCreator // Add this import
 } from '../controllers/userController';
 import { protect, admin, creator } from '../utils/jwt';
@@ -33,6 +34,12 @@ router.get('/test', (req, res) => {
 router.get('/simple-test', (_req, res) => {
   console.log('SIMPLE TEST ROUTE HIT');
   res.json({ message: 'Simple test route working' });
+});
+
+// Public routes for creators - explicitly without authentication
+router.get('/public-creators', (req, res, next) => {
+  console.log('Public creators route hit, no auth required');
+  getPublicCreators(req, res);
 });
 
 // Admin routes
