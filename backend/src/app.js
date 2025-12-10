@@ -16,6 +16,9 @@ const adminRoutes_1 = __importDefault(require("./routes/adminRoutes"));
 const upgradeRoutes_1 = __importDefault(require("./routes/upgradeRoutes"));
 const uploadRoutes_1 = __importDefault(require("./routes/uploadRoutes"));
 const creatorRoutes_1 = __importDefault(require("./routes/creatorRoutes"));
+console.log('About to import public routes...');
+const publicRoutes_1 = __importDefault(require("./routes/publicRoutes"));
+console.log('Public routes imported successfully');
 console.log('ROUTES IMPORTED');
 console.log('APP FILE LOADED');
 // Load env vars
@@ -50,6 +53,11 @@ app.use('/api/upgrade', upgradeRoutes_1.default);
 console.log('Upgrade routes registered');
 app.use('/api/creator', creatorRoutes_1.default);
 console.log('Creator routes registered');
+// Register public routes - these are accessible to everyone
+console.log('About to register public routes...');
+console.log('Public routes object:', publicRoutes_1.default);
+app.use('/api/public', publicRoutes_1.default);
+console.log('Public routes registered');
 // Add detailed logging for upload routes
 console.log('Attempting to register upload routes...');
 try {

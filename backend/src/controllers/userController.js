@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getCreatorAnalytics = exports.approveCreator = exports.deleteUser = exports.upgradeToCreator = exports.updateUser = exports.getUserById = exports.getUsers = void 0;
+exports.getCreatorAnalytics = exports.approveCreator = exports.deleteUser = exports.upgradeToCreator = exports.updateUser = exports.getUserById = exports.getPublicCreators = exports.getUsers = void 0;
 const User_1 = __importDefault(require("../models/User"));
 const Track_1 = __importDefault(require("../models/Track"));
 // Get all users (admin only)
@@ -30,6 +30,25 @@ const getUsers = async (req, res) => {
     }
 };
 exports.getUsers = getUsers;
+// Get public creators (accessible to all users)
+const getPublicCreators = async (req, res) => {
+    try {
+        const limit = parseInt(req.query['limit']) || 10;
+        // Find users with role 'creator' and sort by followersCount descending
+        const creators = await User_1.default.find({ role: 'creator' })
+            .select('-password')
+            .sort({ followersCount: -1, createdAt: -1 })
+            .limit(limit);
+        res.json({
+            users: creators
+        });
+    }
+    catch (error) {
+        console.error('Error fetching public creators:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+exports.getPublicCreators = getPublicCreators;
 // Get user by ID
 const getUserById = async (req, res) => {
     try {

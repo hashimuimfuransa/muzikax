@@ -55,6 +55,11 @@ router.get('/simple-test', (_req, res) => {
     console.log('SIMPLE TEST ROUTE HIT');
     res.json({ message: 'Simple test route working' });
 });
+// Public routes for creators - explicitly without authentication
+router.get('/public-creators', (req, res, next) => {
+    console.log('Public creators route hit, no auth required');
+    (0, userController_1.getPublicCreators)(req, res);
+});
 // Admin routes
 router.route('/')
     .get(jwt_1.protect, jwt_1.admin, userController_1.getUsers);
