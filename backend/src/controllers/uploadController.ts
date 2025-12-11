@@ -6,7 +6,7 @@ import { protect } from '../utils/jwt';
 // Upload track with cover image
 export const uploadTrack = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { title, description, genre, type, audioURL, coverURL } = req.body;
+    const { title, description, genre, type, audioURL, coverURL, albumId } = req.body;
     const user = (req as any).user;
 
     console.log('Upload track request received:', { 
@@ -16,6 +16,7 @@ export const uploadTrack = async (req: Request, res: Response): Promise<void> =>
       type, 
       audioURL, 
       coverURL,
+      albumId,
       userId: user._id,
       userRole: user.role
     });
@@ -42,7 +43,7 @@ export const uploadTrack = async (req: Request, res: Response): Promise<void> =>
       }
     }
 
-    const track = await Track.create({
+    const trackData: any = {
       creatorId: user._id,
       creatorType: user.creatorType,
       title,
@@ -51,9 +52,16 @@ export const uploadTrack = async (req: Request, res: Response): Promise<void> =>
       type: type || 'song',
       audioURL,
       coverURL: finalCoverURL || ''
-    });
+    };
 
-    console.log('Track created successfully:', track._id);
+    // Add album reference if provided
+    if (albumId) {
+      trackData.albumId = albumId;
+    }
+
+    const track = await Track.create(trackData);
+
+    console.log('Track created successfully:', track);
     res.status(201).json(track);
   } catch (error: any) {
     console.error('Error uploading track:', error);

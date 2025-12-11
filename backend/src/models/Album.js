@@ -34,7 +34,7 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
-const TrackSchema = new mongoose_1.Schema({
+const AlbumSchema = new mongoose_1.Schema({
     creatorId: {
         type: mongoose_1.Schema.Types.ObjectId,
         ref: 'User',
@@ -54,10 +54,6 @@ const TrackSchema = new mongoose_1.Schema({
         type: String,
         default: ''
     },
-    audioURL: {
-        type: String,
-        required: true
-    },
     coverURL: {
         type: String,
         default: ''
@@ -68,9 +64,17 @@ const TrackSchema = new mongoose_1.Schema({
     },
     type: {
         type: String,
-        enum: ['song', 'beat', 'mix'],
-        required: true
+        enum: ['album'],
+        default: 'album'
     },
+    releaseDate: {
+        type: Date,
+        default: Date.now
+    },
+    tracks: [{
+            type: mongoose_1.Schema.Types.ObjectId,
+            ref: 'Track'
+        }],
     plays: {
         type: Number,
         default: 0
@@ -78,23 +82,13 @@ const TrackSchema = new mongoose_1.Schema({
     likes: {
         type: Number,
         default: 0
-    },
-    comments: [{
-            type: mongoose_1.Schema.Types.ObjectId,
-            ref: 'Comment'
-        }],
-    albumId: {
-        type: mongoose_1.Schema.Types.ObjectId,
-        ref: 'Album'
     }
 }, {
     timestamps: true
 });
 // Indexes for better query performance
-TrackSchema.index({ creatorId: 1 });
-TrackSchema.index({ genre: 1 });
-TrackSchema.index({ type: 1 });
-TrackSchema.index({ albumId: 1 });
-TrackSchema.index({ createdAt: -1 }); // For sorting by newest
-exports.default = mongoose_1.default.model('Track', TrackSchema);
-//# sourceMappingURL=Track.js.map
+AlbumSchema.index({ creatorId: 1 });
+AlbumSchema.index({ genre: 1 });
+AlbumSchema.index({ createdAt: -1 }); // For sorting by newest
+exports.default = mongoose_1.default.model('Album', AlbumSchema);
+//# sourceMappingURL=Album.js.map

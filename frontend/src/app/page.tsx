@@ -47,6 +47,65 @@ const generateAvatar = (name: string) => {
     </div>
   )
 }
+
+// Function to group tracks into albums based on shared titles or creators
+const groupTracksIntoAlbums = (tracks: any[]): Album[] => {
+  // Group tracks by creator and look for collections that might be albums
+  const albumMap: Record<string, any[]> = {};
+  
+  // Filter tracks that might belong to albums (have similar titles or are from same creator)
+  tracks.forEach(track => {
+    const creatorId = typeof track.creatorId === "object" && track.creatorId !== null 
+      ? track.creatorId._id 
+      : track.creatorId;
+      
+    // Only consider tracks that are part of an album (have " - Track" in title)
+    if (track.title.includes(' - Track')) {
+      // Extract album name from track title (everything before " - Track")
+      const albumName = track.title.split(' - Track')[0];
+      
+      const key = `${creatorId}-${albumName}`; // Group by creator and album name
+      
+      if (!albumMap[key]) {
+        albumMap[key] = [];
+      }
+      albumMap[key].push(track);
+    }
+  });
+  
+  // Convert to album objects
+  const albums: Album[] = [];
+  Object.keys(albumMap).forEach(key => {
+    const tracksInAlbum = albumMap[key];
+    if (tracksInAlbum.length > 1) { // Only consider groups with more than 1 track as albums
+      const firstTrack = tracksInAlbum[0];
+      const artistName = typeof firstTrack.creatorId === "object" && firstTrack.creatorId !== null 
+        ? firstTrack.creatorId.name 
+        : "Unknown Artist";
+      
+      // Extract album name from track title
+      let albumTitle = firstTrack.title;
+      if (firstTrack.title.includes(' - Track')) {
+        albumTitle = firstTrack.title.split(' - Track')[0];
+      }
+      
+      albums.push({
+        id: key,
+        title: albumTitle,
+        artist: artistName,
+        coverImage: firstTrack.coverURL || "",
+        year: firstTrack.createdAt ? new Date(firstTrack.createdAt).getFullYear() : new Date().getFullYear(),
+        tracks: tracksInAlbum.length
+      });
+    }
+  });
+  
+  // Sort by track count descending to show albums with more tracks first
+  albums.sort((a, b) => b.tracks - a.tracks);
+  
+  // Return only top 6 albums for display
+  return albums.slice(0, 6);
+};
 export default function Home() {
   const [activeTab, setActiveTab] = useState<
     "trending" | "new" | "popular" | "beats" | "mixes"
@@ -131,7 +190,7 @@ export default function Home() {
     likes: track.likes,
     coverImage: track.coverURL || "", // Preserve empty values so we can show fallback in UI
     duration: "",
-    category: track.genre,
+    category: track.type,
     creatorId: typeof track.creatorId === 'object' && track.creatorId !== null ? (track.creatorId as any)._id : track.creatorId
   }));
 
@@ -147,63 +206,43 @@ export default function Home() {
     avatar: creator.avatar || "", // Preserve empty values so we can show fallback in UI
     verified: true, // For now, we'll assume all creators are verified
   }));
-  // For now, we'll keep the mock data for popular albums
-  // In a real implementation, this would be fetched from the backend
-  const popularAlbums: Album[] = [
-    {
-      id: "1",
-      title: "East African Dreams",
-      artist: "Kizito M",
-      coverImage:
-        "https://images.unsplash.com/photo-1494232410401-ad00d5433cfa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
-      year: 2024,
-      tracks: 12,
-    },
-    {
-      id: "2",
-      title: "Urban Nights",
-      artist: "Benji Flavours",
-      coverImage:
-        "", // Preserve empty values so we can show fallback in UI
-      year: 2023,
-      tracks: 10,
-    },
-    {
-      id: "3",
-      title: "Nature Sounds",
-      artist: "Divine Ikirezi",
-      coverImage:
-        "https://images.unsplash.com/photo-1507838153414-b4b713384a76?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
-      year: 2024,
-      tracks: 8,
-    },
-    {
-      id: "4",
-      title: "Capital Chronicles",
-      artist: "Urban Sound",
-      coverImage:
-        "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
-      year: 2023,
-      tracks: 15,
-    },
-    {
-      id: "5",
-      title: "Golden Hour",
-      artist: "Remy Kayitesi",
-      coverImage: "", // Preserve empty values so we can show fallback in UI
-      year: 2024,
-      tracks: 11,
-    },
-    {
-      id: "6",
-      title: "Village Tales",
-      artist: "Peace M",
-      coverImage:
-        "https://images.unsplash.com/photo-1494293246127-b93bfbafe4f4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
-      year: 2023,
-      tracks: 9,
-    },
-  ];
+  
+  // Fetch real albums from the API
+  const [popularAlbums, setPopularAlbums] = useState<Album[]>([]);
+  const [albumsLoading, setAlbumsLoading] = useState(true);
+  
+  useEffect(() => {
+    const fetchAlbums = async () => {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/albums?page=1&limit=6`);
+        if (response.ok) {
+          const data = await response.json();
+          const albums: Album[] = data.albums.map((album: any) => ({
+            id: album._id,
+            title: album.title,
+            artist: typeof album.creatorId === "object" && album.creatorId !== null 
+              ? album.creatorId.name 
+              : "Unknown Artist",
+            coverImage: album.coverURL || "",
+            year: album.releaseDate ? new Date(album.releaseDate).getFullYear() : new Date().getFullYear(),
+            tracks: album.tracks?.length || 0
+          }));
+          setPopularAlbums(albums);
+        }
+      } catch (error) {
+        console.error('Error fetching albums:', error);
+        // Fallback to grouping tracks if API fails
+        const fallbackAlbums: Album[] = groupTracksIntoAlbums(trendingTracksData);
+        setPopularAlbums(fallbackAlbums);
+      } finally {
+        setAlbumsLoading(false);
+      }
+    };
+    
+    if (trendingTracksData.length > 0) {
+      fetchAlbums();
+    }
+  }, [trendingTracksData]);
 
   // For You section - use trending tracks for now
   const forYouTracks: Track[] = trendingTracks.slice(0, 4);
@@ -834,11 +873,34 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {popularAlbums.map((album) => (
-              <div
-                key={album.id}
-                className="group card-bg rounded-xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10"
-              >
+            {albumsLoading ? (
+              // Loading skeleton
+              Array.from({ length: 6 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="group card-bg rounded-xl overflow-hidden transition-all duration-300"
+                >
+                  <div className="relative">
+                    <div className="w-full aspect-square bg-gray-700 animate-pulse"></div>
+                  </div>
+                  
+                  <div className="p-3">
+                    <div className="h-4 bg-gray-700 rounded mb-2 animate-pulse"></div>
+                    <div className="h-3 bg-gray-700 rounded w-3/4 animate-pulse"></div>
+                    
+                    <div className="flex justify-between items-center mt-2">
+                      <div className="h-3 bg-gray-700 rounded w-1/3 animate-pulse"></div>
+                      <div className="h-3 bg-gray-700 rounded w-1/3 animate-pulse"></div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              popularAlbums.map((album) => (
+                <div
+                  key={album.id}
+                  className="group card-bg rounded-xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10"
+                >
                 <div className="relative">
                   {album.coverImage && album.coverImage.trim() !== '' ? (
                     <img
@@ -886,7 +948,8 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-            ))}
+            ))
+            )}
           </div>
         </section>
 
@@ -906,7 +969,7 @@ export default function Home() {
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {trendingTracks
-              .filter((track) => track.category === "beats")
+              .filter((track) => track.category === "beat")
               .slice(0, 6)
               .map((track) => (
                 <div
@@ -1048,7 +1111,7 @@ export default function Home() {
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {trendingTracks
-              .filter((track) => track.category === "mixes")
+              .filter((track) => track.category === "mix")
               .slice(0, 6)
               .map((track) => (
                 <div

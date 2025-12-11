@@ -11,6 +11,7 @@ export interface ITrack extends Document {
     plays: number;
     likes: number;
     comments: mongoose.Types.ObjectId[];
+    albumId?: mongoose.Types.ObjectId;
     createdAt: Date;
     updatedAt: Date;
 }

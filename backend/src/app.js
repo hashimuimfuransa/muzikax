@@ -16,6 +16,7 @@ const adminRoutes_1 = __importDefault(require("./routes/adminRoutes"));
 const upgradeRoutes_1 = __importDefault(require("./routes/upgradeRoutes"));
 const uploadRoutes_1 = __importDefault(require("./routes/uploadRoutes"));
 const creatorRoutes_1 = __importDefault(require("./routes/creatorRoutes"));
+const albumRoutes_1 = __importDefault(require("./routes/albumRoutes"));
 console.log('About to import public routes...');
 const publicRoutes_1 = __importDefault(require("./routes/publicRoutes"));
 console.log('Public routes imported successfully');
@@ -76,6 +77,16 @@ try {
 }
 catch (error) {
     console.error('Error registering admin routes:', error);
+}
+// Add detailed logging for album routes
+console.log('Attempting to register album routes...');
+try {
+    console.log('Album routes object:', albumRoutes_1.default);
+    app.use('/api/albums', albumRoutes_1.default);
+    console.log('Album routes registered successfully');
+}
+catch (error) {
+    console.error('Error registering album routes:', error);
 }
 // Simple test route for tracks
 app.get('/api/test-tracks', (_req, res) => {

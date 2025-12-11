@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getCreatorAnalytics = exports.approveCreator = exports.deleteUser = exports.upgradeToCreator = exports.updateUser = exports.getUserById = exports.getPublicCreators = exports.getUsers = void 0;
+exports.followCreator = exports.getCreatorAnalytics = exports.approveCreator = exports.deleteUser = exports.upgradeToCreator = exports.updateUser = exports.getUserById = exports.getPublicCreators = exports.getUsers = void 0;
 const User_1 = __importDefault(require("../models/User"));
 const Track_1 = __importDefault(require("../models/Track"));
 // Get all users (admin only)
@@ -239,4 +239,47 @@ const getCreatorAnalytics = async (req, res) => {
     }
 };
 exports.getCreatorAnalytics = getCreatorAnalytics;
+// Follow a creator
+const followCreator = async (req, res) => {
+    try {
+        // Check if user is authenticated
+        if (!req.user) {
+            res.status(401).json({ message: 'Not authorized, no user found' });
+            return;
+        }
+        const userId = req.user._id;
+        const creatorId = req.params['id'];
+        // Validate creatorId
+        if (!creatorId) {
+            res.status(400).json({ message: 'Creator ID is required' });
+            return;
+        }
+        // Check if trying to follow self
+        if (userId.toString() === creatorId) {
+            res.status(400).json({ message: 'You cannot follow yourself' });
+            return;
+        }
+        // Find the creator
+        const creator = await User_1.default.findById(creatorId);
+        if (!creator) {
+            res.status(404).json({ message: 'Creator not found' });
+            return;
+        }
+        // Check if user is already following this creator
+        // For simplicity, we'll just increment the followers count
+        // In a more complex app, you might want to store actual follower relationships
+        // Increment the creator's followers count
+        creator.followersCount = (creator.followersCount || 0) + 1;
+        await creator.save();
+        res.json({
+            message: 'Successfully followed creator',
+            followersCount: creator.followersCount
+        });
+    }
+    catch (error) {
+        console.error('Error in followCreator:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+exports.followCreator = followCreator;
 //# sourceMappingURL=userController.js.map

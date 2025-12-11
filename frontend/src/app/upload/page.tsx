@@ -348,7 +348,9 @@ export default function Upload() {
       }
     }
     
-    // Upload each track
+    // Upload each track and collect their IDs
+    const uploadedTrackIds: string[] = [];
+    
     for (const track of albumTracks) {
       // If no cover image is provided for this track, use album cover or user's avatar
       let finalCoverUrl = track.coverUrl || albumCoverUrl;
@@ -373,7 +375,7 @@ export default function Upload() {
           'Authorization': `Bearer ${accessToken}`
         },
         body: JSON.stringify({
-          title: track.title || `${albumTitle} - Track ${albumTracks.indexOf(track) + 1}`,
+          title: track.title.trim() || `${albumTitle} - Track ${albumTracks.indexOf(track) + 1}`,
           description: track.description,
           genre: track.genre,
           type: track.type,
@@ -396,7 +398,7 @@ export default function Upload() {
               'Authorization': `Bearer ${newToken}`
             },
             body: JSON.stringify({
-              title: track.title || `${albumTitle} - Track ${albumTracks.indexOf(track) + 1}`,
+              title: track.title.trim() || `${albumTitle} - Track ${albumTracks.indexOf(track) + 1}`,
               description: track.description,
               genre: track.genre,
               type: track.type,
@@ -419,6 +421,38 @@ export default function Upload() {
       
       const result = await response.json();
       console.log('Track uploaded successfully:', result);
+      uploadedTrackIds.push(result._id);
+    }
+    
+    // Create the album with the uploaded track IDs
+    try {
+      const albumResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/albums`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+        },
+        body: JSON.stringify({
+          title: albumTitle,
+          description: albumDescription,
+          genre: albumTracks[0]?.genre || 'afrobeat',
+          coverURL: albumCoverUrl || '',
+          trackIds: uploadedTrackIds
+        })
+      });
+      
+      if (!albumResponse.ok) {
+        const errorData = await albumResponse.json();
+        throw new Error(`Failed to create album: ${errorData.message || 'Unknown error'}`);
+      }
+      
+      const albumResult = await albumResponse.json();
+      console.log('Album created successfully:', albumResult);
+    } catch (error: any) {
+      console.error('Error creating album:', error);
+      alert(`Error creating album: ${error.message || 'Unknown error'}`);
+      // Note: Tracks were uploaded successfully, but album creation failed
+      // In a production app, you might want to clean up the orphaned tracks
     }
     
     // Reset album form

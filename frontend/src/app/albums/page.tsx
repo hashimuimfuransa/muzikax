@@ -1,6 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '../../contexts/AuthContext'
+import { useAudioPlayer } from '../../contexts/AudioPlayerContext'
 
 interface Album {
   id: string
@@ -9,191 +13,175 @@ interface Album {
   coverImage: string
   year: number
   tracks: number
-  duration: string
+  duration?: string
 }
 
 export default function AlbumsPage() {
+  const [albums, setAlbums] = useState<Album[]>([])
+  const [loading, setLoading] = useState(true)
   const [sortBy, setSortBy] = useState<'popular' | 'recent' | 'alphabetical'>('popular')
-  
-  // Mock data for albums with real image URLs
-  const albums: Album[] = [
-    {
-      id: '1',
-      title: 'After Hours',
-      artist: 'The Weeknd',
-      coverImage: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      year: 2020,
-      tracks: 14,
-      duration: '56:32'
-    },
-    {
-      id: '2',
-      title: 'Future Nostalgia',
-      artist: 'Dua Lipa',
-      coverImage: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      year: 2020,
-      tracks: 11,
-      duration: '38:45'
-    },
-    {
-      id: '3',
-      title: 'Fine Line',
-      artist: 'Harry Styles',
-      coverImage: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      year: 2019,
-      tracks: 12,
-      duration: '39:18'
-    },
-    {
-      id: '4',
-      title: 'SOUR',
-      artist: 'Olivia Rodrigo',
-      coverImage: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      year: 2021,
-      tracks: 11,
-      duration: '34:23'
-    },
-    {
-      id: '5',
-      title: 'Justice',
-      artist: 'Justin Bieber',
-      coverImage: 'https://images.unsplash.com/photo-1514320291841-38b60f8f72d7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      year: 2021,
-      tracks: 16,
-      duration: '47:12'
-    },
-    {
-      id: '6',
-      title: 'Planet Her',
-      artist: 'Doja Cat',
-      coverImage: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      year: 2021,
-      tracks: 14,
-      duration: '41:22'
-    },
-    {
-      id: '7',
-      title: 'Happier Than Ever',
-      artist: 'Billie Eilish',
-      coverImage: 'https://images.unsplash.com/photo-1494232410401-ad00d5433cfa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      year: 2021,
-      tracks: 16,
-      duration: '53:45'
-    },
-    {
-      id: '8',
-      title: 'Map of the Soul: 7',
-      artist: 'BTS',
-      coverImage: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      year: 2020,
-      tracks: 13,
-      duration: '48:33'
-    },
-    {
-      id: '9',
-      title: 'Positions',
-      artist: 'Ariana Grande',
-      coverImage: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      year: 2020,
-      tracks: 14,
-      duration: '31:25'
-    },
-    {
-      id: '10',
-      title: 'Evermore',
-      artist: 'Taylor Swift',
-      coverImage: 'https://images.unsplash.com/photo-1507838153414-b4b713384a76?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      year: 2020,
-      tracks: 15,
-      duration: '53:10'
-    },
-    {
-      id: '11',
-      title: 'Chromatica',
-      artist: 'Lady Gaga',
-      coverImage: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      year: 2020,
-      tracks: 16,
-      duration: '49:33'
-    },
-    {
-      id: '12',
-      title: 'Dawn FM',
-      artist: 'The Weeknd',
-      coverImage: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      year: 2022,
-      tracks: 16,
-      duration: '52:11'
+  const { isAuthenticated } = useAuth()
+  const { currentTrack, isPlaying, playTrack, setCurrentPlaylist } = useAudioPlayer()
+  const router = useRouter()
+
+  // Fetch albums from API
+  useEffect(() => {
+    const fetchAlbums = async () => {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/albums?page=1&limit=24`)
+        if (response.ok) {
+          const data = await response.json()
+          const albumsData: Album[] = data.albums.map((album: any) => ({
+            id: album._id,
+            title: album.title,
+            artist: typeof album.creatorId === "object" && album.creatorId !== null 
+              ? album.creatorId.name 
+              : "Unknown Artist",
+            coverImage: album.coverURL || "",
+            year: album.releaseDate ? new Date(album.releaseDate).getFullYear() : new Date().getFullYear(),
+            tracks: album.tracks?.length || 0,
+            duration: "00:00" // Placeholder, would need to calculate from tracks
+          }))
+          setAlbums(albumsData)
+        }
+      } catch (error) {
+        console.error('Error fetching albums:', error)
+      } finally {
+        setLoading(false)
+      }
     }
-  ]
+
+    fetchAlbums()
+  }, [])
 
   // Sort albums based on selected option
   const sortedAlbums = [...albums].sort((a, b) => {
     if (sortBy === 'popular') {
-      return parseInt(b.id) - parseInt(a.id) // Simulate popularity by ID
+      return b.tracks - a.tracks // Sort by track count as a proxy for popularity
     } else if (sortBy === 'recent') {
-      return b.year - a.year || parseInt(b.id) - parseInt(a.id)
+      return b.year - a.year
     } else {
       return a.title.localeCompare(b.title)
     }
   })
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black py-8">
-      <div className="container mx-auto px-4">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-white mb-2">Popular Albums</h1>
-            <p className="text-gray-400">Discover the most popular albums from artists</p>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black py-8 sm:py-12">
+      <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#FF4D67]/10 rounded-full blur-3xl -z-10"></div>
+      <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-[#FFCB2B]/10 rounded-full blur-3xl -z-10"></div>
+      
+      <div className="container mx-auto px-4 sm:px-8">
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="mb-8 sm:mb-12">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] mb-3 sm:mb-4">
+              Albums
+            </h1>
+            <p className="text-gray-400 max-w-2xl">
+              Discover the latest albums from talented creators across Rwanda and beyond.
+            </p>
           </div>
-          
-          <div className="flex items-center gap-2">
-            <span className="text-gray-400 text-sm">Sort by:</span>
-            <select 
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
-              className="bg-gray-800 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
-            >
-              <option value="popular">Most Popular</option>
-              <option value="recent">Most Recent</option>
-              <option value="alphabetical">Alphabetical</option>
-            </select>
+
+          {/* Controls */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+            <div className="flex items-center gap-4">
+              <span className="text-gray-400 text-sm">Sort by:</span>
+              <select 
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as any)}
+                className="bg-gray-800 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+              >
+                <option value="popular">Most Popular</option>
+                <option value="recent">Most Recent</option>
+                <option value="alphabetical">Alphabetical</option>
+              </select>
+            </div>
           </div>
-        </div>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-          {sortedAlbums.map((album) => (
-            <div key={album.id} className="group card-bg rounded-xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10">
-              <div className="relative">
-                <img 
-                  src={album.coverImage} 
-                  alt={album.title} 
-                  className="w-full aspect-square object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <button className="w-12 h-12 sm:w-14 sm:h-14 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
-                    <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
-                    </svg>
-                  </button>
-                </div>
-              </div>
-              
-              <div className="p-4">
-                <h3 className="font-bold text-white text-base mb-1 truncate">{album.title}</h3>
-                <p className="text-gray-400 text-sm truncate">{album.artist}</p>
-                
-                <div className="flex justify-between items-center mt-3 text-xs text-gray-500">
-                  <span>{album.year}</span>
-                  <div className="flex items-center gap-2">
-                    <span>{album.tracks} tracks</span>
-                    <span>•</span>
-                    <span>{album.duration}</span>
+
+          {/* Albums Grid */}
+          {loading ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+              {Array.from({ length: 12 }).map((_, index) => (
+                <div key={index} className="group card-bg rounded-xl overflow-hidden transition-all duration-300">
+                  <div className="relative">
+                    <div className="w-full aspect-square bg-gray-700 animate-pulse"></div>
+                  </div>
+                  
+                  <div className="p-4">
+                    <div className="h-4 bg-gray-700 rounded mb-2 animate-pulse"></div>
+                    <div className="h-3 bg-gray-700 rounded w-3/4 animate-pulse"></div>
+                    
+                    <div className="flex justify-between items-center mt-3">
+                      <div className="h-3 bg-gray-700 rounded w-1/3 animate-pulse"></div>
+                      <div className="h-3 bg-gray-700 rounded w-1/3 animate-pulse"></div>
+                    </div>
                   </div>
                 </div>
-              </div>
+              ))}
             </div>
-          ))}
+          ) : sortedAlbums.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+              {sortedAlbums.map((album) => (
+                <div 
+                  key={album.id} 
+                  className="group card-bg rounded-xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10 cursor-pointer"
+                  onClick={() => router.push(`/album/${album.id}`)}
+                >
+                  <div className="relative">
+                    {album.coverImage && album.coverImage.trim() !== '' ? (
+                      <img 
+                        src={album.coverImage} 
+                        alt={album.title} 
+                        className="w-full aspect-square object-cover"
+                      />
+                    ) : (
+                      <div className="w-full aspect-square bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center">
+                        <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
+                        </svg>
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <button className="w-12 h-12 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+                        <svg 
+                          className="w-5 h-5" 
+                          fill="currentColor" 
+                          viewBox="0 0 20 20" 
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path 
+                            fillRule="evenodd" 
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" 
+                            clipRule="evenodd"
+                          ></path>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="p-4">
+                    <h3 className="font-bold text-white text-base mb-1 truncate">{album.title}</h3>
+                    <p className="text-gray-400 text-sm truncate">{album.artist}</p>
+                    
+                    <div className="flex justify-between items-center mt-3 text-xs text-gray-500">
+                      <span>{album.year}</span>
+                      <div className="flex items-center gap-2">
+                        <span>{album.tracks} tracks</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <svg className="w-16 h-16 mx-auto text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <h3 className="mt-4 text-lg font-medium text-white">No albums found</h3>
+              <p className="mt-2 text-gray-400">Check back later for new releases.</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -11,7 +11,7 @@ Object.defineProperty(exports, "protect", { enumerable: true, get: function () {
 // Upload track with cover image
 const uploadTrack = async (req, res) => {
     try {
-        const { title, description, genre, type, audioURL, coverURL } = req.body;
+        const { title, description, genre, type, audioURL, coverURL, albumId } = req.body;
         const user = req.user;
         console.log('Upload track request received:', {
             title,
@@ -20,6 +20,7 @@ const uploadTrack = async (req, res) => {
             type,
             audioURL,
             coverURL,
+            albumId,
             userId: user._id,
             userRole: user.role
         });
@@ -42,7 +43,7 @@ const uploadTrack = async (req, res) => {
                 console.log('Using user avatar as cover image:', finalCoverURL);
             }
         }
-        const track = await Track_1.default.create({
+        const trackData = {
             creatorId: user._id,
             creatorType: user.creatorType,
             title,
@@ -51,8 +52,13 @@ const uploadTrack = async (req, res) => {
             type: type || 'song',
             audioURL,
             coverURL: finalCoverURL || ''
-        });
-        console.log('Track created successfully:', track._id);
+        };
+        // Add album reference if provided
+        if (albumId) {
+            trackData.albumId = albumId;
+        }
+        const track = await Track_1.default.create(trackData);
+        console.log('Track created successfully:', track['_id']);
         res.status(201).json(track);
     }
     catch (error) {

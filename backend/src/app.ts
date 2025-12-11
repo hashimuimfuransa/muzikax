@@ -11,6 +11,7 @@ import adminRoutes from './routes/adminRoutes';
 import upgradeRoutes from './routes/upgradeRoutes';
 import uploadRoutes from './routes/uploadRoutes';
 import creatorRoutes from './routes/creatorRoutes';
+import albumRoutes from './routes/albumRoutes';
 console.log('About to import public routes...');
 import publicRoutes from './routes/publicRoutes';
 console.log('Public routes imported successfully');
@@ -81,6 +82,16 @@ try {
   console.log('Admin routes registered successfully');
 } catch (error) {
   console.error('Error registering admin routes:', error);
+}
+
+// Add detailed logging for album routes
+console.log('Attempting to register album routes...');
+try {
+  console.log('Album routes object:', albumRoutes);
+  app.use('/api/albums', albumRoutes);
+  console.log('Album routes registered successfully');
+} catch (error) {
+  console.error('Error registering album routes:', error);
 }
 
 // Simple test route for tracks

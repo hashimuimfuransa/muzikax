@@ -1,23 +1,22 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
-export interface ITrack extends Document {
+export interface IAlbum extends Document {
   creatorId: mongoose.Types.ObjectId;
   creatorType: 'artist' | 'dj' | 'producer';
   title: string;
   description: string;
-  audioURL: string;
   coverURL: string;
   genre: string;
-  type: 'song' | 'beat' | 'mix';
+  type: 'album';
+  releaseDate: Date;
+  tracks: mongoose.Types.ObjectId[];
   plays: number;
   likes: number;
-  comments: mongoose.Types.ObjectId[];
-  albumId?: mongoose.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
 
-const TrackSchema: Schema = new Schema({
+const AlbumSchema: Schema = new Schema({
   creatorId: {
     type: Schema.Types.ObjectId,
     ref: 'User',
@@ -37,10 +36,6 @@ const TrackSchema: Schema = new Schema({
     type: String,
     default: ''
   },
-  audioURL: {
-    type: String,
-    required: true
-  },
   coverURL: {
     type: String,
     default: ''
@@ -51,9 +46,17 @@ const TrackSchema: Schema = new Schema({
   },
   type: {
     type: String,
-    enum: ['song', 'beat', 'mix'],
-    required: true
+    enum: ['album'],
+    default: 'album'
   },
+  releaseDate: {
+    type: Date,
+    default: Date.now
+  },
+  tracks: [{
+    type: Schema.Types.ObjectId,
+    ref: 'Track'
+  }],
   plays: {
     type: Number,
     default: 0
@@ -61,24 +64,14 @@ const TrackSchema: Schema = new Schema({
   likes: {
     type: Number,
     default: 0
-  },
-  comments: [{
-    type: Schema.Types.ObjectId,
-    ref: 'Comment'
-  }],
-  albumId: {
-    type: Schema.Types.ObjectId,
-    ref: 'Album'
   }
 }, {
   timestamps: true
 });
 
 // Indexes for better query performance
-TrackSchema.index({ creatorId: 1 });
-TrackSchema.index({ genre: 1 });
-TrackSchema.index({ type: 1 });
-TrackSchema.index({ albumId: 1 });
-TrackSchema.index({ createdAt: -1 }); // For sorting by newest
+AlbumSchema.index({ creatorId: 1 });
+AlbumSchema.index({ genre: 1 });
+AlbumSchema.index({ createdAt: -1 }); // For sorting by newest
 
-export default mongoose.model<ITrack>('Track', TrackSchema);
+export default mongoose.model<IAlbum>('Album', AlbumSchema);

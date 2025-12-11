@@ -96,5 +96,8 @@ router.route('/upgrade-to-creator')
     // Return undefined to satisfy TypeScript
     return undefined;
 }); // Users can upgrade themselves
+// User route for following a creator
+router.route('/follow/:id')
+    .post(jwt_1.protect, userController_1.followCreator);
 exports.default = router;
 //# sourceMappingURL=userRoutes.js.map
