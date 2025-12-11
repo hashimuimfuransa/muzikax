@@ -60,8 +60,9 @@ exports.getAllTracks = getAllTracks;
 // Get track by ID
 const getTrackById = async (req, res) => {
     try {
-        const track = await Track_1.default.findById(req.params['id'])
-            .populate('creatorId', 'name avatar bio socials');
+        // For edit track functionality, we don't want to populate the creatorId
+        // as it makes authorization checks more complex
+        const track = await Track_1.default.findById(req.params['id']);
         if (!track) {
             res.status(404).json({ message: 'Track not found' });
             return;

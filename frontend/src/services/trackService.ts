@@ -289,3 +289,24 @@ export const incrementTrackPlayCount = async (trackId: string): Promise<boolean>
     throw error;
   }
 };
+
+/**
+ * Delete track
+ */
+export const deleteTrack = async (trackId: string): Promise<boolean> => {
+  try {
+    const response = await makeAuthenticatedRequest(`${process.env.NEXT_PUBLIC_API_URL}/api/tracks/${trackId}`, {
+      method: 'DELETE'
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to delete track');
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error deleting track:', error);
+    throw error;
+  }
+};

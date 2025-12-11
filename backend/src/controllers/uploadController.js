@@ -58,7 +58,7 @@ const uploadTrack = async (req, res) => {
             trackData.albumId = albumId;
         }
         const track = await Track_1.default.create(trackData);
-        console.log('Track created successfully:', track['_id']);
+        console.log('Track created successfully:', track);
         res.status(201).json(track);
     }
     catch (error) {

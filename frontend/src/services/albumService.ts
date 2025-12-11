@@ -1,14 +1,25 @@
-// Define Album interface based on frontend usage
+// Define Album interface based on backend structure
 interface Album {
+  _id: string;
   id: string;
   title: string;
-  artist: string;
-  coverImage: string;
-  year: number;
-  tracks: number;
+  description: string;
+  genre: string;
+  creatorId: {
+    _id: string;
+    name: string;
+    avatar?: string;
+  } | string;
+  coverURL: string;
+  releaseDate: string;
+  tracks: Array<any>;
+  plays: number;
+  likes: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
-// Define Track interface based on frontend usage
+// Define Track interface based on backend structure
 interface Track {
   _id: string;
   creatorId: string;
@@ -24,6 +35,7 @@ interface Track {
   comments: string[];
   createdAt: string;
   updatedAt: string;
+  albumId?: string;
 }
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';

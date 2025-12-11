@@ -80,7 +80,7 @@ const getAllAlbums = async (req, res) => {
         const skip = (page - 1) * limit;
         const albums = await Album_1.default.find()
             .populate('creatorId', 'name avatar')
-            .populate('tracks')
+            .populate({ path: 'tracks', populate: { path: 'creatorId', select: 'name avatar' } })
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit);
@@ -105,7 +105,7 @@ const getAlbumById = async (req, res) => {
     try {
         const album = await Album_1.default.findById(req.params['id'])
             .populate('creatorId', 'name avatar')
-            .populate('tracks');
+            .populate({ path: 'tracks', populate: { path: 'creatorId', select: 'name avatar' } });
         if (!album) {
             res.status(404).json({ message: 'Album not found' });
             return;
@@ -121,8 +121,9 @@ exports.getAlbumById = getAlbumById;
 const getAlbumsByCreator = async (req, res) => {
     try {
         const creatorId = req.params['creatorId'];
-        const albums = await Album_1.default.find({ creatorId: creatorId }).lean()
-            .populate('tracks')
+        const query = { creatorId: creatorId };
+        const albums = await Album_1.default.find(query).lean()
+            .populate({ path: 'tracks', populate: { path: 'creatorId', select: 'name avatar' } })
             .sort({ createdAt: -1 });
         res.json(albums);
     }
