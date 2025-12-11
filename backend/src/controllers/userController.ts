@@ -260,3 +260,52 @@ export const getCreatorAnalytics = async (req: Request, res: Response): Promise<
     res.status(500).json({ message: error.message });
   }
 };
+
+// Follow a creator
+export const followCreator = async (req: Request, res: Response): Promise<void> => {
+  try {
+    // Check if user is authenticated
+    if (!(req as any).user) {
+      res.status(401).json({ message: 'Not authorized, no user found' });
+      return;
+    }
+
+    const userId = (req as any).user._id;
+    const creatorId = req.params['id'];
+
+    // Validate creatorId
+    if (!creatorId) {
+      res.status(400).json({ message: 'Creator ID is required' });
+      return;
+    }
+
+    // Check if trying to follow self
+    if (userId.toString() === creatorId) {
+      res.status(400).json({ message: 'You cannot follow yourself' });
+      return;
+    }
+
+    // Find the creator
+    const creator = await User.findById(creatorId);
+    if (!creator) {
+      res.status(404).json({ message: 'Creator not found' });
+      return;
+    }
+
+    // Check if user is already following this creator
+    // For simplicity, we'll just increment the followers count
+    // In a more complex app, you might want to store actual follower relationships
+    
+    // Increment the creator's followers count
+    creator.followersCount = (creator.followersCount || 0) + 1;
+    await creator.save();
+
+    res.json({ 
+      message: 'Successfully followed creator',
+      followersCount: creator.followersCount
+    });
+  } catch (error: any) {
+    console.error('Error in followCreator:', error);
+    res.status(500).json({ message: error.message });
+  }
+};

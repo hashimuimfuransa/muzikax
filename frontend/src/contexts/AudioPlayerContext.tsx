@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useRef, ReactNode, useEffect } from 'react';
+import { incrementTrackPlayCount } from '../services/trackService';
 
 interface Track {
   id: string;
@@ -67,6 +68,7 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
   const [favorites, setFavorites] = useState<Track[]>([]);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const hasIncrementedPlayCount = useRef<Set<string>>(new Set());
 
   // Load favorites from localStorage on mount
   useEffect(() => {
@@ -138,6 +140,18 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     const index = playlist.findIndex(t => t.id === track.id);
     if (index !== -1) {
       setCurrentTrackIndex(index);
+    }
+
+    // Increment play count for this track (only once per session)
+    if (!hasIncrementedPlayCount.current.has(track.id)) {
+      hasIncrementedPlayCount.current.add(track.id);
+      incrementTrackPlayCount(track.id)
+        .then(() => {
+          console.log(`Successfully incremented play count for track ${track.id}`);
+        })
+        .catch((error) => {
+          console.error(`Failed to increment play count for track ${track.id}:`, error);
+        });
     }
 
     // Small delay to ensure audio element is properly initialized

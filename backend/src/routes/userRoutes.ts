@@ -7,7 +7,8 @@ import {
   approveCreator,
   getCreatorAnalytics,
   getPublicCreators, // Add this import
-  upgradeToCreator // Add this import
+  upgradeToCreator, // Add this import
+  followCreator // Add this import
 } from '../controllers/userController';
 import { protect, admin, creator } from '../utils/jwt';
 
@@ -84,5 +85,9 @@ router.route('/upgrade-to-creator')
     // Return undefined to satisfy TypeScript
     return undefined;
   }); // Users can upgrade themselves
+
+// User route for following a creator
+router.route('/follow/:id')
+  .post(protect, followCreator);
 
 export default router;

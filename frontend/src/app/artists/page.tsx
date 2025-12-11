@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import { fetchPopularCreators } from '@/services/trackService'
+import { fetchPopularCreators, followCreator } from '@/services/trackService'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface Creator {
   _id: string
@@ -29,6 +30,7 @@ export default function ArtistsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
+  const { isAuthenticated } = useAuth()
   
   useEffect(() => {
     const loadCreators = async () => {
@@ -70,6 +72,38 @@ export default function ArtistsPage() {
     router.push(`/artists/${creatorId}`)
   }
   
+  const handleFollowClick = async (creatorId: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    
+    // Check if user is authenticated
+    if (!isAuthenticated) {
+      // Redirect to login page
+      router.push('/login')
+      return
+    }
+    
+    try {
+      // Call the follow creator service
+      await followCreator(creatorId)
+      
+      // Update the followers count in the UI
+      setCreators(prevCreators => 
+        prevCreators.map(creator => 
+          creator._id === creatorId 
+            ? { ...creator, followersCount: creator.followersCount + 1 } 
+            : creator
+        )
+      )
+      
+      // Show success feedback (you might want to add a toast notification here)
+      console.log('Successfully followed creator')
+    } catch (error) {
+      console.error('Failed to follow creator:', error)
+      // Show error feedback (you might want to add a toast notification here)
+      alert('Failed to follow creator. Please try again.')
+    }
+  }
+  
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black py-8">
@@ -93,68 +127,49 @@ export default function ArtistsPage() {
       </div>
     )
   }
-
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black py-8">
       <div className="container mx-auto px-4">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-white mb-2">Popular Artists</h1>
-            <p className="text-gray-400">Discover the most popular artists and creators</p>
-          </div>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white">Artists</h1>
           
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full md:w-auto">
-            <div className="relative w-full md:w-64">
-              <input
-                type="text"
-                placeholder="Search artists..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-gray-800 text-white rounded-lg px-4 py-2 pl-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
-              />
-              <svg 
-                className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" 
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24" 
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  strokeWidth={2} 
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-            </div>
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+            <input
+              type="text"
+              placeholder="Search artists..."
+              className="px-4 py-2 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
             
-            <div className="flex items-center gap-2">
-              <span className="text-gray-400 text-sm hidden sm:block">Sort by:</span>
-              <select 
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as any)}
-                className="bg-gray-800 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
-              >
-                <option value="popular">Most Popular</option>
-                <option value="alphabetical">Alphabetical</option>
-              </select>
-            </div>
+            <select
+              className="px-4 py-2 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as 'popular' | 'alphabetical')}
+            >
+              <option value="popular">Most Popular</option>
+              <option value="alphabetical">Alphabetical</option>
+            </select>
           </div>
         </div>
         
         {filteredAndSortedCreators.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-400">No artists found matching your search.</p>
+          <div className="flex justify-center items-center h-64">
+            <div className="text-white text-center">
+              <p className="mb-2">No artists found</p>
+              <p className="text-gray-400 text-sm">Try adjusting your search or filter criteria</p>
+            </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6">
             {filteredAndSortedCreators.map((creator) => (
               <div 
                 key={creator._id} 
-                className="group card-bg rounded-xl p-5 transition-all duration-300 hover:border-[#FFCB2B]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FFCB2B]/10 cursor-pointer"
+                className="bg-gray-800/50 hover:bg-gray-800 rounded-2xl p-4 cursor-pointer transition-all duration-300 transform hover:-translate-y-1"
                 onClick={() => handleArtistClick(creator._id)}
               >
-                <div className="flex flex-col items-center text-center">
+                <div className="flex flex-col items-center">
                   <div className="relative mb-4">
                     {creator.avatar && creator.avatar.trim() !== '' ? (
                       <img 
@@ -175,10 +190,7 @@ export default function ArtistsPage() {
                   </p>
                   <button 
                     className="w-full px-4 py-2 bg-transparent border border-[#FFCB2B] text-[#FFCB2B] hover:bg-[#FFCB2B]/10 rounded-full text-sm font-medium transition-colors"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      // Handle follow action here
-                    }}
+                    onClick={(e) => handleFollowClick(creator._id, e)}
                   >
                     Follow
                   </button>
