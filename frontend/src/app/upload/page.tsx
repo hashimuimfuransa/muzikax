@@ -12,11 +12,28 @@ export default function Upload() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [genre, setGenre] = useState('afrobeat')
+  const [type, setType] = useState<'song' | 'beat' | 'mix'>('song') // Add track type state
   const [visibility, setVisibility] = useState('public')
   const [file, setFile] = useState<File | null>(null)
   const [coverImage, setCoverImage] = useState<string | null>(null) // State for cover image
   const [audioUrl, setAudioUrl] = useState<string | null>(null) // State for uploaded audio URL
   const [coverUrl, setCoverUrl] = useState<string | null>(null) // State for uploaded cover URL
+  
+  // Album upload states
+  const [isAlbumUpload, setIsAlbumUpload] = useState(false)
+  const [albumTitle, setAlbumTitle] = useState('')
+  const [albumDescription, setAlbumDescription] = useState('')
+  const [albumCoverUrl, setAlbumCoverUrl] = useState<string | null>(null) // Album cover image
+  const [albumTracks, setAlbumTracks] = useState<Array<{
+    id: string;
+    title: string;
+    audioUrl: string | null;
+    coverUrl: string | null;
+    description: string;
+    genre: string;
+    type: 'song' | 'beat' | 'mix';
+  }>>([])
+  
   const router = useRouter()
   const { isAuthenticated, userRole, upgradeToCreator, isLoading, user } = useAuth() // Add user to get avatar
 
@@ -24,6 +41,30 @@ export default function Upload() {
   const [selectedCreatorType, setSelectedCreatorType] = useState<'artist' | 'dj' | 'producer'>('artist')
   const [isUpgrading, setIsUpgrading] = useState(false) // State for upload process
   const [isUploading, setIsUploading] = useState(false)
+
+  // Extended list of popular genres
+  const genres = [
+    'afrobeat',
+    'hiphop',
+    'rnb',
+    'afropop',
+    'gospel',
+    'traditional',
+    'dancehall',
+    'reggae',
+    'soul',
+    'jazz',
+    'blues',
+    'pop',
+    'rock',
+    'electronic',
+    'house',
+    'techno',
+    'drill',
+    'trap',
+    'lofi',
+    'ambient'
+  ]
 
   // Check authentication and role on component mount
   useEffect(() => {
@@ -93,6 +134,14 @@ export default function Upload() {
     }
   };
 
+  // Handle successful album cover image upload
+  const handleAlbumCoverUploadSuccess = (info: any) => {
+    console.log('Album cover image uploaded successfully:', info);
+    if (info.cdnUrl) {
+      setAlbumCoverUrl(info.cdnUrl);
+    }
+  };
+
   // Function to refresh token
   const refreshToken = async (): Promise<string | null> => {
     try {
@@ -127,25 +176,185 @@ export default function Upload() {
     }
   };
 
+  // Album functions
+  const addAlbumTrack = () => {
+    setAlbumTracks(prev => [
+      ...prev,
+      {
+        id: Date.now().toString(),
+        title: '',
+        audioUrl: null,
+        coverUrl: null,
+        description: '',
+        genre: 'afrobeat',
+        type: 'song'
+      }
+    ])
+  }
+
+  const removeAlbumTrack = (id: string) => {
+    setAlbumTracks(prev => prev.filter(track => track.id !== id))
+  }
+
+  const updateAlbumTrack = (id: string, field: string, value: any) => {
+    setAlbumTracks(prev => 
+      prev.map(track => 
+        track.id === id ? { ...track, [field]: value } : track
+      )
+    )
+  }
+
+  const handleAlbumAudioUploadSuccess = (info: any, trackId: string) => {
+    console.log('Album audio uploaded successfully:', info);
+    if (info.cdnUrl) {
+      updateAlbumTrack(trackId, 'audioUrl', info.cdnUrl);
+    }
+  };
+
+  const handleAlbumTrackCoverUploadSuccess = (info: any, trackId: string) => {
+    console.log('Album track cover uploaded successfully:', info);
+    if (info.cdnUrl) {
+      updateAlbumTrack(trackId, 'coverUrl', info.cdnUrl);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsUploading(true)
     
     try {
-      // If no cover image is provided, use user's avatar
-      let finalCoverUrl = coverUrl;
+      if (isAlbumUpload) {
+        // Handle album upload
+        await handleAlbumUpload();
+      } else {
+        // Handle single track upload
+        await handleSingleTrackUpload();
+      }
+    } catch (error: any) {
+      console.error('Error uploading:', error);
+      alert(`Error uploading: ${error.message || 'Unknown error'}`);
+    } finally {
+      setIsUploading(false);
+    }
+  }
+
+  const handleSingleTrackUpload = async () => {
+    // If no cover image is provided, use user's avatar
+    let finalCoverUrl = coverUrl;
+    if (!finalCoverUrl && user?.avatar) {
+      finalCoverUrl = user.avatar;
+    }
+    
+    // If we don't have an audio URL from UploadCare, we can't proceed
+    if (!audioUrl) {
+      alert('Please upload an audio file first');
+      return;
+    }
+    
+    console.log('Uploading:', { title, description, genre, type, visibility, audioUrl, coverUrl: finalCoverUrl })
+    
+    // Get access token from localStorage
+    let accessToken = localStorage.getItem('accessToken');
+    
+    if (!accessToken) {
+      alert('Authentication error. Please log in again.');
+      router.push('/login');
+      return;
+    }
+    
+    // Try to make the request with current token
+    let response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upload/track`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`
+      },
+      body: JSON.stringify({
+        title,
+        description,
+        genre,
+        type,
+        audioURL: audioUrl,
+        coverURL: finalCoverUrl || ''
+      })
+    });
+    
+    // If token is expired, try to refresh it
+    if (response.status === 401) {
+      console.log('Token might be expired, attempting to refresh...');
+      const newToken = await refreshToken();
+      
+      if (newToken) {
+        // Retry the request with new token
+        response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upload/track`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${newToken}`
+          },
+          body: JSON.stringify({
+            title,
+            description,
+            genre,
+            type,
+            audioURL: audioUrl,
+            coverURL: finalCoverUrl || ''
+          })
+        });
+      } else {
+        // Refresh failed, force logout
+        alert('Session expired. Please log in again.');
+        router.push('/login');
+        return;
+      }
+    }
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to upload track');
+    }
+    
+    const result = await response.json();
+    console.log('Track uploaded successfully:', result);
+    
+    // Reset form
+    setTitle('');
+    setDescription('');
+    setFile(null);
+    setAudioUrl(null);
+    setCoverUrl(null);
+    
+    alert('Track uploaded successfully!');
+    router.push('/profile'); // Redirect to profile page
+  }
+
+  const handleAlbumUpload = async () => {
+    // Validate album
+    if (!albumTitle.trim()) {
+      alert('Please enter an album title');
+      return;
+    }
+    
+    if (albumTracks.length === 0) {
+      alert('Please add at least one track to the album');
+      return;
+    }
+    
+    // Check if all tracks have audio files
+    for (const track of albumTracks) {
+      if (!track.audioUrl) {
+        alert(`Please upload an audio file for track: ${track.title || 'Untitled'}`);
+        return;
+      }
+    }
+    
+    // Upload each track
+    for (const track of albumTracks) {
+      // If no cover image is provided for this track, use album cover or user's avatar
+      let finalCoverUrl = track.coverUrl || albumCoverUrl;
       if (!finalCoverUrl && user?.avatar) {
         finalCoverUrl = user.avatar;
       }
-      
-      // If we don't have an audio URL from UploadCare, we can't proceed
-      if (!audioUrl) {
-        alert('Please upload an audio file first');
-        setIsUploading(false);
-        return;
-      }
-      
-      console.log('Uploading:', { title, description, genre, visibility, audioUrl, coverUrl: finalCoverUrl })
       
       // Get access token from localStorage
       let accessToken = localStorage.getItem('accessToken');
@@ -164,11 +373,11 @@ export default function Upload() {
           'Authorization': `Bearer ${accessToken}`
         },
         body: JSON.stringify({
-          title,
-          description,
-          genre,
-          type: 'song', // Default type
-          audioURL: audioUrl,
+          title: track.title || `${albumTitle} - Track ${albumTracks.indexOf(track) + 1}`,
+          description: track.description,
+          genre: track.genre,
+          type: track.type,
+          audioURL: track.audioUrl,
           coverURL: finalCoverUrl || ''
         })
       });
@@ -187,11 +396,11 @@ export default function Upload() {
               'Authorization': `Bearer ${newToken}`
             },
             body: JSON.stringify({
-              title,
-              description,
-              genre,
-              type: 'song', // Default type
-              audioURL: audioUrl,
+              title: track.title || `${albumTitle} - Track ${albumTracks.indexOf(track) + 1}`,
+              description: track.description,
+              genre: track.genre,
+              type: track.type,
+              audioURL: track.audioUrl,
               coverURL: finalCoverUrl || ''
             })
           });
@@ -205,27 +414,21 @@ export default function Upload() {
       
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to upload track');
+        throw new Error(`Failed to upload track "${track.title}": ${errorData.message || 'Unknown error'}`);
       }
       
       const result = await response.json();
       console.log('Track uploaded successfully:', result);
-      
-      // Reset form
-      setTitle('');
-      setDescription('');
-      setFile(null);
-      setAudioUrl(null);
-      setCoverUrl(null);
-      
-      alert('Track uploaded successfully!');
-      router.push('/profile'); // Redirect to profile page
-    } catch (error: any) {
-      console.error('Error uploading track:', error);
-      alert(`Error uploading track: ${error.message || 'Unknown error'}`);
-    } finally {
-      setIsUploading(false);
     }
+    
+    // Reset album form
+    setAlbumTitle('');
+    setAlbumDescription('');
+    setAlbumCoverUrl(null);
+    setAlbumTracks([]);
+    
+    alert('Album uploaded successfully!');
+    router.push('/profile'); // Redirect to profile page
   }
 
   const handleUpgradeToCreator = async () => {
@@ -320,122 +523,369 @@ export default function Upload() {
               </p>
             </div>
 
+            {/* Toggle between single track and album upload */}
+            <div className="card-bg rounded-2xl p-5 sm:p-6 mb-6">
+              <div className="flex space-x-4">
+                <button
+                  onClick={() => setIsAlbumUpload(false)}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                    !isAlbumUpload
+                      ? 'bg-[#FF4D67] text-white'
+                      : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                  }`}
+                >
+                  Single Track
+                </button>
+                <button
+                  onClick={() => setIsAlbumUpload(true)}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                    isAlbumUpload
+                      ? 'bg-[#FF4D67] text-white'
+                      : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                  }`}
+                >
+                  Album
+                </button>
+              </div>
+            </div>
+
             <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
-              {/* Audio Upload Section */}
-              <div className="card-bg rounded-2xl p-5 sm:p-6">
-                <h2 className="text-lg sm:text-xl font-medium text-white mb-4">Audio File</h2>
-                
-                {!audioUrl ? (
-                  <FileUploaderRegular
-                    pubkey={process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY || "YOUR_PUBLIC_KEY_HERE"}
-                    onFileUploadSuccess={handleAudioUploadSuccess}
-                    multiple={false}
-                    className="my-config"
-                  />
-                ) : (
-                  <div className="p-4 bg-green-900/30 border border-green-700 rounded-lg">
-                    <p className="text-green-400">Audio uploaded successfully!</p>
-                    <p className="text-sm text-gray-400 mt-1">File: {audioUrl.split('/').pop()}</p>
-                  </div>
-                )}
-              </div>
-
-              {/* Cover Image Upload Section */}
-              <div className="card-bg rounded-2xl p-5 sm:p-6">
-                <h2 className="text-lg sm:text-xl font-medium text-white mb-4">Cover Image</h2>
-                
-                {!coverUrl ? (
-                  <FileUploaderRegular
-                    pubkey={process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY || "YOUR_PUBLIC_KEY_HERE"}
-                    onFileUploadSuccess={handleCoverUploadSuccess}
-                    multiple={false}
-                    className="my-config"
-                  />
-                ) : (
-                  <div className="p-4 bg-green-900/30 border border-green-700 rounded-lg">
-                    <p className="text-green-400">Cover image uploaded successfully!</p>
-                    <img src={coverUrl} alt="Cover" className="mt-2 w-32 h-32 object-cover rounded-lg" />
-                  </div>
-                )}
-                
-                {/* Info about using avatar as cover */}
-                {!coverUrl && user?.avatar && (
-                  <div className="mt-4 p-3 bg-blue-900/20 border border-blue-700 rounded-lg">
-                    <p className="text-blue-400 text-sm">
-                      If you don't upload a cover image, your profile avatar will be used as the track cover.
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Form Fields */}
-              <div className="space-y-5 sm:space-y-6 card-bg rounded-2xl p-5 sm:p-6">
-                <div>
-                  <label htmlFor="title" className="block text-sm font-medium text-gray-300 mb-2">
-                    Track Title
-                  </label>
-                  <input
-                    type="text"
-                    id="title"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm sm:text-base"
-                    placeholder="Enter track title"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="description" className="block text-sm font-medium text-gray-300 mb-2">
-                    Description
-                  </label>
-                  <textarea
-                    id="description"
-                    rows={3}
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm sm:text-base"
-                    placeholder="Tell us about your track..."
-                  ></textarea>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                  <div>
-                    <label htmlFor="genre" className="block text-sm font-medium text-gray-300 mb-2">
-                      Genre
-                    </label>
-                    <select
-                      id="genre"
-                      value={genre}
-                      onChange={(e) => setGenre(e.target.value)}
-                      className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm sm:text-base"
-                    >
-                      <option value="afrobeat">Afrobeat</option>
-                      <option value="hiphop">Hip Hop</option>
-                      <option value="rnb">R&B</option>
-                      <option value="afropop">Afropop</option>
-                      <option value="gospel">Gospel</option>
-                      <option value="traditional">Traditional</option>
-                    </select>
+              {!isAlbumUpload ? (
+                // Single Track Upload Form
+                <>
+                  {/* Audio Upload Section */}
+                  <div className="card-bg rounded-2xl p-5 sm:p-6">
+                    <h2 className="text-lg sm:text-xl font-medium text-white mb-4">Audio File</h2>
+                    
+                    {!audioUrl ? (
+                      <FileUploaderRegular
+                        pubkey={process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY || "YOUR_PUBLIC_KEY_HERE"}
+                        onFileUploadSuccess={handleAudioUploadSuccess}
+                        multiple={false}
+                        className="my-config"
+                      />
+                    ) : (
+                      <div className="p-4 bg-green-900/30 border border-green-700 rounded-lg">
+                        <p className="text-green-400">Audio uploaded successfully!</p>
+                        <p className="text-sm text-gray-400 mt-1">File: {audioUrl.split('/').pop()}</p>
+                      </div>
+                    )}
                   </div>
 
-                  <div>
-                    <label htmlFor="visibility" className="block text-sm font-medium text-gray-300 mb-2">
-                      Visibility
-                    </label>
-                    <select
-                      id="visibility"
-                      value={visibility}
-                      onChange={(e) => setVisibility(e.target.value)}
-                      className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm sm:text-base"
-                    >
-                      <option value="public">Public</option>
-                      <option value="fans">Fans Only</option>
-                      <option value="private">Private</option>
-                    </select>
+                  {/* Cover Image Upload Section */}
+                  <div className="card-bg rounded-2xl p-5 sm:p-6">
+                    <h2 className="text-lg sm:text-xl font-medium text-white mb-4">Cover Image</h2>
+                    
+                    {!coverUrl ? (
+                      <FileUploaderRegular
+                        pubkey={process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY || "YOUR_PUBLIC_KEY_HERE"}
+                        onFileUploadSuccess={handleCoverUploadSuccess}
+                        multiple={false}
+                        className="my-config"
+                      />
+                    ) : (
+                      <div className="p-4 bg-green-900/30 border border-green-700 rounded-lg">
+                        <p className="text-green-400">Cover image uploaded successfully!</p>
+                        <img src={coverUrl} alt="Cover" className="mt-2 w-32 h-32 object-cover rounded-lg" />
+                      </div>
+                    )}
+                    
+                    {/* Info about using avatar as cover */}
+                    {!coverUrl && user?.avatar && (
+                      <div className="mt-4 p-3 bg-blue-900/20 border border-blue-700 rounded-lg">
+                        <p className="text-blue-400 text-sm">
+                          If you don't upload a cover image, your profile avatar will be used as the track cover.
+                        </p>
+                      </div>
+                    )}
                   </div>
-                </div>
-              </div>
+
+                  {/* Form Fields */}
+                  <div className="space-y-5 sm:space-y-6 card-bg rounded-2xl p-5 sm:p-6">
+                    <div>
+                      <label htmlFor="title" className="block text-sm font-medium text-gray-300 mb-2">
+                        Track Title
+                      </label>
+                      <input
+                        type="text"
+                        id="title"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm sm:text-base"
+                        placeholder="Enter track title"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="description" className="block text-sm font-medium text-gray-300 mb-2">
+                        Description
+                      </label>
+                      <textarea
+                        id="description"
+                        rows={3}
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm sm:text-base"
+                        placeholder="Tell us about your track..."
+                      ></textarea>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+                      <div>
+                        <label htmlFor="genre" className="block text-sm font-medium text-gray-300 mb-2">
+                          Genre
+                        </label>
+                        <select
+                          id="genre"
+                          value={genre}
+                          onChange={(e) => setGenre(e.target.value)}
+                          className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm sm:text-base"
+                        >
+                          {genres.map(genreOption => (
+                            <option key={genreOption} value={genreOption}>
+                              {genreOption.charAt(0).toUpperCase() + genreOption.slice(1)}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label htmlFor="type" className="block text-sm font-medium text-gray-300 mb-2">
+                          Type
+                        </label>
+                        <select
+                          id="type"
+                          value={type}
+                          onChange={(e) => setType(e.target.value as 'song' | 'beat' | 'mix')}
+                          className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm sm:text-base"
+                        >
+                          <option value="song">Song</option>
+                          <option value="beat">Beat</option>
+                          <option value="mix">Mix</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label htmlFor="visibility" className="block text-sm font-medium text-gray-300 mb-2">
+                          Visibility
+                        </label>
+                        <select
+                          id="visibility"
+                          value={visibility}
+                          onChange={(e) => setVisibility(e.target.value)}
+                          className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm sm:text-base"
+                        >
+                          <option value="public">Public</option>
+                          <option value="fans">Fans Only</option>
+                          <option value="private">Private</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                // Album Upload Form
+                <>
+                  {/* Album Info */}
+                  <div className="space-y-5 sm:space-y-6 card-bg rounded-2xl p-5 sm:p-6">
+                    <div>
+                      <label htmlFor="albumTitle" className="block text-sm font-medium text-gray-300 mb-2">
+                        Album Title
+                      </label>
+                      <input
+                        type="text"
+                        id="albumTitle"
+                        value={albumTitle}
+                        onChange={(e) => setAlbumTitle(e.target.value)}
+                        className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm sm:text-base"
+                        placeholder="Enter album title"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="albumDescription" className="block text-sm font-medium text-gray-300 mb-2">
+                        Album Description
+                      </label>
+                      <textarea
+                        id="albumDescription"
+                        rows={3}
+                        value={albumDescription}
+                        onChange={(e) => setAlbumDescription(e.target.value)}
+                        className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm sm:text-base"
+                        placeholder="Tell us about your album..."
+                      ></textarea>
+                    </div>
+
+                    {/* Album Cover Upload Section */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Album Cover Image
+                      </label>
+                      {!albumCoverUrl ? (
+                        <FileUploaderRegular
+                          pubkey={process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY || "YOUR_PUBLIC_KEY_HERE"}
+                          onFileUploadSuccess={handleAlbumCoverUploadSuccess}
+                          multiple={false}
+                          className="my-config"
+                        />
+                      ) : (
+                        <div className="p-4 bg-green-900/30 border border-green-700 rounded-lg">
+                          <p className="text-green-400">Album cover uploaded successfully!</p>
+                          <img src={albumCoverUrl} alt="Album Cover" className="mt-2 w-32 h-32 object-cover rounded-lg" />
+                        </div>
+                      )}
+                      
+                      {/* Info about using avatar as cover */}
+                      {!albumCoverUrl && user?.avatar && (
+                        <div className="mt-4 p-3 bg-blue-900/20 border border-blue-700 rounded-lg">
+                          <p className="text-blue-400 text-sm">
+                            If you don't upload an album cover, your profile avatar will be used as the default cover for tracks.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Album Tracks */}
+                  <div className="card-bg rounded-2xl p-5 sm:p-6">
+                    <div className="flex justify-between items-center mb-4">
+                      <h2 className="text-lg sm:text-xl font-medium text-white">Album Tracks</h2>
+                      <button
+                        type="button"
+                        onClick={addAlbumTrack}
+                        className="px-3 py-1 bg-[#FF4D67] text-white rounded-lg hover:bg-[#FF4D67]/80 transition-colors text-sm"
+                      >
+                        Add Track
+                      </button>
+                    </div>
+
+                    {albumTracks.length === 0 ? (
+                      <div className="text-center py-8 text-gray-400">
+                        No tracks added yet. Click "Add Track" to start adding tracks to your album.
+                      </div>
+                    ) : (
+                      <div className="space-y-6">
+                        {albumTracks.map((track, index) => (
+                          <div key={track.id} className="border border-gray-700 rounded-lg p-4">
+                            <div className="flex justify-between items-center mb-3">
+                              <h3 className="text-white font-medium">Track {index + 1}</h3>
+                              <button
+                                type="button"
+                                onClick={() => removeAlbumTrack(track.id)}
+                                className="text-red-500 hover:text-red-400"
+                              >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                              </button>
+                            </div>
+
+                            {/* Track Audio Upload */}
+                            <div className="mb-4">
+                              <h4 className="text-gray-300 text-sm mb-2">Audio File</h4>
+                              {!track.audioUrl ? (
+                                <FileUploaderRegular
+                                  pubkey={process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY || "YOUR_PUBLIC_KEY_HERE"}
+                                  onFileUploadSuccess={(info) => handleAlbumAudioUploadSuccess(info, track.id)}
+                                  multiple={false}
+                                  className="my-config"
+                                />
+                              ) : (
+                                <div className="p-2 bg-green-900/30 border border-green-700 rounded-lg">
+                                  <p className="text-green-400 text-sm">Audio uploaded successfully!</p>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Track Cover Upload */}
+                            <div className="mb-4">
+                              <h4 className="text-gray-300 text-sm mb-2">Track Cover Image (Optional)</h4>
+                              {!track.coverUrl ? (
+                                <FileUploaderRegular
+                                  pubkey={process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY || "YOUR_PUBLIC_KEY_HERE"}
+                                  onFileUploadSuccess={(info) => handleAlbumTrackCoverUploadSuccess(info, track.id)}
+                                  multiple={false}
+                                  className="my-config"
+                                />
+                              ) : (
+                                <div className="p-2 bg-green-900/30 border border-green-700 rounded-lg">
+                                  <p className="text-green-400 text-sm">Cover uploaded successfully!</p>
+                                  <img src={track.coverUrl} alt="Track Cover" className="mt-2 w-16 h-16 object-cover rounded" />
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Track Details */}
+                            <div className="space-y-3">
+                              <div>
+                                <label className="block text-gray-300 text-xs mb-1">
+                                  Track Title
+                                </label>
+                                <input
+                                  type="text"
+                                  value={track.title}
+                                  onChange={(e) => updateAlbumTrack(track.id, 'title', e.target.value)}
+                                  className="w-full px-2 py-1 bg-gray-800/50 border border-gray-700 rounded text-white text-sm"
+                                  placeholder="Enter track title"
+                                />
+                              </div>
+
+                              <div>
+                                <label className="block text-gray-300 text-xs mb-1">
+                                  Description
+                                </label>
+                                <textarea
+                                  value={track.description}
+                                  onChange={(e) => updateAlbumTrack(track.id, 'description', e.target.value)}
+                                  className="w-full px-2 py-1 bg-gray-800/50 border border-gray-700 rounded text-white text-sm"
+                                  placeholder="Track description"
+                                  rows={2}
+                                ></textarea>
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                  <label className="block text-gray-300 text-xs mb-1">
+                                    Genre
+                                  </label>
+                                  <select
+                                    value={track.genre}
+                                    onChange={(e) => updateAlbumTrack(track.id, 'genre', e.target.value)}
+                                    className="w-full px-2 py-1 bg-gray-800/50 border border-gray-700 rounded text-white text-sm"
+                                  >
+                                    {genres.map(genreOption => (
+                                      <option key={genreOption} value={genreOption}>
+                                        {genreOption.charAt(0).toUpperCase() + genreOption.slice(1)}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+
+                                <div>
+                                  <label className="block text-gray-300 text-xs mb-1">
+                                    Type
+                                  </label>
+                                  <select
+                                    value={track.type}
+                                    onChange={(e) => updateAlbumTrack(track.id, 'type', e.target.value)}
+                                    className="w-full px-2 py-1 bg-gray-800/50 border border-gray-700 rounded text-white text-sm"
+                                  >
+                                    <option value="song">Song</option>
+                                    <option value="beat">Beat</option>
+                                    <option value="mix">Mix</option>
+                                  </select>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
 
               {/* Tips Card */}
               <div className="card-bg rounded-2xl p-5 sm:p-6 border-l-4 border-[#FFCB2B]">
@@ -457,14 +907,18 @@ export default function Upload() {
               <div className="flex justify-end">
                 <button
                   type="submit"
-                  disabled={!audioUrl || isUploading}
+                  disabled={isUploading || (!isAlbumUpload && !audioUrl) || (isAlbumUpload && albumTracks.length === 0)}
                   className={`px-5 py-2.5 sm:px-6 sm:py-3 rounded-lg font-medium transition-all ${
-                    audioUrl && !isUploading
+                    !isUploading && ((isAlbumUpload && albumTracks.length > 0) || (!isAlbumUpload && audioUrl))
                       ? 'gradient-primary text-white hover:opacity-90'
                       : 'bg-gray-800 text-gray-500 cursor-not-allowed'
                   } text-sm sm:text-base`}
                 >
-                  {isUploading ? 'Uploading...' : 'Upload Track'}
+                  {isUploading ? (
+                    isAlbumUpload ? 'Uploading Album...' : 'Uploading Track...'
+                  ) : (
+                    isAlbumUpload ? 'Upload Album' : 'Upload Track'
+                  )}
                 </button>
               </div>
             </form>
