@@ -133,6 +133,34 @@ export const fetchTrackById = async (id: string): Promise<ITrack> => {
 };
 
 /**
+ * Fetch tracks by creator ID (public endpoint)
+ */
+export const fetchTracksByCreatorPublic = async (creatorId: string): Promise<any[]> => {
+  try {
+    // Use the new simple public endpoint that doesn't require authentication
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tracks/creator/${creatorId}/simple`);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch creator tracks: ${response.status} ${response.statusText}`);
+    }
+
+    const tracks = await response.json();
+    
+    // Map the fields to match the Track interface used in the frontend
+    return tracks.map((track: any) => ({
+      ...track,
+      audioUrl: track.audioURL || '',
+      coverArt: track.coverURL || '',
+      artist: track.creatorName || 'Unknown Artist',
+      duration: track.duration || 0
+    }));
+  } catch (error) {
+    console.error('Error fetching creator tracks:', error);
+    throw error;
+  }
+};
+
+/**
  * Fetch tracks by creator ID
  */
 export const fetchTracksByCreator = async (creatorId: string, page: number = 1, limit: number = 10): Promise<PaginatedTracks> => {

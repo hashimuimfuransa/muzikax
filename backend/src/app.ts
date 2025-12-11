@@ -83,6 +83,22 @@ try {
   console.error('Error registering admin routes:', error);
 }
 
+// Simple test route for tracks
+app.get('/api/test-tracks', (_req, res) => {
+  console.log('TEST TRACKS ROUTE HIT');
+  res.json({ message: 'Test tracks route working' });
+});
+
+// Log all registered routes for debugging
+console.log('Registered routes:');
+if (app._router && app._router.stack) {
+  app._router.stack.forEach((r: any) => {
+    if (r.route && r.route.path) {
+      console.log(`  ${Object.keys(r.route.methods).join(', ').toUpperCase()} ${r.route.path}`);
+    }
+  });
+}
+
 // Health check
 app.get('/health', (_req: express.Request, res: express.Response) => {
   console.log('HEALTH CHECK ROUTE HIT');

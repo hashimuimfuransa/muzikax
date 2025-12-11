@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getTrendingTracks = exports.incrementPlayCount = exports.deleteTrack = exports.updateTrack = exports.getTracksByCreator = exports.getTrackById = exports.getAllTracks = exports.uploadTrack = void 0;
+exports.getTrendingTracks = exports.incrementPlayCount = exports.deleteTrack = exports.updateTrack = exports.getTracksByCreator = exports.getTracksByCreatorSimple = exports.getTrackById = exports.getAllTracks = exports.uploadTrack = void 0;
 const Track_1 = __importDefault(require("../models/Track"));
 // import User from '../models/User'; // Not used in this controller
 // Upload track
@@ -73,11 +73,34 @@ const getTrackById = async (req, res) => {
     }
 };
 exports.getTrackById = getTrackById;
+// Get all tracks by creator (without pagination)
+const getTracksByCreatorSimple = async (req, res) => {
+    try {
+        const tracks = await Track_1.default.find({ creatorId: req.params['creatorId'] })
+            .sort({ createdAt: -1 });
+        res.json(tracks);
+    }
+    catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+exports.getTracksByCreatorSimple = getTracksByCreatorSimple;
 // Get tracks by creator
 const getTracksByCreator = async (req, res) => {
     try {
-        const page = parseInt(req.query['page']) || 1;
-        const limit = parseInt(req.query['limit']) || 10;
+        // Check if pagination parameters are provided
+        const pageParam = req.query['page'];
+        const limitParam = req.query['limit'];
+        // If no pagination parameters, return all tracks
+        if (pageParam === undefined && limitParam === undefined) {
+            const tracks = await Track_1.default.find({ creatorId: req.params['creatorId'] })
+                .sort({ createdAt: -1 });
+            res.json(tracks);
+            return;
+        }
+        // Otherwise, use pagination
+        const page = parseInt(pageParam) || 1;
+        const limit = parseInt(limitParam) || 10;
         const skip = (page - 1) * limit;
         const tracks = await Track_1.default.find({ creatorId: req.params['creatorId'] })
             .sort({ createdAt: -1 })

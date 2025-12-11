@@ -4,6 +4,7 @@ import {
   getAllTracks,
   getTrackById,
   getTracksByCreator,
+  getTracksByCreatorSimple,
   updateTrack,
   deleteTrack,
   incrementPlayCount,
@@ -17,6 +18,7 @@ const router = express.Router();
 router.route('/').get(getAllTracks);
 router.route('/trending').get(getTrendingTracks);
 router.route('/:id').get(getTrackById);
+router.route('/creator/:creatorId/simple').get(getTracksByCreatorSimple);
 router.route('/creator/:creatorId').get(getTracksByCreator);
 
 // Protected routes

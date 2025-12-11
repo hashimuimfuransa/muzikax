@@ -41,6 +41,7 @@ const router = express.Router();
 router.route('/').get(trackController_1.getAllTracks);
 router.route('/trending').get(trackController_1.getTrendingTracks);
 router.route('/:id').get(trackController_1.getTrackById);
+router.route('/creator/:creatorId/simple').get(trackController_1.getTracksByCreatorSimple);
 router.route('/creator/:creatorId').get(trackController_1.getTracksByCreator);
 // Protected routes
 router.route('/upload').post(jwt_1.protect, jwt_1.creator, trackController_1.uploadTrack);

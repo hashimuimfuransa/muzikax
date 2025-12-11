@@ -39,7 +39,7 @@ router.get('/simple-test', (_req, res) => {
 // Public routes for creators - explicitly without authentication
 router.get('/public-creators', (req, res, next) => {
   console.log('Public creators route hit, no auth required');
-  getPublicCreators(req, res);
+  getPublicCreators(req, res).catch(next);
 });
 
 // Admin routes

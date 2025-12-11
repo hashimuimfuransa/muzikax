@@ -74,11 +74,37 @@ export const getTrackById = async (req: Request, res: Response): Promise<void> =
   }
 };
 
+// Get all tracks by creator (without pagination)
+export const getTracksByCreatorSimple = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const tracks = await Track.find({ creatorId: req.params['creatorId'] as string })
+      .sort({ createdAt: -1 });
+
+    res.json(tracks);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // Get tracks by creator
 export const getTracksByCreator = async (req: Request, res: Response): Promise<void> => {
   try {
-    const page = parseInt(req.query['page'] as string) || 1;
-    const limit = parseInt(req.query['limit'] as string) || 10;
+    // Check if pagination parameters are provided
+    const pageParam = req.query['page'];
+    const limitParam = req.query['limit'];
+    
+    // If no pagination parameters, return all tracks
+    if (pageParam === undefined && limitParam === undefined) {
+      const tracks = await Track.find({ creatorId: req.params['creatorId'] as string })
+        .sort({ createdAt: -1 });
+      
+      res.json(tracks);
+      return;
+    }
+    
+    // Otherwise, use pagination
+    const page = parseInt(pageParam as string) || 1;
+    const limit = parseInt(limitParam as string) || 10;
     const skip = (page - 1) * limit;
 
     const tracks = await Track.find({ creatorId: req.params['creatorId'] as string })

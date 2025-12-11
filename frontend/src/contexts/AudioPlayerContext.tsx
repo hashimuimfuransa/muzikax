@@ -85,9 +85,17 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
   }, [favorites]);
 
   const playTrack = (track: Track) => {
+    // Validate that we have a valid audio URL
+    if (!track.audioUrl || track.audioUrl.trim() === '') {
+      console.error('Cannot play track: Invalid audio URL', track);
+      return;
+    }
+    
     // If we're already playing this track, just resume
     if (currentTrack?.id === track.id && audioRef.current) {
-      audioRef.current.play();
+      audioRef.current.play().catch(error => {
+        console.error('Error resuming track:', error);
+      });
       setIsPlaying(true);
       return;
     }
@@ -121,22 +129,27 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
       setDuration(audio.duration || 0);
     };
 
-    // Play the new track
-    audio.play().then(() => {
-      setCurrentTrack(track);
-      setIsPlaying(true);
-      setIsMinimized(false); // Expand player when new track starts
-      
-      // Find track index in playlist if it exists
-      const index = playlist.findIndex(t => t.id === track.id);
-      if (index !== -1) {
-        setCurrentTrackIndex(index);
-      }
-    }).catch((error) => {
-      console.error('Error playing track:', error);
-      setIsPlaying(false);
-      setCurrentTrack(null);
-    });
+    // Set the current track immediately
+    setCurrentTrack(track);
+    setIsMinimized(false); // Expand player when new track starts
+    
+    // Find track index in playlist if it exists
+    const index = playlist.findIndex(t => t.id === track.id);
+    if (index !== -1) {
+      setCurrentTrackIndex(index);
+    }
+
+    // Small delay to ensure audio element is properly initialized
+    setTimeout(() => {
+      // Play the new track
+      audio.play().then(() => {
+        setIsPlaying(true);
+      }).catch((error) => {
+        console.error('Error playing track:', error);
+        setIsPlaying(false);
+        setCurrentTrack(null);
+      });
+    }, 0);
   };
 
   const playNextTrack = () => {

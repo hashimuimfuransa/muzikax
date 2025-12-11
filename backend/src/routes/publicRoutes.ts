@@ -1,7 +1,8 @@
 import * as express from 'express';
 import { 
   getPublicCreators,
-  getPublicCreatorProfile
+  getPublicCreatorProfile,
+  getPublicCreatorStats
 } from '../controllers/publicController';
 
 console.log('PUBLIC ROUTES FILE LOADED');
@@ -31,6 +32,11 @@ router.get('/creators', (req, res, next) => {
 router.get('/creators/:id', (req, res, next) => {
   console.log('Public creator profile route hit, no auth required');
   getPublicCreatorProfile(req, res).catch(next);
+});
+
+router.get('/creators/:id/stats', (req, res, next) => {
+  console.log('Public creator stats route hit, no auth required');
+  getPublicCreatorStats(req, res).catch(next);
 });
 
 export default router;

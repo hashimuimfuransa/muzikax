@@ -57,5 +57,9 @@ router.get('/creators/:id', (req, res, next) => {
     console.log('Public creator profile route hit, no auth required');
     (0, publicController_1.getPublicCreatorProfile)(req, res).catch(next);
 });
+router.get('/creators/:id/stats', (req, res, next) => {
+    console.log('Public creator stats route hit, no auth required');
+    (0, publicController_1.getPublicCreatorStats)(req, res).catch(next);
+});
 exports.default = router;
 //# sourceMappingURL=publicRoutes.js.map
