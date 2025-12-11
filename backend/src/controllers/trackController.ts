@@ -129,6 +129,50 @@ export const getTracksByCreator = async (req: Request, res: Response): Promise<v
   }
 };
 
+// Get tracks by authenticated user (for profile page)
+export const getTracksByAuthUser = async (req: Request, res: Response): Promise<void> => {
+  try {
+    // Check if pagination parameters are provided
+    const pageParam = req.query['page'];
+    const limitParam = req.query['limit'];
+    
+    // Get creator ID from authenticated user
+    const creatorId = (req as any).user._id;
+    
+    // If no pagination parameters, return all tracks
+    if (pageParam === undefined && limitParam === undefined) {
+      const tracks = await Track.find({ creatorId })
+        .sort({ createdAt: -1 })
+        .populate('creatorId', 'name avatar');
+      
+      res.json(tracks);
+      return;
+    }
+    
+    // Otherwise, use pagination
+    const page = parseInt(pageParam as string) || 1;
+    const limit = parseInt(limitParam as string) || 10;
+    const skip = (page - 1) * limit;
+
+    const tracks = await Track.find({ creatorId })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate('creatorId', 'name avatar');
+
+    const total = await Track.countDocuments({ creatorId });
+
+    res.json({
+      tracks,
+      page,
+      pages: Math.ceil(total / limit),
+      total
+    });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // Update track
 export const updateTrack = async (req: Request, res: Response): Promise<void> => {
   try {

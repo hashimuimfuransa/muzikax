@@ -5,6 +5,7 @@ import {
   getTrackById,
   getTracksByCreator,
   getTracksByCreatorSimple,
+  getTracksByAuthUser,
   updateTrack,
   deleteTrack,
   incrementPlayCount,
@@ -23,6 +24,7 @@ router.route('/creator/:creatorId').get(getTracksByCreator);
 
 // Protected routes
 router.route('/upload').post(protect, creator, uploadTrack);
+router.route('/creator').get(protect, creator, getTracksByAuthUser);
 router.route('/:id/play').put(incrementPlayCount);
 router.route('/:id')
   .put(protect, updateTrack)

@@ -3,7 +3,7 @@
   "compilerOptions": {
     // File Layout
     "rootDir": "./src",
-    "outDir": "./src",
+    "outDir": "./dist",
 
     // Environment Settings
     "module": "commonjs",

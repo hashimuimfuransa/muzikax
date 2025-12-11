@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getTrendingTracks = exports.incrementPlayCount = exports.deleteTrack = exports.updateTrack = exports.getTracksByCreator = exports.getTracksByCreatorSimple = exports.getTrackById = exports.getAllTracks = exports.uploadTrack = void 0;
+exports.getTrendingTracks = exports.incrementPlayCount = exports.deleteTrack = exports.updateTrack = exports.getTracksByAuthUser = exports.getTracksByCreator = exports.getTracksByCreatorSimple = exports.getTrackById = exports.getAllTracks = exports.uploadTrack = void 0;
 const Track_1 = __importDefault(require("../models/Track"));
 // import User from '../models/User'; // Not used in this controller
 // Upload track
@@ -123,6 +123,44 @@ const getTracksByCreator = async (req, res) => {
     }
 };
 exports.getTracksByCreator = getTracksByCreator;
+// Get tracks by authenticated user (for profile page)
+const getTracksByAuthUser = async (req, res) => {
+    try {
+        // Check if pagination parameters are provided
+        const pageParam = req.query['page'];
+        const limitParam = req.query['limit'];
+        // Get creator ID from authenticated user
+        const creatorId = req.user._id;
+        // If no pagination parameters, return all tracks
+        if (pageParam === undefined && limitParam === undefined) {
+            const tracks = await Track_1.default.find({ creatorId })
+                .sort({ createdAt: -1 })
+                .populate('creatorId', 'name avatar');
+            res.json(tracks);
+            return;
+        }
+        // Otherwise, use pagination
+        const page = parseInt(pageParam) || 1;
+        const limit = parseInt(limitParam) || 10;
+        const skip = (page - 1) * limit;
+        const tracks = await Track_1.default.find({ creatorId })
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+            .populate('creatorId', 'name avatar');
+        const total = await Track_1.default.countDocuments({ creatorId });
+        res.json({
+            tracks,
+            page,
+            pages: Math.ceil(total / limit),
+            total
+        });
+    }
+    catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+exports.getTracksByAuthUser = getTracksByAuthUser;
 // Update track
 const updateTrack = async (req, res) => {
     try {

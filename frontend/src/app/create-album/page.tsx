@@ -77,7 +77,16 @@ export default function CreateAlbum() {
       if (!isLoading && isAuthenticated && userRole === 'creator') {
         try {
           setLoading(true)
-          const data = await fetchCreatorTracks(1, 100) // Fetch all tracks
+          
+          // Fetch tracks with token refresh
+          const response = await makeAuthenticatedRequest(`${process.env.NEXT_PUBLIC_API_URL}/api/creator/tracks?page=1&limit=100`);
+          
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Failed to fetch tracks');
+          }
+          
+          const data = await response.json();
           setAvailableTracks(data.tracks)
         } catch (err) {
           console.error('Failed to fetch tracks:', err)
@@ -142,6 +151,46 @@ export default function CreateAlbum() {
     }
   };
 
+  // Helper function to make authenticated request with token refresh
+  const makeAuthenticatedRequest = async (url: string, options: RequestInit = {}): Promise<Response> => {
+    let accessToken = localStorage.getItem('accessToken');
+    
+    if (!accessToken) {
+      throw new Error('No access token found');
+    }
+
+    // Add authorization header to options
+    const requestOptions = {
+      ...options,
+      headers: {
+        ...options.headers,
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`
+      }
+    };
+
+    // Make initial request
+    let response = await fetch(url, requestOptions);
+
+    // If token is expired, try to refresh it
+    if (response.status === 401) {
+      console.log('Token might be expired, attempting to refresh...');
+      const newToken = await refreshToken();
+      
+      if (newToken) {
+        // Retry the request with new token
+        requestOptions.headers = {
+          ...requestOptions.headers,
+          'Authorization': `Bearer ${newToken}`
+        };
+        
+        response = await fetch(url, requestOptions);
+      }
+    }
+
+    return response;
+  };
+
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -161,7 +210,7 @@ export default function CreateAlbum() {
       setError(null)
       setSuccess(null)
       
-      // Create the album
+      // Create the album with token refresh
       const albumData = {
         title,
         description,
@@ -170,7 +219,20 @@ export default function CreateAlbum() {
         trackIds: selectedTrackIds
       }
       
-      const newAlbum = await createAlbum(albumData)
+      const response = await makeAuthenticatedRequest(`${process.env.NEXT_PUBLIC_API_URL}/api/albums`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(albumData)
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to create album');
+      }
+      
+      const newAlbum = await response.json();
       
       setSuccess('Album created successfully!')
       

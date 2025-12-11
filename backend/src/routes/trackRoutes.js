@@ -45,6 +45,7 @@ router.route('/creator/:creatorId/simple').get(trackController_1.getTracksByCrea
 router.route('/creator/:creatorId').get(trackController_1.getTracksByCreator);
 // Protected routes
 router.route('/upload').post(jwt_1.protect, jwt_1.creator, trackController_1.uploadTrack);
+router.route('/creator').get(jwt_1.protect, jwt_1.creator, trackController_1.getTracksByAuthUser);
 router.route('/:id/play').put(trackController_1.incrementPlayCount);
 router.route('/:id')
     .put(jwt_1.protect, trackController_1.updateTrack)

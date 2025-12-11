@@ -139,7 +139,16 @@ export default function EditAlbumPage({ params }: { params: Promise<{ id: string
       
       try {
         setLoading(true)
-        const album: any = await getAlbumById(albumId)
+        
+        // Fetch album with token refresh
+        const response = await makeAuthenticatedRequest(`${process.env.NEXT_PUBLIC_API_URL}/api/albums/${albumId}`);
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to fetch album');
+        }
+        
+        const album: any = await response.json();
         
         // Check if user is authorized to edit this album
         const albumOwnerId = typeof album.creatorId === 'object' ? album.creatorId._id : album.creatorId
@@ -192,12 +201,25 @@ export default function EditAlbumPage({ params }: { params: Promise<{ id: string
       setError(null)
       setSuccess(null)
       
-      // Make API call to update the album
-      const updatedAlbum = await updateAlbum(albumId, {
-        title: formData.title,
-        description: formData.description,
-        genre: formData.genre
+      // Make API call to update the album with token refresh
+      const response = await makeAuthenticatedRequest(`${process.env.NEXT_PUBLIC_API_URL}/api/albums/${albumId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          title: formData.title,
+          description: formData.description,
+          genre: formData.genre
+        })
       })
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update album');
+      }
+      
+      const updatedAlbum = await response.json();
       
       setSuccess('Album updated successfully!')
       
@@ -224,7 +246,15 @@ export default function EditAlbumPage({ params }: { params: Promise<{ id: string
       setDeleting(true)
       setError(null)
       
-      await deleteAlbum(albumId)
+      // Make API call to delete the album with token refresh
+      const response = await makeAuthenticatedRequest(`${process.env.NEXT_PUBLIC_API_URL}/api/albums/${albumId}`, {
+        method: 'DELETE'
+      })
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to delete album');
+      }
       
       // Redirect to profile page after successful deletion
       router.push('/profile')

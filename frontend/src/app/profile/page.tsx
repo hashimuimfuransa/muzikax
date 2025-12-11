@@ -97,8 +97,8 @@ export default function Profile() {
   // Filter tracks and albums based on search query
   useEffect(() => {
     if (searchQuery.trim() === '') {
-      setFilteredTracks(tracks)
-      setFilteredAlbums(albums)
+      setFilteredTracks([...tracks])
+      setFilteredAlbums([...albums])
     } else {
       const query = searchQuery.toLowerCase()
       setFilteredTracks(tracks.filter(track => 
@@ -117,7 +117,15 @@ export default function Profile() {
     setLoadingAnalytics(true)
     setError(null)
     try {
-      const data = await fetchCreatorAnalytics()
+      // Fetch analytics with token refresh
+      const response = await makeAuthenticatedRequest(`${process.env.NEXT_PUBLIC_API_URL}/api/analytics/creator`);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to fetch analytics');
+      }
+      
+      const data = await response.json();
       setAnalytics(data)
     } catch (error: any) {
       console.error('Failed to fetch analytics:', error)
@@ -132,9 +140,24 @@ export default function Profile() {
     setLoadingTracks(true)
     setError(null)
     try {
-      const data = await fetchCreatorTracks(page, 6)
-      setTracks(data.tracks)
-      setFilteredTracks(data.tracks)
+      // Fetch tracks with token refresh
+      const response = await makeAuthenticatedRequest(`${process.env.NEXT_PUBLIC_API_URL}/api/creator/tracks?page=${page}&limit=6`);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to fetch tracks');
+      }
+      
+      const data = await response.json();
+      
+      // Transform tracks to match ITrack interface
+      const transformedTracks = data.tracks.map((track: any) => ({
+        ...track,
+        creatorId: typeof track.creatorId === 'object' ? track.creatorId._id : track.creatorId
+      }));
+      
+      setTracks(transformedTracks)
+      setFilteredTracks(transformedTracks)
       setTracksTotalPages(data.pages)
     } catch (error: any) {
       console.error('Failed to fetch tracks:', error)
@@ -144,12 +167,89 @@ export default function Profile() {
     }
   }
 
+  // Function to refresh token
+  const refreshToken = async (): Promise<string | null> => {
+    try {
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (!refreshToken) {
+        return null;
+      }
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh-token`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ refreshToken })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem('accessToken', data.accessToken);
+        localStorage.setItem('refreshToken', data.refreshToken);
+        return data.accessToken;
+      }
+    } catch (error) {
+      console.error('Error refreshing token:', error);
+    }
+    return null;
+  };
+
+  // Helper function to make authenticated request with token refresh
+  const makeAuthenticatedRequest = async (url: string, options: RequestInit = {}): Promise<Response> => {
+    let accessToken = localStorage.getItem('accessToken');
+    
+    if (!accessToken) {
+      throw new Error('No access token found');
+    }
+
+    // Add authorization header to options
+    const requestOptions = {
+      ...options,
+      headers: {
+        ...options.headers,
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`
+      }
+    };
+
+    // Make initial request
+    let response = await fetch(url, requestOptions);
+
+    // If token is expired, try to refresh it
+    if (response.status === 401) {
+      console.log('Token might be expired, attempting to refresh...');
+      const newToken = await refreshToken();
+      
+      if (newToken) {
+        // Retry the request with new token
+        requestOptions.headers = {
+          ...requestOptions.headers,
+          'Authorization': `Bearer ${newToken}`
+        };
+        
+        response = await fetch(url, requestOptions);
+      }
+    }
+
+    return response;
+  };
+
   const fetchAlbums = async () => {
     if (loadingAlbums) return
     setLoadingAlbums(true)
     setError(null)
     try {
-      const data: any[] = await getAlbumsByCreator(user?.id || '')
+      // Fetch albums with token refresh
+      const response = await makeAuthenticatedRequest(`${process.env.NEXT_PUBLIC_API_URL}/api/albums/creator/${user?.id || ''}`);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to fetch albums');
+      }
+      
+      const data: any[] = await response.json();
+      
       // Transform the data to match our ProfileAlbum interface
       const transformedAlbums = data.map(album => ({
         id: album._id || album.id,
@@ -212,11 +312,31 @@ export default function Profile() {
 
     try {
       if (itemToDelete.type === 'track') {
-        await deleteTrack(itemToDelete.id)
+        // Delete track with token refresh
+        const response = await makeAuthenticatedRequest(`${process.env.NEXT_PUBLIC_API_URL}/api/tracks/${itemToDelete.id}`, {
+          method: 'DELETE'
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to delete track');
+        }
+        
         setTracks(prevTracks => prevTracks.filter(track => track._id !== itemToDelete.id))
+        setFilteredTracks(prevFilteredTracks => prevFilteredTracks.filter(track => track._id !== itemToDelete.id))
       } else if (itemToDelete.type === 'album') {
-        await deleteAlbum(itemToDelete.id)
+        // Delete album with token refresh
+        const response = await makeAuthenticatedRequest(`${process.env.NEXT_PUBLIC_API_URL}/api/albums/${itemToDelete.id}`, {
+          method: 'DELETE'
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to delete album');
+        }
+        
         setAlbums(prevAlbums => prevAlbums.filter(album => album.id !== itemToDelete.id))
+        setFilteredAlbums(prevFilteredAlbums => prevFilteredAlbums.filter(album => album.id !== itemToDelete.id))
       }
       setShowDeleteModal(false)
       setItemToDelete(null) // Clear the item to delete
@@ -242,18 +362,18 @@ export default function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black py-8 sm:py-12">
-      <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#FF4D67]/10 rounded-full blur-3xl -z-10"></div>
-      <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-[#FFCB2B]/10 rounded-full blur-3xl -z-10"></div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black py-6 sm:py-8 md:py-12 overflow-x-hidden">
+      <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-96 h-96 bg-[#FF4D67]/10 rounded-full blur-3xl -z-10"></div>
+      <div className="absolute -bottom-40 left-1/2 -translate-x-1/2 w-96 h-96 bg-[#FFCB2B]/10 rounded-full blur-3xl -z-10"></div>
       
-      <div className="container mx-auto px-4 sm:px-8">
+      <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
-          <div className="text-center mb-8 sm:mb-12">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] mb-3 sm:mb-4">
+          <div className="text-center mb-6 sm:mb-8 md:mb-12">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] mb-2 sm:mb-3">
               {user?.role === 'creator' ? 'Creator Dashboard' : 'Your Profile'}
             </h1>
-            <p className="text-gray-400 text-sm sm:text-base">
+            <p className="text-gray-400 text-sm">
               {user?.role === 'creator' 
                 ? 'Manage your content, view analytics, and engage with your audience' 
                 : 'Manage your account settings and preferences'}
@@ -261,28 +381,28 @@ export default function Profile() {
           </div>
 
           {/* Profile Card */}
-          <div className="card-bg rounded-2xl p-6 sm:p-8 mb-8 border border-gray-700/50">
-            <div className="flex flex-col sm:flex-row items-center gap-6 mb-6">
-              <div className="w-24 h-24 rounded-full bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center relative overflow-hidden">
-                <span className="text-3xl font-bold text-white z-10">
+          <div className="card-bg rounded-2xl p-5 sm:p-6 mb-6 border border-gray-700/50">
+            <div className="flex flex-col sm:flex-row items-center gap-5 mb-5">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center relative overflow-hidden">
+                <span className="text-2xl sm:text-3xl font-bold text-white z-10">
                   {user?.name?.charAt(0)?.toUpperCase() || 'U'}
                 </span>
                 <div className="absolute inset-0 bg-black/20"></div>
               </div>
               <div className="text-center sm:text-left flex-1">
                 <h2 className="text-xl sm:text-2xl font-bold text-white">{user?.name || 'User'}</h2>
-                <p className="text-gray-400 mb-2">{user?.email || 'user@example.com'}</p>
-                <div className="inline-flex items-center px-3 py-1 rounded-full bg-gray-800/50 text-gray-300 text-xs sm:text-sm">
+                <p className="text-gray-400 mb-2 text-sm">{user?.email || 'user@example.com'}</p>
+                <div className="inline-flex items-center px-3 py-1 rounded-full bg-gray-800/50 text-gray-300 text-xs">
                   <span className="w-2 h-2 rounded-full bg-green-500 mr-2"></span>
                   {user?.role === 'creator' ? 'Creator Account' : 'Fan Account'}
                 </div>
                 {user?.role === 'creator' && user?.creatorType && (
-                  <div className="mt-2 inline-flex items-center px-3 py-1 rounded-full bg-gray-800/50 text-gray-300 text-xs sm:text-sm">
+                  <div className="mt-2 inline-flex items-center px-3 py-1 rounded-full bg-gray-800/50 text-gray-300 text-xs">
                     {user.creatorType.charAt(0).toUpperCase() + user.creatorType.slice(1)}
                   </div>
                 )}
                 {user?.role === 'creator' && (
-                  <div className="mt-4 flex flex-wrap gap-2">
+                  <div className="mt-4 flex flex-wrap gap-2 justify-center sm:justify-start">
                     <button 
                       onClick={() => router.push('/upload')}
                       className="px-4 py-2 bg-[#FF4D67] text-white rounded-lg hover:bg-[#FF4D67]/80 transition-colors text-sm font-medium flex items-center gap-2"
@@ -306,26 +426,26 @@ export default function Profile() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="card-bg rounded-xl p-4 border border-gray-700/30">
-                <h3 className="text-gray-400 text-sm mb-1">Member Since</h3>
-                <p className="text-white font-medium">January 2024</p>
+                <h3 className="text-gray-400 text-xs mb-1">Member Since</h3>
+                <p className="text-white font-medium text-sm">January 2024</p>
               </div>
               <div className="card-bg rounded-xl p-4 border border-gray-700/30">
-                <h3 className="text-gray-400 text-sm mb-1">Favorite Genres</h3>
-                <p className="text-white font-medium">Afrobeat, Hip Hop</p>
+                <h3 className="text-gray-400 text-xs mb-1">Favorite Genres</h3>
+                <p className="text-white font-medium text-sm">Afrobeat, Hip Hop</p>
               </div>
               <div className="card-bg rounded-xl p-4 border border-gray-700/30">
-                <h3 className="text-gray-400 text-sm mb-1">Following</h3>
-                <p className="text-white font-medium">24 Creators</p>
+                <h3 className="text-gray-400 text-xs mb-1">Following</h3>
+                <p className="text-white font-medium text-sm">24 Creators</p>
               </div>
             </div>
           </div>
 
-          {/* Tabs */}
-          <div className="flex border-b border-gray-800 mb-6">
+          {/* Tabs - Mobile Responsive */}
+          <div className="flex overflow-x-auto border-b border-gray-800 mb-6 scrollbar-hide">
             <button
-              className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors ${
+              className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors whitespace-nowrap ${
                 activeTab === 'profile'
                   ? 'text-[#FF4D67] border-b-2 border-[#FF4D67]'
                   : 'text-gray-500 hover:text-gray-300'
@@ -336,7 +456,7 @@ export default function Profile() {
             </button>
             <Link 
               href="/favorites"
-              className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors ${
+              className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors whitespace-nowrap ${
                 activeTab === 'favorites'
                   ? 'text-[#FF4D67] border-b-2 border-[#FF4D67]'
                   : 'text-gray-500 hover:text-gray-300'
@@ -347,7 +467,7 @@ export default function Profile() {
             {user?.role === 'creator' && (
               <>
                 <button
-                  className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors ${
+                  className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors whitespace-nowrap ${
                     activeTab === 'analytics'
                       ? 'text-[#FF4D67] border-b-2 border-[#FF4D67]'
                       : 'text-gray-500 hover:text-gray-300'
@@ -357,7 +477,7 @@ export default function Profile() {
                   Analytics
                 </button>
                 <button
-                  className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors ${
+                  className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors whitespace-nowrap ${
                     activeTab === 'tracks'
                       ? 'text-[#FF4D67] border-b-2 border-[#FF4D67]'
                       : 'text-gray-500 hover:text-gray-300'
@@ -367,7 +487,7 @@ export default function Profile() {
                   My Tracks
                 </button>
                 <button
-                  className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors ${
+                  className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors whitespace-nowrap ${
                     activeTab === 'albums'
                       ? 'text-[#FF4D67] border-b-2 border-[#FF4D67]'
                       : 'text-gray-500 hover:text-gray-300'
@@ -382,10 +502,10 @@ export default function Profile() {
 
           {/* Profile Settings Tab */}
           {activeTab === 'profile' && (
-            <div className="card-bg rounded-2xl p-6 sm:p-8 border border-gray-700/50">
-              <h3 className="text-lg sm:text-xl font-bold text-white mb-6">Account Settings</h3>
+            <div className="card-bg rounded-2xl p-5 sm:p-6 border border-gray-700/50">
+              <h3 className="text-lg sm:text-xl font-bold text-white mb-5">Account Settings</h3>
               
-              <div className="space-y-6">
+              <div className="space-y-5">
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
                     Full Name
@@ -394,7 +514,7 @@ export default function Profile() {
                     type="text"
                     id="name"
                     defaultValue={user?.name || ''}
-                    className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm sm:text-base"
+                    className="w-full px-3 py-2.5 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm"
                   />
                 </div>
 
@@ -406,7 +526,7 @@ export default function Profile() {
                     type="email"
                     id="email"
                     defaultValue={user?.email || ''}
-                    className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm sm:text-base"
+                    className="w-full px-3 py-2.5 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm"
                   />
                 </div>
 
@@ -418,7 +538,7 @@ export default function Profile() {
                     type="password"
                     id="password"
                     placeholder="Enter new password"
-                    className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm sm:text-base"
+                    className="w-full px-3 py-2.5 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm"
                   />
                 </div>
 
@@ -430,47 +550,20 @@ export default function Profile() {
                       </svg>
                       Want to become a creator?
                     </h4>
-                    <p className="text-xs sm:text-sm text-gray-400 mb-3">
+                    <p className="text-xs text-gray-400 mb-3">
                       Upgrade your account to upload music and connect with fans.
                     </p>
                     <button 
                       onClick={() => router.push('/upload')}
-                      className="px-3 py-1.5 sm:px-4 sm:py-2 bg-transparent border border-[#FFCB2B] text-[#FFCB2B] hover:bg-[#FFCB2B]/10 rounded-full text-xs sm:text-sm font-medium transition-colors"
+                      className="px-3 py-1.5 bg-transparent border border-[#FFCB2B] text-[#FFCB2B] hover:bg-[#FFCB2B]/10 rounded-full text-xs font-medium transition-colors"
                     >
                       Upgrade to Creator
                     </button>
                   </div>
                 )}
 
-                {/* Delete Confirmation Modal */}
-                {showDeleteModal && (
-                  <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="card-bg rounded-2xl p-6 sm:p-8 border border-gray-700/50 max-w-md w-full">
-                      <h3 className="text-xl font-bold text-white mb-2">Confirm Deletion</h3>
-                      <p className="text-gray-300 mb-6">
-                        Are you sure you want to delete <span className="font-semibold text-[#FF4D67]">{itemToDelete?.title}</span>? 
-                        This action cannot be undone.
-                      </p>
-                      <div className="flex justify-end gap-3">
-                        <button
-                          onClick={() => setShowDeleteModal(false)}
-                          className="px-4 py-2 rounded-lg text-gray-300 hover:bg-gray-700 transition-colors"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          onClick={confirmDelete}
-                          className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex justify-end">
-                  <button className="px-5 py-2.5 sm:px-6 sm:py-3 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-opacity text-sm sm:text-base">
+                <div className="flex justify-end pt-2">
+                  <button className="px-5 py-2.5 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-opacity text-sm">
                     Save Changes
                   </button>
                 </div>
@@ -480,15 +573,15 @@ export default function Profile() {
 
           {/* Creator Analytics Tab */}
           {activeTab === 'analytics' && user?.role === 'creator' && (
-            <div className="card-bg rounded-2xl p-6 sm:p-8 border border-gray-700/50">
-              <h3 className="text-lg sm:text-xl font-bold text-white mb-6">Performance Analytics</h3>
+            <div className="card-bg rounded-2xl p-5 sm:p-6 border border-gray-700/50">
+              <h3 className="text-lg sm:text-xl font-bold text-white mb-5">Performance Analytics</h3>
               
               {error && (
-                <div className="bg-red-900/50 border border-red-700 rounded-lg p-4 mb-6">
-                  <div className="text-red-300">{error}</div>
+                <div className="bg-red-900/50 border border-red-700 rounded-lg p-4 mb-5">
+                  <div className="text-red-300 text-sm">{error}</div>
                   <button 
                     onClick={fetchAnalytics}
-                    className="mt-2 px-3 py-1 bg-red-700 text-white rounded hover:bg-red-600 text-sm"
+                    className="mt-2 px-3 py-1.5 bg-red-700 text-white rounded hover:bg-red-600 text-sm"
                   >
                     Retry
                   </button>
@@ -497,33 +590,33 @@ export default function Profile() {
               
               {loadingAnalytics ? (
                 <div className="flex justify-center items-center h-40">
-                  <div className="text-white">Loading analytics...</div>
+                  <div className="text-white text-sm">Loading analytics...</div>
                 </div>
               ) : analytics ? (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                  <div className="card-bg rounded-xl p-6 border border-gray-700/30 text-center">
-                    <div className="text-3xl font-bold text-[#FF4D67] mb-2">{analytics.totalTracks}</div>
-                    <div className="text-gray-400">Total Tracks</div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                  <div className="card-bg rounded-xl p-5 border border-gray-700/30 text-center">
+                    <div className="text-2xl sm:text-3xl font-bold text-[#FF4D67] mb-2">{analytics.totalTracks}</div>
+                    <div className="text-gray-400 text-sm">Total Tracks</div>
                   </div>
-                  <div className="card-bg rounded-xl p-6 border border-gray-700/30 text-center">
-                    <div className="text-3xl font-bold text-[#FFCB2B] mb-2">{analytics.totalPlays.toLocaleString()}</div>
-                    <div className="text-gray-400">Total Plays</div>
+                  <div className="card-bg rounded-xl p-5 border border-gray-700/30 text-center">
+                    <div className="text-2xl sm:text-3xl font-bold text-[#FFCB2B] mb-2">{analytics.totalPlays.toLocaleString()}</div>
+                    <div className="text-gray-400 text-sm">Total Plays</div>
                   </div>
-                  <div className="card-bg rounded-xl p-6 border border-gray-700/330 text-center">
-                    <div className="text-3xl font-bold text-[#6C63FF] mb-2">{analytics.totalLikes.toLocaleString()}</div>
-                    <div className="text-gray-400">Total Likes</div>
+                  <div className="card-bg rounded-xl p-5 border border-gray-700/30 text-center">
+                    <div className="text-2xl sm:text-3xl font-bold text-[#6C63FF] mb-2">{analytics.totalLikes.toLocaleString()}</div>
+                    <div className="text-gray-400 text-sm">Total Likes</div>
                   </div>
                 </div>
               ) : !error ? (
-                <div className="text-center py-8 text-gray-400">
+                <div className="text-center py-8 text-gray-400 text-sm">
                   No analytics data available
                 </div>
               ) : null}
               
-              <div className="mt-8">
+              <div className="mt-6">
                 <h4 className="text-lg font-semibold text-white mb-4">Recent Activity</h4>
-                <div className="card-bg rounded-xl p-6 border border-gray-700/30">
-                  <div className="text-center py-8 text-gray-400">
+                <div className="card-bg rounded-xl p-5 border border-gray-700/30">
+                  <div className="text-center py-6 text-gray-400 text-sm">
                     Recent activity data will appear here
                   </div>
                 </div>
@@ -533,15 +626,15 @@ export default function Profile() {
 
           {/* Creator Tracks Tab */}
           {activeTab === 'tracks' && user?.role === 'creator' && (
-            <div className="card-bg rounded-2xl p-6 sm:p-8 border border-gray-700/50">
-              <h3 className="text-lg sm:text-xl font-bold text-white mb-6">My Tracks</h3>
+            <div className="card-bg rounded-2xl p-5 sm:p-6 border border-gray-700/50">
+              <h3 className="text-lg sm:text-xl font-bold text-white mb-5">My Tracks</h3>
               
               {error && (
-                <div className="bg-red-900/50 border border-red-700 rounded-lg p-4 mb-6">
-                  <div className="text-red-300">{error}</div>
+                <div className="bg-red-900/50 border border-red-700 rounded-lg p-4 mb-5">
+                  <div className="text-red-300 text-sm">{error}</div>
                   <button 
                     onClick={() => fetchTracks(tracksPage)}
-                    className="mt-2 px-3 py-1 bg-red-700 text-white rounded hover:bg-red-600 text-sm"
+                    className="mt-2 px-3 py-1.5 bg-red-700 text-white rounded hover:bg-red-600 text-sm"
                   >
                     Retry
                   </button>
@@ -550,19 +643,19 @@ export default function Profile() {
               
               {loadingTracks ? (
                 <div className="flex justify-center items-center h-40">
-                  <div className="text-white">Loading tracks...</div>
+                  <div className="text-white text-sm">Loading tracks...</div>
                 </div>
               ) : tracks.length > 0 ? (
                 <>
                   {/* Search bar for tracks */}
-                  <div className="mb-6">
+                  <div className="mb-5">
                     <div className="relative">
                       <input
                         type="text"
                         placeholder="Search your tracks..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full px-4 py-3 pl-10 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all"
+                        className="w-full px-4 py-3 pl-10 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm"
                       />
                       <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                         <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd"></path>
@@ -572,7 +665,7 @@ export default function Profile() {
                   
                   {filteredTracks.length > 0 ? (
                     <>
-                      <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                         {filteredTracks.map((track) => (
                           <div key={track._id} className="card-bg rounded-xl overflow-hidden border border-gray-700/30 hover:border-[#FF4D67]/50 transition-colors relative group">
                             <div className="relative aspect-square bg-gray-800 flex items-center justify-center">
@@ -589,42 +682,42 @@ export default function Profile() {
                               <div className="absolute inset-0 bg-black/50 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <button 
                                   onClick={() => handlePlayTrack(track._id)}
-                                  className="w-8 h-8 sm:w-10 sm:h-10 rounded-full gradient-primary flex items-center justify-center text-white"
+                                  className="w-12 h-12 rounded-full gradient-primary flex items-center justify-center text-white"
                                   title="Play Track"
                                 >
                                   {currentTrack?.id === track._id && isPlaying ? (
-                                    <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd"></path>
                                     </svg>
                                   ) : (
-                                    <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                                       <path fillRule="evenodd" d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
                                     </svg>
                                   )}
                                 </button>
                                 <button 
                                   onClick={() => router.push(`/edit-track/${track._id}`)}
-                                  className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-blue-500 flex items-center justify-center text-white hover:bg-blue-600 transition-colors"
+                                  className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white hover:bg-blue-600 transition-colors"
                                   title="Edit Track"
                                 >
-                                  <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
                                   </svg>
                                 </button>
                                 <button 
                                   onClick={() => handleDelete('track', track._id, track.title)}
-                                  className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-red-500 flex items-center justify-center text-white hover:bg-red-600 transition-colors"
+                                  className="w-12 h-12 rounded-full bg-red-500 flex items-center justify-center text-white hover:bg-red-600 transition-colors"
                                   title="Delete Track"
                                 >
-                                  <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                                     <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd"></path>
                                   </svg>
                                 </button>
                               </div>
                             </div>
-                            <div className="p-3 sm:p-4">
-                              <h4 className="font-semibold text-white truncate text-sm sm:text-base">{track.title}</h4>
-                              <div className="flex justify-between text-xs sm:text-sm text-gray-400 mt-1 sm:mt-2">
+                            <div className="p-4">
+                              <h4 className="font-semibold text-white truncate text-base">{track.title}</h4>
+                              <div className="flex justify-between text-sm text-gray-400 mt-2">
                                 <span>{track.plays.toLocaleString()} plays</span>
                                 <span>{track.likes.toLocaleString()} likes</span>
                               </div>
@@ -643,7 +736,7 @@ export default function Profile() {
                           <button
                             onClick={() => handlePageChange(tracksPage - 1, 'tracks')}
                             disabled={tracksPage === 1}
-                            className={`px-3 py-1 rounded-md ${
+                            className={`px-4 py-2 rounded-md text-sm ${
                               tracksPage === 1 
                                 ? 'bg-gray-800 text-gray-500 cursor-not-allowed' 
                                 : 'bg-gray-700 text-white hover:bg-gray-600'
@@ -652,14 +745,14 @@ export default function Profile() {
                             Previous
                           </button>
                           
-                          <span className="text-white mx-2">
+                          <span className="text-white mx-2 text-sm">
                             Page {tracksPage} of {tracksTotalPages}
                           </span>
                           
                           <button
                             onClick={() => handlePageChange(tracksPage + 1, 'tracks')}
                             disabled={tracksPage === tracksTotalPages}
-                            className={`px-3 py-1 rounded-md ${
+                            className={`px-4 py-2 rounded-md text-sm ${
                               tracksPage === tracksTotalPages 
                                 ? 'bg-gray-800 text-gray-500 cursor-not-allowed' 
                                 : 'bg-gray-700 text-white hover:bg-gray-600'
@@ -671,13 +764,13 @@ export default function Profile() {
                       )}
                     </>
                   ) : (
-                    <div className="text-center py-8 text-gray-400">
+                    <div className="text-center py-8 text-gray-400 text-sm">
                       No tracks found matching your search
                     </div>
                   )}
                 </>
               ) : !error ? (
-                <div className="text-center py-8 text-gray-400">
+                <div className="text-center py-8 text-gray-400 text-sm">
                   You haven't uploaded any tracks yet
                 </div>
               ) : null}
@@ -685,7 +778,7 @@ export default function Profile() {
               <div className="mt-6">
                 <button 
                   onClick={() => router.push('/upload')}
-                  className="px-4 py-2 bg-[#FF4D67] text-white rounded-lg hover:bg-[#FF4D67]/80 transition-colors"
+                  className="px-4 py-2.5 bg-[#FF4D67] text-white rounded-lg hover:bg-[#FF4D67]/80 transition-colors text-sm font-medium"
                 >
                   Upload New Track
                 </button>
@@ -695,15 +788,15 @@ export default function Profile() {
 
           {/* Creator Albums Tab */}
           {activeTab === 'albums' && user?.role === 'creator' && (
-            <div className="card-bg rounded-2xl p-6 sm:p-8 border border-gray-700/50">
-              <h3 className="text-lg sm:text-xl font-bold text-white mb-6">My Albums</h3>
+            <div className="card-bg rounded-2xl p-5 sm:p-6 border border-gray-700/50">
+              <h3 className="text-lg sm:text-xl font-bold text-white mb-5">My Albums</h3>
               
               {error && (
-                <div className="bg-red-900/50 border border-red-700 rounded-lg p-4 mb-6">
-                  <div className="text-red-300">{error}</div>
+                <div className="bg-red-900/50 border border-red-700 rounded-lg p-4 mb-5">
+                  <div className="text-red-300 text-sm">{error}</div>
                   <button 
                     onClick={() => fetchAlbums()}
-                    className="mt-2 px-3 py-1 bg-red-700 text-white rounded hover:bg-red-600 text-sm"
+                    className="mt-2 px-3 py-1.5 bg-red-700 text-white rounded hover:bg-red-600 text-sm"
                   >
                     Retry
                   </button>
@@ -712,19 +805,19 @@ export default function Profile() {
               
               {loadingAlbums ? (
                 <div className="flex justify-center items-center h-40">
-                  <div className="text-white">Loading albums...</div>
+                  <div className="text-white text-sm">Loading albums...</div>
                 </div>
               ) : !error ? (
                 <>
                   {/* Search bar for albums */}
-                  <div className="mb-6">
+                  <div className="mb-5">
                     <div className="relative">
                       <input
                         type="text"
                         placeholder="Search your albums..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full px-4 py-3 pl-10 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all"
+                        className="w-full px-4 py-3 pl-10 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm"
                       />
                       <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                         <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd"></path>
@@ -733,7 +826,7 @@ export default function Profile() {
                   </div>
                   
                   {filteredAlbums.length > 0 ? (
-                    <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                       {filteredAlbums.map((album) => (
                         <div key={album.id} className="card-bg rounded-xl overflow-hidden border border-gray-700/30 hover:border-[#FF4D67]/50 transition-colors relative group">
                           <div className="relative aspect-square bg-gray-800 flex items-center justify-center">
@@ -750,36 +843,36 @@ export default function Profile() {
                             <div className="absolute inset-0 bg-black/50 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                               <button 
                                 onClick={() => router.push(`/album/${album.id}`)}
-                                className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#FF4D67] flex items-center justify-center text-white hover:bg-[#FF4D67]/80 transition-colors"
+                                className="w-12 h-12 rounded-full bg-[#FF4D67] flex items-center justify-center text-white hover:bg-[#FF4D67]/80 transition-colors"
                                 title="View Album"
                               >
-                                <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
                                 </svg>
                               </button>
                               <button 
                                 onClick={() => router.push(`/edit-album/${album.id}`)}
-                                className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-blue-500 flex items-center justify-center text-white hover:bg-blue-600 transition-colors"
+                                className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white hover:bg-blue-600 transition-colors"
                                 title="Edit Album"
                               >
-                                <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                                   <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
                                 </svg>
                               </button>
                               <button 
                                 onClick={() => handleDelete('album', album.id, album.title)}
-                                className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-red-500 flex items-center justify-center text-white hover:bg-red-600 transition-colors"
+                                className="w-12 h-12 rounded-full bg-red-500 flex items-center justify-center text-white hover:bg-red-600 transition-colors"
                                 title="Delete Album"
                               >
-                                <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                                   <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd"></path>
                                 </svg>
                               </button>
                             </div>
                           </div>
-                          <div className="p-3 sm:p-4">
-                            <h4 className="font-semibold text-white truncate text-sm sm:text-base">{album.title}</h4>
-                            <div className="flex justify-between text-xs sm:text-sm text-gray-400 mt-1 sm:mt-2">
+                          <div className="p-4">
+                            <h4 className="font-semibold text-white truncate text-base">{album.title}</h4>
+                            <div className="flex justify-between text-sm text-gray-400 mt-2">
                               <span>{album.tracks} tracks</span>
                               <span>{album.year}</span>
                             </div>
@@ -788,13 +881,13 @@ export default function Profile() {
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-8 text-gray-400">
+                    <div className="text-center py-8 text-gray-400 text-sm">
                       No albums found matching your search
                     </div>
                   )}
                 </>
               ) : (
-                <div className="text-center py-8 text-gray-400">
+                <div className="text-center py-8 text-gray-400 text-sm">
                   You haven't created any albums yet
                 </div>
               )}
@@ -802,7 +895,7 @@ export default function Profile() {
               <div className="mt-6">
                 <button 
                   onClick={() => router.push('/create-album')}
-                  className="px-4 py-2 bg-[#FF4D67] text-white rounded-lg hover:bg-[#FF4D67]/80 transition-colors"
+                  className="px-4 py-2.5 bg-[#FF4D67] text-white rounded-lg hover:bg-[#FF4D67]/80 transition-colors text-sm font-medium"
                 >
                   Create New Album
                 </button>
@@ -813,9 +906,9 @@ export default function Profile() {
           {/* Delete Confirmation Modal */}
           {showDeleteModal && itemToDelete && (
             <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-              <div className="card-bg rounded-2xl p-6 sm:p-8 border border-gray-700/50 max-w-md w-full">
-                <h3 className="text-xl font-bold text-white mb-4">Confirm Deletion</h3>
-                <p className="text-gray-300 mb-6">
+              <div className="card-bg rounded-2xl p-5 sm:p-6 border border-gray-700/50 max-w-md w-full">
+                <h3 className="text-lg sm:text-xl font-bold text-white mb-4">Confirm Deletion</h3>
+                <p className="text-gray-300 text-sm mb-6">
                   Are you sure you want to delete the {itemToDelete.type} "<span className="text-white font-semibold">{itemToDelete.title}</span>"? This action cannot be undone.
                 </p>
                 <div className="flex gap-3 justify-end">
@@ -824,13 +917,13 @@ export default function Profile() {
                       setShowDeleteModal(false);
                       setItemToDelete(null);
                     }}
-                    className="px-4 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-800 transition-colors"
+                    className="px-4 py-2.5 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={confirmDelete}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                    className="px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
                   >
                     Delete
                   </button>
