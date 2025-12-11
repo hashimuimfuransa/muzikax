@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "../contexts/AuthContext";
 import { useTrendingTracks, usePopularCreators } from "../hooks/useTracks";
 import { useAudioPlayer } from "../contexts/AudioPlayerContext";
+import { getAlbumById } from "../services/albumService";
 
 interface Track {
   id: string;
@@ -48,64 +49,7 @@ const generateAvatar = (name: string) => {
   )
 }
 
-// Function to group tracks into albums based on shared titles or creators
-const groupTracksIntoAlbums = (tracks: any[]): Album[] => {
-  // Group tracks by creator and look for collections that might be albums
-  const albumMap: Record<string, any[]> = {};
-  
-  // Filter tracks that might belong to albums (have similar titles or are from same creator)
-  tracks.forEach(track => {
-    const creatorId = typeof track.creatorId === "object" && track.creatorId !== null 
-      ? track.creatorId._id 
-      : track.creatorId;
-      
-    // Only consider tracks that are part of an album (have " - Track" in title)
-    if (track.title.includes(' - Track')) {
-      // Extract album name from track title (everything before " - Track")
-      const albumName = track.title.split(' - Track')[0];
-      
-      const key = `${creatorId}-${albumName}`; // Group by creator and album name
-      
-      if (!albumMap[key]) {
-        albumMap[key] = [];
-      }
-      albumMap[key].push(track);
-    }
-  });
-  
-  // Convert to album objects
-  const albums: Album[] = [];
-  Object.keys(albumMap).forEach(key => {
-    const tracksInAlbum = albumMap[key];
-    if (tracksInAlbum.length > 1) { // Only consider groups with more than 1 track as albums
-      const firstTrack = tracksInAlbum[0];
-      const artistName = typeof firstTrack.creatorId === "object" && firstTrack.creatorId !== null 
-        ? firstTrack.creatorId.name 
-        : "Unknown Artist";
-      
-      // Extract album name from track title
-      let albumTitle = firstTrack.title;
-      if (firstTrack.title.includes(' - Track')) {
-        albumTitle = firstTrack.title.split(' - Track')[0];
-      }
-      
-      albums.push({
-        id: key,
-        title: albumTitle,
-        artist: artistName,
-        coverImage: firstTrack.coverURL || "",
-        year: firstTrack.createdAt ? new Date(firstTrack.createdAt).getFullYear() : new Date().getFullYear(),
-        tracks: tracksInAlbum.length
-      });
-    }
-  });
-  
-  // Sort by track count descending to show albums with more tracks first
-  albums.sort((a, b) => b.tracks - a.tracks);
-  
-  // Return only top 6 albums for display
-  return albums.slice(0, 6);
-};
+// Albums are now fetched directly from the API, so we don't need this function anymore
 export default function Home() {
   const [activeTab, setActiveTab] = useState<
     "trending" | "new" | "popular" | "beats" | "mixes"
@@ -210,6 +154,7 @@ export default function Home() {
   // Fetch real albums from the API
   const [popularAlbums, setPopularAlbums] = useState<Album[]>([]);
   const [albumsLoading, setAlbumsLoading] = useState(true);
+  const [playingAlbumId, setPlayingAlbumId] = useState<string | null>(null);
   
   useEffect(() => {
     const fetchAlbums = async () => {
@@ -231,9 +176,8 @@ export default function Home() {
         }
       } catch (error) {
         console.error('Error fetching albums:', error);
-        // Fallback to grouping tracks if API fails
-        const fallbackAlbums: Album[] = groupTracksIntoAlbums(trendingTracksData);
-        setPopularAlbums(fallbackAlbums);
+        // Set empty array if API fails
+        setPopularAlbums([]);
       } finally {
         setAlbumsLoading(false);
       }
@@ -899,7 +843,8 @@ export default function Home() {
               popularAlbums.map((album) => (
                 <div
                   key={album.id}
-                  className="group card-bg rounded-xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10"
+                  className="group card-bg rounded-xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10 cursor-pointer"
+                  onClick={() => router.push(`/album/${album.id}`)}
                 >
                 <div className="relative">
                   {album.coverImage && album.coverImage.trim() !== '' ? (
@@ -916,19 +861,66 @@ export default function Home() {
                     </div>
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <button className="w-10 h-10 sm:w-12 sm:h-12 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
-                      <svg
-                        className="w-4 h-4 sm:w-5 sm:h-5"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
-                          clipRule="evenodd"
-                        ></path>
-                      </svg>
+                    <button 
+                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300"
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        setPlayingAlbumId(album.id);
+                        try {
+                          // Fetch the full album data
+                          const albumData = await getAlbumById(album.id);
+                          
+                          // Transform tracks to match player format
+                          const tracks = (Array.isArray(albumData.tracks) ? albumData.tracks : []).map((track: any) => {
+                            console.log('Home page - Raw track data:', JSON.stringify(track, null, 2));
+                            const artist = (track.creatorId && typeof track.creatorId === "object" && track.creatorId !== null) 
+                              ? (track.creatorId.name || "Unknown Artist")
+                              : "Unknown Artist";
+                            console.log('Home page - Processed artist:', artist);
+                            return {
+                              id: track._id || track.id,
+                              title: track.title,
+                              artist: artist,
+                              coverImage: (track.coverURL || track.coverImage) || "",
+                              audioUrl: track.audioURL,
+                              creatorId: (track.creatorId && typeof track.creatorId === "object" && track.creatorId !== null) 
+                                ? track.creatorId._id 
+                                : track.creatorId
+                            };
+                          });
+                          
+                          // Set the playlist and play the first track
+                          if (tracks.length > 0) {
+                            setCurrentPlaylist(tracks);
+                            playTrack(tracks[0]);
+                          }
+                        } catch (error) {
+                          console.error('Error playing album:', error);
+                        } finally {
+                          setPlayingAlbumId(null);
+                        }
+                      }}
+                      aria-label={`Play album ${album.title}`}
+                    >
+                      {playingAlbumId === album.id ? (
+                        <svg className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                      ) : (
+                        <svg
+                          className="w-4 h-4 sm:w-5 sm:h-5"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+                            clipRule="evenodd"
+                          ></path>
+                        </svg>
+                      )}
                     </button>
                   </div>
                 </div>

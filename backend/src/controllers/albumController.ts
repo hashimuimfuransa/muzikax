@@ -87,7 +87,7 @@ export const getAllAlbums = async (req: Request, res: Response): Promise<void> =
 
     const albums = await Album.find()
       .populate('creatorId', 'name avatar')
-      .populate('tracks')
+      .populate({ path: 'tracks', populate: { path: 'creatorId', select: 'name avatar' } })
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
@@ -113,7 +113,7 @@ export const getAlbumById = async (req: Request, res: Response): Promise<void> =
   try {
     const album = await Album.findById(req.params['id'])
       .populate('creatorId', 'name avatar')
-      .populate('tracks');
+      .populate({ path: 'tracks', populate: { path: 'creatorId', select: 'name avatar' } });
 
     if (!album) {
       res.status(404).json({ message: 'Album not found' });
@@ -132,7 +132,7 @@ export const getAlbumsByCreator = async (req: Request, res: Response): Promise<v
     const creatorId = req.params['creatorId'];
     const query = { creatorId: creatorId } as any;
     const albums = await Album.find(query).lean()
-      .populate('tracks')
+      .populate({ path: 'tracks', populate: { path: 'creatorId', select: 'name avatar' } })
       .sort({ createdAt: -1 });
 
     res.json(albums);

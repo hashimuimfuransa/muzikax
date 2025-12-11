@@ -7,28 +7,41 @@ import { useAuth } from '../../../contexts/AuthContext'
 import { useAudioPlayer } from '../../../contexts/AudioPlayerContext'
 import { getAlbumById } from '../../../services/albumService'
 
-interface Track {
-  id: string
-  title: string
-  artist: string
-  coverImage: string
-  duration?: string
-  audioUrl: string
-  plays: number
-  likes: number
-  creatorId?: string
+interface Creator {
+  _id: string;
+  name: string;
+  avatar?: string;
+}
+
+interface AlbumTrack {
+  _id: string;
+  id: string;
+  title: string;
+  artist: string;
+  coverImage: string;
+  coverURL?: string;
+  duration?: string;
+  audioUrl: string;
+  audioURL: string;
+  plays: number;
+  likes: number;
+  creatorId: string | Creator;
 }
 
 interface Album {
-  [key: string]: any
-  id: string
-  title: string
-  artist: string
-  coverImage: string
-  year: number
-  tracks: Track[]
-  description?: string
-  genre?: string
+  _id: string;
+  id: string;
+  title: string;
+  artist: string;
+  coverImage: string;
+  coverURL?: string;
+  year: number;
+  tracks: AlbumTrack[];
+  description?: string;
+  genre?: string;
+  creatorId: string | Creator;
+  releaseDate?: string;
+  createdAt: string;
 }
 
 export default function AlbumDetailPage() {
@@ -47,38 +60,61 @@ export default function AlbumDetailPage() {
       
       try {
         setLoading(true)
-        const albumData = await getAlbumById(id as string)
+        const albumData: any = await getAlbumById(id as string)
+        console.log('Raw album data:', JSON.stringify(albumData, null, 2))
         
         // Transform the album data to match our interface
-        const transformedAlbum: any = {
-          id: albumData._id || albumData.id || id,
+        const transformedAlbum: Album = {
+          _id: albumData._id || '',
+          id: albumData._id || albumData.id || (id as string),
           title: albumData.title,
           artist: (albumData.creatorId && typeof albumData.creatorId === "object" && albumData.creatorId !== null) 
             ? albumData.creatorId.name 
             : "Unknown Artist",
           coverImage: (albumData.coverURL || albumData.coverImage) || "",
+          coverURL: albumData.coverURL,
           year: (albumData.releaseDate || albumData.createdAt) ? new Date(albumData.releaseDate || albumData.createdAt).getFullYear() : new Date().getFullYear(),
-          tracks: (Array.isArray(albumData.tracks) ? albumData.tracks : []).map((track: any) => ({
-            id: track._id || track.id,
-            title: track.title,
-            artist: (track.creatorId && typeof track.creatorId === "object" && track.creatorId !== null) 
-              ? track.creatorId.name 
-              : "Unknown Artist",
-            coverImage: (track.coverURL || track.coverImage) || "",
-            duration: "3:45", // Placeholder
-            audioUrl: track.audioURL,
-            plays: track.plays || 0,
-            likes: track.likes || 0,
-            creatorId: (track.creatorId && typeof track.creatorId === "object" && track.creatorId !== null) 
-              ? track.creatorId._id 
-              : track.creatorId
-          })),
+          tracks: (Array.isArray(albumData.tracks) ? albumData.tracks : []).map((track: any) => {
+            console.log('Raw track data:', JSON.stringify(track, null, 2));
+            const artist = (track.creatorId && typeof track.creatorId === "object" && track.creatorId !== null) 
+              ? (track.creatorId.name || "Unknown Artist")
+              : (typeof track.creatorId === "string") 
+              ? track.creatorId 
+              : "Unknown Artist";
+            console.log('Processed artist:', artist);
+            return {
+              _id: track._id || '',
+              id: track._id || track.id || '',
+              title: track.title,
+              artist: artist,
+              coverImage: (track.coverURL || track.coverImage) || "",
+              coverURL: track.coverURL,
+              duration: "3:45", // Placeholder
+              audioUrl: track.audioURL,
+              audioURL: track.audioURL,
+              plays: track.plays || 0,
+              likes: track.likes || 0,
+              creatorId: track.creatorId || ''
+            };
+          }),
           description: albumData.description,
-          genre: albumData.genre
+          genre: albumData.genre,
+          creatorId: albumData.creatorId || '',
+          releaseDate: albumData.releaseDate,
+          createdAt: albumData.createdAt
         }
         
         setAlbum(transformedAlbum)
-        setCurrentPlaylist(transformedAlbum.tracks)
+        // Convert tracks to the format expected by the audio player
+        const playerTracks = transformedAlbum.tracks.map(track => ({
+          id: track._id || track.id,
+          title: track.title,
+          artist: track.artist,
+          coverImage: track.coverImage,
+          audioUrl: track.audioUrl,
+          creatorId: typeof track.creatorId === 'object' ? track.creatorId._id : track.creatorId
+        }))
+        setCurrentPlaylist(playerTracks)
       } catch (err: any) {
         console.error('Error fetching album:', err)
         setError(err.message || 'Failed to load album')
@@ -92,14 +128,27 @@ export default function AlbumDetailPage() {
 
   const handlePlayAlbum = () => {
     if (album && album.tracks.length > 0) {
-      playTrack(album.tracks[0])
+      const firstTrack = album.tracks[0]
+      playTrack({
+        id: firstTrack._id || firstTrack.id,
+        title: firstTrack.title,
+        artist: firstTrack.artist,
+        coverImage: firstTrack.coverImage,
+        audioUrl: firstTrack.audioUrl,
+        creatorId: typeof firstTrack.creatorId === 'object' ? firstTrack.creatorId._id : firstTrack.creatorId
+      })
     }
   }
 
-  const handlePlayTrack = (track: Track) => {
-    if (album) {
-      playTrack(track)
-    }
+  const handlePlayTrack = (track: AlbumTrack) => {
+    playTrack({
+      id: track._id || track.id,
+      title: track.title,
+      artist: track.artist,
+      coverImage: track.coverImage,
+      audioUrl: track.audioUrl,
+      creatorId: typeof track.creatorId === 'object' ? track.creatorId._id : track.creatorId
+    })
   }
 
   if (loading) {
@@ -165,9 +214,9 @@ export default function AlbumDetailPage() {
           <div className="flex flex-col md:flex-row gap-8 mb-12">
             <div className="md:w-1/3">
               <div className="relative">
-                {album.coverImage && album.coverImage.trim() !== '' ? (
+                {(album.coverURL || album.coverImage) && (album.coverURL || album.coverImage).trim() !== '' ? (
                   <img 
-                    src={album.coverImage} 
+                    src={album.coverURL || album.coverImage} 
                     alt={album.title} 
                     className="w-full rounded-2xl shadow-2xl"
                   />
@@ -228,14 +277,31 @@ export default function AlbumDetailPage() {
             <div className="space-y-2">
               {album.tracks.map((track, index) => (
                 <div 
-                  key={track.id}
+                  key={track._id || track.id}
                   className={`flex items-center gap-4 p-3 rounded-lg hover:bg-gray-800/50 transition-colors cursor-pointer ${
-                    currentTrack?.id === track.id ? 'bg-gray-800/50' : ''
+                    currentTrack?.id === (track._id || track.id) ? 'bg-gray-800/50' : ''
                   }`}
                   onClick={() => handlePlayTrack(track)}
                 >
+                  {/* Track Cover Image */}
+                  <div className="w-12 h-12 flex-shrink-0">
+                    {(track.coverURL || track.coverImage) && (track.coverURL || track.coverImage).trim() !== '' ? (
+                      <img 
+                        src={track.coverURL || track.coverImage} 
+                        alt={track.title} 
+                        className="w-full h-full rounded object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] rounded flex items-center justify-center">
+                        <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                  
                   <div className="w-8 text-center text-gray-500">
-                    {currentTrack?.id === track.id && isPlaying ? (
+                    {currentTrack?.id === (track._id || track.id) && isPlaying ? (
                       <div className="flex justify-center">
                         <div className="w-1 h-3 bg-[#FF4D67] mx-0.5 animate-pulse"></div>
                         <div className="w-1 h-3 bg-[#FF4D67] mx-0.5 animate-pulse delay-75"></div>
@@ -248,7 +314,13 @@ export default function AlbumDetailPage() {
                   
                   <div className="flex-1 min-w-0">
                     <h3 className="font-medium text-white truncate">{track.title}</h3>
-                    <p className="text-sm text-gray-400 truncate">{track.artist}</p>
+                    <p className="text-sm text-gray-400 truncate">
+                      {typeof track.creatorId === 'object' && track.creatorId !== null 
+                        ? track.creatorId.name 
+                        : typeof track.creatorId === 'string' 
+                        ? track.creatorId 
+                        : 'Unknown Artist'}
+                    </p>
                   </div>
                   
                   <div className="flex items-center gap-4">
