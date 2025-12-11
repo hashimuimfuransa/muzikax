@@ -17,6 +17,7 @@ interface Track {
   coverImage: string;
   duration?: string;
   category?: string;
+  creatorId?: string;
 }
 
 interface Creator {
@@ -124,6 +125,7 @@ export default function Home() {
       "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
     duration: "",
     category: track.genre,
+    creatorId: typeof track.creatorId === 'object' && track.creatorId !== null ? (track.creatorId as any)._id : track.creatorId
   }));
 
   // For now, use trending tracks for new tracks as well
@@ -657,6 +659,7 @@ export default function Home() {
                             artist: track.artist,
                             coverImage: track.coverImage,
                             audioUrl: fullTrack.audioURL,
+                            creatorId: typeof fullTrack.creatorId === 'object' && fullTrack.creatorId !== null ? (fullTrack.creatorId as any)._id : fullTrack.creatorId
                           });
 
                           // Set the current playlist to all trending tracks
@@ -674,6 +677,7 @@ export default function Home() {
                                 t.coverURL ||
                                 "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
                               audioUrl: t.audioURL,
+                              creatorId: typeof t.creatorId === 'object' && t.creatorId !== null ? (t.creatorId as any)._id : t.creatorId
                             }));
                           setCurrentPlaylist(playlistTracks);
                         }
@@ -892,6 +896,7 @@ export default function Home() {
                               artist: track.artist,
                               coverImage: track.coverImage,
                               audioUrl: fullTrack.audioURL,
+                              creatorId: typeof fullTrack.creatorId === 'object' && fullTrack.creatorId !== null ? (fullTrack.creatorId as any)._id : fullTrack.creatorId
                             });
 
                             // Set the current playlist to all trending tracks
@@ -909,6 +914,7 @@ export default function Home() {
                                   t.coverURL ||
                                   "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
                                 audioUrl: t.audioURL,
+                                creatorId: typeof t.creatorId === 'object' && t.creatorId !== null ? (t.creatorId as any)._id : t.creatorId
                               }));
                             setCurrentPlaylist(playlistTracks);
                           }
@@ -1024,6 +1030,7 @@ export default function Home() {
                               artist: track.artist,
                               coverImage: track.coverImage,
                               audioUrl: fullTrack.audioURL,
+                              creatorId: typeof fullTrack.creatorId === 'object' && fullTrack.creatorId !== null ? (fullTrack.creatorId as any)._id : fullTrack.creatorId
                             });
 
                             // Set the current playlist to all trending tracks
@@ -1041,6 +1048,7 @@ export default function Home() {
                                   t.coverURL ||
                                   "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
                                 audioUrl: t.audioURL,
+                                creatorId: typeof t.creatorId === 'object' && t.creatorId !== null ? (t.creatorId as any)._id : t.creatorId
                               }));
                             setCurrentPlaylist(playlistTracks);
                           }
@@ -1219,6 +1227,7 @@ export default function Home() {
                               artist: track.artist,
                               coverImage: track.coverImage,
                               audioUrl: fullTrack.audioURL,
+                              creatorId: typeof fullTrack.creatorId === 'object' && fullTrack.creatorId !== null ? (fullTrack.creatorId as any)._id : fullTrack.creatorId
                             });
 
                             // Set the current playlist to all trending tracks
@@ -1236,6 +1245,7 @@ export default function Home() {
                                   t.coverURL ||
                                   "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
                                 audioUrl: t.audioURL,
+                                creatorId: typeof t.creatorId === 'object' && t.creatorId !== null ? (t.creatorId as any)._id : t.creatorId
                               }));
                             setCurrentPlaylist(playlistTracks);
                           }
@@ -1356,6 +1366,7 @@ export default function Home() {
                               artist: track.artist,
                               coverImage: track.coverImage,
                               audioUrl: fullTrack.audioURL,
+                              creatorId: typeof fullTrack.creatorId === 'object' && fullTrack.creatorId !== null ? (fullTrack.creatorId as any)._id : fullTrack.creatorId
                             });
 
                             // Set the current playlist to all trending tracks
@@ -1373,6 +1384,7 @@ export default function Home() {
                                   t.coverURL ||
                                   "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
                                 audioUrl: t.audioURL,
+                                creatorId: typeof t.creatorId === 'object' && t.creatorId !== null ? (t.creatorId as any)._id : t.creatorId
                               }));
                             setCurrentPlaylist(playlistTracks);
                           }

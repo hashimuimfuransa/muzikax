@@ -4,6 +4,7 @@ import { useAudioPlayer } from '../contexts/AudioPlayerContext';
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '../contexts/AuthContext';
 
 const ModernAudioPlayer = () => {
   const {
@@ -26,6 +27,7 @@ const ModernAudioPlayer = () => {
   } = useAudioPlayer();
   
   const router = useRouter();
+  const { isAuthenticated } = useAuth();
 
   const progressRef = useRef<HTMLDivElement>(null);
   const [isFavorite, setIsFavorite] = useState(false);
@@ -263,12 +265,21 @@ const ModernAudioPlayer = () => {
               <div className="flex justify-center items-center mt-6 space-x-6">
                 <button 
                   onClick={() => {
+                    if (!isAuthenticated) {
+                      // Minimize the player before redirecting to login page
+                      if (!isMinimized) {
+                        toggleMinimize();
+                      }
+                      // Redirect to login page if not authenticated
+                      router.push('/login');
+                      return;
+                    }
+                    
                     toggleFavorite();
                     // Show visual feedback
                     const isNowFavorite = !isFavorite;
                     const message = isNowFavorite ? 'Added to favorites!' : 'Removed from favorites!';
-                    console.log(message);
-                    // You could also show a toast notification here
+                    setToast({message, type: 'success'});
                   }}
                   className={`text-gray-400 hover:text-white transition-colors ${isFavorite ? 'text-red-500' : ''}`}
                   title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
@@ -280,6 +291,16 @@ const ModernAudioPlayer = () => {
                 
                 <button 
                   onClick={() => {
+                    if (!isAuthenticated) {
+                      // Minimize the player before redirecting to login page
+                      if (!isMinimized) {
+                        toggleMinimize();
+                      }
+                      // Redirect to login page if not authenticated
+                      router.push('/login');
+                      return;
+                    }
+                    
                     if (currentTrack) {
                       addToPlaylist(currentTrack);
                       setToast({message: 'Added to playlist!', type: 'success'});
