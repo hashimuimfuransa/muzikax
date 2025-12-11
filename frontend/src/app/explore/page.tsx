@@ -250,7 +250,8 @@ function ExploreContent() {
                                 title: track.title,
                                 artist: track.artist,
                                 coverImage: track.coverImage,
-                                audioUrl: fullTrack.audioURL
+                                audioUrl: fullTrack.audioURL,
+                                creatorId: typeof fullTrack.creatorId === 'object' && fullTrack.creatorId !== null ? (fullTrack.creatorId as any)._id : fullTrack.creatorId
                               });
                               
                               // Set the current playlist to all trending tracks
@@ -261,7 +262,8 @@ function ExploreContent() {
                                   title: t.title,
                                   artist: typeof t.creatorId === 'object' && t.creatorId !== null ? (t.creatorId as any).name : 'Unknown Artist',
                                   coverImage: t.coverURL || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-                                  audioUrl: t.audioURL
+                                  audioUrl: t.audioURL,
+                                  creatorId: typeof t.creatorId === 'object' && t.creatorId !== null ? (t.creatorId as any)._id : t.creatorId
                                 }));
                               setCurrentPlaylist(playlistTracks);
                             }

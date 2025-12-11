@@ -9,6 +9,7 @@ interface Track {
   coverImage: string;
   audioUrl: string;
   duration?: number; // in seconds
+  creatorId?: string; // Add creator ID for linking to artist profile
 }
 
 interface Playlist {

@@ -151,7 +151,7 @@ export const fetchTracksByCreatorPublic = async (creatorId: string): Promise<any
       ...track,
       audioUrl: track.audioURL || '',
       coverArt: track.coverURL || '',
-      artist: track.creatorName || 'Unknown Artist',
+      artist: track.creatorId?.name || 'Unknown Artist',
       duration: track.duration || 0
     }));
   } catch (error) {

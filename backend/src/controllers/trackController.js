@@ -77,7 +77,8 @@ exports.getTrackById = getTrackById;
 const getTracksByCreatorSimple = async (req, res) => {
     try {
         const tracks = await Track_1.default.find({ creatorId: req.params['creatorId'] })
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 })
+            .populate('creatorId', 'name avatar');
         res.json(tracks);
     }
     catch (error) {
@@ -94,7 +95,8 @@ const getTracksByCreator = async (req, res) => {
         // If no pagination parameters, return all tracks
         if (pageParam === undefined && limitParam === undefined) {
             const tracks = await Track_1.default.find({ creatorId: req.params['creatorId'] })
-                .sort({ createdAt: -1 });
+                .sort({ createdAt: -1 })
+                .populate('creatorId', 'name avatar');
             res.json(tracks);
             return;
         }
@@ -105,7 +107,8 @@ const getTracksByCreator = async (req, res) => {
         const tracks = await Track_1.default.find({ creatorId: req.params['creatorId'] })
             .sort({ createdAt: -1 })
             .skip(skip)
-            .limit(limit);
+            .limit(limit)
+            .populate('creatorId', 'name avatar');
         const total = await Track_1.default.countDocuments({ creatorId: req.params['creatorId'] });
         res.json({
             tracks,

@@ -140,7 +140,8 @@ export default function ArtistProfilePage() {
       artist: track.artist,
       coverImage: track.coverArt || '', // This is handled in the audio player component
       audioUrl: track.audioUrl,
-      duration: track.duration
+      duration: track.duration,
+      creatorId: params.id // The current artist's ID
     };
     
     playTrack(playerTrack);

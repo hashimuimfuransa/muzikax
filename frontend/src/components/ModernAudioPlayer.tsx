@@ -2,6 +2,8 @@
 
 import { useAudioPlayer } from '../contexts/AudioPlayerContext';
 import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 const ModernAudioPlayer = () => {
   const {
@@ -22,9 +24,12 @@ const ModernAudioPlayer = () => {
     favorites,
     audioRef
   } = useAudioPlayer();
+  
+  const router = useRouter();
 
   const progressRef = useRef<HTMLDivElement>(null);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
 
   // Check if current track is in favorites
   useEffect(() => {
@@ -32,6 +37,16 @@ const ModernAudioPlayer = () => {
       setIsFavorite(favorites.some(track => track.id === currentTrack.id));
     }
   }, [currentTrack, favorites]);
+
+  // Toast notification effect
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => {
+        setToast(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
   // Format time in MM:SS
   const formatTime = (seconds: number) => {
@@ -64,9 +79,11 @@ const ModernAudioPlayer = () => {
     if (isFavorite) {
       // Remove from favorites
       removeFromFavorites(currentTrack.id);
+      setToast({message: 'Removed from favorites!', type: 'success'});
     } else {
       // Add to favorites
       addToFavorites(currentTrack);
+      setToast({message: 'Added to favorites!', type: 'success'});
     }
     setIsFavorite(!isFavorite);
   };
@@ -76,6 +93,13 @@ const ModernAudioPlayer = () => {
 
   return (
     <>
+      {/* Toast Notification */}
+      {toast && (
+        <div className={`fixed top-4 right-4 z-50 px-4 py-2 rounded-lg shadow-lg ${toast.type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white`}>
+          {toast.message}
+        </div>
+      )}
+      
       {/* Minimized Player */}
       {isMinimized && (
         <div className="fixed bottom-4 right-4 w-80 bg-gray-900 border border-gray-800 rounded-xl shadow-2xl z-50">
@@ -238,8 +262,16 @@ const ModernAudioPlayer = () => {
               
               <div className="flex justify-center items-center mt-6 space-x-6">
                 <button 
-                  onClick={toggleFavorite}
+                  onClick={() => {
+                    toggleFavorite();
+                    // Show visual feedback
+                    const isNowFavorite = !isFavorite;
+                    const message = isNowFavorite ? 'Added to favorites!' : 'Removed from favorites!';
+                    console.log(message);
+                    // You could also show a toast notification here
+                  }}
                   className={`text-gray-400 hover:text-white transition-colors ${isFavorite ? 'text-red-500' : ''}`}
+                  title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
                 >
                   <svg className="w-5 h-5" fill={isFavorite ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
@@ -247,13 +279,55 @@ const ModernAudioPlayer = () => {
                 </button>
                 
                 <button 
-                  onClick={() => addToPlaylist(currentTrack)}
+                  onClick={() => {
+                    if (currentTrack) {
+                      addToPlaylist(currentTrack);
+                      setToast({message: 'Added to playlist!', type: 'success'});
+                    }
+                  }}
                   className="text-gray-400 hover:text-white transition-colors"
+                  title="Add to playlist"
                 >
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                     <path fillRule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V5zm11 1H6v8l4-2 4 2V6z" clipRule="evenodd"></path>
                   </svg>
                 </button>
+                
+                {currentTrack.creatorId && (
+                  <Link 
+                    href={`/artists/${currentTrack.creatorId}`}
+                    onClick={() => {
+                      // Minimize the player when navigating
+                      if (!isMinimized) {
+                        toggleMinimize();
+                      }
+                    }}
+                    className="text-gray-400 hover:text-white transition-colors"
+                    title="View Artist Profile"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                  </Link>
+                )}
+                
+                {currentTrack.creatorId && (
+                  <Link 
+                    href={`/artists/${currentTrack.creatorId}`}
+                    onClick={() => {
+                      // Minimize the player when navigating
+                      if (!isMinimized) {
+                        toggleMinimize();
+                      }
+                    }}
+                    className="text-gray-400 hover:text-white transition-colors"
+                    title="View Artist's Tracks"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                    </svg>
+                  </Link>
+                )}
               </div>
             </div>
           </div>
