@@ -129,7 +129,9 @@ export default function Home() {
     album: "",
     plays: track.plays,
     likes: track.likes,
-    coverImage: track.coverURL || "", // Preserve empty values so we can show fallback in UI
+    coverImage:
+      track.coverURL ||
+      "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
     duration: "",
     category: track.genre,
     creatorId: typeof track.creatorId === 'object' && track.creatorId !== null ? (track.creatorId as any)._id : track.creatorId
@@ -144,7 +146,9 @@ export default function Home() {
     name: creator.name,
     type: creator.creatorType || "Artist",
     followers: creator.followersCount || 0,
-    avatar: creator.avatar || "", // Preserve empty values so we can show fallback in UI
+    avatar:
+      creator.avatar ||
+      "https://images.unsplash.com/photo-1519681393784-d120267933ba?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
     verified: true, // For now, we'll assume all creators are verified
   }));
   // For now, we'll keep the mock data for popular albums
@@ -164,7 +168,7 @@ export default function Home() {
       title: "Urban Nights",
       artist: "Benji Flavours",
       coverImage:
-        "", // Preserve empty values so we can show fallback in UI
+        "https://images.unsplash.com/photo-1519681393784-d120267933ba?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
       year: 2023,
       tracks: 10,
     },
@@ -190,7 +194,8 @@ export default function Home() {
       id: "5",
       title: "Golden Hour",
       artist: "Remy Kayitesi",
-      coverImage: "", // Preserve empty values so we can show fallback in UI
+      coverImage:
+        "https://images.unsplash.com/photo-1511379938547-c1f69419868d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
       year: 2024,
       tracks: 11,
     },
@@ -644,19 +649,11 @@ export default function Home() {
                 className="group card-bg rounded-xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10"
               >
                 <div className="relative">
-                  {track.coverImage && track.coverImage.trim() !== '' ? (
-                    <img
-                      src={track.coverImage}
-                      alt={track.title}
-                      className="w-full aspect-square object-cover"
-                    />
-                  ) : (
-                    <div className="w-full aspect-square bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center">
-                      <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
-                      </svg>
-                    </div>
-                  )}
+                  <img
+                    src={track.coverImage}
+                    alt={track.title}
+                    className="w-full aspect-square object-cover"
+                  />
                   <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <button
                       onClick={() => {
@@ -840,19 +837,11 @@ export default function Home() {
                 className="group card-bg rounded-xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10"
               >
                 <div className="relative">
-                  {album.coverImage && album.coverImage.trim() !== '' ? (
-                    <img
-                      src={album.coverImage}
-                      alt={album.title}
-                      className="w-full aspect-square object-cover"
-                    />
-                  ) : (
-                    <div className="w-full aspect-square bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center">
-                      <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
-                      </svg>
-                    </div>
-                  )}
+                  <img
+                    src={album.coverImage}
+                    alt={album.title}
+                    className="w-full aspect-square object-cover"
+                  />
                   <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <button className="w-10 h-10 sm:w-12 sm:h-12 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
                       <svg
@@ -914,19 +903,11 @@ export default function Home() {
                   className="group card-bg rounded-xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10"
                 >
                   <div className="relative">
-                    {track.coverImage && track.coverImage.trim() !== '' ? (
-                      <img
-                        src={track.coverImage}
-                        alt={track.title}
-                        className="w-full aspect-square object-cover"
-                      />
-                    ) : (
-                      <div className="w-full aspect-square bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center">
-                        <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
-                        </svg>
-                      </div>
-                    )}
+                    <img
+                      src={track.coverImage}
+                      alt={track.title}
+                      className="w-full aspect-square object-cover"
+                    />
                     <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <button
                         onClick={() => {
@@ -1056,19 +1037,11 @@ export default function Home() {
                   className="group card-bg rounded-xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10"
                 >
                   <div className="relative">
-                    {track.coverImage && track.coverImage.trim() !== '' ? (
-                      <img
-                        src={track.coverImage}
-                        alt={track.title}
-                        className="w-full aspect-square object-cover"
-                      />
-                    ) : (
-                      <div className="w-full aspect-square bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center">
-                        <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
-                        </svg>
-                      </div>
-                    )}
+                    <img
+                      src={track.coverImage}
+                      alt={track.title}
+                      className="w-full aspect-square object-cover"
+                    />
                     <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <button
                         onClick={() => {
@@ -1261,19 +1234,11 @@ export default function Home() {
                   className="group card-bg rounded-2xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10"
                 >
                   <div className="relative">
-                    {track.coverImage && track.coverImage.trim() !== '' ? (
-                      <img
-                        src={track.coverImage}
-                        alt={track.title}
-                        className="w-full h-40 sm:h-48 object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-40 sm:h-48 bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center">
-                        <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
-                        </svg>
-                      </div>
-                    )}
+                    <img
+                      src={track.coverImage}
+                      alt={track.title}
+                      className="w-full h-40 sm:h-48 object-cover"
+                    />
                     <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <button
                         onClick={() => {
@@ -1408,19 +1373,11 @@ export default function Home() {
                   className="group card-bg rounded-2xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10"
                 >
                   <div className="relative">
-                    {track.coverImage && track.coverImage.trim() !== '' ? (
-                      <img
-                        src={track.coverImage}
-                        alt={track.title}
-                        className="w-full h-40 sm:h-48 object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-40 sm:h-48 bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center">
-                        <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
-                        </svg>
-                      </div>
-                    )}
+                    <img
+                      src={track.coverImage}
+                      alt={track.title}
+                      className="w-full h-40 sm:h-48 object-cover"
+                    />
                     <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <button
                         onClick={() => {
@@ -1552,20 +1509,15 @@ export default function Home() {
               {popularCreators.map((creator) => (
                 <div
                   key={creator.id}
-                  className="group card-bg rounded-2xl p-4 sm:p-6 transition-all duration-300 hover:border-[#FFCB2B]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FFCB2B]/10 cursor-pointer"
-                  onClick={() => router.push(`/artists/${creator.id}`)}
+                  className="group card-bg rounded-2xl p-4 sm:p-6 transition-all duration-300 hover:border-[#FFCB2B]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FFCB2B]/10"
                 >
                   <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-5">
                     <div className="relative">
-                      {creator.avatar && creator.avatar.trim() !== '' ? (
-                        <img
-                          src={creator.avatar}
-                          alt={creator.name}
-                          className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover"
-                        />
-                      ) : (
-                        generateAvatar(creator.name)
-                      )}
+                      <img
+                        src={creator.avatar}
+                        alt={creator.name}
+                        className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover"
+                      />
                       {creator.verified && (
                         <div className="absolute bottom-0 right-0 w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-[#FF4D67] border-2 border-gray-900"></div>
                       )}
@@ -1589,19 +1541,7 @@ export default function Home() {
                     <span className="text-gray-500 text-xs sm:text-sm">
                       {creator.followers.toLocaleString()} followers
                     </span>
-                    <button 
-                      className="px-3 py-1.5 sm:px-4 sm:py-2 bg-transparent border border-[#FFCB2B] text-[#FFCB2B] hover:bg-[#FFCB2B]/10 rounded-full text-xs sm:text-sm font-medium transition-colors"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (!isAuthenticated) {
-                          router.push('/login');
-                        } else {
-                          // Handle follow action here
-                          console.log('Following', creator.name);
-                          // In a real implementation, you would make an API call to follow the creator
-                        }
-                      }}
-                    >
+                    <button className="px-3 py-1.5 sm:px-4 sm:py-2 bg-transparent border border-[#FFCB2B] text-[#FFCB2B] hover:bg-[#FFCB2B]/10 rounded-full text-xs sm:text-sm font-medium transition-colors">
                       Follow
                     </button>
                   </div>

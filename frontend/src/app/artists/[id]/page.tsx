@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useAudioPlayer } from '@/contexts/AudioPlayerContext'
+import { useAuth } from '@/contexts/AuthContext'
 import { fetchTracksByCreatorPublic } from '@/services/trackService'
 
 interface Creator {
@@ -77,6 +78,7 @@ export default function ArtistProfilePage() {
   const params = useParams()
   const router = useRouter()
   const { playTrack } = useAudioPlayer()
+  const { user } = useAuth()
   
   const creatorId = params.id as string
   
@@ -141,7 +143,7 @@ export default function ArtistProfilePage() {
       coverImage: track.coverArt || '', // This is handled in the audio player component
       audioUrl: track.audioUrl,
       duration: track.duration,
-      creatorId: params.id // The current artist's ID
+      creatorId: creatorId // The current artist's ID
     };
     
     playTrack(playerTrack);
@@ -236,10 +238,20 @@ export default function ArtistProfilePage() {
                 </div>
               </div>
               
-              <button className="px-6 py-3 bg-[#FF4D67] hover:bg-[#FF4D67]/90 text-white rounded-full font-medium transition-colors">
+              <button 
+                className="px-6 py-3 bg-[#FF4D67] hover:bg-[#FF4D67]/90 text-white rounded-full font-medium transition-colors"
+                onClick={() => {
+                  // Handle follow action here
+                  if (!user) {
+                    router.push('/login');
+                  } else {
+                    console.log('Following', creator.name);
+                    // In a real implementation, you would make an API call to follow the creator
+                  }
+                }}
+              >
                 Follow
-              </button>
-            </div>
+              </button>            </div>
           </div>
         </div>
         
