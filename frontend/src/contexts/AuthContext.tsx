@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { updateUserProfile } from '@/services/userService'
 
 interface User {
   id: string
@@ -8,9 +9,11 @@ interface User {
   email: string
   role: 'fan' | 'creator' | 'admin'
   creatorType?: 'artist' | 'dj' | 'producer'
-  avatar?: string // Add avatar property
+  avatar?: string
   bio?: string
   genres?: string[]
+  followersCount?: number
+  followingCount?: number
 }
 
 interface AuthContextType {
@@ -18,20 +21,19 @@ interface AuthContextType {
   login: (userData: User) => void
   logout: () => void
   upgradeToCreator: (creatorType: 'artist' | 'dj' | 'producer') => Promise<boolean>
-  updateProfile: (updatedData: Partial<User>) => void
+  updateProfile: (updatedData: Partial<User>) => Promise<boolean>
   isAuthenticated: boolean
   userRole: 'fan' | 'creator' | 'admin' | null
-  isLoading: boolean // Add loading state
+  isLoading: boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState(true) // Add loading state
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Check if user data exists in localStorage
     const storedUser = localStorage.getItem('user')
     console.log('AuthProvider - storedUser:', storedUser);
     if (storedUser) {
@@ -43,7 +45,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.error('Error parsing user data:', error)
       }
     }
-    // Set loading to false after checking localStorage
     setIsLoading(false)
   }, [])
 
@@ -68,13 +69,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      // Log the upgrade attempt
       console.log('Attempting to upgrade to creator:', { creatorType });
       
-      // Get access token from localStorage
       let accessToken = localStorage.getItem('accessToken');
       
-      // Check if token exists
       if (!accessToken) {
         console.error('No access token found');
         alert('Authentication error. Please log in again.');
@@ -82,7 +80,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return false;
       }
 
-      // Make API call to upgrade user to creator (using new endpoint)
       let response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upgrade/to-creator`, {
         method: 'PUT',
         headers: {
@@ -94,13 +91,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       console.log('Upgrade response status:', response.status);
 
-      // If token is expired, try to refresh it
       if (response.status === 401) {
         console.log('Token might be expired, attempting to refresh...');
         
         const refreshToken = localStorage.getItem('refreshToken');
         if (refreshToken) {
-          // Try to refresh the token
           const refreshResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh-token`, {
             method: 'POST',
             headers: {
@@ -111,11 +106,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           
           if (refreshResponse.ok) {
             const refreshData = await refreshResponse.json();
-            // Save new tokens
             localStorage.setItem('accessToken', refreshData.accessToken);
             localStorage.setItem('refreshToken', refreshData.refreshToken);
             
-            // Retry the original request with new token
             accessToken = refreshData.accessToken;
             response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upgrade/to-creator`, {
               method: 'PUT',
@@ -126,14 +119,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               body: JSON.stringify({ creatorType })
             });
           } else {
-            // Refresh failed, force logout
             console.error('Token refresh failed');
             alert('Session expired. Please log in again.');
             logout();
             return false;
           }
         } else {
-          // No refresh token available, force logout
           console.error('No refresh token found');
           alert('Session expired. Please log in again.');
           logout();
@@ -145,7 +136,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const errorData = await response.json();
         console.error('Failed to upgrade to creator:', errorData.message);
         
-        // Show error to user
         alert(`Upgrade failed: ${errorData.message || 'Unknown error'}`);
         return false;
       }
@@ -153,7 +143,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const updatedUserData = await response.json();
       console.log('Upgrade successful:', updatedUserData);
       
-      // Update user in context and localStorage
       setUser(updatedUserData);
       localStorage.setItem('user', JSON.stringify(updatedUserData));
       
@@ -165,21 +154,60 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const updateProfile = (updatedData: Partial<User>) => {
-    if (user) {
-      const updatedUser = {
-        ...user,
-        ...updatedData
+  const updateProfile = async (updatedData: Partial<User>): Promise<boolean> => {
+    if (!user) {
+      console.error('No user found for profile update');
+      return false;
+    }
+
+    try {
+      // Send update request to backend
+      const updatedUser = await updateUserProfile(updatedData);
+      
+      if (!updatedUser) {
+        console.error('Failed to update profile on backend');
+        return false;
       }
-      setUser(updatedUser)
-      localStorage.setItem('user', JSON.stringify(updatedUser))
+
+      // Update local state and localStorage with the response from backend
+      setUser({
+        ...user,
+        ...updatedData,
+        id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        role: updatedUser.role,
+        creatorType: updatedUser.creatorType,
+        avatar: updatedUser.avatar,
+        bio: updatedUser.bio,
+        genres: updatedUser.genres,
+        followersCount: updatedUser.followersCount
+      });
+      
+      localStorage.setItem('user', JSON.stringify({
+        ...user,
+        ...updatedData,
+        id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        role: updatedUser.role,
+        creatorType: updatedUser.creatorType,
+        avatar: updatedUser.avatar,
+        bio: updatedUser.bio,
+        genres: updatedUser.genres,
+        followersCount: updatedUser.followersCount
+      }));
+      
+      return true;
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      return false;
     }
   }
 
   const isAuthenticated = !!user
   const userRole = user?.role || null
   
-  // Debug logging
   useEffect(() => {
     console.log('AuthContext values:', { user, isAuthenticated, userRole, isLoading });
   }, [user, isAuthenticated, userRole, isLoading]);

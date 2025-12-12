@@ -123,6 +123,13 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const loadUserData = async () => {
       try {
+        // Check if user is authenticated by checking for access token
+        const accessToken = localStorage.getItem('accessToken');
+        if (!accessToken) {
+          console.log('No access token found, skipping user data load');
+          return;
+        }
+        
         // Load favorites
         const userFavorites = await getUserFavorites();
         setFavorites(userFavorites);
@@ -383,8 +390,12 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     // Also add to the first user playlist if it exists
     if (playlists.length > 0) {
       addTrackToPlaylistService(playlists[0].id, track.id)
-        .then(() => {
-          console.log('Track added to playlist');
+        .then((result) => {
+          if (result) {
+            console.log('Track added to playlist');
+          } else {
+            console.log('Failed to add track to playlist - user may not be authenticated');
+          }
         })
         .catch((error) => {
           console.error('Error adding track to playlist:', error);
@@ -399,7 +410,11 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
   const createPlaylist = async (name: string) => {
     try {
       const newPlaylist = await createPlaylistService(name);
-      setPlaylists(prev => [...prev, newPlaylist]);
+      if (newPlaylist) {
+        setPlaylists(prev => [...prev, newPlaylist]);
+      } else {
+        console.log('Failed to create playlist - user may not be authenticated');
+      }
     } catch (error) {
       console.error('Error creating playlist:', error);
     }
@@ -407,14 +422,18 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
 
   const addToFavorites = async (track: Track) => {
     try {
-      await addTrackToFavorites(track.id);
-      setFavorites(prev => {
-        // Check if track already exists in favorites
-        if (prev.some(t => t.id === track.id)) {
-          return prev;
-        }
-        return [...prev, track];
-      });
+      const result = await addTrackToFavorites(track.id);
+      if (result) {
+        setFavorites(prev => {
+          // Check if track already exists in favorites
+          if (prev.some(t => t.id === track.id)) {
+            return prev;
+          }
+          return [...prev, track];
+        });
+      } else {
+        console.log('Failed to add track to favorites - user may not be authenticated');
+      }
     } catch (error) {
       console.error('Error adding track to favorites:', error);
     }
@@ -422,8 +441,12 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
 
   const removeFromFavorites = async (trackId: string) => {
     try {
-      await removeTrackFromFavorites(trackId);
-      setFavorites(prev => prev.filter(track => track.id !== trackId));
+      const result = await removeTrackFromFavorites(trackId);
+      if (result) {
+        setFavorites(prev => prev.filter(track => track.id !== trackId));
+      } else {
+        console.log('Failed to remove track from favorites - user may not be authenticated');
+      }
     } catch (error) {
       console.error('Error removing track from favorites:', error);
     }

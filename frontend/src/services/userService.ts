@@ -31,7 +31,12 @@ const makeAuthenticatedRequest = async (url: string, options: RequestInit = {}):
   let accessToken = localStorage.getItem('accessToken');
   
   if (!accessToken) {
-    throw new Error('No access token found');
+    // Instead of throwing an error, return a response object with status 401
+    // This allows calling functions to handle the lack of authentication gracefully
+    return new Response(
+      JSON.stringify({ message: 'No access token found' }), 
+      { status: 401, headers: { 'Content-Type': 'application/json' } }
+    );
   }
 
   // Add authorization header to options
@@ -76,6 +81,11 @@ export const addTrackToFavorites = async (trackId: string): Promise<any> => {
       body: JSON.stringify({ trackId })
     });
 
+    // If user is not authenticated (401), return null
+    if (response.status === 401) {
+      return null;
+    }
+
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.message || 'Failed to add track to favorites');
@@ -85,7 +95,7 @@ export const addTrackToFavorites = async (trackId: string): Promise<any> => {
     return data;
   } catch (error) {
     console.error('Error adding track to favorites:', error);
-    throw error;
+    return null;
   }
 };
 
@@ -99,6 +109,11 @@ export const removeTrackFromFavorites = async (trackId: string): Promise<any> =>
       body: JSON.stringify({ trackId })
     });
 
+    // If user is not authenticated (401), return null
+    if (response.status === 401) {
+      return null;
+    }
+
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.message || 'Failed to remove track from favorites');
@@ -108,7 +123,7 @@ export const removeTrackFromFavorites = async (trackId: string): Promise<any> =>
     return data;
   } catch (error) {
     console.error('Error removing track from favorites:', error);
-    throw error;
+    return null;
   }
 };
 
@@ -119,6 +134,11 @@ export const getUserFavorites = async (): Promise<any[]> => {
   try {
     const response = await makeAuthenticatedRequest(`${process.env.NEXT_PUBLIC_API_URL}/api/favorites`);
 
+    // If user is not authenticated (401), return empty array
+    if (response.status === 401) {
+      return [];
+    }
+
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.message || 'Failed to fetch favorites');
@@ -128,7 +148,8 @@ export const getUserFavorites = async (): Promise<any[]> => {
     return data.favorites;
   } catch (error) {
     console.error('Error fetching favorites:', error);
-    throw error;
+    // Return empty array instead of throwing error to prevent app crashes
+    return [];
   }
 };
 
@@ -142,6 +163,11 @@ export const createPlaylist = async (name: string, description: string = '', isP
       body: JSON.stringify({ name, description, isPublic, trackIds })
     });
 
+    // If user is not authenticated (401), return null
+    if (response.status === 401) {
+      return null;
+    }
+
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.message || 'Failed to create playlist');
@@ -151,7 +177,7 @@ export const createPlaylist = async (name: string, description: string = '', isP
     return data.playlist;
   } catch (error) {
     console.error('Error creating playlist:', error);
-    throw error;
+    return null;
   }
 };
 
@@ -165,6 +191,11 @@ export const addTrackToPlaylist = async (playlistId: string, trackId: string): P
       body: JSON.stringify({ playlistId, trackId })
     });
 
+    // If user is not authenticated (401), return null
+    if (response.status === 401) {
+      return null;
+    }
+
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.message || 'Failed to add track to playlist');
@@ -174,7 +205,7 @@ export const addTrackToPlaylist = async (playlistId: string, trackId: string): P
     return data;
   } catch (error) {
     console.error('Error adding track to playlist:', error);
-    throw error;
+    return null;
   }
 };
 
@@ -185,6 +216,11 @@ export const getUserPlaylists = async (): Promise<any[]> => {
   try {
     const response = await makeAuthenticatedRequest(`${process.env.NEXT_PUBLIC_API_URL}/api/playlists`);
 
+    // If user is not authenticated (401), return empty array
+    if (response.status === 401) {
+      return [];
+    }
+
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.message || 'Failed to fetch playlists');
@@ -194,6 +230,35 @@ export const getUserPlaylists = async (): Promise<any[]> => {
     return data.playlists;
   } catch (error) {
     console.error('Error fetching playlists:', error);
-    throw error;
+    // Return empty array instead of throwing error to prevent app crashes
+    return [];
+  }
+};
+
+/**
+ * Update user profile
+ */
+export const updateUserProfile = async (profileData: any): Promise<any> => {
+  try {
+    const response = await makeAuthenticatedRequest(`${process.env.NEXT_PUBLIC_API_URL}/api/profile/me`, {
+      method: 'PUT',
+      body: JSON.stringify(profileData)
+    });
+
+    // If user is not authenticated (401), return null
+    if (response.status === 401) {
+      return null;
+    }
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to update profile');
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    return null;
   }
 };

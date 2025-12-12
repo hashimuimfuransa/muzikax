@@ -44,6 +44,16 @@ interface Album {
   updatedAt: string;
 }
 
+// Add User interface
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  followersCount?: number;
+  // Add other user properties as needed
+}
+
 export default function Profile() {
   const [activeTab, setActiveTab] = useState<'profile' | 'favorites' | 'analytics' | 'tracks' | 'albums'>('profile')
   const [analytics, setAnalytics] = useState<CreatorAnalytics | null>(null)
@@ -162,17 +172,18 @@ export default function Profile() {
     }
   }
 
-  // Handle save changes
-  const handleSaveChanges = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
     try {
-      // Get form values
-      const nameInput = document.getElementById('name') as HTMLInputElement | null
-      const emailInput = document.getElementById('email') as HTMLInputElement | null
-      const currentPasswordInput = document.getElementById('currentPassword') as HTMLInputElement | null
-      const passwordInput = document.getElementById('password') as HTMLInputElement | null
+      const form = e.target as HTMLFormElement
+      const name = (form.elements.namedItem('name') as HTMLInputElement)?.value || ''
+      const email = (form.elements.namedItem('email') as HTMLInputElement)?.value || ''
+      const bio = (form.elements.namedItem('bio') as HTMLTextAreaElement)?.value || ''
       
-      const name = nameInput?.value || ''
-      const email = emailInput?.value || ''
+      const currentPasswordInput = form.elements.namedItem('currentPassword') as HTMLInputElement
+      const passwordInput = form.elements.namedItem('password') as HTMLInputElement
+      
       const currentPassword = currentPasswordInput?.value || ''
       const password = passwordInput?.value || ''
       
@@ -181,7 +192,7 @@ export default function Profile() {
         name: name.trim(),
         email: email.trim(),
         bio: bio.trim(),
-        genres: genres
+        genres: genres // Use the genres from state directly
       }
       
       // Only include password fields if they have values
@@ -194,9 +205,18 @@ export default function Profile() {
       }
       
       // Call the update profile function from AuthContext
-      await updateProfile(updateData)
+      const success = await updateProfile(updateData)
       
-      alert('Profile updated successfully!')
+      if (success) {
+        // Refresh tracks to show updated creator name
+        if (user?.role === 'creator') {
+          await fetchTracks()
+        }
+        
+        alert('Profile updated successfully!')
+      } else {
+        alert('Failed to update profile. Please try again.')
+      }
       
       // Clear password fields
       if (currentPasswordInput) {
@@ -287,9 +307,38 @@ export default function Profile() {
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="text-center mb-6 sm:mb-8 md:mb-12">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] mb-2 sm:mb-3">
-              {user?.role === 'creator' ? 'Creator Dashboard' : 'Your Profile'}
-            </h1>
+            <div className="flex justify-between items-center mb-4">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B]">
+                {user?.role === 'creator' ? 'Creator Dashboard' : 'Your Profile'}
+              </h1>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => router.push('/playlists')}
+                  className="px-3 py-1.5 sm:px-4 sm:py-2 bg-transparent border border-[#FFCB2B] text-[#FFCB2B] hover:bg-[#FFCB2B]/10 rounded-full text-xs sm:text-sm font-medium transition-colors flex items-center gap-1"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                  </svg>
+                  <span>Playlists</span>
+                </button>
+                <button
+                  onClick={() => {
+                    if (typeof window !== 'undefined') {
+                      localStorage.removeItem('user');
+                      localStorage.removeItem('accessToken');
+                      localStorage.removeItem('refreshToken');
+                    }
+                    router.push('/login');
+                  }}
+                  className="px-3 py-1.5 sm:px-4 sm:py-2 bg-transparent border border-[#FF4D67] text-[#FF4D67] hover:bg-[#FF4D67]/10 rounded-full text-xs sm:text-sm font-medium transition-colors flex items-center gap-1"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                  </svg>
+                  <span>Logout</span>
+                </button>
+              </div>
+            </div>
             <p className="text-gray-400 text-sm">
               {user?.role === 'creator' 
                 ? 'Manage your content, view analytics, and engage with your audience' 
@@ -351,22 +400,36 @@ export default function Profile() {
               </div>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="card-bg rounded-xl p-4 border border-gray-700/30">
-                <h3 className="text-gray-400 text-xs mb-1">Member Since</h3>
-                <p className="text-white font-medium text-sm">January 2024</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="card-bg rounded-xl p-4 border border-gray-700/30">
+                  <h3 className="text-gray-400 text-xs mb-1">Member Since</h3>
+                  <p className="text-white font-medium text-sm">January 2024</p>
+                </div>
+                <div className="card-bg rounded-xl p-4 border border-gray-700/30">
+                  <h3 className="text-gray-400 text-xs mb-1">Favorite Genres</h3>
+                  <p className="text-white font-medium text-sm">
+                    {genres && genres.length > 0 ? genres.join(', ') : 'Not specified'}
+                  </p>
+                </div>
+                <div 
+                  className="card-bg rounded-xl p-4 border border-gray-700/30 cursor-pointer hover:border-[#FF4D67]/50 transition-colors"
+                  onClick={() => router.push('/community')}
+                >
+                  <h3 className="text-gray-400 text-xs mb-1">Followers</h3>
+                  <p className="text-white font-medium text-sm">
+                    {user?.followersCount?.toLocaleString() || '0'}
+                  </p>
+                </div>
+                <div 
+                  className="card-bg rounded-xl p-4 border border-gray-700/30 cursor-pointer hover:border-[#FFCB2B]/50 transition-colors"
+                  onClick={() => router.push('/community')}
+                >
+                  <h3 className="text-gray-400 text-xs mb-1">Following</h3>
+                  <p className="text-white font-medium text-sm">
+                    {user?.followingCount?.toLocaleString() || '0'}
+                  </p>
+                </div>
               </div>
-              <div className="card-bg rounded-xl p-4 border border-gray-700/30">
-                <h3 className="text-gray-400 text-xs mb-1">Favorite Genres</h3>
-                <p className="text-white font-medium text-sm">
-                  {genres && genres.length > 0 ? genres.join(', ') : 'Not specified'}
-                </p>
-              </div>
-              <div className="card-bg rounded-xl p-4 border border-gray-700/30">
-                <h3 className="text-gray-400 text-xs mb-1">Following</h3>
-                <p className="text-white font-medium text-sm">24 Creators</p>
-              </div>
-            </div>
           </div>
 
           {/* Quick Navigation Buttons - Added for easier access to key pages */}
@@ -474,7 +537,7 @@ export default function Profile() {
             <div className="card-bg rounded-2xl p-5 sm:p-6 border border-gray-700/50">
               <h3 className="text-lg sm:text-xl font-bold text-white mb-5">Account Settings</h3>
               
-              <div className="space-y-5">
+              <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
                     Full Name
@@ -608,6 +671,7 @@ export default function Profile() {
                     <button 
                       onClick={() => router.push('/upload')}
                       className="px-3 py-1.5 bg-transparent border border-[#FFCB2B] text-[#FFCB2B] hover:bg-[#FFCB2B]/10 rounded-full text-xs font-medium transition-colors"
+                      type="button"
                     >
                       Upgrade to Creator
                     </button>
@@ -616,13 +680,13 @@ export default function Profile() {
 
                 <div className="flex justify-end pt-2">
                   <button 
-                    onClick={handleSaveChanges}
+                    type="submit"
                     className="px-5 py-2.5 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-opacity text-sm"
                   >
                     Save Changes
                   </button>
                 </div>
-              </div>
+              </form>
             </div>
           )}
 
@@ -883,7 +947,7 @@ export default function Profile() {
                         className="w-full px-4 py-3 pl-10 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm"
                       />
                       <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                        <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd"></path>
+                        <path fillRule="evenodd" d="M8 4a4 4 0 00-2 0v7.268a2 2 0 000 3.464V16a1 1 0 102 0v-1.268a2 2 0 000-3.464V4zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd"></path>
                       </svg>
                     </div>
                   </div>

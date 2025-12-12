@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useAuth } from '../../contexts/AuthContext'
+import { fetchCommunityMembers, fetchCommunityStats, followCreator } from '../../services/communityService'
 
 interface Post {
   id: string
@@ -20,11 +21,11 @@ interface Post {
 }
 
 interface Member {
-  id: string
+  _id: string
   name: string
   avatar: string
   role: string
-  followers: number
+  followersCount: number
   isFollowing: boolean
 }
 
@@ -41,8 +42,46 @@ export default function Community() {
   const { isAuthenticated, user } = useAuth()
   const [activeTab, setActiveTab] = useState<'feed' | 'members' | 'events'>('feed')
   const [newPost, setNewPost] = useState('')
+  const [members, setMembers] = useState<Member[]>([])
+  const [stats, setStats] = useState<{ members: number; posts: number; events: number }>({ members: 0, posts: 0, events: 0 })
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  // Mock data for community posts
+  // Fetch real data when component mounts
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true)
+        const [membersData, statsData] = await Promise.all([
+          fetchCommunityMembers(),
+          fetchCommunityStats()
+        ])
+        
+        // Transform members data to match our interface
+        const transformedMembers = membersData.map((member: any) => ({
+          _id: member._id,
+          name: member.name,
+          avatar: member.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&background=random`,
+          role: member.creatorType || member.role || 'Creator',
+          followersCount: member.followersCount || 0,
+          isFollowing: false // We don't have following status in the data yet
+        }))
+        
+        setMembers(transformedMembers)
+        setStats(statsData)
+        setError(null)
+      } catch (err) {
+        console.error('Error fetching community data:', err)
+        setError('Failed to load community data. Please try again later.')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [])
+
+  // Mock data for community posts (keeping this for now as we don't have a real posts API)
   const posts: Post[] = [
     {
       id: '1',
@@ -88,51 +127,7 @@ export default function Community() {
     }
   ]
 
-  // Mock data for community members
-  const members: Member[] = [
-    {
-      id: '1',
-      name: 'Kizito M',
-      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      role: 'Artist',
-      followers: 12400,
-      isFollowing: true
-    },
-    {
-      id: '2',
-      name: 'Benji Flavours',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      role: 'DJ',
-      followers: 8900,
-      isFollowing: false
-    },
-    {
-      id: '3',
-      name: 'Remy Kayitesi',
-      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      role: 'Producer',
-      followers: 15600,
-      isFollowing: true
-    },
-    {
-      id: '4',
-      name: 'Gloria Muhire',
-      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      role: 'Artist',
-      followers: 7200,
-      isFollowing: false
-    },
-    {
-      id: '5',
-      name: 'Theophile J',
-      avatar: 'https://images.unsplash.com/photo-1552058544-f2b08422138a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      role: 'Songwriter',
-      followers: 9800,
-      isFollowing: false
-    }
-  ]
-
-  // Mock data for events
+  // Mock data for events (keeping this for now as we don't have a real events API)
   const events: Event[] = [
     {
       id: '1',
@@ -174,9 +169,84 @@ export default function Community() {
     console.log(`Toggled like for post ${postId}`)
   }
 
-  const toggleFollow = (memberId: string) => {
-    // In a real app, this would update the follow status via API
-    console.log(`Toggled follow for member ${memberId}`)
+  const toggleFollow = async (memberId: string) => {
+    try {
+      // Check if user is authenticated
+      if (!isAuthenticated) {
+        // Redirect to login page
+        window.location.href = '/login'
+        return
+      }
+      
+      // Call the follow creator service
+      const result = await followCreator(memberId)
+      
+      // Update the followers count in the UI
+      setMembers(prevMembers => 
+        prevMembers.map(member => 
+          member._id === memberId 
+            ? { ...member, followersCount: result.followersCount } 
+            : member
+        )
+      )
+      
+      // Show success feedback (you might want to add a toast notification here)
+      console.log('Successfully followed creator')
+    } catch (error) {
+      console.error('Failed to follow creator:', error)
+      // Show error feedback (you might want to add a toast notification here)
+      alert('Failed to follow creator. Please try again.')
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black py-8 sm:py-12">
+        <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#FF4D67]/10 rounded-full blur-3xl -z-10"></div>
+        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-[#FFCB2B]/10 rounded-full blur-3xl -z-10"></div>
+        
+        <div className="container mx-auto px-4 sm:px-8">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] mb-3 sm:mb-4">
+                Loading Community...
+              </h1>
+              <div className="flex justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#FF4D67]"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black py-8 sm:py-12">
+        <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#FF4D67]/10 rounded-full blur-3xl -z-10"></div>
+        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-[#FFCB2B]/10 rounded-full blur-3xl -z-10"></div>
+        
+        <div className="container mx-auto px-4 sm:px-8">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] mb-3 sm:mb-4">
+                Community Hub
+              </h1>
+              <div className="card-bg rounded-2xl p-6 border border-gray-700/50 max-w-2xl mx-auto">
+                <p className="text-red-400 text-center mb-4">{error}</p>
+                <button 
+                  onClick={() => window.location.reload()}
+                  className="px-4 py-2 bg-[#FF4D67] text-white rounded-full font-medium hover:bg-[#FF4D67]/90 transition-colors"
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -207,7 +277,7 @@ export default function Community() {
                 </div>
                 <div>
                   <p className="text-gray-400 text-sm">Community Members</p>
-                  <p className="text-2xl font-bold text-white">12,402</p>
+                  <p className="text-2xl font-bold text-white">{stats.members.toLocaleString()}</p>
                 </div>
               </div>
             </div>
@@ -221,7 +291,7 @@ export default function Community() {
                 </div>
                 <div>
                   <p className="text-gray-400 text-sm">Posts This Week</p>
-                  <p className="text-2xl font-bold text-white">1,248</p>
+                  <p className="text-2xl font-bold text-white">{stats.posts.toLocaleString()}</p>
                 </div>
               </div>
             </div>
@@ -235,7 +305,7 @@ export default function Community() {
                 </div>
                 <div>
                   <p className="text-gray-400 text-sm">Upcoming Events</p>
-                  <p className="text-2xl font-bold text-white">12</p>
+                  <p className="text-2xl font-bold text-white">{stats.events}</p>
                 </div>
               </div>
             </div>
@@ -390,7 +460,7 @@ export default function Community() {
               {activeTab === 'members' && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                   {members.map((member) => (
-                    <div key={member.id} className="card-bg rounded-2xl p-5 border border-gray-700/50">
+                    <div key={member._id} className="card-bg rounded-2xl p-5 border border-gray-700/50">
                       <div className="flex items-center gap-4">
                         <img
                           src={member.avatar}
@@ -400,10 +470,14 @@ export default function Community() {
                         <div className="flex-1">
                           <h3 className="font-bold text-white">{member.name}</h3>
                           <p className="text-[#FFCB2B] text-sm">{member.role}</p>
-                          <p className="text-gray-500 text-xs mt-1">{member.followers.toLocaleString()} followers</p>
+                          <p className="text-gray-500 text-xs mt-1">
+                            {member.followersCount > 0 
+                              ? `${member.followersCount.toLocaleString()} follower${member.followersCount !== 1 ? 's' : ''}` 
+                              : '0 followers'}
+                          </p>
                         </div>
                         <button
-                          onClick={() => toggleFollow(member.id)}
+                          onClick={() => toggleFollow(member._id)}
                           className={`px-3 py-1.5 rounded-full text-xs font-medium ${
                             member.isFollowing
                               ? 'bg-gray-700 text-white hover:bg-gray-600'
@@ -501,7 +575,7 @@ export default function Community() {
                 </div>
                 <div className="space-y-4">
                   {members.slice(0, 3).map((member) => (
-                    <div key={member.id} className="flex items-center gap-3">
+                    <div key={member._id} className="flex items-center gap-3">
                       <img
                         src={member.avatar}
                         alt={member.name}
@@ -512,7 +586,7 @@ export default function Community() {
                         <p className="text-gray-500 text-xs">{member.role}</p>
                       </div>
                       <button
-                        onClick={() => toggleFollow(member.id)}
+                        onClick={() => toggleFollow(member._id)}
                         className={`px-2.5 py-1 rounded-full text-xs font-medium ${
                           member.isFollowing
                             ? 'bg-gray-700 text-white hover:bg-gray-600'
