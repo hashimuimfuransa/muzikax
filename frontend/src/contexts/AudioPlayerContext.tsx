@@ -317,7 +317,13 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     // Set the current track immediately
     console.log('Setting current track to:', track);
     setCurrentTrack(track);
-    setIsMinimized(false); // Expand player when new track starts
+    
+    // Only expand player when new track starts if it was explicitly played by user
+    // If it's an automatic playback (next track), preserve the current minimized state
+    if (explicitlyPlayedRef.current) {
+      setIsMinimized(false); // Expand player when explicitly played by user
+    }
+    // If explicitlyPlayedRef.current is false, we preserve the current isMinimized state
     
     // Mark this as an explicit play action
     explicitlyPlayedRef.current = true;
@@ -371,6 +377,10 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     console.log('Playlist:', playlist);
     console.log('Current track index:', currentTrackIndex);
     console.log('Playlist length:', playlist.length);
+    
+    // When automatically playing next track, reset the explicitly played flag
+    // This ensures that automatic playback doesn't trigger full player navigation
+    explicitlyPlayedRef.current = false;
     
     // If we're in album context, play next track in album
     if (context.type === 'album' && context.data) {
