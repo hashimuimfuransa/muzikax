@@ -19,8 +19,7 @@ export default function TracksPage() {
   const [sortBy, setSortBy] = useState<'popular' | 'recent' | 'alphabetical'>('popular')
   const { tracks: trendingTracksData, loading: trendingLoading, refresh: refreshTrendingTracks } = useTrendingTracks(20)
   const { creators: popularCreatorsData, loading: creatorsLoading } = usePopularCreators(10)
-  const { currentTrack, isPlaying, playTrack, setCurrentPlaylist, favorites, addToFavorites, removeFromFavorites } = useAudioPlayer()
-
+  const { currentTrack, isPlaying, playTrack, setCurrentPlaylist, favorites, favoritesLoading, addToFavorites, removeFromFavorites } = useAudioPlayer()
   // State for tracking which tracks are favorited
   const [favoriteStatus, setFavoriteStatus] = useState<Record<string, boolean>>({});
 
