@@ -486,8 +486,63 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
     
-    // Calculate next track index with proper cycling
-    const nextIndex = (currentTrackIndexRef.current + 1) % playlistRef.current.length;
+    // Check if we're at the end of the playlist
+    if (currentTrackIndexRef.current + 1 >= playlistRef.current.length) {
+      console.log('Reached end of playlist, fetching more recommendations');
+      // We've reached the end of the playlist, fetch more recommendations
+      try {
+        if (currentTrackRef.current) {
+          // Fetch more recommended tracks
+          const recommendedTracks = await fetchRecommendedTracks(currentTrackRef.current.id, 5); // Fetch 5 more tracks
+          if (recommendedTracks && recommendedTracks.length > 0) {
+            console.log('Got', recommendedTracks.length, 'new recommended tracks');
+            
+            // Convert recommended tracks to our Track interface
+            const newTracks: Track[] = recommendedTracks.map(nextTrack => ({
+              id: nextTrack._id,
+              title: nextTrack.title,
+              artist: (typeof nextTrack.creatorId === 'object' && nextTrack.creatorId !== null) 
+                ? (nextTrack.creatorId as any).name 
+                : nextTrack.creatorId || 'Unknown Artist',
+              coverImage: nextTrack.coverURL || '',
+              audioUrl: nextTrack.audioURL || '',
+              duration: 0, // Duration is not available in ITrack interface
+              creatorId: (typeof nextTrack.creatorId === 'object' && nextTrack.creatorId !== null) 
+                ? (nextTrack.creatorId as any)._id 
+                : nextTrack.creatorId,
+              likes: nextTrack.likes
+            }));
+            
+            // Add new tracks to the playlist
+            const updatedPlaylist = [...playlistRef.current, ...newTracks];
+            setPlaylist(updatedPlaylist);
+            playlistRef.current = updatedPlaylist;
+            
+            // Play the first new track
+            const nextIndex = currentTrackIndexRef.current + 1;
+            console.log('Playing next track at index:', nextIndex);
+            const nextTrack = updatedPlaylist[nextIndex];
+            
+            // Play the next track without expanding the player
+            explicitlyPlayedRef.current = false; // Mark as auto-played
+            playTrackAtIndex(nextIndex);
+            return;
+          } else {
+            console.log('No more recommendations available, stopping playback');
+            stopTrack();
+            return;
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching more recommendations:', error);
+        // If recommendations failed, stop playback
+        stopTrack();
+        return;
+      }
+    }
+    
+    // Calculate next track index (normal case)
+    const nextIndex = currentTrackIndexRef.current + 1;
     console.log('Next track index:', nextIndex);
     
     // Get next track
@@ -526,8 +581,14 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     }
     
     // Calculate previous track index
-    const prevIndex = (currentTrackIndexRef.current - 1 + playlistRef.current.length) % playlistRef.current.length;
+    const prevIndex = currentTrackIndexRef.current - 1;
     console.log('Previous track index:', prevIndex);
+    
+    // Check if we're trying to go before the start of the playlist
+    if (prevIndex < 0) {
+      console.log('Already at the beginning of playlist, cannot play previous track');
+      return;
+    }
     
     // Get previous track
     const prevTrack = playlistRef.current[prevIndex];
