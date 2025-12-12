@@ -27,7 +27,88 @@ export default function RecentlyPlayed() {
   const [loading, setLoading] = useState(true)
   const router = useRouter()
   const { isAuthenticated, isLoading } = useAuth()
-  const { currentTrack, isPlaying, playTrack, setCurrentPlaylist } = useAudioPlayer()
+  const { currentTrack, isPlaying, playTrack, setCurrentPlaylist, favorites, favoritesLoading, addToFavorites, removeFromFavorites } = useAudioPlayer()
+
+  // State for tracking which tracks are favorited
+  const [favoriteStatus, setFavoriteStatus] = useState<Record<string, boolean>>({});
+
+  // Update favorite status when favorites change or when favorites are loaded
+  useEffect(() => {
+    if (!favoritesLoading) {
+      const status: Record<string, boolean> = {};
+      favorites.forEach(track => {
+        status[track.id] = true;
+      });
+      setFavoriteStatus(status);
+    }
+  }, [favorites, favoritesLoading]);
+
+  // Listen for favorites loaded event to update favorite status
+  useEffect(() => {
+    const handleFavoritesLoaded = () => {
+      const status: Record<string, boolean> = {};
+      favorites.forEach(track => {
+        status[track.id] = true;
+      });
+      setFavoriteStatus(status);
+    };
+
+    // Add event listener
+    window.addEventListener('favoritesLoaded', handleFavoritesLoaded);
+
+    // Clean up event listener
+    return () => {
+      window.removeEventListener('favoritesLoaded', handleFavoritesLoaded);
+    };
+  }, [favorites]);
+
+  // Toggle favorite status for a track
+  const toggleFavorite = (trackId: string) => {
+    if (favoriteStatus[trackId]) {
+      // Remove from favorites
+      removeFromFavorites(trackId);
+    } else {
+      // Add to favorites
+      const track = tracks.find(t => t.id === trackId);
+      if (track) {
+        addToFavorites({
+          id: track._id,
+          title: track.title,
+          artist: track.artist,
+          coverImage: track.coverImage,
+          audioUrl: track.audioUrl,
+          creatorId: track.creatorId
+        });
+      }
+    }
+  };
+
+  // Listen for track updates (when favorites are added/removed)
+  useEffect(() => {
+    const handleTrackUpdate = (event: CustomEvent) => {
+      const detail = event.detail;
+      if (detail && detail.trackId) {
+        // Update favorite status if provided
+        if (detail.isFavorite !== undefined) {
+          setFavoriteStatus(prev => ({
+            ...prev,
+            [detail.trackId]: detail.isFavorite
+          }));
+        }
+        
+        // Re-fetch recently played tracks to update like counts
+        fetchRecentlyPlayed();
+      }
+    };
+
+    // Add event listener
+    window.addEventListener('trackUpdated', handleTrackUpdate as EventListener);
+
+    // Clean up event listener
+    return () => {
+      window.removeEventListener('trackUpdated', handleTrackUpdate as EventListener);
+    };
+  }, []);
 
   // Check authentication on component mount
   useEffect(() => {
@@ -175,9 +256,18 @@ export default function RecentlyPlayed() {
                     <span className="text-gray-500 text-xs sm:text-sm hidden sm:block">
                       {track.duration ? `${Math.floor(track.duration / 60)}:${Math.floor(track.duration % 60).toString().padStart(2, '0')}` : '3:45'}
                     </span>
-                    <button className="p-1.5 sm:p-2 rounded-full hover:bg-gray-800/50 transition-colors">
-                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-[#FF4D67]" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                        <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd"></path>
+                    <button 
+                      onClick={() => toggleFavorite(track.id)}
+                      className="p-1.5 sm:p-2 rounded-full hover:bg-gray-800/50 transition-all duration-300 hover:scale-110"
+                    >
+                      <svg 
+                        className={`w-4 h-4 sm:w-5 sm:h-5 transition-all duration-200 ${favoriteStatus[track.id] ? 'text-red-500 fill-current scale-110' : 'text-[#FF4D67] stroke-current'}`}
+                        fill={favoriteStatus[track.id] ? "currentColor" : "none"}
+                        stroke="currentColor"
+                        viewBox="0 0 24 24" 
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
                       </svg>
                     </button>
                   </div>

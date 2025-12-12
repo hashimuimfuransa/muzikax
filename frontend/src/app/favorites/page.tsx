@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { getUserFavorites } from '@/services/userService'
+import { useAudioPlayer } from '@/contexts/AudioPlayerContext'
 
 interface Track {
   _id: string
@@ -20,30 +21,99 @@ export default function FavoritesPage() {
   const [tracks, setTracks] = useState<Track[]>([])
   const [loading, setLoading] = useState(true)
   const { isAuthenticated, isLoading } = useAuth()
+  const { removeFromFavorites, favorites, favoritesLoading } = useAudioPlayer()
   const router = useRouter()
+
+  // State for tracking which tracks are favorited
+  const [favoriteStatus, setFavoriteStatus] = useState<Record<string, boolean>>({});
+
+  // Update favorite status when favorites change or when favorites are loaded
+  useEffect(() => {
+    if (!favoritesLoading) {
+      const status: Record<string, boolean> = {};
+      tracks.forEach(track => {
+        status[track.id] = true;
+      });
+      setFavoriteStatus(status);
+    }
+  }, [tracks, favoritesLoading]);
+
+  // Listen for favorites loaded event to update favorite status
+  useEffect(() => {
+    const handleFavoritesLoaded = () => {
+      const status: Record<string, boolean> = {};
+      tracks.forEach(track => {
+        status[track.id] = true;
+      });
+      setFavoriteStatus(status);
+    };
+
+    // Add event listener
+    window.addEventListener('favoritesLoaded', handleFavoritesLoaded);
+
+    // Clean up event listener
+    return () => {
+      window.removeEventListener('favoritesLoaded', handleFavoritesLoaded);
+    };
+  }, [tracks]);
+
+  // Toggle favorite status for a track
+  const toggleFavorite = (trackId: string) => {
+    // Remove from favorites
+    removeFromFavorites(trackId);
+    
+    // Update local state
+    setTracks(prev => prev.filter(track => track.id !== trackId));
+  };
+
+  // Load favorites from backend
+  const loadFavorites = async () => {
+    if (isAuthenticated && !isLoading) {
+      try {
+        const favorites = await getUserFavorites()
+        // Map the favorites to ensure each track has a unique id
+        const mappedTracks = favorites.map((track: any) => ({
+          ...track,
+          id: track._id || track.id // Use _id if available, otherwise use id
+        }))
+        setTracks(mappedTracks)
+      } catch (error) {
+        console.error('Error loading favorites:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+  };
 
   // Load favorites from backend
   useEffect(() => {
-    const loadFavorites = async () => {
-      if (isAuthenticated && !isLoading) {
-        try {
-          const favorites = await getUserFavorites()
-          // Map the favorites to ensure each track has a unique id
-          const mappedTracks = favorites.map((track: any) => ({
-            ...track,
-            id: track._id || track.id // Use _id if available, otherwise use id
-          }))
-          setTracks(mappedTracks)
-        } catch (error) {
-          console.error('Error loading favorites:', error)
-        } finally {
-          setLoading(false)
-        }
-      }
-    }
-
-    loadFavorites()
+    loadFavorites();
   }, [isAuthenticated, isLoading])
+
+  // Listen for track updates (when favorites are added/removed)
+  useEffect(() => {
+    const handleTrackUpdate = (event: CustomEvent) => {
+      const detail = event.detail;
+      if (detail && detail.trackId) {
+        // Update favorite status if provided
+        if (detail.isFavorite !== undefined && !detail.isFavorite) {
+          // If a track was unfavorited, remove it from the local list
+          setTracks(prev => prev.filter(track => track.id !== detail.trackId));
+        }
+        
+        // Reload favorites to update like counts
+        loadFavorites();
+      }
+    };
+
+    // Add event listener
+    window.addEventListener('trackUpdated', handleTrackUpdate as EventListener);
+
+    // Clean up event listener
+    return () => {
+      window.removeEventListener('trackUpdated', handleTrackUpdate as EventListener);
+    };
+  }, [loadFavorites]);
 
   // Check authentication on component mount
   useEffect(() => {
@@ -144,9 +214,17 @@ export default function FavoritesPage() {
                     <span className="text-gray-500 text-xs sm:text-sm hidden sm:block">
                       {track.duration || '3:45'}
                     </span>
-                    <button className="p-1.5 sm:p-2 rounded-full hover:bg-gray-800/50 transition-colors">
-                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-[#FF4D67]" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                        <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd"></path>
+                    <button 
+                      onClick={() => toggleFavorite(track.id || track._id)}
+                      className="p-1.5 sm:p-2 rounded-full hover:bg-gray-800/50 transition-all duration-300 hover:scale-110"
+                    >
+                      <svg 
+                        className={`w-4 h-4 sm:w-5 sm:h-5 text-red-500 fill-current transition-all duration-200 scale-110`}
+                        fill="currentColor"
+                        viewBox="0 0 24 24" 
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
                       </svg>
                     </button>
                   </div>

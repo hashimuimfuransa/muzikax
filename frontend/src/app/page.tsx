@@ -56,9 +56,64 @@ export default function Home() {
   >("trending");
   const [currentSlide, setCurrentSlide] = useState(0);
   const { isAuthenticated, userRole } = useAuth();
-  const { currentTrack, isPlaying, playTrack, setCurrentPlaylist } =
+  const { currentTrack, isPlaying, playTrack, setCurrentPlaylist, favorites, favoritesLoading, addToFavorites, removeFromFavorites } =
     useAudioPlayer();
   const router = useRouter();
+
+  // State for tracking which tracks are favorited
+  const [favoriteStatus, setFavoriteStatus] = useState<Record<string, boolean>>({});
+
+  // Update favorite status when favorites change or when favorites are loaded
+  useEffect(() => {
+    if (!favoritesLoading) {
+      const status: Record<string, boolean> = {};
+      favorites.forEach(track => {
+        status[track.id] = true;
+      });
+      setFavoriteStatus(status);
+    }
+  }, [favorites, favoritesLoading]);
+
+  // Listen for favorites loaded event to update favorite status
+  useEffect(() => {
+    const handleFavoritesLoaded = () => {
+      const status: Record<string, boolean> = {};
+      favorites.forEach(track => {
+        status[track.id] = true;
+      });
+      setFavoriteStatus(status);
+    };
+
+    // Add event listener
+    window.addEventListener('favoritesLoaded', handleFavoritesLoaded);
+
+    // Clean up event listener
+    return () => {
+      window.removeEventListener('favoritesLoaded', handleFavoritesLoaded);
+    };
+  }, [favorites]);
+
+  // Toggle favorite status for a track
+  const toggleFavorite = (trackId: string, track: any) => {
+    if (favoriteStatus[trackId]) {
+      // Remove from favorites
+      removeFromFavorites(trackId);
+    } else {
+      // Add to favorites
+      addToFavorites({
+        id: track._id,
+        title: track.title,
+        artist: typeof track.creatorId === 'object' && track.creatorId !== null 
+          ? (track.creatorId as any).name 
+          : 'Unknown Artist',
+        coverImage: track.coverURL || '',
+        audioUrl: track.audioURL || '',
+        creatorId: typeof track.creatorId === 'object' && track.creatorId !== null 
+          ? (track.creatorId as any)._id 
+          : track.creatorId
+      });
+    }
+  };
 
   // Redirect admin users to admin dashboard
   useEffect(() => {
@@ -114,12 +169,39 @@ export default function Home() {
   }, []);
 
   // Fetch real trending tracks
-  const { tracks: trendingTracksData, loading: trendingLoading } =
+  const { tracks: trendingTracksData, loading: trendingLoading, refresh: refreshTrendingTracks } =
     useTrendingTracks(10);
 
   // Fetch real popular creators
   const { creators: popularCreatorsData, loading: creatorsLoading } =
     usePopularCreators(6);
+
+  // Listen for track updates (when favorites are added/removed)
+  useEffect(() => {
+    const handleTrackUpdate = (event: CustomEvent) => {
+      const detail = event.detail;
+      if (detail && detail.trackId) {
+        // Update favorite status if provided
+        if (detail.isFavorite !== undefined) {
+          setFavoriteStatus(prev => ({
+            ...prev,
+            [detail.trackId]: detail.isFavorite
+          }));
+        }
+        
+        // Refresh trending tracks to update like counts
+        refreshTrendingTracks();
+      }
+    };
+
+    // Add event listener
+    window.addEventListener('trackUpdated', handleTrackUpdate as EventListener);
+
+    // Clean up event listener
+    return () => {
+      window.removeEventListener('trackUpdated', handleTrackUpdate as EventListener);
+    };
+  }, [refreshTrendingTracks]);
 
   // Transform tracks data to match existing interface
   const trendingTracks: Track[] = trendingTracksData.map((track) => ({
@@ -640,7 +722,7 @@ export default function Home() {
                       </svg>
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                     <button
                       onClick={() => {
                         // Find the full track object to get the audioURL
@@ -706,6 +788,27 @@ export default function Home() {
                           ></path>
                         </svg>
                       )}
+                    </button>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Find the full track object
+                        const fullTrack = trendingTracksData.find(t => t._id === track.id);
+                        if (fullTrack) {
+                          toggleFavorite(track.id, fullTrack);
+                        }
+                      }}
+                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 hover:scale-110"
+                    >
+                      <svg 
+                        className={`w-4 h-4 sm:w-5 sm:h-5 transition-all duration-200 ${favoriteStatus[track.id] ? 'text-red-500 fill-current scale-110' : 'stroke-current'}`}
+                        fill={favoriteStatus[track.id] ? "currentColor" : "none"}
+                        stroke="currentColor"
+                        viewBox="0 0 24 24" 
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                      </svg>
                     </button>
                   </div>
                 </div>
@@ -1398,20 +1501,25 @@ export default function Home() {
                       </button>
                     </div>
                     <div className="absolute top-2 right-2 sm:top-3 sm:right-3">
-                      <button className="p-1.5 sm:p-2 rounded-full bg-black/30 backdrop-blur-sm text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                        <svg
-                          className="w-4 h-4 sm:w-5 sm:h-5"
-                          fill="none"
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Find the full track object
+                          const fullTrack = trendingTracksData.find(t => t._id === track.id);
+                          if (fullTrack) {
+                            toggleFavorite(track.id, fullTrack);
+                          }
+                        }}
+                        className="p-1.5 sm:p-2 rounded-full bg-black/30 backdrop-blur-sm text-white opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110"
+                      >
+                        <svg 
+                          className={`w-4 h-4 sm:w-5 sm:h-5 transition-all duration-200 ${favoriteStatus[track.id] ? 'text-red-500 fill-current scale-110' : 'stroke-current'}`}
+                          fill={favoriteStatus[track.id] ? "currentColor" : "none"}
                           stroke="currentColor"
-                          viewBox="0 0 24 24"
+                          viewBox="0 0 24 24" 
                           xmlns="http://www.w3.org/2000/svg"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                          ></path>
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
                         </svg>
                       </button>
                     </div>
@@ -1545,20 +1653,25 @@ export default function Home() {
                       </button>
                     </div>
                     <div className="absolute top-2 right-2 sm:top-3 sm:right-3">
-                      <button className="p-1.5 sm:p-2 rounded-full bg-black/30 backdrop-blur-sm text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                        <svg
-                          className="w-4 h-4 sm:w-5 sm:h-5"
-                          fill="none"
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Find the full track object
+                          const fullTrack = trendingTracksData.find(t => t._id === track.id);
+                          if (fullTrack) {
+                            toggleFavorite(track.id, fullTrack);
+                          }
+                        }}
+                        className="p-1.5 sm:p-2 rounded-full bg-black/30 backdrop-blur-sm text-white opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110"
+                      >
+                        <svg 
+                          className={`w-4 h-4 sm:w-5 sm:h-5 transition-all duration-200 ${favoriteStatus[track.id] ? 'text-red-500 fill-current scale-110' : 'stroke-current'}`}
+                          fill={favoriteStatus[track.id] ? "currentColor" : "none"}
                           stroke="currentColor"
-                          viewBox="0 0 24 24"
+                          viewBox="0 0 24 24" 
                           xmlns="http://www.w3.org/2000/svg"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                          ></path>
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
                         </svg>
                       </button>
                     </div>

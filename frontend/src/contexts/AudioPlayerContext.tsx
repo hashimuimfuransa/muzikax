@@ -88,6 +88,7 @@ interface Track {
   duration?: number; // in seconds
   creatorId?: string; // Add creator ID for linking to artist profile
   albumId?: string; // Add album ID for album playback logic
+  likes?: number; // Add likes property to track like counts
 }
 
 interface Playlist {
@@ -111,6 +112,7 @@ interface AudioPlayerContextType {
   playlist: Track[];
   playlists: Playlist[];
   favorites: Track[];
+  favoritesLoading: boolean;
   comments: Comment[];
   playTrack: (track: Track, contextPlaylist?: Track[], albumContext?: { albumId: string, tracks: Track[] }) => void;
   playNextTrack: () => void;
@@ -155,6 +157,7 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
   const [playlist, setPlaylist] = useState<Track[]>([]);
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [favorites, setFavorites] = useState<Track[]>([]);
+  const [favoritesLoading, setFavoritesLoading] = useState(true);
   const [comments, setComments] = useState<Comment[]>([]);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -181,12 +184,17 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
         const accessToken = localStorage.getItem('accessToken');
         if (!accessToken) {
           console.log('No access token found, skipping user data load');
+          setFavoritesLoading(false);
           return;
         }
         
         // Load favorites
         const userFavorites = await getUserFavorites();
         setFavorites(userFavorites);
+        setFavoritesLoading(false);
+        
+        // Dispatch a custom event to notify that favorites have been loaded
+        window.dispatchEvent(new CustomEvent('favoritesLoaded'));
         
         // Load playlists
         const userPlaylists = await getUserPlaylists();
@@ -202,6 +210,7 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
         setPlaylists(mappedPlaylists);
       } catch (error) {
         console.error('Error loading user data:', error);
+        setFavoritesLoading(false);
       }
     };
     
@@ -888,7 +897,14 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
         });
         
         // Dispatch a custom event to notify other components that track data may have changed
-        window.dispatchEvent(new CustomEvent('trackUpdated', { detail: { trackId: track.id } }));
+        // Include the updated like count in the event detail
+        window.dispatchEvent(new CustomEvent('trackUpdated', { 
+          detail: { 
+            trackId: track.id, 
+            likes: (track.likes || 0) + 1,
+            isFavorite: true
+          } 
+        }));
       } else {
         console.log('Failed to add track to favorites - user may not be authenticated');
       }
@@ -899,12 +915,23 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
 
   const removeFromFavorites = async (trackId: string) => {
     try {
+      // First, get the current track to know the current like count
+      const currentTrack = favorites.find(track => track.id === trackId);
       const result = await removeTrackFromFavorites(trackId);
       if (result) {
         setFavorites(prev => prev.filter(track => track.id !== trackId));
         
         // Dispatch a custom event to notify other components that track data may have changed
-        window.dispatchEvent(new CustomEvent('trackUpdated', { detail: { trackId } }));
+        // Include the updated like count in the event detail
+        if (currentTrack) {
+          window.dispatchEvent(new CustomEvent('trackUpdated', { 
+            detail: { 
+              trackId, 
+              likes: Math.max(0, (currentTrack.likes || 0) - 1),
+              isFavorite: false
+            } 
+          }));
+        }
       } else {
         console.log('Failed to remove track from favorites - user may not be authenticated');
       }
@@ -951,6 +978,7 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
         playlist,
         playlists,
         favorites,
+        favoritesLoading,
         comments,
         addToPlaylist,
         removeFromPlaylist,

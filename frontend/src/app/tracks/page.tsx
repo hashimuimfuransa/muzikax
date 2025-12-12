@@ -17,9 +17,91 @@ interface Track {
 export default function TracksPage() {
   const [activeTab, setActiveTab] = useState<'trending' | 'new' | 'popular'>('trending')
   const [sortBy, setSortBy] = useState<'popular' | 'recent' | 'alphabetical'>('popular')
-  const { tracks: trendingTracksData, loading: trendingLoading } = useTrendingTracks(20)
+  const { tracks: trendingTracksData, loading: trendingLoading, refresh: refreshTrendingTracks } = useTrendingTracks(20)
   const { creators: popularCreatorsData, loading: creatorsLoading } = usePopularCreators(10)
-  const { currentTrack, isPlaying, playTrack, setCurrentPlaylist } = useAudioPlayer()
+  const { currentTrack, isPlaying, playTrack, setCurrentPlaylist, favorites, addToFavorites, removeFromFavorites } = useAudioPlayer()
+
+  // State for tracking which tracks are favorited
+  const [favoriteStatus, setFavoriteStatus] = useState<Record<string, boolean>>({});
+
+  // Update favorite status when favorites change or when favorites are loaded
+  useEffect(() => {
+    if (!favoritesLoading) {
+      const status: Record<string, boolean> = {};
+      favorites.forEach(track => {
+        status[track.id] = true;
+      });
+      setFavoriteStatus(status);
+    }
+  }, [favorites, favoritesLoading]);
+
+  // Listen for favorites loaded event to update favorite status
+  useEffect(() => {
+    const handleFavoritesLoaded = () => {
+      const status: Record<string, boolean> = {};
+      favorites.forEach(track => {
+        status[track.id] = true;
+      });
+      setFavoriteStatus(status);
+    };
+
+    // Add event listener
+    window.addEventListener('favoritesLoaded', handleFavoritesLoaded);
+
+    // Clean up event listener
+    return () => {
+      window.removeEventListener('favoritesLoaded', handleFavoritesLoaded);
+    };
+  }, [favorites]);
+
+  // Toggle favorite status for a track
+  const toggleFavorite = (trackId: string, track: any) => {
+    if (favoriteStatus[trackId]) {
+      // Remove from favorites
+      removeFromFavorites(trackId);
+    } else {
+      // Add to favorites
+      addToFavorites({
+        id: track._id,
+        title: track.title,
+        artist: typeof track.creatorId === 'object' && track.creatorId !== null 
+          ? (track.creatorId as any).name 
+          : 'Unknown Artist',
+        coverImage: track.coverURL || '',
+        audioUrl: track.audioURL || '',
+        creatorId: typeof track.creatorId === 'object' && track.creatorId !== null 
+          ? (track.creatorId as any)._id 
+          : track.creatorId
+      });
+    }
+  };
+
+  // Listen for track updates (when favorites are added/removed)
+  useEffect(() => {
+    const handleTrackUpdate = (event: CustomEvent) => {
+      const detail = event.detail;
+      if (detail && detail.trackId) {
+        // Update favorite status if provided
+        if (detail.isFavorite !== undefined) {
+          setFavoriteStatus(prev => ({
+            ...prev,
+            [detail.trackId]: detail.isFavorite
+          }));
+        }
+        
+        // Refresh trending tracks to update like counts
+        refreshTrendingTracks();
+      }
+    };
+
+    // Add event listener
+    window.addEventListener('trackUpdated', handleTrackUpdate as EventListener);
+
+    // Clean up event listener
+    return () => {
+      window.removeEventListener('trackUpdated', handleTrackUpdate as EventListener);
+    };
+  }, [refreshTrendingTracks]);
   
   // Transform real tracks data to match existing interface
   const trendingTracks: Track[] = trendingTracksData.map(track => ({
@@ -180,12 +262,28 @@ export default function TracksPage() {
                   
                   <div className="flex justify-between items-center mt-3">
                     <span className="text-gray-500 text-xs">{track.plays.toLocaleString()} plays</span>
-                    <div className="flex items-center gap-1">
-                      <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                        <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd"></path>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Find the full track object
+                        const fullTrack = trendingTracksData.find(t => t._id === track.id);
+                        if (fullTrack) {
+                          toggleFavorite(track.id, fullTrack);
+                        }
+                      }}
+                      className="flex items-center gap-1 hover:scale-105 transition-transform duration-200"
+                    >
+                      <svg 
+                        className={`w-4 h-4 transition-all duration-200 ${favoriteStatus[track.id] ? 'text-red-500 fill-current scale-110' : 'text-red-500 stroke-current'}`}
+                        fill={favoriteStatus[track.id] ? "currentColor" : "none"}
+                        stroke="currentColor"
+                        viewBox="0 0 24 24" 
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
                       </svg>
                       <span className="text-gray-500 text-xs">{track.likes}</span>
-                    </div>
+                    </button>
                   </div>
                 </div>
               </div>
