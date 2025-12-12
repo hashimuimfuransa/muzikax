@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useRef, ReactNode, useEffect } from 'react';
 import { incrementTrackPlayCount } from '../services/trackService';
+import { fetchRecommendedTracks } from '../services/recommendationService';
 import { useRouter } from 'next/navigation';
 import { addTrackToFavorites, removeTrackFromFavorites, getUserFavorites, createPlaylist as createPlaylistService, addTrackToPlaylist as addTrackToPlaylistService, getUserPlaylists } from '../services/userService';
 
@@ -223,6 +224,7 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
   const playTrack = (track: Track, contextPlaylist?: Track[], albumContext?: { albumId: string, tracks: Track[] }) => {
     console.log('PLAY TRACK CALLED with track:', track);
     console.log('Current track before playTrack:', currentTrack);
+    console.log('Current track index before playTrack:', currentTrackIndex);
     
     // Validate that we have a valid audio URL
     if (!track.audioUrl || track.audioUrl.trim() === '') {
@@ -256,6 +258,7 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
       // Set the playlist to the album tracks
       setPlaylist(albumContext.tracks);
       const index = albumContext.tracks.findIndex(t => t.id === track.id);
+      console.log('Setting album track index to:', index);
       setCurrentTrackIndex(index >= 0 ? index : 0);
     } else if (contextPlaylist && contextPlaylist.length > 0) {
       console.log('Setting playlist context with tracks:', contextPlaylist);
@@ -265,6 +268,7 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
       };
       setPlaylist(contextPlaylist);
       const index = contextPlaylist.findIndex(t => t.id === track.id);
+      console.log('Setting playlist track index to:', index);
       setCurrentTrackIndex(index >= 0 ? index : 0);
     } else {
       currentPlaybackContext.current = { type: 'single' };
@@ -289,7 +293,13 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     audio.onended = () => {
       console.log('AUDIO ONENDED EVENT TRIGGERED');
       console.log('Current track in onended:', currentTrack);
+      console.log('Current track index in onended:', currentTrackIndex);
+      console.log('Playlist in onended:', playlist);
+      console.log('Playback context in onended:', currentPlaybackContext.current);
       setIsPlaying(false);
+      // According to the specification, at the end of playback, currentTrack should be set to null
+      // but currentTrackIndex should retain its value
+      setCurrentTrack(null);
       playNextTrack();
     };
     
@@ -353,13 +363,14 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     }, 0);
   };
 
-  const playNextTrack = () => {
+  const playNextTrack = async () => {
     const context = currentPlaybackContext.current;
     console.log('PLAY NEXT TRACK - Starting execution');
     console.log('Context:', context);
     console.log('Current track:', currentTrack);
     console.log('Playlist:', playlist);
     console.log('Current track index:', currentTrackIndex);
+    console.log('Playlist length:', playlist.length);
     
     // If we're in album context, play next track in album
     if (context.type === 'album' && context.data) {
@@ -381,17 +392,23 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
         const nextTrack = tracks[currentIndex + 1];
         console.log('Playing next album track:', nextTrack);
         playTrack(nextTrack, undefined, context.data);
+        // Update the current track index
+        setCurrentTrackIndex(currentIndex + 1);
         return;
       } else if (currentIndex !== -1 && currentIndex === tracks.length - 1) {
         // Loop back to the first track in the album
         console.log('Looping back to first track in album');
         const firstTrack = tracks[0];
         playTrack(firstTrack, undefined, context.data);
+        // Update the current track index to 0 when looping
+        setCurrentTrackIndex(0);
         return;
       }
     }
     
     // If we're in playlist context, play next track in playlist
+    // Note: We check context.type === 'playlist' rather than playlist.length > 0
+    // because the main playlist state might be temporarily empty while context.data preserves the playlist
     if (context.type === 'playlist' && context.data) {
       console.log('In playlist context');
       
@@ -406,23 +423,79 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
       
       console.log('Playlist current index:', currentIndex);
       console.log('Playlist length:', context.data.length);
+      console.log('Is at last track:', currentIndex === context.data.length - 1);
       
       if (currentIndex !== -1 && currentIndex < context.data.length - 1) {
         const nextTrack = context.data[currentIndex + 1];
         console.log('Playing next playlist track:', nextTrack);
         playTrack(nextTrack, context.data);
+        // Update the current track index
+        setCurrentTrackIndex(currentIndex + 1);
         return;
       } else if (currentIndex !== -1 && currentIndex === context.data.length - 1) {
-        // Loop back to the first track in the playlist
-        console.log('Looping back to first track in playlist');
-        const firstTrack = context.data[0];
-        playTrack(firstTrack, context.data);
-        return;
+        // Instead of looping back to the first track, use our recommendation algorithm
+        console.log('Using recommendation algorithm for next track');
+        
+        try {
+          // Get recommended tracks based on the current track
+          const recommendedTracks = await fetchRecommendedTracks(currentTrack?.id);
+          
+          if (recommendedTracks && recommendedTracks.length > 0) {
+            // Select the first recommended track
+            const nextTrack = {
+              id: recommendedTracks[0]._id,
+              title: recommendedTracks[0].title,
+              artist: typeof recommendedTracks[0].creatorId === 'object' && recommendedTracks[0].creatorId !== null
+                ? (recommendedTracks[0].creatorId as any).name || 'Unknown Artist'
+                : 'Unknown Artist',
+              coverImage: recommendedTracks[0].coverURL || '',
+              audioUrl: recommendedTracks[0].audioURL,
+              duration: 0, // Duration will be set when track loads
+              creatorId: typeof recommendedTracks[0].creatorId === 'object' && recommendedTracks[0].creatorId !== null
+                ? (recommendedTracks[0].creatorId as any)._id
+                : recommendedTracks[0].creatorId
+            };
+            
+            console.log('Playing recommended track:', nextTrack);
+            playTrack(nextTrack, [nextTrack]); // Create a new playlist with just this track
+            setCurrentTrackIndex(0);
+            return;
+          } else {
+            // If no recommendations, try to play the first track in the playlist as a fallback
+            // If that fails, stop playback
+            if (playlist.length > 0) {
+              console.log('No recommendations found, falling back to first track in playlist');
+              const firstTrack = playlist[0];
+              playTrack(firstTrack, playlist);
+              setCurrentTrackIndex(0);
+              return;
+            } else {
+              console.log('STOPPING TRACK - No recommendations found and no playlist fallback available');
+              stopTrack();
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching recommendations:', error);
+          // If recommendation fails, try to play the first track in the playlist as a fallback
+          // If that fails, stop playback
+          if (playlist.length > 0) {
+            console.log('Recommendation failed, falling back to first track in playlist');
+            const firstTrack = playlist[0];
+            playTrack(firstTrack, playlist);
+            setCurrentTrackIndex(0);
+            return;
+          } else {
+            console.log('STOPPING TRACK - Recommendation failed and no playlist fallback available');
+            stopTrack();
+          }
+        }
       } else if (context.data.length > 0) {
         // Fallback: if we can't determine current position, play first track
         console.log('Fallback: playing first track in playlist');
         const firstTrack = context.data[0];
         playTrack(firstTrack, context.data);
+        // Update the current track index to 0
+        setCurrentTrackIndex(0);
         return;
       }
     }
@@ -451,30 +524,133 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
         setCurrentTrackIndex(currentIndex + 1);
         return;
       } else if (currentIndex !== -1 && currentIndex === playlist.length - 1) {
-        // Loop back to the first track in the main playlist
-        console.log('Looping back to first track in main playlist');
-        const firstTrack = playlist[0];
-        playTrack(firstTrack, playlist);
-        setCurrentTrackIndex(0);
-        return;
+        // Instead of looping back to the first track, use our recommendation algorithm
+        console.log('Using recommendation algorithm for next track');
+        
+        try {
+          // Get recommended tracks based on the current track
+          const recommendedTracks = await fetchRecommendedTracks(currentTrack?.id);
+          
+          if (recommendedTracks && recommendedTracks.length > 0) {
+            // Select the first recommended track
+            const nextTrack = {
+              id: recommendedTracks[0]._id,
+              title: recommendedTracks[0].title,
+              artist: typeof recommendedTracks[0].creatorId === 'object' && recommendedTracks[0].creatorId !== null
+                ? (recommendedTracks[0].creatorId as any).name || 'Unknown Artist'
+                : 'Unknown Artist',
+              coverImage: recommendedTracks[0].coverURL || '',
+              audioUrl: recommendedTracks[0].audioURL,
+              duration: 0, // Duration will be set when track loads
+              creatorId: typeof recommendedTracks[0].creatorId === 'object' && recommendedTracks[0].creatorId !== null
+                ? (recommendedTracks[0].creatorId as any)._id
+                : recommendedTracks[0].creatorId
+            };
+            
+            console.log('Playing recommended track:', nextTrack);
+            playTrack(nextTrack, [nextTrack]); // Create a new playlist with just this track
+            setCurrentTrackIndex(0);
+            return;
+          } else {
+            // If no recommendations, try to play the first track in the playlist as a fallback
+            // If that fails, stop playback
+            if (playlist.length > 0) {
+              console.log('No recommendations found, falling back to first track in playlist');
+              const firstTrack = playlist[0];
+              playTrack(firstTrack, playlist);
+              setCurrentTrackIndex(0);
+              return;
+            } else {
+              console.log('STOPPING TRACK - No recommendations found and no playlist fallback available');
+              stopTrack();
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching recommendations:', error);
+          // If recommendation fails, try to play the first track in the playlist as a fallback
+          // If that fails, stop playback
+          if (playlist.length > 0) {
+            console.log('Recommendation failed, falling back to first track in playlist');
+            const firstTrack = playlist[0];
+            playTrack(firstTrack, playlist);
+            setCurrentTrackIndex(0);
+            return;
+          } else {
+            console.log('STOPPING TRACK - Recommendation failed and no playlist fallback available');
+            stopTrack();
+          }
+        }
       } else if (playlist.length > 0) {
         // Fallback: if we can't determine current position, play first track
         console.log('Fallback: playing first track in main playlist');
         const firstTrack = playlist[0];
         playTrack(firstTrack, playlist);
+        // Update the current track index to 0
         setCurrentTrackIndex(0);
         return;
       }
     }
     
     // If we reach here, we're at the end of the queue and not in album/playlist context
-    // We could either stop or loop back to the beginning
-    // For now, we'll stop
-    console.log('STOPPING TRACK - reached end of queue');
-    console.log('Context at stop:', context);
-    console.log('Current track at stop:', currentTrack);
-    console.log('Playlist at stop:', playlist);
-    stopTrack();
+    // Use our recommendation algorithm to find the next track
+    console.log('END OF QUEUE - Using recommendation algorithm');
+    console.log('Current track for recommendations:', currentTrack);
+    console.log('Playlist for recommendations:', playlist);
+    
+    try {
+      // Get recommended tracks
+      const recommendedTracks = await fetchRecommendedTracks(currentTrack?.id);
+      console.log('Recommended tracks received:', recommendedTracks);
+      
+      if (recommendedTracks && recommendedTracks.length > 0) {
+        // Select the first recommended track
+        const nextTrack = {
+          id: recommendedTracks[0]._id,
+          title: recommendedTracks[0].title,
+          artist: typeof recommendedTracks[0].creatorId === 'object' && recommendedTracks[0].creatorId !== null
+            ? (recommendedTracks[0].creatorId as any).name || 'Unknown Artist'
+            : 'Unknown Artist',
+          coverImage: recommendedTracks[0].coverURL || '',
+          audioUrl: recommendedTracks[0].audioURL,
+          duration: 0, // Duration will be set when track loads
+          creatorId: typeof recommendedTracks[0].creatorId === 'object' && recommendedTracks[0].creatorId !== null
+            ? (recommendedTracks[0].creatorId as any)._id
+            : recommendedTracks[0].creatorId
+        };
+        
+        console.log('Playing recommended track:', nextTrack);
+        playTrack(nextTrack, [nextTrack]); // Create a new playlist with just this track
+        setCurrentTrackIndex(0);
+        return;
+      } else {
+        // If no recommendations, try to play the first track in the playlist as a fallback
+        // If that fails, stop playback
+        if (playlist.length > 0) {
+          console.log('No recommendations found, falling back to first track in playlist');
+          const firstTrack = playlist[0];
+          playTrack(firstTrack, playlist);
+          setCurrentTrackIndex(0);
+          return;
+        } else {
+          console.log('STOPPING TRACK - No recommendations found and no playlist fallback available');
+          stopTrack();
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching recommendations:', error);
+      // If recommendation fails, try to play the first track in the playlist as a fallback
+      // If that fails, stop playback
+      if (playlist.length > 0) {
+        console.log('Recommendation failed, falling back to first track in playlist');
+        const firstTrack = playlist[0];
+        playTrack(firstTrack, playlist);
+        setCurrentTrackIndex(0);
+        return;
+      } else {
+        console.log('STOPPING TRACK - Recommendation failed and no playlist fallback available');
+        stopTrack();
+      }
+    }
   };
 
   const playPreviousTrack = () => {

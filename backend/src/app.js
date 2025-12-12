@@ -22,6 +22,7 @@ console.log('Public routes imported successfully');
 const favoriteRoutes = require('./routes/features/favoriteRoutes');
 const playlistRoutes = require('./routes/features/playlistRoutes');
 const recentlyPlayedRoutes = require('./routes/recentlyPlayedRoutes');
+const recommendationRoutes = require('./routes/recommendationRoutes');
 
 console.log('ROUTES IMPORTED');
 
@@ -70,6 +71,8 @@ app.use('/api/playlists', playlistRoutes);
 console.log('Playlists routes registered');
 app.use('/api/recently-played', recentlyPlayedRoutes);
 console.log('Recently played routes registered');
+app.use('/api/recommendations', recommendationRoutes);
+console.log('Recommendations routes registered');
 
 app.use('/api/upgrade', upgradeRoutes);
 console.log('Upgrade routes registered');

@@ -22,6 +22,7 @@ console.log('Public routes imported successfully');
 import favoriteRoutes from './routes/features/favoriteRoutes';
 import playlistRoutes from './routes/features/playlistRoutes';
 import recentlyPlayedRoutes from './routes/recentlyPlayedRoutes';
+import recommendationRoutes from './routes/recommendationRoutes';
 
 console.log('ROUTES IMPORTED');
 
@@ -70,6 +71,8 @@ app.use('/api/playlists', playlistRoutes);
 console.log('Playlists routes registered');
 app.use('/api/recently-played', recentlyPlayedRoutes);
 console.log('Recently played routes registered');
+app.use('/api/recommendations', recommendationRoutes);
+console.log('Recommendations routes registered');
 
 app.use('/api/upgrade', upgradeRoutes);
 console.log('Upgrade routes registered');
