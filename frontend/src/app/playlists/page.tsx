@@ -2,21 +2,21 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useAuth } from '../../contexts/AuthContext'
-import { getUserPlaylists } from '../../services/userService'
+import { useAuth } from '@/contexts/AuthContext'
+import { getUserPlaylists } from '@/services/userService'
 
 interface Track {
+  _id: string
   id: string
   title: string
   artist: string
-  album?: string
-  plays: number
-  likes: number
-  coverImage: string
+  coverImage?: string
+  coverURL?: string
   duration?: string
 }
 
 interface Playlist {
+  _id: string
   id: string
   name: string
   tracks: Track[]
@@ -34,7 +34,16 @@ export default function Playlists() {
       if (isAuthenticated && !isLoading) {
         try {
           const userPlaylists = await getUserPlaylists()
-          setPlaylists(userPlaylists)
+          // Map the playlists to ensure each has a unique id
+          const mappedPlaylists = userPlaylists.map((playlist: any) => ({
+            ...playlist,
+            id: playlist._id || playlist.id, // Use _id if available, otherwise use id
+            tracks: playlist.tracks.map((track: any) => ({
+              ...track,
+              id: track._id || track.id // Use _id if available, otherwise use id
+            }))
+          }))
+          setPlaylists(mappedPlaylists)
         } catch (error) {
           console.error('Error loading playlists:', error)
         } finally {
@@ -117,13 +126,18 @@ export default function Playlists() {
             // Playlists List
             <div className="space-y-4">
               {playlists.map((playlist) => (
-                <div key={playlist.id} className="card-bg rounded-2xl p-4 sm:p-5 flex items-center gap-4 transition-all hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50">
+                <div key={playlist.id || playlist._id} className="card-bg rounded-2xl p-4 sm:p-5 flex items-center gap-4 transition-all hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50">
                   <div className="relative">
                     {playlist.tracks.length > 0 ? (
                       <img 
-                        src={playlist.tracks[0].coverImage} 
+                        src={playlist.tracks[0].coverImage || playlist.tracks[0].coverURL || '/placeholder-track.png'} 
                         alt={playlist.name} 
                         className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg object-cover"
+                        onError={(e) => {
+                          // Handle broken images gracefully
+                          const target = e.target as HTMLImageElement;
+                          target.src = '/placeholder-track.png';
+                        }}
                       />
                     ) : (
                       <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg bg-gray-800 flex items-center justify-center">

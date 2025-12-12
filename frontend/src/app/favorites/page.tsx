@@ -2,25 +2,25 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useAuth } from '../../contexts/AuthContext'
-import { getUserFavorites } from '../../services/userService'
+import { useAuth } from '@/contexts/AuthContext'
+import { getUserFavorites } from '@/services/userService'
 
 interface Track {
+  _id: string
   id: string
   title: string
   artist: string
-  album?: string
-  plays: number
-  likes: number
-  coverImage: string
+  coverImage?: string
+  coverURL?: string
   duration?: string
+  // Add other properties as needed
 }
 
-export default function Favorites() {
+export default function FavoritesPage() {
   const [tracks, setTracks] = useState<Track[]>([])
   const [loading, setLoading] = useState(true)
+  const { isAuthenticated, isLoading } = useAuth()
   const router = useRouter()
-  const { isAuthenticated, isLoading } = useAuth() // Add isLoading
 
   // Load favorites from backend
   useEffect(() => {
@@ -28,7 +28,12 @@ export default function Favorites() {
       if (isAuthenticated && !isLoading) {
         try {
           const favorites = await getUserFavorites()
-          setTracks(favorites)
+          // Map the favorites to ensure each track has a unique id
+          const mappedTracks = favorites.map((track: any) => ({
+            ...track,
+            id: track._id || track.id // Use _id if available, otherwise use id
+          }))
+          setTracks(mappedTracks)
         } catch (error) {
           console.error('Error loading favorites:', error)
         } finally {
@@ -111,12 +116,17 @@ export default function Favorites() {
             // Favorites List
             <div className="space-y-4">
               {tracks.map((track) => (
-                <div key={track.id} className="card-bg rounded-2xl p-4 sm:p-5 flex items-center gap-4 transition-all hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50">
+                <div key={track.id || track._id} className="card-bg rounded-2xl p-4 sm:p-5 flex items-center gap-4 transition-all hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50">
                   <div className="relative">
                     <img 
-                      src={track.coverImage} 
+                      src={track.coverImage || track.coverURL || '/placeholder-track.png'} 
                       alt={track.title} 
                       className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg object-cover"
+                      onError={(e) => {
+                        // Handle broken images gracefully
+                        const target = e.target as HTMLImageElement;
+                        target.src = '/placeholder-track.png';
+                      }}
                     />
                     <button className="absolute inset-0 w-full h-full rounded-lg bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
                       <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">

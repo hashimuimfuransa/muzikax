@@ -3,8 +3,11 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../contexts/AuthContext'
+import { useAudioPlayer } from '../../contexts/AudioPlayerContext'
+import { getRecentlyPlayed } from '../../services/recentlyPlayedService'
 
 interface Track {
+  _id: string
   id: string
   title: string
   artist: string
@@ -12,13 +15,19 @@ interface Track {
   plays: number
   likes: number
   coverImage: string
-  duration?: string
+  coverURL?: string
+  duration?: number
+  audioUrl: string
+  creatorId?: string
+  playedAt: string
 }
 
 export default function RecentlyPlayed() {
   const [tracks, setTracks] = useState<Track[]>([])
+  const [loading, setLoading] = useState(true)
   const router = useRouter()
-  const { isAuthenticated, isLoading } = useAuth() // Add isLoading
+  const { isAuthenticated, isLoading } = useAuth()
+  const { currentTrack, isPlaying, playTrack, setCurrentPlaylist } = useAudioPlayer()
 
   // Check authentication on component mount
   useEffect(() => {
@@ -27,7 +36,44 @@ export default function RecentlyPlayed() {
       // If not authenticated, redirect to login
       router.push('/login')
     }
-  }, [isAuthenticated, router, isLoading]) // Add isLoading to dependency array
+  }, [isAuthenticated, router, isLoading])
+
+  // Fetch recently played tracks
+  useEffect(() => {
+    if (isAuthenticated && !isLoading) {
+      fetchRecentlyPlayed()
+    }
+  }, [isAuthenticated, isLoading])
+
+  const fetchRecentlyPlayed = async () => {
+    try {
+      setLoading(true)
+      const tracksData = await getRecentlyPlayed()
+      
+      // Transform the data to match our Track interface
+      const transformedTracks = tracksData.map((track: any) => ({
+        _id: track._id,
+        id: track._id,
+        title: track.title,
+        artist: typeof track.creatorId === 'object' && track.creatorId !== null ? track.creatorId.name : 'Unknown Artist',
+        album: '',
+        plays: track.plays,
+        likes: track.likes,
+        coverImage: track.coverURL || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
+        coverURL: track.coverURL,
+        duration: undefined,
+        audioUrl: track.audioURL,
+        creatorId: typeof track.creatorId === 'object' && track.creatorId !== null ? track.creatorId._id : track.creatorId,
+        playedAt: track.playedAt
+      }))
+
+      setTracks(transformedTracks)
+    } catch (error) {
+      console.error('Error fetching recently played tracks:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   // Show loading state while checking auth
   if (isLoading) {
@@ -68,7 +114,11 @@ export default function RecentlyPlayed() {
             </button>
           </div>
 
-          {tracks.length === 0 ? (
+          {loading ? (
+            <div className="flex justify-center items-center h-40">
+              <div className="text-white text-sm">Loading recently played tracks...</div>
+            </div>
+          ) : tracks.length === 0 ? (
             // Empty State
             <div className="card-bg rounded-2xl p-8 sm:p-12 text-center border border-gray-700/50">
               <div className="mx-auto w-16 h-16 rounded-full bg-gray-800/50 flex items-center justify-center mb-6">
@@ -98,7 +148,15 @@ export default function RecentlyPlayed() {
                       alt={track.title} 
                       className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg object-cover"
                     />
-                    <button className="absolute inset-0 w-full h-full rounded-lg bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                    <button 
+                      onClick={() => {
+                        playTrack(track);
+                        
+                        // Set the current playlist to all recently played tracks
+                        setCurrentPlaylist(tracks);
+                      }}
+                      className="absolute inset-0 w-full h-full rounded-lg bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
+                    >
                       <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
                       </svg>
@@ -108,11 +166,14 @@ export default function RecentlyPlayed() {
                   <div className="flex-1 min-w-0">
                     <h3 className="font-bold text-white text-sm sm:text-base truncate">{track.title}</h3>
                     <p className="text-gray-400 text-xs sm:text-sm truncate">{track.artist}</p>
+                    <p className="text-gray-500 text-xs mt-1">
+                      Played {new Date(track.playedAt).toLocaleDateString()}
+                    </p>
                   </div>
                   
                   <div className="flex items-center gap-3">
                     <span className="text-gray-500 text-xs sm:text-sm hidden sm:block">
-                      {track.duration || '3:45'}
+                      {track.duration ? `${Math.floor(track.duration / 60)}:${Math.floor(track.duration % 60).toString().padStart(2, '0')}` : '3:45'}
                     </span>
                     <button className="p-1.5 sm:p-2 rounded-full hover:bg-gray-800/50 transition-colors">
                       <svg className="w-4 h-4 sm:w-5 sm:h-5 text-[#FF4D67]" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">

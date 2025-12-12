@@ -74,341 +74,144 @@ export default function Profile() {
       // If not authenticated, redirect to login
       router.push('/login')
     }
-  }, [isAuthenticated, isLoading, router])
+  }, [isAuthenticated, router, isLoading]) // Add isLoading to dependency array
 
-  // Initialize bio and genres when user data is available
+  // Fetch user data when authenticated
   useEffect(() => {
-    if (user) {
-      setBio(user.bio || '');
-      setGenres(user.genres || []);
+    if (isAuthenticated && user) {
+      setBio(user.bio || '')
+      setGenres(user.genres || [])
+      
+      // Fetch analytics for creators
+      if (user.role === 'creator') {
+        fetchAnalytics()
+        fetchTracks(1)
+        fetchAlbums()
+      }
     }
-  }, [user])
-
-  // Fetch creator analytics when the analytics tab is selected
-  useEffect(() => {
-    if (activeTab === 'analytics' && user?.role === 'creator' && !analytics) {
-      fetchAnalytics()
-    }
-  }, [activeTab, user, analytics])
-
-  // Fetch creator tracks when the tracks tab is selected
-  useEffect(() => {
-    if (activeTab === 'tracks' && user?.role === 'creator') {
-      fetchTracks(tracksPage)
-    }
-  }, [activeTab, user, tracksPage])
-
-  // Fetch creator albums when the albums tab is selected
-  useEffect(() => {
-    if (activeTab === 'albums' && user?.role === 'creator') {
-      fetchAlbums()
-    }
-  }, [activeTab, user])
-
-  // Filter tracks and albums based on search query
-  useEffect(() => {
-    if (searchQuery.trim() === '') {
-      setFilteredTracks([...tracks])
-      setFilteredAlbums([...albums])
-    } else {
-      const query = searchQuery.toLowerCase()
-      setFilteredTracks(tracks.filter(track => 
-        track.title.toLowerCase().includes(query) || 
-        track.genre.toLowerCase().includes(query)
-      ))
-      setFilteredAlbums(albums.filter(album => 
-        album.title.toLowerCase().includes(query) || 
-        album.artist.toLowerCase().includes(query)
-      ))
-    }
-  }, [searchQuery, tracks, albums])
+  }, [isAuthenticated, user])
 
   const fetchAnalytics = async () => {
-    if (loadingAnalytics) return
+    if (!user || user.role !== 'creator') return
+    
     setLoadingAnalytics(true)
     setError(null)
+    
     try {
-      // Fetch analytics with token refresh
-      const response = await makeAuthenticatedRequest(`${process.env.NEXT_PUBLIC_API_URL}/api/analytics/creator`);
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to fetch analytics');
-      }
-      
-      const data = await response.json();
+      const data = await fetchCreatorAnalytics()
       setAnalytics(data)
-    } catch (error: any) {
-      console.error('Failed to fetch analytics:', error)
-      setError(error.message || 'Failed to load analytics data')
+    } catch (err: any) {
+      console.error('Failed to fetch analytics:', err)
+      setError(`Failed to fetch analytics: ${err.message || 'Unknown error'}`)
     } finally {
       setLoadingAnalytics(false)
     }
   }
 
-  const fetchTracks = async (page: number) => {
-    if (loadingTracks) return
+  const fetchTracks = async (page: number = 1) => {
+    if (!user || user.role !== 'creator') return
+    
     setLoadingTracks(true)
     setError(null)
+    
     try {
-      // Fetch tracks with token refresh
-      const response = await makeAuthenticatedRequest(`${process.env.NEXT_PUBLIC_API_URL}/api/creator/tracks?page=${page}&limit=6`);
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to fetch tracks');
-      }
-      
-      const data = await response.json();
-      
-      // Transform tracks to match ITrack interface
-      const transformedTracks = data.tracks.map((track: any) => ({
-        ...track,
-        creatorId: typeof track.creatorId === 'object' ? track.creatorId._id : track.creatorId
-      }));
-      
-      setTracks(transformedTracks)
-      setFilteredTracks(transformedTracks)
+      const data = await fetchCreatorTracks(page, 6) // 6 items per page
+      setTracks(data.tracks)
+      setFilteredTracks(data.tracks)
       setTracksTotalPages(data.pages)
-    } catch (error: any) {
-      console.error('Failed to fetch tracks:', error)
-      setError(error.message || 'Failed to load tracks data')
+      setTracksPage(data.page)
+    } catch (err: any) {
+      console.error('Failed to fetch tracks:', err)
+      setError(`Failed to fetch tracks: ${err.message || 'Unknown error'}`)
     } finally {
       setLoadingTracks(false)
     }
   }
 
-  // Function to refresh token
-  const refreshToken = async (): Promise<string | null> => {
-    try {
-      const refreshToken = localStorage.getItem('refreshToken');
-      if (!refreshToken) {
-        return null;
-      }
-
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh-token`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ refreshToken })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem('accessToken', data.accessToken);
-        localStorage.setItem('refreshToken', data.refreshToken);
-        return data.accessToken;
-      }
-    } catch (error) {
-      console.error('Error refreshing token:', error);
-    }
-    return null;
-  };
-
-  // Helper function to make authenticated request with token refresh
-  const makeAuthenticatedRequest = async (url: string, options: RequestInit = {}): Promise<Response> => {
-    let accessToken = localStorage.getItem('accessToken');
-    
-    if (!accessToken) {
-      throw new Error('No access token found');
-    }
-
-    // Add authorization header to options
-    const requestOptions = {
-      ...options,
-      headers: {
-        ...options.headers,
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`
-      }
-    };
-
-    // Make initial request
-    let response = await fetch(url, requestOptions);
-
-    // If token is expired, try to refresh it
-    if (response.status === 401) {
-      console.log('Token might be expired, attempting to refresh...');
-      const newToken = await refreshToken();
-      
-      if (newToken) {
-        // Retry the request with new token
-        requestOptions.headers = {
-          ...requestOptions.headers,
-          'Authorization': `Bearer ${newToken}`
-        };
-        
-        response = await fetch(url, requestOptions);
-      }
-    }
-
-    return response;
-  };
-
   const fetchAlbums = async () => {
-    if (loadingAlbums) return
+    if (!user || user.role !== 'creator') return
+  
     setLoadingAlbums(true)
     setError(null)
+    
     try {
-      // Fetch albums with token refresh
-      const response = await makeAuthenticatedRequest(`${process.env.NEXT_PUBLIC_API_URL}/api/albums/creator/${user?.id || ''}`);
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to fetch albums');
-      }
-      
-      const data: any[] = await response.json();
-      
-      // Transform the data to match our ProfileAlbum interface
-      const transformedAlbums = data.map(album => ({
-        id: album._id || album.id,
-        title: album.title || 'Untitled Album',
-        artist: (album.creatorId && typeof album.creatorId === 'object' ? album.creatorId.name : 'Unknown Artist'),
-        coverImage: album.coverURL || '',
-        year: album.releaseDate ? new Date(album.releaseDate).getFullYear() : new Date().getFullYear(),
-        tracks: Array.isArray(album.tracks) ? album.tracks.length : 0,
-        createdAt: album.createdAt ? new Date(album.createdAt).toISOString() : new Date().toISOString()
-      })).filter(album => album && typeof album === 'object')
+      const albumsData = await getAlbumsByCreator(user.id) // Pass actual user ID instead of empty string
+      // Transform the data to match our interface
+      const transformedAlbums = albumsData.map((album: any) => ({
+        id: album._id,
+        title: album.title,
+        artist: typeof album.creatorId === 'object' ? album.creatorId.name : 'Unknown Artist',
+        coverImage: album.coverURL,
+        year: new Date(album.releaseDate || album.createdAt).getFullYear(),
+        tracks: album.tracks?.length || 0,
+        createdAt: album.createdAt
+      }))
       setAlbums(transformedAlbums)
       setFilteredAlbums(transformedAlbums)
-    } catch (error: any) {
-      console.error('Failed to fetch albums:', error)
-      setError(error.message || 'Failed to load albums data')
+    } catch (err: any) {
+      console.error('Failed to fetch albums:', err)
+      setError(`Failed to fetch albums: ${err.message || 'Unknown error'}`)
     } finally {
       setLoadingAlbums(false)
     }
   }
 
   const handlePageChange = (newPage: number, type: 'tracks' | 'albums') => {
-    if (type === 'tracks' && newPage >= 1 && newPage <= tracksTotalPages) {
-      setTracksPage(newPage)
+    if (type === 'tracks') {
+      fetchTracks(newPage)
     }
   }
 
-  const handlePlayTrack = (trackId: string) => {
-    // Find the track to get its audio URL
-    const track = tracks.find(t => t._id === trackId);
-    if (track && track.audioURL) {
-      playTrack({
-        id: track._id,
-        title: track.title,
-        artist: user?.name || 'Unknown Artist',
-        coverImage: track.coverURL || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-        audioUrl: track.audioURL
-      });
-      
-      // Set the current playlist to all creator tracks
-      const playlistTracks = tracks
-        .filter(t => t.audioURL) // Only tracks with audio
-        .map(t => ({
-          id: t._id,
-          title: t.title,
-          artist: user?.name || 'Unknown Artist',
-          coverImage: t.coverURL || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-          audioUrl: t.audioURL
-        }));
-      setCurrentPlaylist(playlistTracks);
-    }
-  };
-
-  const handleDelete = (type: 'track' | 'album', id: string, title: string) => {
-    setShowDeleteModal(true)
-    setItemToDelete({type, id, title})
-  }
-
+  // Handle save changes
   const handleSaveChanges = async () => {
     try {
       // Get form values
-      const nameInput = document.getElementById('name') as HTMLInputElement;
-      const emailInput = document.getElementById('email') as HTMLInputElement;
-      const passwordInput = document.getElementById('password') as HTMLInputElement;
-      const currentPasswordInput = document.getElementById('currentPassword') as HTMLInputElement;
+      const nameInput = document.getElementById('name') as HTMLInputElement | null
+      const emailInput = document.getElementById('email') as HTMLInputElement | null
+      const currentPasswordInput = document.getElementById('currentPassword') as HTMLInputElement | null
+      const passwordInput = document.getElementById('password') as HTMLInputElement | null
       
-      const name = nameInput?.value;
-      const email = emailInput?.value;
-      const password = passwordInput?.value;
-      const currentPassword = currentPasswordInput?.value;
-
-      // Prepare update data - only include fields that have actually changed
-      const updateData: any = {};
+      const name = nameInput?.value || ''
+      const email = emailInput?.value || ''
+      const currentPassword = currentPasswordInput?.value || ''
+      const password = passwordInput?.value || ''
       
-      // Only include name if it's different from current value
-      if (name && name !== user?.name) {
-        updateData.name = name;
+      // Prepare update data
+      const updateData: any = {
+        name: name.trim(),
+        email: email.trim(),
+        bio: bio.trim(),
+        genres: genres
       }
       
-      // Only include email if it's different from current value
-      if (email && email !== user?.email) {
-        updateData.email = email;
+      // Only include password fields if they have values
+      if (currentPassword) {
+        updateData.currentPassword = currentPassword
       }
       
-      // For creators, only include bio and genres if they've changed
-      if (user?.role === 'creator') {
-        if (bio !== user.bio) {
-          updateData.bio = bio;
-        }
-        if (JSON.stringify(genres) !== JSON.stringify(user.genres || [])) {
-          updateData.genres = genres;
-        }
-      }
-      
-      // Only include password if it's not empty
       if (password) {
-        if (!currentPassword) {
-          alert('Current password is required to change password');
-          return;
-        }
-        updateData.password = password;
-        updateData.currentPassword = currentPassword;
+        updateData.password = password
       }
       
-      // If no actual changes, show message and return
-      if (Object.keys(updateData).length === 0 && !password) {
-        alert('No changes detected');
-        return;
-      }
-
-      // Make API request to update user's own profile
-      const response = await makeAuthenticatedRequest(`${process.env.NEXT_PUBLIC_API_URL}/api/profile/me`, {
-        method: 'PUT',
-        body: JSON.stringify(updateData)
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to update profile');
-      }
-
-      const updatedUser = await response.json();
+      // Call the update profile function from AuthContext
+      await updateProfile(updateData)
       
-      // Update user in context
-      updateProfile({
-        ...user,
-        name: updatedUser.name,
-        email: updatedUser.email,
-        bio: updatedUser.bio,
-        genres: updatedUser.genres
-      } as any);
-      
-      // Show success message
-      alert('Profile updated successfully!');
+      alert('Profile updated successfully!')
       
       // Clear password fields
       if (currentPasswordInput) {
-        currentPasswordInput.value = '';
+        currentPasswordInput.value = ''
       }
       if (passwordInput) {
-        passwordInput.value = '';
+        passwordInput.value = ''
       }
     } catch (error: any) {
-      console.error('Failed to update profile:', error);
+      console.error('Failed to update profile:', error)
       // Show more specific error messages
       if (error.message && error.message.includes('duplicate key')) {
-        alert('Email is already in use by another account');
+        alert('Email is already in use by another account')
       } else {
-        alert(`Failed to update profile: ${error.message || 'Unknown error'}`);
+        alert(`Failed to update profile: ${error.message || 'Unknown error'}`)
       }
     }
   }
@@ -419,26 +222,34 @@ export default function Profile() {
     try {
       if (itemToDelete.type === 'track') {
         // Delete track with token refresh
-        const response = await makeAuthenticatedRequest(`${process.env.NEXT_PUBLIC_API_URL}/api/tracks/${itemToDelete.id}`, {
-          method: 'DELETE'
-        });
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tracks/${itemToDelete.id}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          }
+        })
         
         if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Failed to delete track');
+          const errorData = await response.json()
+          throw new Error(errorData.message || 'Failed to delete track')
         }
         
         setTracks(prevTracks => prevTracks.filter(track => track._id !== itemToDelete.id))
         setFilteredTracks(prevFilteredTracks => prevFilteredTracks.filter(track => track._id !== itemToDelete.id))
       } else if (itemToDelete.type === 'album') {
         // Delete album with token refresh
-        const response = await makeAuthenticatedRequest(`${process.env.NEXT_PUBLIC_API_URL}/api/albums/${itemToDelete.id}`, {
-          method: 'DELETE'
-        });
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/albums/${itemToDelete.id}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          }
+        })
         
         if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Failed to delete album');
+          const errorData = await response.json()
+          throw new Error(errorData.message || 'Failed to delete album')
         }
         
         setAlbums(prevAlbums => prevAlbums.filter(album => album.id !== itemToDelete.id))
@@ -556,6 +367,48 @@ export default function Profile() {
                 <p className="text-white font-medium text-sm">24 Creators</p>
               </div>
             </div>
+          </div>
+
+          {/* Quick Navigation Buttons - Added for easier access to key pages */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+            <button
+              onClick={() => router.push('/recently-played')}
+              className="card-bg rounded-xl p-4 border border-gray-700/30 hover:border-[#FF4D67] transition-colors flex flex-col items-center justify-center"
+            >
+              <div className="w-10 h-10 rounded-full bg-[#FF4D67]/10 flex items-center justify-center mb-3">
+                <svg className="w-5 h-5 text-[#FF4D67]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+              </div>
+              <h3 className="text-white font-medium text-sm">Recently Played</h3>
+              <p className="text-gray-400 text-xs mt-1">View your listening history</p>
+            </button>
+            
+            <button
+              onClick={() => router.push('/favorites')}
+              className="card-bg rounded-xl p-4 border border-gray-700/30 hover:border-[#FFCB2B] transition-colors flex flex-col items-center justify-center"
+            >
+              <div className="w-10 h-10 rounded-full bg-[#FFCB2B]/10 flex items-center justify-center mb-3">
+                <svg className="w-5 h-5 text-[#FFCB2B]" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                  <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd"></path>
+                </svg>
+              </div>
+              <h3 className="text-white font-medium text-sm">Favorites</h3>
+              <p className="text-gray-400 text-xs mt-1">Your liked tracks</p>
+            </button>
+            
+            <button
+              onClick={() => setActiveTab('profile')}
+              className="card-bg rounded-xl p-4 border border-gray-700/30 hover:border-[#6C63FF] transition-colors flex flex-col items-center justify-center"
+            >
+              <div className="w-10 h-10 rounded-full bg-[#6C63FF]/10 flex items-center justify-center mb-3">
+                <svg className="w-5 h-5 text-[#6C63FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg>
+              </div>
+              <h3 className="text-white font-medium text-sm">Profile</h3>
+              <p className="text-gray-400 text-xs mt-1">Account settings</p>
+            </button>
           </div>
 
           {/* Tabs - Mobile Responsive */}
@@ -847,7 +700,11 @@ export default function Profile() {
                 <div className="flex justify-center items-center h-40">
                   <div className="text-white text-sm">Loading tracks...</div>
                 </div>
-              ) : tracks.length > 0 ? (
+              ) : filteredTracks.length === 0 ? (
+                <div className="text-center py-8 text-gray-400 text-sm">
+                  You haven't uploaded any tracks yet
+                </div>
+              ) : (
                 <>
                   {/* Search bar for tracks */}
                   <div className="mb-5">
@@ -869,53 +726,45 @@ export default function Profile() {
                     <>
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                         {filteredTracks.map((track) => (
-                          <div key={track._id} className="card-bg rounded-xl overflow-hidden border border-gray-700/30 hover:border-[#FF4D67]/50 transition-colors relative group">
-                            <div className="relative aspect-square bg-gray-800 flex items-center justify-center">
-                              {track.coverURL ? (
-                                <img 
-                                  src={track.coverURL} 
-                                  alt={track.title} 
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <div className="text-gray-600 text-sm">No cover image</div>
-                              )}
-                              {/* Action buttons overlay */}
-                              <div className="absolute inset-0 bg-black/50 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button 
-                                  onClick={() => handlePlayTrack(track._id)}
-                                  className="w-12 h-12 rounded-full gradient-primary flex items-center justify-center text-white"
-                                  title="Play Track"
-                                >
-                                  {currentTrack?.id === track._id && isPlaying ? (
-                                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd"></path>
-                                    </svg>
-                                  ) : (
-                                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                      <path fillRule="evenodd" d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
-                                    </svg>
-                                  )}
-                                </button>
-                                <button 
-                                  onClick={() => router.push(`/edit-track/${track._id}`)}
-                                  className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white hover:bg-blue-600 transition-colors"
-                                  title="Edit Track"
-                                >
-                                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
-                                  </svg>
-                                </button>
-                                <button 
-                                  onClick={() => handleDelete('track', track._id, track.title)}
-                                  className="w-12 h-12 rounded-full bg-red-500 flex items-center justify-center text-white hover:bg-red-600 transition-colors"
-                                  title="Delete Track"
-                                >
-                                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                    <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd"></path>
-                                  </svg>
-                                </button>
+                          <div key={track._id} className="card-bg rounded-xl overflow-hidden border border-gray-700/30 hover:border-[#FF4D67]/50 transition-colors">
+                            <div className="relative">
+                              <img 
+                                src={track.coverURL || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'} 
+                                alt={track.title} 
+                                className="w-full h-40 object-cover"
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-4">
+                                <h3 className="font-bold text-white truncate">{track.title}</h3>
                               </div>
+                              <button 
+                                onClick={() => {
+                                  playTrack({
+                                    id: track._id,
+                                    title: track.title,
+                                    artist: typeof track.creatorId === 'object' && track.creatorId !== null ? (track.creatorId as any).name : 'Unknown Artist',
+                                    coverImage: track.coverURL || '',
+                                    audioUrl: track.audioURL,
+                                    creatorId: typeof track.creatorId === 'object' && track.creatorId !== null ? (track.creatorId as any)._id : track.creatorId
+                                  });
+                                  
+                                  // Set the current playlist to all user tracks
+                                  const playlistTracks = tracks.map(t => ({
+                                    id: t._id,
+                                    title: t.title,
+                                    artist: typeof t.creatorId === 'object' && t.creatorId !== null ? (t.creatorId as any).name : 'Unknown Artist',
+                                    coverImage: t.coverURL || '',
+                                    audioUrl: t.audioURL,
+                                    creatorId: typeof t.creatorId === 'object' && t.creatorId !== null ? (t.creatorId as any)._id : t.creatorId
+                                  }));
+                                  
+                                  setCurrentPlaylist(playlistTracks);
+                                }}
+                                className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/50 flex items-center justify-center hover:bg-[#FF4D67] transition-colors"
+                              >
+                                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
+                                </svg>
+                              </button>
                             </div>
                             <div className="p-4">
                               <h4 className="font-semibold text-white truncate text-base">{track.title}</h4>
@@ -926,6 +775,27 @@ export default function Profile() {
                               <div className="flex justify-between text-xs text-gray-500 mt-1">
                                 <span>{new Date(track.createdAt).toLocaleDateString()}</span>
                                 <span>{track.genre}</span>
+                              </div>
+                              <div className="flex justify-end mt-3 space-x-2">
+                                <button 
+                                  onClick={() => router.push(`/edit-track/${track._id}`)}
+                                  className="px-3 py-1.5 bg-gray-700 text-white rounded hover:bg-gray-600 text-xs font-medium transition-colors"
+                                >
+                                  Edit
+                                </button>
+                                <button 
+                                  onClick={() => {
+                                    setItemToDelete({
+                                      type: 'track',
+                                      id: track._id,
+                                      title: track.title
+                                    });
+                                    setShowDeleteModal(true);
+                                  }}
+                                  className="px-3 py-1.5 bg-red-700 text-white rounded hover:bg-red-600 text-xs font-medium transition-colors"
+                                >
+                                  Delete
+                                </button>
                               </div>
                             </div>
                           </div>
@@ -971,20 +841,7 @@ export default function Profile() {
                     </div>
                   )}
                 </>
-              ) : !error ? (
-                <div className="text-center py-8 text-gray-400 text-sm">
-                  You haven't uploaded any tracks yet
-                </div>
-              ) : null}
-              
-              <div className="mt-6">
-                <button 
-                  onClick={() => router.push('/upload')}
-                  className="px-4 py-2.5 bg-[#FF4D67] text-white rounded-lg hover:bg-[#FF4D67]/80 transition-colors text-sm font-medium"
-                >
-                  Upload New Track
-                </button>
-              </div>
+              )}
             </div>
           )}
 
@@ -997,7 +854,7 @@ export default function Profile() {
                 <div className="bg-red-900/50 border border-red-700 rounded-lg p-4 mb-5">
                   <div className="text-red-300 text-sm">{error}</div>
                   <button 
-                    onClick={() => fetchAlbums()}
+                    onClick={fetchAlbums}
                     className="mt-2 px-3 py-1.5 bg-red-700 text-white rounded hover:bg-red-600 text-sm"
                   >
                     Retry
@@ -1009,7 +866,11 @@ export default function Profile() {
                 <div className="flex justify-center items-center h-40">
                   <div className="text-white text-sm">Loading albums...</div>
                 </div>
-              ) : !error ? (
+              ) : filteredAlbums.length === 0 ? (
+                <div className="text-center py-8 text-gray-400 text-sm">
+                  You haven't created any albums yet
+                </div>
+              ) : (
                 <>
                   {/* Search bar for albums */}
                   <div className="mb-5">
@@ -1030,53 +891,43 @@ export default function Profile() {
                   {filteredAlbums.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                       {filteredAlbums.map((album) => (
-                        <div key={album.id} className="card-bg rounded-xl overflow-hidden border border-gray-700/30 hover:border-[#FF4D67]/50 transition-colors relative group">
-                          <div className="relative aspect-square bg-gray-800 flex items-center justify-center">
-                            {album.coverImage ? (
-                              <img 
-                                src={album.coverImage} 
-                                alt={album.title} 
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <div className="text-gray-600 text-sm">No cover image</div>
-                            )}
-                            {/* Action buttons overlay */}
-                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <button 
-                                onClick={() => router.push(`/album/${album.id}`)}
-                                className="w-12 h-12 rounded-full bg-[#FF4D67] flex items-center justify-center text-white hover:bg-[#FF4D67]/80 transition-colors"
-                                title="View Album"
-                              >
-                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
-                                </svg>
-                              </button>
-                              <button 
-                                onClick={() => router.push(`/edit-album/${album.id}`)}
-                                className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white hover:bg-blue-600 transition-colors"
-                                title="Edit Album"
-                              >
-                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
-                                </svg>
-                              </button>
-                              <button 
-                                onClick={() => handleDelete('album', album.id, album.title)}
-                                className="w-12 h-12 rounded-full bg-red-500 flex items-center justify-center text-white hover:bg-red-600 transition-colors"
-                                title="Delete Album"
-                              >
-                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                  <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd"></path>
-                                </svg>
-                              </button>
+                        <div key={album.id} className="card-bg rounded-xl overflow-hidden border border-gray-700/30 hover:border-[#FF4D67]/50 transition-colors">
+                          <div className="relative">
+                            <img 
+                              src={album.coverImage || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'} 
+                              alt={album.title} 
+                              className="w-full h-40 object-cover"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-4">
+                              <h3 className="font-bold text-white truncate">{album.title}</h3>
                             </div>
                           </div>
                           <div className="p-4">
                             <h4 className="font-semibold text-white truncate text-base">{album.title}</h4>
                             <div className="flex justify-between text-sm text-gray-400 mt-2">
-                              <span>{album.tracks} tracks</span>
                               <span>{album.year}</span>
+                              <span>{album.tracks} tracks</span>
+                            </div>
+                            <div className="flex justify-end mt-3 space-x-2">
+                              <button 
+                                onClick={() => router.push(`/album/${album.id}`)}
+                                className="px-3 py-1.5 bg-gray-700 text-white rounded hover:bg-gray-600 text-xs font-medium transition-colors"
+                              >
+                                View
+                              </button>
+                              <button 
+                                onClick={() => {
+                                  setItemToDelete({
+                                    type: 'album',
+                                    id: album.id,
+                                    title: album.title
+                                  });
+                                  setShowDeleteModal(true);
+                                }}
+                                className="px-3 py-1.5 bg-red-700 text-white rounded hover:bg-red-600 text-xs font-medium transition-colors"
+                              >
+                                Delete
+                              </button>
                             </div>
                           </div>
                         </div>
@@ -1088,53 +939,40 @@ export default function Profile() {
                     </div>
                   )}
                 </>
-              ) : (
-                <div className="text-center py-8 text-gray-400 text-sm">
-                  You haven't created any albums yet
-                </div>
               )}
-              
-              <div className="mt-6">
-                <button 
-                  onClick={() => router.push('/create-album')}
-                  className="px-4 py-2.5 bg-[#FF4D67] text-white rounded-lg hover:bg-[#FF4D67]/80 transition-colors text-sm font-medium"
-                >
-                  Create New Album
-                </button>
-              </div>
-            </div>
-          )}
-          
-          {/* Delete Confirmation Modal */}
-          {showDeleteModal && itemToDelete && (
-            <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-              <div className="card-bg rounded-2xl p-5 sm:p-6 border border-gray-700/50 max-w-md w-full">
-                <h3 className="text-lg sm:text-xl font-bold text-white mb-4">Confirm Deletion</h3>
-                <p className="text-gray-300 text-sm mb-6">
-                  Are you sure you want to delete the {itemToDelete.type} "<span className="text-white font-semibold">{itemToDelete.title}</span>"? This action cannot be undone.
-                </p>
-                <div className="flex gap-3 justify-end">
-                  <button
-                    onClick={() => {
-                      setShowDeleteModal(false);
-                      setItemToDelete(null);
-                    }}
-                    className="px-4 py-2.5 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={confirmDelete}
-                    className="px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
             </div>
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && itemToDelete && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="card-bg rounded-2xl p-6 max-w-md w-full border border-gray-700/50">
+            <h3 className="text-xl font-bold text-white mb-2">Confirm Deletion</h3>
+            <p className="text-gray-400 mb-6">
+              Are you sure you want to delete "{itemToDelete.title}"? This action cannot be undone.
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setItemToDelete(null);
+                }}
+                className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-4 py-2 bg-red-700 text-white rounded-lg hover:bg-red-600 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -19,6 +19,10 @@ export interface IUser extends Document {
   followersCount: number;
   favorites: mongoose.Types.ObjectId[]; // Add favorites field
   playlists: mongoose.Types.ObjectId[]; // Add playlists field
+  recentlyPlayed: {
+    trackId: mongoose.Types.ObjectId;
+    playedAt: Date;
+  }[]; // Add recently played tracks field
   createdAt: Date;
   updatedAt: Date;
 }
@@ -82,6 +86,20 @@ const UserSchema: Schema = new Schema({
   playlists: {
     type: [Schema.Types.ObjectId],
     ref: 'Playlist',
+    default: []
+  },
+  recentlyPlayed: {
+    type: [{
+      trackId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Track',
+        required: true
+      },
+      playedAt: {
+        type: Date,
+        default: Date.now
+      }
+    }],
     default: []
   }
 }, {

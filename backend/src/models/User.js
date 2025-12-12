@@ -70,6 +70,10 @@ const UserSchema = new mongoose_1.Schema({
         type: String,
         default: ''
     },
+    genres: {
+        type: [String],
+        default: []
+    },
     socials: {
         facebook: String,
         twitter: String,
@@ -80,6 +84,30 @@ const UserSchema = new mongoose_1.Schema({
     followersCount: {
         type: Number,
         default: 0
+    },
+    favorites: {
+        type: [mongoose_1.Schema.Types.ObjectId],
+        ref: 'Track',
+        default: []
+    },
+    playlists: {
+        type: [mongoose_1.Schema.Types.ObjectId],
+        ref: 'Playlist',
+        default: []
+    },
+    recentlyPlayed: {
+        type: [{
+            trackId: {
+                type: mongoose_1.Schema.Types.ObjectId,
+                ref: 'Track',
+                required: true
+            },
+            playedAt: {
+                type: Date,
+                default: Date.now
+            }
+        }],
+        default: []
     }
 }, {
     timestamps: true
@@ -87,4 +115,3 @@ const UserSchema = new mongoose_1.Schema({
 // Index for email
 UserSchema.index({ email: 1 });
 exports.default = mongoose_1.default.model('User', UserSchema);
-//# sourceMappingURL=User.js.map

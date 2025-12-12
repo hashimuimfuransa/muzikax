@@ -2,17 +2,19 @@
 
 import { useState, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { useTrendingTracks, usePopularCreators } from '../../hooks/useTracks'
-import { useAudioPlayer } from '../../contexts/AudioPlayerContext'
+import { useTrendingTracks, usePopularCreators } from '@/hooks/useTracks'
+import { useAudioPlayer } from '@/contexts/AudioPlayerContext'
 import { Suspense } from 'react'
 
 interface Track {  
+  _id?: string
   id: string
   title: string
   artist: string
   plays: number
   likes: number
-  coverImage: string
+  coverImage?: string
+  coverURL?: string
   category: string
   duration?: string
 }
@@ -57,12 +59,14 @@ function ExploreContent() {
   
   // Transform real tracks data to match existing interface
   const allTracks: Track[] = trendingTracksData.map(track => ({
-    id: track._id,
+    _id: track._id,
+    id: track._id || 'unknown',
     title: track.title,
     artist: typeof track.creatorId === 'object' && track.creatorId !== null ? (track.creatorId as any).name : 'Unknown Artist',
     plays: track.plays,
     likes: track.likes,
     coverImage: track.coverURL || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
+    coverURL: track.coverURL,
     category: track.genre || 'afrobeat',
     duration: ''
   }));
@@ -235,21 +239,26 @@ function ExploreContent() {
                   <div key={track.id} className="group card-bg rounded-2xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10">
                     <div className="relative">
                       <img 
-                        src={track.coverImage} 
+                        src={track.coverImage || track.coverURL || '/placeholder-track.png'} 
                         alt={track.title} 
                         className="w-full h-40 sm:h-48 md:h-56 object-cover"
+                        onError={(e) => {
+                          // Handle broken images gracefully
+                          const target = e.target as HTMLImageElement;
+                          target.src = '/placeholder-track.png';
+                        }}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <button 
                           onClick={() => {
                             // Find the full track object to get the audioURL
-                            const fullTrack = trendingTracksData.find(t => t._id === track.id);
+                            const fullTrack = trendingTracksData.find(t => t._id === track._id);
                             if (fullTrack && fullTrack.audioURL) {
                               playTrack({
                                 id: track.id,
                                 title: track.title,
                                 artist: track.artist,
-                                coverImage: track.coverImage,
+                                coverImage: track.coverImage || track.coverURL || '/placeholder-track.png',
                                 audioUrl: fullTrack.audioURL,
                                 creatorId: typeof fullTrack.creatorId === 'object' && fullTrack.creatorId !== null ? (fullTrack.creatorId as any)._id : fullTrack.creatorId
                               });
@@ -258,7 +267,7 @@ function ExploreContent() {
                               const playlistTracks = trendingTracksData
                                 .filter(t => t.audioURL) // Only tracks with audio
                                 .map(t => ({
-                                  id: t._id,
+                                  id: t._id || 'unknown',
                                   title: t.title,
                                   artist: typeof t.creatorId === 'object' && t.creatorId !== null ? (t.creatorId as any).name : 'Unknown Artist',
                                   coverImage: t.coverURL || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
@@ -312,39 +321,37 @@ function ExploreContent() {
 
         {/* Creators Grid */}
         {activeTab === 'creators' && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {filteredCreators.map((creator) => (
               <div key={creator.id} className="group card-bg rounded-2xl p-4 sm:p-6 transition-all duration-300 hover:border-[#FFCB2B]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FFCB2B]/10">
-                <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-5">
+                <div className="flex items-center gap-4 mb-4">
                   <div className="relative">
                     <img 
                       src={creator.avatar} 
                       alt={creator.name} 
-                      className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover"
+                      className="w-16 h-16 rounded-full object-cover"
                     />
                     {creator.verified && (
-                      <div className="absolute bottom-0 right-0 w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-[#FF4D67] border-2 border-gray-900"></div>
+                      <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-[#FF4D67] rounded-full flex items-center justify-center">
+                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
+                        </svg>
+                      </div>
                     )}
                   </div>
                   <div>
-                    <h3 className="font-bold text-white text-base sm:text-lg">{creator.name}</h3>
-                    <p className="text-[#FFCB2B] text-xs sm:text-sm">{creator.type}</p>
+                    <h3 className="font-bold text-white text-lg">{creator.name}</h3>
+                    <p className="text-gray-400 text-sm">{creator.type}</p>
                   </div>
                 </div>
                 
-                <p className="text-gray-400 text-xs sm:text-sm mb-4 sm:mb-5">
-                  Creating amazing music that resonates with the heart of Rwanda. 
-                  Join thousands of fans enjoying their work.
-                </p>
-                
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-500 text-xs sm:text-sm">
-                    {creator.followers.toLocaleString()} followers
-                  </span>
-                  <button className="px-3 py-1.5 sm:px-4 sm:py-2 bg-transparent border border-[#FFCB2B] text-[#FFCB2B] hover:bg-[#FFCB2B]/10 rounded-full text-xs sm:text-sm font-medium transition-colors">
-                    Follow
-                  </button>
+                <div className="flex justify-between text-sm text-gray-500 mb-4">
+                  <span>{creator.followers.toLocaleString()} followers</span>
                 </div>
+                
+                <button className="w-full py-2.5 sm:py-3 gradient-secondary rounded-lg text-white font-medium hover:opacity-90 transition-opacity text-sm sm:text-base">
+                  Follow
+                </button>
               </div>
             ))}
           </div>
@@ -354,18 +361,9 @@ function ExploreContent() {
   )
 }
 
-// Loading fallback component
-function ExploreLoading() {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black flex items-center justify-center">
-      <div className="text-white">Loading explore page...</div>
-    </div>
-  )
-}
-
 export default function Explore() {
   return (
-    <Suspense fallback={<ExploreLoading />}>
+    <Suspense fallback={<div>Loading...</div>}>
       <ExploreContent />
     </Suspense>
   )
