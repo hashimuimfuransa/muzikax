@@ -38,6 +38,10 @@ const addFavorite = async (req, res) => {
     if (!user.favorites.includes(trackId)) {
       user.favorites.push(trackId);
       await user.save();
+      
+      // Increment the track's likes count
+      track.likes = (track.likes || 0) + 1;
+      await track.save();
     }
 
     res.json({ 
@@ -75,9 +79,20 @@ const removeFavorite = async (req, res) => {
       return;
     }
 
-    // Remove track from favorites
-    user.favorites = user.favorites.filter(id => id.toString() !== trackId);
-    await user.save();
+    // Check if track is in favorites before removing
+    const favoriteIndex = user.favorites.indexOf(trackId);
+    if (favoriteIndex !== -1) {
+      // Remove track from favorites
+      user.favorites.splice(favoriteIndex, 1);
+      await user.save();
+      
+      // Decrement the track's likes count (but not below 0)
+      const track = await Track.findById(trackId);
+      if (track) {
+        track.likes = Math.max(0, (track.likes || 0) - 1);
+        await track.save();
+      }
+    }
 
     res.json({ 
       message: 'Track removed from favorites',

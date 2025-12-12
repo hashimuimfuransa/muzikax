@@ -103,23 +103,29 @@ export default function Profile() {
 
   // Listen for track updates (when favorites are added/removed)
   useEffect(() => {
-    const handleTrackUpdate = () => {
-      // Refresh tracks data when a track is updated
-      if (user?.role === 'creator') {
-        fetchTracks(tracksPage)
+    const handleTrackUpdate = (event: CustomEvent) => {
+      const detail = event.detail;
+      if (detail && detail.trackId) {
         // Also refresh analytics since total likes may have changed
         fetchAnalytics()
       }
-    }
+    };
+    
+    // Listen for analytics updates specifically
+    const handleAnalyticsUpdate = () => {
+      fetchAnalytics();
+    };
 
-    // Add event listener
-    window.addEventListener('trackUpdated', handleTrackUpdate)
+    // Add event listeners
+    window.addEventListener('trackUpdated', handleTrackUpdate as EventListener);
+    window.addEventListener('analyticsUpdated', handleAnalyticsUpdate);
 
-    // Clean up event listener
+    // Clean up event listeners
     return () => {
-      window.removeEventListener('trackUpdated', handleTrackUpdate)
+      window.removeEventListener('trackUpdated', handleTrackUpdate as EventListener);
+      window.removeEventListener('analyticsUpdated', handleAnalyticsUpdate);
     }
-  }, [user, tracksPage])
+  }, [user, tracksPage]);
 
   const fetchAnalytics = async () => {
     if (!user || user.role !== 'creator') return
@@ -304,6 +310,7 @@ export default function Profile() {
     }
   }
 
+  
   // Show loading state while checking auth
   if (isLoading) {
     return (

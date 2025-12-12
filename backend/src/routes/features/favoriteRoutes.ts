@@ -1,5 +1,5 @@
 import * as express from 'express';
-import { addFavorite, removeFavorite, getFavorites } from '../../controllers/userController';
+import { addFavorite, removeFavorite, getFavorites } from '../../controllers/favoritePlaylistController';
 import { protect } from '../../utils/jwt';
 
 console.log('FAVORITE ROUTES FILE LOADED');

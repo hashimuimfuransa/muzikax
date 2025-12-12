@@ -76,6 +76,25 @@ const makeAuthenticatedRequest = async (url: string, options: RequestInit = {}):
 };
 
 /**
+ * Fetch a creator's public profile by ID
+ */
+export const fetchCreatorProfile = async (creatorId: string): Promise<any> => {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/public/creators/${creatorId}`);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch creator profile: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching creator profile:', error);
+    throw error;
+  }
+};
+
+/**
  * Fetch all tracks with pagination
  */
 export const fetchAllTracks = async (page: number = 1, limit: number = 10): Promise<PaginatedTracks> => {
@@ -196,6 +215,48 @@ export const fetchPopularCreators = async (limit: number = 10): Promise<any[]> =
     return data.users;
   } catch (error) {
     console.error('Error fetching popular creators:', error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch comments for a track
+ */
+export const fetchCommentsForTrack = async (trackId: string): Promise<any[]> => {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/comments/track/${trackId}`);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch comments: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching comments:', error);
+    throw error;
+  }
+};
+
+/**
+ * Add a comment to a track
+ */
+export const addCommentToTrack = async (trackId: string, text: string): Promise<any> => {
+  try {
+    const response = await makeAuthenticatedRequest(`${process.env.NEXT_PUBLIC_API_URL}/api/comments`, {
+      method: 'POST',
+      body: JSON.stringify({ trackId, text })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to add comment');
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error adding comment:', error);
     throw error;
   }
 };

@@ -820,6 +820,16 @@ export default function Home() {
                   <p className="text-gray-400 text-xs sm:text-sm truncate">
                     {track.artist}
                   </p>
+                  
+                  <div className="flex justify-between text-xs text-gray-500 mt-2">
+                    <span>{track.plays?.toLocaleString() || '0'} plays</span>
+                    <div className="flex items-center gap-1">
+                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd"></path>
+                      </svg>
+                      <span>{track.likes || 0}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             ))}

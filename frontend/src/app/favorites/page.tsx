@@ -6,22 +6,24 @@ import { useAuth } from '@/contexts/AuthContext'
 import { getUserFavorites } from '@/services/userService'
 import { useAudioPlayer } from '@/contexts/AudioPlayerContext'
 
-interface Track {
+interface BackendTrack {
   _id: string
   id: string
   title: string
   artist: string
   coverImage?: string
   coverURL?: string
-  duration?: string
+  duration?: string | number
+  audioUrl?: string
+  audioURL?: string
   // Add other properties as needed
 }
 
 export default function FavoritesPage() {
-  const [tracks, setTracks] = useState<Track[]>([])
+  const [tracks, setTracks] = useState<BackendTrack[]>([])
   const [loading, setLoading] = useState(true)
   const { isAuthenticated, isLoading } = useAuth()
-  const { removeFromFavorites, favorites, favoritesLoading } = useAudioPlayer()
+  const { removeFromFavorites, favorites, favoritesLoading, playTrack, setCurrentPlaylist } = useAudioPlayer()
   const router = useRouter()
 
   // State for tracking which tracks are favorited
@@ -66,15 +68,40 @@ export default function FavoritesPage() {
     setTracks(prev => prev.filter(track => track.id !== trackId));
   };
 
+  // Convert backend track to audio player track format
+  const convertToAudioPlayerTrack = (track: BackendTrack) => {
+    return {
+      id: track.id || track._id,
+      title: track.title,
+      artist: track.artist,
+      coverImage: track.coverImage || track.coverURL || '/placeholder-track.png',
+      audioUrl: track.audioUrl || track.audioURL || '',
+      duration: typeof track.duration === 'string' ? parseInt(track.duration) : track.duration
+    };
+  };
+
+  // Play a track
+  const handlePlayTrack = (track: BackendTrack) => {
+    // Set the current playlist to all favorites for continuous playback
+    const audioPlayerTracks = tracks.map(convertToAudioPlayerTrack);
+    setCurrentPlaylist(audioPlayerTracks);
+    
+    // Play the selected track
+    playTrack(convertToAudioPlayerTrack(track));
+  };
+
   // Load favorites from backend
   const loadFavorites = async () => {
     if (isAuthenticated && !isLoading) {
       try {
         const favorites = await getUserFavorites()
-        // Map the favorites to ensure each track has a unique id
+        // Map the favorites to ensure each track has a unique id and proper structure
         const mappedTracks = favorites.map((track: any) => ({
           ...track,
-          id: track._id || track.id // Use _id if available, otherwise use id
+          id: track._id || track.id, // Use _id if available, otherwise use id
+          coverImage: track.coverImage || track.coverURL || '',
+          audioUrl: track.audioUrl || track.audioURL || '',
+          duration: track.duration
         }))
         setTracks(mappedTracks)
       } catch (error) {
@@ -198,7 +225,10 @@ export default function FavoritesPage() {
                         target.src = '/placeholder-track.png';
                       }}
                     />
-                    <button className="absolute inset-0 w-full h-full rounded-lg bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                    <button 
+                      onClick={() => handlePlayTrack(track)}
+                      className="absolute inset-0 w-full h-full rounded-lg bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
+                    >
                       <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
                       </svg>

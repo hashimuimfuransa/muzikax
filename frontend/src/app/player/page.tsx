@@ -6,6 +6,18 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../contexts/AuthContext';
 import PlaylistSelectionModal from '../../components/PlaylistSelectionModal'; // Added import
+import { fetchCreatorProfile, fetchTracksByCreatorPublic } from '../../services/trackService'; // Added import
+
+// Define comment interface with replies
+interface CommentWithReplies {
+  id: string;
+  userId: string;
+  username: string;
+  text: string;
+  timestamp: string;
+  parentId?: string; // Reference to parent comment
+  replies: CommentWithReplies[]; // Nested replies
+}
 
 const FullPagePlayer = () => {
   const {
@@ -35,6 +47,102 @@ const FullPagePlayer = () => {
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
   const [comment, setComment] = useState('');
   const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false); // Added state for modal
+  
+  // Added state for creator profile and tracks
+  const [creator, setCreator] = useState<any>(null);
+  const [creatorTracks, setCreatorTracks] = useState<any[]>([]);
+  const [loadingCreator, setLoadingCreator] = useState(false);
+  
+  // Added state for comment replies
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState('');
+  
+  const hasAutoPlayedRef = useRef(false);
+  
+  // Automatically play the track when the full player page loads
+  useEffect(() => {
+    console.log('Auto-play useEffect triggered');
+    console.log('currentTrack:', currentTrack);
+    console.log('audioRef.current:', audioRef.current);
+    console.log('isPlaying:', isPlaying);
+    console.log('hasAutoPlayedRef.current:', hasAutoPlayedRef.current);
+    
+    // Reset the auto-play flag when the track changes
+    if (currentTrack && !hasAutoPlayedRef.current) {
+      hasAutoPlayedRef.current = true;
+      
+      if (currentTrack && audioRef.current) {
+        // Ensure the audio is playing when the full player page loads
+        // Only auto-play if not already playing
+        if (!isPlaying) {
+          // Small delay to ensure the audio element is ready
+          const timer = setTimeout(() => {
+            console.log('Triggering togglePlayPause for auto-play');
+            togglePlayPause();
+          }, 100);
+          return () => clearTimeout(timer);
+        }
+      }
+    }
+    
+    // Reset the flag when there's no current track
+    if (!currentTrack) {
+      hasAutoPlayedRef.current = false;
+    }
+  }, [currentTrack, audioRef, isPlaying]);
+
+  // Process comments to create a threaded structure
+  const processComments = (): CommentWithReplies[] => {
+    // Convert existing comments to CommentWithReplies format
+    const commentsWithReplies: CommentWithReplies[] = comments.map(comment => ({
+      ...comment,
+      replies: []
+    }));
+    
+    // Separate top-level comments and replies
+    const topLevelComments: CommentWithReplies[] = [];
+    const replies: CommentWithReplies[] = [];
+    
+    commentsWithReplies.forEach(comment => {
+      // Check if this is a reply (by looking for @mentions)
+      const isReply = comment.text.startsWith('@');
+      if (isReply) {
+        replies.push(comment);
+      } else {
+        topLevelComments.push(comment);
+      }
+    });
+    
+    // Attach replies to their parent comments
+    replies.forEach(reply => {
+      // Extract the username being replied to (everything between @ and space)
+      const match = reply.text.match(/^@(\w+)/);
+      if (match) {
+        const repliedToUsername = match[1];
+        // Find the parent comment by username
+        const parentComment = topLevelComments.find(comment => 
+          comment.username === repliedToUsername
+        );
+        if (parentComment) {
+          // Add parentId to reply
+          reply.parentId = parentComment.id;
+          // Add reply to parent's replies array
+          parentComment.replies.push(reply);
+        } else {
+          // If parent not found, treat as top-level comment
+          topLevelComments.push(reply);
+        }
+      } else {
+        // If no match, treat as top-level comment
+        topLevelComments.push(reply);
+      }
+    });
+    
+    return topLevelComments;
+  };
+  
+  // Process comments whenever the comments array changes
+  const [threadedComments, setThreadedComments] = useState<CommentWithReplies[]>([]);
 
   // Check if current track is in favorites
   useEffect(() => {
@@ -42,6 +150,11 @@ const FullPagePlayer = () => {
       setIsFavorite(favorites.some(track => track.id === currentTrack.id));
     }
   }, [currentTrack, favorites]);
+
+  // Process comments to create threaded structure
+  useEffect(() => {
+    setThreadedComments(processComments());
+  }, [comments]);
 
   // Toast notification effect
   useEffect(() => {
@@ -52,6 +165,34 @@ const FullPagePlayer = () => {
       return () => clearTimeout(timer);
     }
   }, [toast]);
+
+  // Fetch creator profile and tracks when currentTrack changes
+  useEffect(() => {
+    const fetchCreatorData = async () => {
+      if (!currentTrack || !currentTrack.creatorId) return;
+      
+      setLoadingCreator(true);
+      try {
+        // Fetch creator profile
+        const creatorData = await fetchCreatorProfile(currentTrack.creatorId);
+        setCreator(creatorData);
+        
+        // Fetch creator's tracks
+        const tracksData = await fetchTracksByCreatorPublic(currentTrack.creatorId);
+        // Filter out the current track and limit to 3 tracks
+        const filteredTracks = tracksData
+          .filter((track: any) => track._id !== currentTrack.id)
+          .slice(0, 3);
+        setCreatorTracks(filteredTracks);
+      } catch (error) {
+        console.error('Error fetching creator data:', error);
+      } finally {
+        setLoadingCreator(false);
+      }
+    };
+    
+    fetchCreatorData();
+  }, [currentTrack]);
 
   // Format time in MM:SS
   const formatTime = (seconds: number) => {
@@ -112,6 +253,27 @@ const FullPagePlayer = () => {
     setToast({message: 'Comment added!', type: 'success'});
   };
 
+  // Handle adding reply
+  const handleAddReply = (parentId: string, parentUsername: string) => {
+    if (!replyText.trim() || !currentTrack) return;
+    
+    if (!isAuthenticated) {
+      setToast({message: 'Please log in to reply', type: 'error'});
+      return;
+    }
+    
+    // Add the reply as a new comment with a mention
+    addComment({
+      userId: user?.id || 'anonymous',
+      username: user?.name || 'Anonymous',
+      text: `@${parentUsername} ${replyText}`
+    });
+    
+    setReplyText('');
+    setReplyingTo(null);
+    setToast({message: 'Reply added!', type: 'success'});
+  };
+
   // Handle adding to playlist
   const handleAddToPlaylist = () => {
     if (!isAuthenticated) {
@@ -153,6 +315,83 @@ const FullPagePlayer = () => {
   if (!currentTrack) {
     return null;
   }
+
+  // Function to generate avatar with first letter of name
+  const generateAvatar = (name: string) => {
+    const firstLetter = name.charAt(0).toUpperCase();
+    return (
+      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center">
+        <span className="text-lg font-bold text-white">{firstLetter}</span>
+      </div>
+    );
+  };
+
+  // Recursive component to render comments and their replies
+  const CommentItem = ({ comment, isReply = false }: { comment: CommentWithReplies; isReply?: boolean }) => (
+    <div className={isReply ? "ml-6 mt-3 pl-4 border-l-2 border-gray-600" : ""}>
+      <div className="bg-gray-700/50 rounded-lg p-4">
+        <div className="flex justify-between items-start">
+          <div>
+            <h4 className="font-semibold">{comment.username}</h4>
+            <p className="text-gray-300 text-sm mt-1">{comment.text}</p>
+          </div>
+          <span className="text-xs text-gray-400">
+            {new Date(comment.timestamp).toLocaleDateString()}
+          </span>
+        </div>
+        
+        {/* Reply Button */}
+        <div className="mt-2">
+          <button
+            onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
+            className="text-xs text-[#FF4D67] hover:text-[#ff3350]"
+          >
+            {replyingTo === comment.id ? 'Cancel' : 'Reply'}
+          </button>
+        </div>
+        
+        {/* Reply Form */}
+        {replyingTo === comment.id && (
+          <div className="mt-3 pl-4 border-l-2 border-gray-600">
+            <textarea
+              value={replyText}
+              onChange={(e) => setReplyText(e.target.value)}
+              placeholder={`Reply to ${comment.username}...`}
+              className="w-full bg-gray-700 text-white rounded-lg p-2 mb-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+              rows={2}
+            />
+            <div className="flex space-x-2">
+              <button
+                onClick={() => handleAddReply(comment.id, comment.username)}
+                disabled={!replyText.trim() || !isAuthenticated}
+                className="bg-[#FF4D67] hover:bg-[#ff3350] text-white px-3 py-1 rounded text-sm disabled:opacity-50"
+              >
+                Post Reply
+              </button>
+              <button
+                onClick={() => {
+                  setReplyingTo(null);
+                  setReplyText('');
+                }}
+                className="bg-gray-600 hover:bg-gray-500 text-white px-3 py-1 rounded text-sm"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+      
+      {/* Render replies */}
+      {comment.replies && comment.replies.length > 0 && (
+        <div className="mt-3">
+          {comment.replies.map(reply => (
+            <CommentItem key={reply.id} comment={reply} isReply={true} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white">
@@ -216,7 +455,9 @@ const FullPagePlayer = () => {
               <div className="text-center mb-8 w-full">
                 <h2 className="text-3xl font-bold text-white truncate">{currentTrack.title}</h2>
                 <Link 
-                  href={`/artists/${currentTrack.creatorId}`}
+                  href={`/artists/${(typeof currentTrack.creatorId === 'object' && currentTrack.creatorId !== null) 
+                    ? (currentTrack.creatorId as any)._id 
+                    : currentTrack.creatorId}`}
                   className="text-[#FF4D67] hover:text-[#ff3350] mt-2 inline-block"
                 >
                   {currentTrack.artist}
@@ -271,7 +512,7 @@ const FullPagePlayer = () => {
                 </button>
                 
                 <button 
-                  onClick={playNextTrack}
+                  onClick={() => playNextTrack()}
                   className="text-gray-400 hover:text-white transition-colors"
                 >
                   <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -317,7 +558,9 @@ const FullPagePlayer = () => {
                 
                 {currentTrack.creatorId && (
                   <Link 
-                    href={`/artists/${currentTrack.creatorId}`}
+                    href={`/artists/${(typeof currentTrack.creatorId === 'object' && currentTrack.creatorId !== null) 
+                      ? (currentTrack.creatorId as any)._id 
+                      : currentTrack.creatorId}`}
                     className="flex flex-col items-center text-gray-400 hover:text-white transition-colors"
                     title="View Artist Profile"
                   >
@@ -347,9 +590,97 @@ const FullPagePlayer = () => {
             </div>
           </div>
           
-          {/* Comments Section */}
-          <div className="lg:col-span-1">
-            <div className="bg-gray-800/50 rounded-xl p-6 h-full">
+          {/* Comments and Creator Section */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* Uploaded By Section */}
+            <div className="bg-gray-800/50 rounded-xl p-6">
+              <h3 className="text-xl font-bold mb-4">Uploaded By</h3>
+              
+              {loadingCreator ? (
+                <div className="flex items-center justify-center py-4">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF4D67]"></div>
+                </div>
+              ) : creator ? (
+                <div className="space-y-4">
+                  {/* Creator Info */}
+                  <div className="flex items-center space-x-4">
+                    {creator.avatar ? (
+                      <img 
+                        src={creator.avatar} 
+                        alt={creator.name} 
+                        className="w-12 h-12 rounded-full object-cover"
+                      />
+                    ) : (
+                      generateAvatar(creator.name)
+                    )}
+                    <div>
+                      <h4 className="font-semibold text-lg">{creator.name}</h4>
+                      <p className="text-gray-400 text-sm">
+                        {creator.followersCount || 0} followers
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Other Tracks by Creator */}
+                  {creatorTracks.length > 0 && (
+                    <div className="mt-4">
+                      <h5 className="font-medium mb-2">More from {creator.name}</h5>
+                      <div className="space-y-2">
+                        {creatorTracks.map((track: any) => (
+                          <div 
+                            key={track._id}
+                            className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-700/50 cursor-pointer transition-colors"
+                            onClick={() => {
+                              // Play the track
+                              const trackData = {
+                                id: track._id,
+                                title: track.title,
+                                artist: track.artist || creator.name,
+                                coverImage: track.coverArt || track.coverURL || currentTrack.coverImage,
+                                audioUrl: track.audioUrl || track.audioURL,
+                                duration: track.duration,
+                                creatorId: (typeof currentTrack.creatorId === 'object' && currentTrack.creatorId !== null) 
+                                  ? (currentTrack.creatorId as any)._id 
+                                  : currentTrack.creatorId
+                              };
+                              // Assuming there's a playTrack function available in context
+                              // For now, we'll just navigate to the artist page
+                              const artistId = (typeof currentTrack.creatorId === 'object' && currentTrack.creatorId !== null) 
+                                ? (currentTrack.creatorId as any)._id 
+                                : currentTrack.creatorId;
+                              router.push(`/artists/${artistId}`);
+                            }}
+                          >
+                            <img 
+                              src={track.coverArt || track.coverURL || currentTrack.coverImage} 
+                              alt={track.title} 
+                              className="w-10 h-10 rounded object-cover"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium truncate">{track.title}</p>
+                              <p className="text-xs text-gray-400 truncate">{track.artist || creator.name}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* View Full Profile Button */}
+                  <button
+                    onClick={() => router.push(`/artists/${creator._id}`)}
+                    className="w-full mt-4 py-2 bg-[#FF4D67] hover:bg-[#ff3350] rounded-lg text-white font-medium transition-colors"
+                  >
+                    View Full Profile
+                  </button>
+                </div>
+              ) : (
+                <p className="text-gray-400 text-center py-4">Creator information not available</p>
+              )}
+            </div>
+            
+            {/* Comments Section */}
+            <div className="bg-gray-800/50 rounded-xl p-6">
               <h3 className="text-xl font-bold mb-4">Comments</h3>
               
               {/* Add Comment Form */}
@@ -372,19 +703,9 @@ const FullPagePlayer = () => {
               
               {/* Comments List */}
               <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
-                {comments.length > 0 ? (
-                  comments.map((comment) => (
-                    <div key={comment.id} className="bg-gray-700/50 rounded-lg p-4">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h4 className="font-semibold">{comment.username}</h4>
-                          <p className="text-gray-300 text-sm mt-1">{comment.text}</p>
-                        </div>
-                        <span className="text-xs text-gray-400">
-                          {new Date(comment.timestamp).toLocaleDateString()}
-                        </span>
-                      </div>
-                    </div>
+                {threadedComments.length > 0 ? (
+                  threadedComments.map(comment => (
+                    <CommentItem key={comment.id} comment={comment} />
                   ))
                 ) : (
                   <p className="text-gray-400 text-center py-4">No comments yet. Be the first to comment!</p>

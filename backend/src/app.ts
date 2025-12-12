@@ -12,6 +12,7 @@ import upgradeRoutes from './routes/upgradeRoutes';
 import uploadRoutes from './routes/uploadRoutes';
 import creatorRoutes from './routes/creatorRoutes';
 import albumRoutes from './routes/albumRoutes';
+import commentRoutes from './routes/commentRoutes';
 import { protect } from './utils/jwt';
 import { updateOwnProfile } from './controllers/profileController';
 console.log('About to import public routes...');
@@ -111,6 +112,16 @@ try {
   console.log('Album routes registered successfully');
 } catch (error) {
   console.error('Error registering album routes:', error);
+}
+
+// Register comment routes
+console.log('Attempting to register comment routes...');
+try {
+  console.log('Comment routes object:', commentRoutes);
+  app.use('/api/comments', commentRoutes);
+  console.log('Comment routes registered successfully');
+} catch (error) {
+  console.error('Error registering comment routes:', error);
 }
 
 // Directly implement profile update route in app.ts to avoid 404 issues

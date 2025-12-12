@@ -67,6 +67,28 @@ const makeAuthenticatedRequest = async (url: string, options: RequestInit = {}):
 };
 
 /**
+ * Add track to recently played
+ */
+export const addRecentlyPlayed = async (trackId: string): Promise<boolean> => {
+  try {
+    const response = await makeAuthenticatedRequest(`${process.env.NEXT_PUBLIC_API_URL}/api/recently-played`, {
+      method: 'POST',
+      body: JSON.stringify({ trackId })
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to add track to recently played');
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error adding track to recently played:', error);
+    throw error;
+  }
+};
+
+/**
  * Get user's recently played tracks
  */
 export const getRecentlyPlayed = async (): Promise<any[]> => {

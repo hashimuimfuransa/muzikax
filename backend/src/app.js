@@ -12,6 +12,7 @@ const upgradeRoutes = require('./routes/upgradeRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
 const creatorRoutes = require('./routes/creatorRoutes');
 const albumRoutes = require('./routes/albumRoutes');
+const commentRoutes = require('./routes/commentRoutes'); // Add comment routes
 const { protect } = require('./utils/jwt');
 const { updateOwnProfile } = require('./controllers/profileController');
 console.log('About to import public routes...');
@@ -111,6 +112,16 @@ try {
   console.log('Album routes registered successfully');
 } catch (error) {
   console.error('Error registering album routes:', error);
+}
+
+// Register comment routes
+console.log('Attempting to register comment routes...');
+try {
+  console.log('Comment routes object:', commentRoutes);
+  app.use('/api/comments', commentRoutes);
+  console.log('Comment routes registered successfully');
+} catch (error) {
+  console.error('Error registering comment routes:', error);
 }
 
 // Directly implement profile update route in app.js to avoid 404 issues
