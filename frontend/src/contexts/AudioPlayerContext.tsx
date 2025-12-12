@@ -42,6 +42,7 @@ interface AudioPlayerContextType {
   favorites: Track[];
   favoritesLoading: boolean;
   comments: Comment[];
+  volume: number;
   playTrack: (track: Track, contextPlaylist?: Track[], albumContext?: { albumId: string, tracks: Track[] }) => void;
   playNextTrack: () => Promise<void>;
   playPreviousTrack: () => void;
@@ -49,7 +50,7 @@ interface AudioPlayerContextType {
   stopTrack: () => void;
   togglePlayPause: () => void;
   toggleMinimize: () => void;
-  minimizeAndGoBack: () => void; // Add this new function
+  minimizeAndGoBack: () => void;
   closePlayer: () => void;
   setProgress: (progress: number) => void;
   progress: number;
@@ -64,7 +65,9 @@ interface AudioPlayerContextType {
   audioRef: React.RefObject<HTMLAudioElement | null>;
   addComment: (comment: Omit<Comment, 'id' | 'timestamp'>) => void;
   removeComment: (commentId: string) => void;
-  loadComments: (trackId: string) => void; // New function to load comments from backend
+  loadComments: (trackId: string) => void;
+  setVolume: (volume: number) => void;
+  shareTrack: (platform: string) => void; // Add shareTrack function
 }
 
 const AudioPlayerContext = createContext<AudioPlayerContextType | undefined>(undefined);
@@ -89,6 +92,7 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
   const [favoritesLoading, setFavoritesLoading] = useState(true);
   const [comments, setComments] = useState<Comment[]>([]);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
+  const [volume, setVolume] = useState(1);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const hasIncrementedPlayCount = useRef<Set<string>>(new Set());
   const router = useRouter();
@@ -298,6 +302,9 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     const audio = new Audio(track.audioUrl);
     audioRef.current = audio;
     
+    // Set initial volume
+    audio.volume = volume;
+
     // Set up event listeners
     audio.onplay = () => {
       console.log('Audio started playing');
@@ -953,6 +960,42 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // Add setVolume function to update volume
+  const updateVolume = (newVolume: number) => {
+    setVolume(newVolume);
+    if (audioRef.current) {
+      audioRef.current.volume = newVolume;
+    }
+  };
+
+  // Add shareTrack function
+  const shareTrack = (platform: string) => {
+    if (!currentTrack) return;
+    
+    const trackUrl = `${window.location.origin}/track/${currentTrack.id}`;
+    const text = `Check out "${currentTrack.title}" by ${currentTrack.artist} on MuzikaX`;
+    
+    switch (platform) {
+      case 'facebook':
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(trackUrl)}`, '_blank');
+        break;
+      case 'twitter':
+        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(trackUrl)}`, '_blank');
+        break;
+      case 'whatsapp':
+        window.open(`https://wa.me/?text=${encodeURIComponent(`${text} ${trackUrl}`)}`, '_blank');
+        break;
+      case 'linkedin':
+        window.open(`https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(trackUrl)}&title=${encodeURIComponent(currentTrack.title)}&summary=${encodeURIComponent(text)}`, '_blank');
+        break;
+      case 'copy':
+        navigator.clipboard.writeText(trackUrl);
+        break;
+      default:
+        console.warn('Unsupported sharing platform:', platform);
+    }
+  };
+
   return (
     <AudioPlayerContext.Provider
       value={{
@@ -966,7 +1009,7 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
         stopTrack,
         togglePlayPause,
         toggleMinimize,
-        minimizeAndGoBack, // Add this new function
+        minimizeAndGoBack,
         closePlayer,
         progress,
         duration,
@@ -978,7 +1021,7 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
         comments,
         addToPlaylist,
         removeFromPlaylist,
-        createPlaylist, // Export the createPlaylist function
+        createPlaylist,
         addToFavorites,
         removeFromFavorites,
         setCurrentPlaylist,
@@ -986,7 +1029,10 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
         audioRef,
         addComment,
         removeComment,
-        loadComments // Export the new function
+        loadComments,
+        volume,
+        setVolume: updateVolume,
+        shareTrack // Export shareTrack function
       }}
     >
       {children}
