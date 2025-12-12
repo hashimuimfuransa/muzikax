@@ -101,6 +101,26 @@ export default function Profile() {
     }
   }, [isAuthenticated, user])
 
+  // Listen for track updates (when favorites are added/removed)
+  useEffect(() => {
+    const handleTrackUpdate = () => {
+      // Refresh tracks data when a track is updated
+      if (user?.role === 'creator') {
+        fetchTracks(tracksPage)
+        // Also refresh analytics since total likes may have changed
+        fetchAnalytics()
+      }
+    }
+
+    // Add event listener
+    window.addEventListener('trackUpdated', handleTrackUpdate)
+
+    // Clean up event listener
+    return () => {
+      window.removeEventListener('trackUpdated', handleTrackUpdate)
+    }
+  }, [user, tracksPage])
+
   const fetchAnalytics = async () => {
     if (!user || user.role !== 'creator') return
     

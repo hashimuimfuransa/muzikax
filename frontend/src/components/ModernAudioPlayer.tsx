@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
+import PlaylistSelectionModal from './PlaylistSelectionModal'; // Added import
 
 const ModernAudioPlayer = () => {
   const {
@@ -21,7 +22,6 @@ const ModernAudioPlayer = () => {
     playPreviousTrack,
     addToFavorites,
     removeFromFavorites,
-    addToPlaylist,
     favorites,
     audioRef
   } = useAudioPlayer();
@@ -32,6 +32,7 @@ const ModernAudioPlayer = () => {
   const progressRef = useRef<HTMLDivElement>(null);
   const [isFavorite, setIsFavorite] = useState(false);
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
+  const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false); // Added state for modal
 
   // Check if current track is in favorites
   useEffect(() => {
@@ -95,12 +96,24 @@ const ModernAudioPlayer = () => {
     router.push('/player');
   };
 
-  // Redirect to full player page when track is played and not minimized
-  useEffect(() => {
-    if (currentTrack && !isMinimized) {
-      router.push('/player');
+  // Handle adding to playlist
+  const handleAddToPlaylist = () => {
+    if (!isAuthenticated) {
+      router.push('/login');
+      return;
     }
-  }, [currentTrack, isMinimized, router]);
+    
+    setIsPlaylistModalOpen(true);
+  };
+
+  // Handle track added to playlist
+  const handleTrackAdded = () => {
+    setToast({message: 'Added to playlist!', type: 'success'});
+  };
+
+  // No longer redirect to full player page automatically
+  // The player will stay minimized and visible on all pages
+  // Users can click the expand button to go to the full player page
 
   // Don't render if there's no current track
   if (!currentTrack) return null;
@@ -113,6 +126,13 @@ const ModernAudioPlayer = () => {
           {toast.message}
         </div>
       )}
+      
+      {/* Playlist Selection Modal */}
+      <PlaylistSelectionModal
+        isOpen={isPlaylistModalOpen}
+        onClose={() => setIsPlaylistModalOpen(false)}
+        onTrackAdded={handleTrackAdded}
+      />
       
       {/* Minimized Player */}
       {isMinimized && (
@@ -149,6 +169,16 @@ const ModernAudioPlayer = () => {
             
             <div className="flex items-center space-x-2">
               <button 
+                onClick={handleAddToPlaylist} // Changed to use the new function
+                className="text-gray-400 hover:text-white transition-colors"
+                title="Add to playlist"
+              >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                  <path fillRule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V5zm11 1H6v8l4-2 4 2V6z" clipRule="evenodd"></path>
+                </svg>
+              </button>
+              
+              <button 
                 onClick={goToFullPlayer}
                 className="text-gray-400 hover:text-white transition-colors"
                 title="Expand player"
@@ -171,10 +201,11 @@ const ModernAudioPlayer = () => {
         </div>
       )}
 
-      {/* Full Player - Always navigate to full page player when not minimized */}
+      {/* Full Player - Only show when on the player page */}
       {!isMinimized && currentTrack && (
         <div className="hidden">
-          {/* This div ensures the component renders but doesn't display anything since we're redirecting to the full player page */}
+          {/* This div ensures the component renders but doesn't display anything */}
+          {/* The actual full player is rendered on the /player page */}
         </div>
       )}
     </>

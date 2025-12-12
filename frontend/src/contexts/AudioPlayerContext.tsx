@@ -163,6 +163,14 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     type: 'playlist' | 'album' | 'single'; 
     data?: any 
   }>({ type: 'single' });
+  
+  // Expose the playback context globally so it can be accessed from other components
+  useEffect(() => {
+    (window as any).audioPlayerContext = currentPlaybackContext;
+    return () => {
+      delete (window as any).audioPlayerContext;
+    };
+  }, []);
 
   // Load favorites and playlists from backend on mount
   useEffect(() => {
@@ -181,7 +189,16 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
         
         // Load playlists
         const userPlaylists = await getUserPlaylists();
-        setPlaylists(userPlaylists);
+        // Map the playlists to ensure each has a unique id
+        const mappedPlaylists = userPlaylists.map((playlist: any) => ({
+          ...playlist,
+          id: playlist._id || playlist.id, // Use _id if available, otherwise use id
+          tracks: playlist.tracks?.map((track: any) => ({
+            ...track,
+            id: track._id || track.id // Use _id if available, otherwise use id
+          })) || []
+        }));
+        setPlaylists(mappedPlaylists);
       } catch (error) {
         console.error('Error loading user data:', error);
       }
@@ -190,7 +207,23 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     loadUserData();
   }, []);
 
+  // Flag to track if the track was explicitly played by user
+  const explicitlyPlayedRef = useRef(false);
+  
+  // Navigate to full player page when a track is played and not minimized
+  // Only navigate when explicitly playing a new track, not when auto-playing next track
+  useEffect(() => {
+    if (currentTrack && !isMinimized && explicitlyPlayedRef.current) {
+      router.push('/player');
+      // Reset the flag after navigation
+      explicitlyPlayedRef.current = false;
+    }
+  }, [currentTrack, isMinimized, router]);
+  
   const playTrack = (track: Track, contextPlaylist?: Track[], albumContext?: { albumId: string, tracks: Track[] }) => {
+    console.log('PLAY TRACK CALLED with track:', track);
+    console.log('Current track before playTrack:', currentTrack);
+    
     // Validate that we have a valid audio URL
     if (!track.audioUrl || track.audioUrl.trim() === '') {
       console.error('Cannot play track: Invalid audio URL', track);
@@ -199,6 +232,7 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     
     // If we're already playing this track, just resume
     if (currentTrack?.id === track.id && audioRef.current) {
+      console.log('Resuming existing track');
       audioRef.current.play().catch(error => {
         console.error('Error resuming track:', error);
       });
@@ -208,6 +242,7 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
 
     // Stop current track if playing
     if (audioRef.current) {
+      console.log('Stopping current audio');
       audioRef.current.pause();
       audioRef.current = null;
     }
@@ -223,6 +258,7 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
       const index = albumContext.tracks.findIndex(t => t.id === track.id);
       setCurrentTrackIndex(index >= 0 ? index : 0);
     } else if (contextPlaylist && contextPlaylist.length > 0) {
+      console.log('Setting playlist context with tracks:', contextPlaylist);
       currentPlaybackContext.current = { 
         type: 'playlist', 
         data: contextPlaylist 
@@ -242,9 +278,17 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     audioRef.current = audio;
     
     // Set up event listeners
-    audio.onplay = () => setIsPlaying(true);
-    audio.onpause = () => setIsPlaying(false);
+    audio.onplay = () => {
+      console.log('Audio started playing');
+      setIsPlaying(true);
+    };
+    audio.onpause = () => {
+      console.log('Audio paused');
+      setIsPlaying(false);
+    };
     audio.onended = () => {
+      console.log('AUDIO ONENDED EVENT TRIGGERED');
+      console.log('Current track in onended:', currentTrack);
       setIsPlaying(false);
       playNextTrack();
     };
@@ -261,8 +305,12 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     };
 
     // Set the current track immediately
+    console.log('Setting current track to:', track);
     setCurrentTrack(track);
     setIsMinimized(false); // Expand player when new track starts
+    
+    // Mark this as an explicit play action
+    explicitlyPlayedRef.current = true;
     
     // Add to recently played
     addRecentlyPlayedTrack(track.id);
@@ -282,57 +330,139 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     // Small delay to ensure audio element is properly initialized
     setTimeout(() => {
       // Play the new track
+      console.log('Attempting to play audio');
       audio.play().then(() => {
+        console.log('Audio play successful');
         setIsPlaying(true);
       }).catch((error) => {
         console.error('Error playing track:', error);
         setIsPlaying(false);
-        setCurrentTrack(null);
+        // Only set current track to null if this wasn't an automatic playlist progression
+        // During playlist progression, we want to keep the context even if one track fails
+        const context = currentPlaybackContext.current;
+        const isInPlaylistContext = context.type === 'playlist' || context.type === 'album';
+        console.log('Error context type:', context.type);
+        console.log('Is in playlist context:', isInPlaylistContext);
+        if (!isInPlaylistContext) {
+          console.log('Setting current track to null due to error');
+          setCurrentTrack(null);
+        } else {
+          console.log('Keeping current track due to playlist context');
+        }
       });
     }, 0);
   };
 
-  // Navigate to full player page when a track is played and not minimized
-  useEffect(() => {
-    if (currentTrack && !isMinimized) {
-      router.push('/player');
-    }
-  }, [currentTrack, isMinimized, router]);
-
   const playNextTrack = () => {
     const context = currentPlaybackContext.current;
+    console.log('PLAY NEXT TRACK - Starting execution');
+    console.log('Context:', context);
+    console.log('Current track:', currentTrack);
+    console.log('Playlist:', playlist);
+    console.log('Current track index:', currentTrackIndex);
     
     // If we're in album context, play next track in album
     if (context.type === 'album' && context.data) {
+      console.log('In album context');
       const { tracks } = context.data;
-      const currentIndex = tracks.findIndex((track: Track) => track.id === currentTrack?.id);
+      
+      // Find current index based on currentTrack or currentTrackIndex
+      let currentIndex = -1;
+      if (currentTrack) {
+        currentIndex = tracks.findIndex((track: Track) => track.id === currentTrack.id);
+      } else {
+        // Use the stored index if currentTrack is null
+        currentIndex = currentTrackIndex;
+      }
+      
+      console.log('Album current index:', currentIndex);
       
       if (currentIndex !== -1 && currentIndex < tracks.length - 1) {
         const nextTrack = tracks[currentIndex + 1];
+        console.log('Playing next album track:', nextTrack);
         playTrack(nextTrack, undefined, context.data);
+        return;
+      } else if (currentIndex !== -1 && currentIndex === tracks.length - 1) {
+        // Loop back to the first track in the album
+        console.log('Looping back to first track in album');
+        const firstTrack = tracks[0];
+        playTrack(firstTrack, undefined, context.data);
         return;
       }
     }
     
     // If we're in playlist context, play next track in playlist
     if (context.type === 'playlist' && context.data) {
-      const currentIndex = context.data.findIndex((track: Track) => track.id === currentTrack?.id);
+      console.log('In playlist context');
+      
+      // Find current index based on currentTrack or currentTrackIndex
+      let currentIndex = -1;
+      if (currentTrack) {
+        currentIndex = context.data.findIndex((track: Track) => track.id === currentTrack.id);
+      } else {
+        // Use the stored index if currentTrack is null
+        currentIndex = currentTrackIndex;
+      }
+      
+      console.log('Playlist current index:', currentIndex);
+      console.log('Playlist length:', context.data.length);
       
       if (currentIndex !== -1 && currentIndex < context.data.length - 1) {
         const nextTrack = context.data[currentIndex + 1];
+        console.log('Playing next playlist track:', nextTrack);
         playTrack(nextTrack, context.data);
+        return;
+      } else if (currentIndex !== -1 && currentIndex === context.data.length - 1) {
+        // Loop back to the first track in the playlist
+        console.log('Looping back to first track in playlist');
+        const firstTrack = context.data[0];
+        playTrack(firstTrack, context.data);
+        return;
+      } else if (context.data.length > 0) {
+        // Fallback: if we can't determine current position, play first track
+        console.log('Fallback: playing first track in playlist');
+        const firstTrack = context.data[0];
+        playTrack(firstTrack, context.data);
         return;
       }
     }
     
     // If we're in single track context or at the end of playlist/album, 
     // play next track in the main playlist
-    if (playlist.length > 0 && currentTrack) {
-      const currentIndex = playlist.findIndex(track => track.id === currentTrack.id);
+    if (playlist.length > 0 && (currentTrack || playlist[currentTrackIndex])) {
+      console.log('In main playlist context');
+      
+      // Find current index based on currentTrack or currentTrackIndex
+      let currentIndex = -1;
+      if (currentTrack) {
+        currentIndex = playlist.findIndex(track => track.id === currentTrack.id);
+      } else {
+        // Use the stored index if currentTrack is null
+        currentIndex = currentTrackIndex;
+      }
+      
+      console.log('Main playlist current index:', currentIndex);
+      console.log('Main playlist length:', playlist.length);
+      
       if (currentIndex !== -1 && currentIndex < playlist.length - 1) {
         const nextTrack = playlist[currentIndex + 1];
+        console.log('Playing next main playlist track:', nextTrack);
         playTrack(nextTrack, playlist);
         setCurrentTrackIndex(currentIndex + 1);
+        return;
+      } else if (currentIndex !== -1 && currentIndex === playlist.length - 1) {
+        // Loop back to the first track in the main playlist
+        console.log('Looping back to first track in main playlist');
+        const firstTrack = playlist[0];
+        playTrack(firstTrack, playlist);
+        setCurrentTrackIndex(0);
+        return;
+      } else if (playlist.length > 0) {
+        // Fallback: if we can't determine current position, play first track
+        console.log('Fallback: playing first track in main playlist');
+        const firstTrack = playlist[0];
+        playTrack(firstTrack, playlist);
+        setCurrentTrackIndex(0);
         return;
       }
     }
@@ -340,43 +470,119 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     // If we reach here, we're at the end of the queue and not in album/playlist context
     // We could either stop or loop back to the beginning
     // For now, we'll stop
+    console.log('STOPPING TRACK - reached end of queue');
+    console.log('Context at stop:', context);
+    console.log('Current track at stop:', currentTrack);
+    console.log('Playlist at stop:', playlist);
     stopTrack();
   };
 
   const playPreviousTrack = () => {
     const context = currentPlaybackContext.current;
+    console.log('PLAY PREVIOUS TRACK - Starting execution');
+    console.log('Context:', context);
+    console.log('Current track:', currentTrack);
+    console.log('Playlist:', playlist);
+    console.log('Current track index:', currentTrackIndex);
     
     // If we're in album context, play previous track in album
     if (context.type === 'album' && context.data) {
+      console.log('In album context');
       const { tracks } = context.data;
-      const currentIndex = tracks.findIndex((track: Track) => track.id === currentTrack?.id);
+      
+      // Find current index based on currentTrack or currentTrackIndex
+      let currentIndex = -1;
+      if (currentTrack) {
+        currentIndex = tracks.findIndex((track: Track) => track.id === currentTrack.id);
+      } else {
+        // Use the stored index if currentTrack is null
+        currentIndex = currentTrackIndex;
+      }
+      
+      console.log('Album current index:', currentIndex);
       
       if (currentIndex > 0) {
         const prevTrack = tracks[currentIndex - 1];
         playTrack(prevTrack, undefined, context.data);
+        return;
+      } else if (currentIndex === 0 && tracks.length > 1) {
+        // Loop to the last track in the album
+        console.log('Looping to last track in album');
+        const lastTrack = tracks[tracks.length - 1];
+        playTrack(lastTrack, undefined, context.data);
         return;
       }
     }
     
     // If we're in playlist context, play previous track in playlist
     if (context.type === 'playlist' && context.data) {
-      const currentIndex = context.data.findIndex((track: Track) => track.id === currentTrack?.id);
+      console.log('In playlist context');
+      
+      // Find current index based on currentTrack or currentTrackIndex
+      let currentIndex = -1;
+      if (currentTrack) {
+        currentIndex = context.data.findIndex((track: Track) => track.id === currentTrack.id);
+      } else {
+        // Use the stored index if currentTrack is null
+        currentIndex = currentTrackIndex;
+      }
+      
+      console.log('Playlist current index:', currentIndex);
       
       if (currentIndex > 0) {
         const prevTrack = context.data[currentIndex - 1];
         playTrack(prevTrack, context.data);
+        return;
+      } else if (currentIndex === 0 && context.data.length > 1) {
+        // Loop to the last track in the playlist
+        console.log('Looping to last track in playlist');
+        const lastTrack = context.data[context.data.length - 1];
+        playTrack(lastTrack, context.data);
+        return;
+      } else if (context.data.length > 1) {
+        // Fallback: if we can't determine current position, play last track
+        console.log('Fallback: playing last track in playlist');
+        const lastTrack = context.data[context.data.length - 1];
+        playTrack(lastTrack, context.data);
         return;
       }
     }
     
     // If we're in single track context or at the beginning of playlist/album, 
     // play previous track in the main playlist
-    if (playlist.length > 0 && currentTrack) {
-      const currentIndex = playlist.findIndex(track => track.id === currentTrack.id);
+    if (playlist.length > 0 && (currentTrack || playlist[currentTrackIndex])) {
+      console.log('In main playlist context');
+      
+      // Find current index based on currentTrack or currentTrackIndex
+      let currentIndex = -1;
+      if (currentTrack) {
+        currentIndex = playlist.findIndex(track => track.id === currentTrack.id);
+      } else {
+        // Use the stored index if currentTrack is null
+        currentIndex = currentTrackIndex;
+      }
+      
+      console.log('Main playlist current index:', currentIndex);
+      console.log('Main playlist length:', playlist.length);
+      
       if (currentIndex > 0) {
         const prevTrack = playlist[currentIndex - 1];
         playTrack(prevTrack, playlist);
         setCurrentTrackIndex(currentIndex - 1);
+        return;
+      } else if (currentIndex === 0 && playlist.length > 1) {
+        // Loop to the last track in the main playlist
+        console.log('Looping to last track in main playlist');
+        const lastTrack = playlist[playlist.length - 1];
+        playTrack(lastTrack, playlist);
+        setCurrentTrackIndex(playlist.length - 1);
+        return;
+      } else if (playlist.length > 1) {
+        // Fallback: if we can't determine current position, play last track
+        console.log('Fallback: playing last track in main playlist');
+        const lastTrack = playlist[playlist.length - 1];
+        playTrack(lastTrack, playlist);
+        setCurrentTrackIndex(playlist.length - 1);
         return;
       }
     }
@@ -386,6 +592,10 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     // For now, we'll restart the current track if there is one
     if (currentTrack) {
       playTrack(currentTrack, playlist);
+    } else if (playlist.length > 0 && playlist[currentTrackIndex]) {
+      // Fallback: play the track at the current index
+      console.log('Fallback: restarting track at current index');
+      playTrack(playlist[currentTrackIndex], playlist);
     }
   };
 
@@ -397,6 +607,7 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const stopTrack = () => {
+    console.log('STOP TRACK CALLED');
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current = null;
@@ -467,11 +678,14 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
       const newPlaylist = await createPlaylistService(name);
       if (newPlaylist) {
         setPlaylists(prev => [...prev, newPlaylist]);
+        return newPlaylist; // Return the new playlist
       } else {
         console.log('Failed to create playlist - user may not be authenticated');
+        return null;
       }
     } catch (error) {
       console.error('Error creating playlist:', error);
+      return null;
     }
   };
 
@@ -486,6 +700,9 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
           }
           return [...prev, track];
         });
+        
+        // Dispatch a custom event to notify other components that track data may have changed
+        window.dispatchEvent(new CustomEvent('trackUpdated', { detail: { trackId: track.id } }));
       } else {
         console.log('Failed to add track to favorites - user may not be authenticated');
       }
@@ -499,6 +716,9 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
       const result = await removeTrackFromFavorites(trackId);
       if (result) {
         setFavorites(prev => prev.filter(track => track.id !== trackId));
+        
+        // Dispatch a custom event to notify other components that track data may have changed
+        window.dispatchEvent(new CustomEvent('trackUpdated', { detail: { trackId } }));
       } else {
         console.log('Failed to remove track from favorites - user may not be authenticated');
       }
@@ -548,7 +768,7 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
         comments,
         addToPlaylist,
         removeFromPlaylist,
-        createPlaylist,
+        createPlaylist, // Export the createPlaylist function
         addToFavorites,
         removeFromFavorites,
         setCurrentPlaylist,

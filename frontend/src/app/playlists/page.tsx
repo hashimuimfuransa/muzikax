@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { getUserPlaylists } from '@/services/userService'
+import { useAudioPlayer } from '@/contexts/AudioPlayerContext' // Added import
 
 interface Track {
   _id: string
@@ -13,6 +14,8 @@ interface Track {
   coverImage?: string
   coverURL?: string
   duration?: string
+  audioUrl?: string // Made optional
+  creatorId?: string // Made optional
 }
 
 interface Playlist {
@@ -27,6 +30,7 @@ export default function Playlists() {
   const [loading, setLoading] = useState(true)
   const router = useRouter()
   const { isAuthenticated, isLoading } = useAuth()
+  const { currentTrack, isPlaying, playTrack, setCurrentPlaylist } = useAudioPlayer() // Added destructuring
 
   // Load playlists from backend
   useEffect(() => {
@@ -40,7 +44,9 @@ export default function Playlists() {
             id: playlist._id || playlist.id, // Use _id if available, otherwise use id
             tracks: playlist.tracks.map((track: any) => ({
               ...track,
-              id: track._id || track.id // Use _id if available, otherwise use id
+              id: track._id || track.id, // Use _id if available, otherwise use id
+              audioUrl: track.audioURL || track.audioUrl || '', // Ensure audioUrl is properly mapped
+              coverImage: track.coverImage || track.coverURL || '' // Ensure coverImage is properly mapped
             }))
           }))
           setPlaylists(mappedPlaylists)
@@ -63,6 +69,32 @@ export default function Playlists() {
       router.push('/login')
     }
   }, [isAuthenticated, router, isLoading])
+
+  // Function to play a playlist
+  const handlePlayPlaylist = (playlist: Playlist) => {
+    if (playlist.tracks.length > 0) {
+      // Convert tracks to the format expected by the audio player
+      const playerTracks = playlist.tracks
+        .filter(track => track.audioUrl) // Only include tracks with audio URLs
+        .map(track => ({
+          id: track.id,
+          title: track.title,
+          artist: track.artist,
+          coverImage: track.coverImage || '',
+          audioUrl: track.audioUrl || '',
+          creatorId: track.creatorId || ''
+        }))
+      
+      // Only play if we have tracks with audio
+      if (playerTracks.length > 0) {
+        // Set the current playlist
+        setCurrentPlaylist(playerTracks)
+        
+        // Play the first track with playlist context
+        playTrack(playerTracks[0], playerTracks)
+      }
+    }
+  }
 
   // Show loading state while checking auth
   if (isLoading || loading) {
@@ -156,7 +188,11 @@ export default function Playlists() {
                   </div>
                   
                   <div className="flex items-center gap-3">
-                    <button className="p-1.5 sm:p-2 rounded-full hover:bg-gray-800/50 transition-colors">
+                    <button 
+                      onClick={() => handlePlayPlaylist(playlist)} // Added play button
+                      className="p-1.5 sm:p-2 rounded-full hover:bg-gray-800/50 transition-colors"
+                      title="Play playlist"
+                    >
                       <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
                       </svg>

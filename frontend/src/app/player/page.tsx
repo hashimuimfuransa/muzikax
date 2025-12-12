@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../contexts/AuthContext';
+import PlaylistSelectionModal from '../../components/PlaylistSelectionModal'; // Added import
 
 const FullPagePlayer = () => {
   const {
@@ -20,7 +21,6 @@ const FullPagePlayer = () => {
     playPreviousTrack,
     addToFavorites,
     removeFromFavorites,
-    addToPlaylist,
     favorites,
     comments,
     addComment,
@@ -34,6 +34,7 @@ const FullPagePlayer = () => {
   const [isFavorite, setIsFavorite] = useState(false);
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
   const [comment, setComment] = useState('');
+  const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false); // Added state for modal
 
   // Check if current track is in favorites
   useEffect(() => {
@@ -111,9 +112,39 @@ const FullPagePlayer = () => {
     setToast({message: 'Comment added!', type: 'success'});
   };
 
-  // Redirect to home page if there's no current track
+  // Handle adding to playlist
+  const handleAddToPlaylist = () => {
+    if (!isAuthenticated) {
+      router.push('/login');
+      return;
+    }
+    
+    setIsPlaylistModalOpen(true);
+  };
+
+  // Handle track added to playlist
+  const handleTrackAdded = () => {
+    setToast({message: 'Added to playlist!', type: 'success'});
+  };
+
+  // Redirect to home page if there's no current track and player was explicitly closed
+  // Don't redirect during normal playlist progression
   useEffect(() => {
     if (!currentTrack) {
+      // Check if we're in a playlist context - if so, don't redirect
+      // This prevents redirecting during normal playlist progression
+      const contextRef = (window as any).audioPlayerContext;
+      if (contextRef) {
+        const contextValue = contextRef.current;
+        if (contextValue && (contextValue.type === 'playlist' || contextValue.type === 'album')) {
+          // We're in a playlist context, so don't redirect
+          console.log('In playlist context, not redirecting to home page');
+          return;
+        }
+      }
+      
+      // If we reach here, redirect to home page
+      console.log('Redirecting to home page');
       router.push('/');
     }
   }, [currentTrack, router]);
@@ -131,6 +162,13 @@ const FullPagePlayer = () => {
           {toast.message}
         </div>
       )}
+      
+      {/* Playlist Selection Modal */}
+      <PlaylistSelectionModal
+        isOpen={isPlaylistModalOpen}
+        onClose={() => setIsPlaylistModalOpen(false)}
+        onTrackAdded={handleTrackAdded}
+      />
       
       {/* Header */}
       <div className="flex justify-between items-center p-4 border-b border-gray-800">
@@ -267,17 +305,7 @@ const FullPagePlayer = () => {
                 </button>
                 
                 <button 
-                  onClick={() => {
-                    if (!isAuthenticated) {
-                      router.push('/login');
-                      return;
-                    }
-                    
-                    if (currentTrack) {
-                      addToPlaylist(currentTrack);
-                      setToast({message: 'Added to playlist!', type: 'success'});
-                    }
-                  }}
+                  onClick={handleAddToPlaylist} // Changed to use the new function
                   className="flex flex-col items-center text-gray-400 hover:text-white transition-colors"
                   title="Add to playlist"
                 >
