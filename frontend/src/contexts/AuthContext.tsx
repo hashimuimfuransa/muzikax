@@ -9,6 +9,8 @@ interface User {
   role: 'fan' | 'creator' | 'admin'
   creatorType?: 'artist' | 'dj' | 'producer'
   avatar?: string // Add avatar property
+  bio?: string
+  genres?: string[]
 }
 
 interface AuthContextType {

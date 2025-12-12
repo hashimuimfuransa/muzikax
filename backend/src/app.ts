@@ -12,9 +12,15 @@ import upgradeRoutes from './routes/upgradeRoutes';
 import uploadRoutes from './routes/uploadRoutes';
 import creatorRoutes from './routes/creatorRoutes';
 import albumRoutes from './routes/albumRoutes';
+import { protect } from './utils/jwt';
+import { updateOwnProfile } from './controllers/profileController';
 console.log('About to import public routes...');
 import publicRoutes from './routes/publicRoutes';
 console.log('Public routes imported successfully');
+
+// Import the new feature routes
+import favoriteRoutes from './routes/features/favoriteRoutes';
+import playlistRoutes from './routes/features/playlistRoutes';
 
 console.log('ROUTES IMPORTED');
 
@@ -55,6 +61,13 @@ console.log('Tracks routes registered');
 console.log('Registering user routes...');
 app.use('/api/users', userRoutes);
 console.log('Users routes registered');
+
+// Register the new feature routes
+app.use('/api/favorites', favoriteRoutes);
+console.log('Favorites routes registered');
+app.use('/api/playlists', playlistRoutes);
+console.log('Playlists routes registered');
+
 app.use('/api/upgrade', upgradeRoutes);
 console.log('Upgrade routes registered');
 app.use('/api/creator', creatorRoutes);
@@ -93,6 +106,11 @@ try {
 } catch (error) {
   console.error('Error registering album routes:', error);
 }
+
+// Directly implement profile update route in app.ts to avoid 404 issues
+
+// User route for updating own profile directly in app
+app.put('/api/profile/me', protect, updateOwnProfile);
 
 // Simple test route for tracks
 app.get('/api/test-tracks', (_req, res) => {

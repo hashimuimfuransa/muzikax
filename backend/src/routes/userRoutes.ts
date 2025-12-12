@@ -8,7 +8,7 @@ import {
   getCreatorAnalytics,
   getPublicCreators, // Add this import
   upgradeToCreator, // Add this import
-  followCreator // Add this import
+  followCreator, // Add this import
 } from '../controllers/userController';
 import { protect, admin, creator } from '../utils/jwt';
 
@@ -19,8 +19,8 @@ const router = express.Router();
 console.log('SETTING UP USER ROUTES');
 
 // Add logging to see which routes are being hit
-router.use((_req, _res, next) => {
-  console.log(`User routes middleware triggered: ${_req.method} ${_req.originalUrl}`);
+router.use((req, _res, next) => {
+  console.log(`User routes middleware triggered: ${req.method} ${req.originalUrl}`);
   next();
 });
 

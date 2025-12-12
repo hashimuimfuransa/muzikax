@@ -3,9 +3,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.followCreator = exports.getCreatorAnalytics = exports.approveCreator = exports.deleteUser = exports.upgradeToCreator = exports.updateUser = exports.getUserById = exports.getPublicCreators = exports.getUsers = void 0;
+exports.updateOwnProfile = exports.followCreator = exports.getCreatorAnalytics = exports.approveCreator = exports.deleteUser = exports.upgradeToCreator = exports.updateUser = exports.getUserById = exports.getPublicCreators = exports.getUsers = void 0;
 const User_1 = __importDefault(require("../models/User"));
 const Track_1 = __importDefault(require("../models/Track"));
+const bcryptjs_1 = __importDefault(require("bcryptjs"));
 // Get all users (admin only)
 const getUsers = async (req, res) => {
     try {
@@ -72,14 +73,20 @@ const updateUser = async (req, res) => {
             res.status(404).json({ message: 'User not found' });
             return;
         }
-        const { name, email, role, creatorType, bio, socials, avatar } = req.body;
+        const { name, email, role, creatorType, bio, genres, socials, avatar, password } = req.body;
         user.name = name || user.name;
         user.email = email || user.email;
         user.role = role || user.role;
         user.creatorType = creatorType || user.creatorType;
         user.bio = bio || user.bio;
+        user.genres = genres || user.genres;
         user.socials = socials || user.socials;
         user.avatar = avatar || user.avatar;
+        // Only allow password update if provided
+        if (password) {
+            const salt = await bcryptjs_1.default.genSalt(10);
+            user.password = await bcryptjs_1.default.hash(password, salt);
+        }
         const updatedUser = await user.save();
         res.json({
             _id: updatedUser._id,
@@ -89,6 +96,7 @@ const updateUser = async (req, res) => {
             creatorType: updatedUser.creatorType,
             avatar: updatedUser.avatar,
             bio: updatedUser.bio,
+            genres: updatedUser.genres,
             followersCount: updatedUser.followersCount,
             socials: updatedUser.socials,
             createdAt: updatedUser.createdAt
@@ -282,4 +290,69 @@ const followCreator = async (req, res) => {
     }
 };
 exports.followCreator = followCreator;
+// Update user's own profile
+const updateOwnProfile = async (req, res) => {
+    try {
+        // Check if user is authenticated
+        if (!req.user) {
+            res.status(401).json({ message: 'Not authorized, no user found' });
+            return;
+        }
+        const userId = req.user._id;
+        const user = await User_1.default.findById(userId).select('+password');
+        if (!user) {
+            res.status(404).json({ message: 'User not found' });
+            return;
+        }
+        const { name, email, bio, genres, socials, avatar, password, currentPassword } = req.body;
+        // Only allow users to update their own fields
+        if (name)
+            user.name = name;
+        if (email)
+            user.email = email;
+        if (bio !== undefined)
+            user.bio = bio;
+        if (genres)
+            user.genres = genres;
+        if (socials)
+            user.socials = socials;
+        if (avatar)
+            user.avatar = avatar;
+        // Only allow password update if provided and current password is verified
+        if (password) {
+            // Require current password to change password
+            if (!currentPassword) {
+                res.status(400).json({ message: 'Current password is required to change password' });
+                return;
+            }
+            // Verify current password
+            const isMatch = await bcryptjs_1.default.compare(currentPassword, user.password);
+            if (!isMatch) {
+                res.status(400).json({ message: 'Current password is incorrect' });
+                return;
+            }
+            // Hash and set new password
+            const salt = await bcryptjs_1.default.genSalt(10);
+            user.password = await bcryptjs_1.default.hash(password, salt);
+        }
+        const updatedUser = await user.save();
+        res.json({
+            _id: updatedUser._id,
+            name: updatedUser.name,
+            email: updatedUser.email,
+            role: updatedUser.role,
+            creatorType: updatedUser.creatorType,
+            avatar: updatedUser.avatar,
+            bio: updatedUser.bio,
+            genres: updatedUser.genres,
+            followersCount: updatedUser.followersCount,
+            socials: updatedUser.socials,
+            createdAt: updatedUser.createdAt
+        });
+    }
+    catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+exports.updateOwnProfile = updateOwnProfile;
 //# sourceMappingURL=userController.js.map

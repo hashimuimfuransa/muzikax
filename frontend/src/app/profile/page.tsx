@@ -60,9 +60,12 @@ export default function Profile() {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [itemToDelete, setItemToDelete] = useState<{type: 'track' | 'album', id: string, title: string} | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
+  const [bio, setBio] = useState('')
+  const [genres, setGenres] = useState<string[]>([])
+  const [newGenre, setNewGenre] = useState('')
   const { currentTrack, isPlaying, playTrack, setCurrentPlaylist } = useAudioPlayer()
   const router = useRouter()
-  const { isAuthenticated, user, isLoading } = useAuth()
+  const { isAuthenticated, user, isLoading, updateProfile } = useAuth()
 
   // Check authentication on component mount
   useEffect(() => {
@@ -72,6 +75,14 @@ export default function Profile() {
       router.push('/login')
     }
   }, [isAuthenticated, isLoading, router])
+
+  // Initialize bio and genres when user data is available
+  useEffect(() => {
+    if (user) {
+      setBio(user.bio || '');
+      setGenres(user.genres || []);
+    }
+  }, [user])
 
   // Fetch creator analytics when the analytics tab is selected
   useEffect(() => {
@@ -307,6 +318,101 @@ export default function Profile() {
     setItemToDelete({type, id, title})
   }
 
+  const handleSaveChanges = async () => {
+    try {
+      // Get form values
+      const nameInput = document.getElementById('name') as HTMLInputElement;
+      const emailInput = document.getElementById('email') as HTMLInputElement;
+      const passwordInput = document.getElementById('password') as HTMLInputElement;
+      const currentPasswordInput = document.getElementById('currentPassword') as HTMLInputElement;
+      
+      const name = nameInput?.value;
+      const email = emailInput?.value;
+      const password = passwordInput?.value;
+      const currentPassword = currentPasswordInput?.value;
+
+      // Prepare update data - only include fields that have actually changed
+      const updateData: any = {};
+      
+      // Only include name if it's different from current value
+      if (name && name !== user?.name) {
+        updateData.name = name;
+      }
+      
+      // Only include email if it's different from current value
+      if (email && email !== user?.email) {
+        updateData.email = email;
+      }
+      
+      // For creators, only include bio and genres if they've changed
+      if (user?.role === 'creator') {
+        if (bio !== user.bio) {
+          updateData.bio = bio;
+        }
+        if (JSON.stringify(genres) !== JSON.stringify(user.genres || [])) {
+          updateData.genres = genres;
+        }
+      }
+      
+      // Only include password if it's not empty
+      if (password) {
+        if (!currentPassword) {
+          alert('Current password is required to change password');
+          return;
+        }
+        updateData.password = password;
+        updateData.currentPassword = currentPassword;
+      }
+      
+      // If no actual changes, show message and return
+      if (Object.keys(updateData).length === 0 && !password) {
+        alert('No changes detected');
+        return;
+      }
+
+      // Make API request to update user's own profile
+      const response = await makeAuthenticatedRequest(`${process.env.NEXT_PUBLIC_API_URL}/api/profile/me`, {
+        method: 'PUT',
+        body: JSON.stringify(updateData)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update profile');
+      }
+
+      const updatedUser = await response.json();
+      
+      // Update user in context
+      updateProfile({
+        ...user,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        bio: updatedUser.bio,
+        genres: updatedUser.genres
+      } as any);
+      
+      // Show success message
+      alert('Profile updated successfully!');
+      
+      // Clear password fields
+      if (currentPasswordInput) {
+        currentPasswordInput.value = '';
+      }
+      if (passwordInput) {
+        passwordInput.value = '';
+      }
+    } catch (error: any) {
+      console.error('Failed to update profile:', error);
+      // Show more specific error messages
+      if (error.message && error.message.includes('duplicate key')) {
+        alert('Email is already in use by another account');
+      } else {
+        alert(`Failed to update profile: ${error.message || 'Unknown error'}`);
+      }
+    }
+  }
+
   const confirmDelete = async () => {
     if (!itemToDelete) return
 
@@ -426,6 +532,14 @@ export default function Profile() {
               </div>
             </div>
 
+            {/* Bio Section */}
+            {user?.role === 'creator' && (
+              <div className="mb-5">
+                <h3 className="text-gray-400 text-xs mb-2">Bio</h3>
+                <p className="text-white text-sm">{bio || 'No bio added yet. Tell your fans about yourself!'}</p>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="card-bg rounded-xl p-4 border border-gray-700/30">
                 <h3 className="text-gray-400 text-xs mb-1">Member Since</h3>
@@ -433,7 +547,9 @@ export default function Profile() {
               </div>
               <div className="card-bg rounded-xl p-4 border border-gray-700/30">
                 <h3 className="text-gray-400 text-xs mb-1">Favorite Genres</h3>
-                <p className="text-white font-medium text-sm">Afrobeat, Hip Hop</p>
+                <p className="text-white font-medium text-sm">
+                  {genres && genres.length > 0 ? genres.join(', ') : 'Not specified'}
+                </p>
               </div>
               <div className="card-bg rounded-xl p-4 border border-gray-700/30">
                 <h3 className="text-gray-400 text-xs mb-1">Following</h3>
@@ -530,6 +646,89 @@ export default function Profile() {
                   />
                 </div>
 
+                {user?.role === 'creator' && (
+                  <>
+                    {/* Bio Field */}
+                    <div>
+                      <label htmlFor="bio" className="block text-sm font-medium text-gray-300 mb-2">
+                        Bio
+                      </label>
+                      <textarea
+                        id="bio"
+                        value={bio}
+                        onChange={(e) => setBio(e.target.value)}
+                        placeholder="Tell your fans about yourself..."
+                        className="w-full px-3 py-2.5 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm min-h-[100px]"
+                      />
+                    </div>
+
+                    {/* Genres Field */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Favorite Genres
+                      </label>
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        {genres.map((genre, index) => (
+                          <div key={index} className="flex items-center bg-gray-700 rounded-full px-3 py-1 text-sm">
+                            <span className="text-white">{genre}</span>
+                            <button 
+                              type="button"
+                              onClick={() => setGenres(genres.filter((_, i) => i !== index))}
+                              className="ml-2 text-gray-400 hover:text-white"
+                            >
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"></path>
+                              </svg>
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="flex">
+                        <input
+                          type="text"
+                          value={newGenre}
+                          onChange={(e) => setNewGenre(e.target.value)}
+                          placeholder="Add a genre..."
+                          className="flex-1 px-3 py-2.5 bg-gray-800/50 border border-gray-700 rounded-l-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              if (newGenre.trim() && !genres.includes(newGenre.trim())) {
+                                setGenres([...genres, newGenre.trim()]);
+                                setNewGenre('');
+                              }
+                            }
+                          }}
+                        />
+                        <button 
+                          type="button"
+                          onClick={() => {
+                            if (newGenre.trim() && !genres.includes(newGenre.trim())) {
+                              setGenres([...genres, newGenre.trim()]);
+                              setNewGenre('');
+                            }
+                          }}
+                          className="px-4 bg-[#FF4D67] text-white rounded-r-lg hover:bg-[#FF4D67]/80 transition-colors text-sm font-medium"
+                        >
+                          Add
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                <div>
+                  <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-300 mb-2">
+                    Current Password
+                  </label>
+                  <input
+                    type="password"
+                    id="currentPassword"
+                    placeholder="Enter current password"
+                    className="w-full px-3 py-2.5 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm"
+                  />
+                </div>
+
                 <div>
                   <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
                     New Password
@@ -546,7 +745,7 @@ export default function Profile() {
                   <div className="card-bg rounded-xl p-4 border-l-4 border-[#FFCB2B]">
                     <h4 className="font-medium text-white mb-2 flex items-center gap-2">
                       <svg className="w-4 h-4 text-[#FFCB2B]" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"></path>
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 101 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"></path>
                       </svg>
                       Want to become a creator?
                     </h4>
@@ -563,7 +762,10 @@ export default function Profile() {
                 )}
 
                 <div className="flex justify-end pt-2">
-                  <button className="px-5 py-2.5 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-opacity text-sm">
+                  <button 
+                    onClick={handleSaveChanges}
+                    className="px-5 py-2.5 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-opacity text-sm"
+                  >
                     Save Changes
                   </button>
                 </div>

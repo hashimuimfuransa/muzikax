@@ -1,0 +1,363 @@
+'use client';
+
+import { useAudioPlayer } from '../../contexts/AudioPlayerContext';
+import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '../../contexts/AuthContext';
+
+const FullPagePlayer = () => {
+  const {
+    currentTrack,
+    isPlaying,
+    togglePlayPause,
+    closePlayer,
+    progress,
+    duration,
+    setProgress,
+    playNextTrack,
+    playPreviousTrack,
+    addToFavorites,
+    removeFromFavorites,
+    addToPlaylist,
+    favorites,
+    comments,
+    addComment,
+    audioRef
+  } = useAudioPlayer();
+  
+  const router = useRouter();
+  const { isAuthenticated, user } = useAuth();
+
+  const progressRef = useRef<HTMLDivElement>(null);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
+  const [comment, setComment] = useState('');
+
+  // Check if current track is in favorites
+  useEffect(() => {
+    if (currentTrack) {
+      setIsFavorite(favorites.some(track => track.id === currentTrack.id));
+    }
+  }, [currentTrack, favorites]);
+
+  // Toast notification effect
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => {
+        setToast(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
+
+  // Format time in MM:SS
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  };
+
+  // Handle progress bar click
+  const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!progressRef.current || !currentTrack || !duration) return;
+    
+    const rect = progressRef.current.getBoundingClientRect();
+    const percent = (e.clientX - rect.left) / rect.width;
+    const newProgress = percent * duration;
+    
+    // Update progress in context
+    setProgress(newProgress);
+    
+    // Seek in audio element by accessing it through the context
+    if (audioRef && audioRef.current) {
+      audioRef.current.currentTime = newProgress;
+    }
+  };
+
+  // Toggle favorite status
+  const toggleFavorite = () => {
+    if (!currentTrack) return;
+    
+    if (isFavorite) {
+      // Remove from favorites
+      removeFromFavorites(currentTrack.id);
+      setToast({message: 'Removed from favorites!', type: 'success'});
+    } else {
+      // Add to favorites
+      addToFavorites(currentTrack);
+      setToast({message: 'Added to favorites!', type: 'success'});
+    }
+    setIsFavorite(!isFavorite);
+  };
+
+  // Handle adding comment
+  const handleAddComment = () => {
+    if (!comment.trim() || !currentTrack) return;
+    
+    if (!isAuthenticated) {
+      setToast({message: 'Please log in to comment', type: 'error'});
+      return;
+    }
+    
+    addComment({
+      userId: user?.id || 'anonymous',
+      username: user?.name || 'Anonymous',
+      text: comment
+    });
+    
+    setComment('');
+    setToast({message: 'Comment added!', type: 'success'});
+  };
+
+  // Don't render if there's no current track
+  if (!currentTrack) {
+    router.push('/');
+    return null;
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white">
+      {/* Toast Notification */}
+      {toast && (
+        <div className={`fixed top-4 right-4 z-50 px-4 py-2 rounded-lg shadow-lg ${toast.type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white`}>
+          {toast.message}
+        </div>
+      )}
+      
+      {/* Header */}
+      <div className="flex justify-between items-center p-4 border-b border-gray-800">
+        <button 
+          onClick={() => router.back()}
+          className="flex items-center text-gray-400 hover:text-white transition-colors"
+        >
+          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
+          </svg>
+          Back
+        </button>
+        
+        <h1 className="text-xl font-bold">Now Playing</h1>
+        
+        <button 
+          onClick={closePlayer}
+          className="text-gray-400 hover:text-white transition-colors"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      
+      <div className="container mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Player Section */}
+          <div className="lg:col-span-2">
+            <div className="flex flex-col items-center">
+              {/* Album Art */}
+              <div className="relative mb-8">
+                <img 
+                  src={currentTrack.coverImage} 
+                  alt={currentTrack.title} 
+                  className="w-64 h-64 md:w-80 md:h-80 rounded-2xl object-cover shadow-2xl"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent rounded-2xl"></div>
+              </div>
+              
+              {/* Track Info */}
+              <div className="text-center mb-8 w-full">
+                <h2 className="text-3xl font-bold text-white truncate">{currentTrack.title}</h2>
+                <Link 
+                  href={`/artists/${currentTrack.creatorId}`}
+                  className="text-[#FF4D67] hover:text-[#ff3350] mt-2 inline-block"
+                >
+                  {currentTrack.artist}
+                </Link>
+              </div>
+              
+              {/* Progress Bar */}
+              <div className="w-full max-w-2xl mb-6">
+                <div 
+                  ref={progressRef}
+                  onClick={handleProgressClick}
+                  className="w-full h-1.5 bg-gray-700 rounded-full cursor-pointer group"
+                >
+                  <div 
+                    className="h-full bg-[#FF4D67] rounded-full relative"
+                    style={{ width: `${duration > 0 ? (progress / duration) * 100 : 0}%` }}
+                  >
+                    <div className="absolute right-0 top-1/2 transform translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-[#FF4D67] rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  </div>
+                </div>
+                
+                <div className="flex justify-between text-sm text-gray-400 mt-2">
+                  <span>{formatTime(progress)}</span>
+                  <span>{formatTime(duration)}</span>
+                </div>
+              </div>
+              
+              {/* Controls */}
+              <div className="flex justify-center items-center space-x-8 mb-8">
+                <button 
+                  onClick={playPreviousTrack}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8.445 14.832A1 1 0 0010 14v-2.798l5.445 3.63A1 1 0 0017 14V6a1 1 0 00-1.555-.832L10 8.798V6a1 1 0 00-1.555-.832l-6 4a1 1 0 000 1.664l6 4z"></path>
+                  </svg>
+                </button>
+                
+                <button 
+                  onClick={togglePlayPause}
+                  className="w-16 h-16 rounded-full bg-[#FF4D67] flex items-center justify-center text-white hover:bg-[#ff3350] transition-colors"
+                >
+                  {isPlaying ? (
+                    <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd"></path>
+                    </svg>
+                  ) : (
+                    <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
+                    </svg>
+                  )}
+                </button>
+                
+                <button 
+                  onClick={playNextTrack}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4.555 5.168A1 1 0 003 6v8a1 1 0 001.555.832L10 11.202V14a1 1 0 001.555.832l6-4a1 1 0 000-1.664l-6-4A1 1 0 0010 6v2.798l-5.445-3.63z"></path>
+                  </svg>
+                </button>
+              </div>
+              
+              {/* Action Buttons */}
+              <div className="flex justify-center items-center space-x-6 mb-8">
+                <button 
+                  onClick={() => {
+                    if (!isAuthenticated) {
+                      router.push('/login');
+                      return;
+                    }
+                    
+                    toggleFavorite();
+                    // Show visual feedback
+                    const isNowFavorite = !isFavorite;
+                    const message = isNowFavorite ? 'Added to favorites!' : 'Removed from favorites!';
+                    setToast({message, type: 'success'});
+                  }}
+                  className={`flex flex-col items-center text-gray-400 hover:text-white transition-colors ${isFavorite ? 'text-red-500' : ''}`}
+                  title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                >
+                  <svg className="w-6 h-6" fill={isFavorite ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                  </svg>
+                  <span className="text-xs mt-1">Like</span>
+                </button>
+                
+                <button 
+                  onClick={() => {
+                    if (!isAuthenticated) {
+                      router.push('/login');
+                      return;
+                    }
+                    
+                    if (currentTrack) {
+                      addToPlaylist(currentTrack);
+                      setToast({message: 'Added to playlist!', type: 'success'});
+                    }
+                  }}
+                  className="flex flex-col items-center text-gray-400 hover:text-white transition-colors"
+                  title="Add to playlist"
+                >
+                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path fillRule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V5zm11 1H6v8l4-2 4 2V6z" clipRule="evenodd"></path>
+                  </svg>
+                  <span className="text-xs mt-1">Playlist</span>
+                </button>
+                
+                {currentTrack.creatorId && (
+                  <Link 
+                    href={`/artists/${currentTrack.creatorId}`}
+                    className="flex flex-col items-center text-gray-400 hover:text-white transition-colors"
+                    title="View Artist Profile"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                    <span className="text-xs mt-1">Artist</span>
+                  </Link>
+                )}
+              </div>
+              
+              {/* Navigation Buttons to Favorites and Playlists */}
+              <div className="flex justify-center space-x-4 mt-4">
+                <button 
+                  onClick={() => router.push('/favorites')}
+                  className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm transition-colors"
+                >
+                  View Favorites
+                </button>
+                <button 
+                  onClick={() => router.push('/playlists')}
+                  className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm transition-colors"
+                >
+                  View Playlists
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          {/* Comments Section */}
+          <div className="lg:col-span-1">
+            <div className="bg-gray-800/50 rounded-xl p-6 h-full">
+              <h3 className="text-xl font-bold mb-4">Comments</h3>
+              
+              {/* Add Comment Form */}
+              <div className="mb-6">
+                <textarea
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  placeholder="Add a comment..."
+                  className="w-full bg-gray-700 text-white rounded-lg p-3 mb-2 focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+                  rows={3}
+                />
+                <button
+                  onClick={handleAddComment}
+                  disabled={!comment.trim() || !isAuthenticated}
+                  className="bg-[#FF4D67] hover:bg-[#ff3350] text-white px-4 py-2 rounded-lg disabled:opacity-50"
+                >
+                  Post Comment
+                </button>
+              </div>
+              
+              {/* Comments List */}
+              <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
+                {comments.length > 0 ? (
+                  comments.map((comment) => (
+                    <div key={comment.id} className="bg-gray-700/50 rounded-lg p-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="font-semibold">{comment.username}</h4>
+                          <p className="text-gray-300 text-sm mt-1">{comment.text}</p>
+                        </div>
+                        <span className="text-xs text-gray-400">
+                          {new Date(comment.timestamp).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-gray-400 text-center py-4">No comments yet. Be the first to comment!</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default FullPagePlayer;

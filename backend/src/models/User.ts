@@ -8,6 +8,7 @@ export interface IUser extends Document {
   creatorType: 'artist' | 'dj' | 'producer' | null;
   avatar: string;
   bio: string;
+  genres: string[];
   socials: {
     facebook?: string;
     twitter?: string;
@@ -16,6 +17,8 @@ export interface IUser extends Document {
     soundcloud?: string;
   };
   followersCount: number;
+  favorites: mongoose.Types.ObjectId[]; // Add favorites field
+  playlists: mongoose.Types.ObjectId[]; // Add playlists field
   createdAt: Date;
   updatedAt: Date;
 }
@@ -56,6 +59,10 @@ const UserSchema: Schema = new Schema({
     type: String,
     default: ''
   },
+  genres: {
+    type: [String],
+    default: []
+  },
   socials: {
     facebook: String,
     twitter: String,
@@ -66,6 +73,16 @@ const UserSchema: Schema = new Schema({
   followersCount: {
     type: Number,
     default: 0
+  },
+  favorites: {
+    type: [Schema.Types.ObjectId],
+    ref: 'Track',
+    default: []
+  },
+  playlists: {
+    type: [Schema.Types.ObjectId],
+    ref: 'Playlist',
+    default: []
   }
 }, {
   timestamps: true

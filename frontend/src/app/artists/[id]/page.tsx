@@ -14,6 +14,7 @@ interface Creator {
   followersCount: number
   avatar: string
   bio: string
+  genres?: string[]
   socials?: {
     facebook?: string
     twitter?: string
@@ -321,6 +322,23 @@ export default function ArtistProfilePage() {
           <p className="text-gray-300">
             {creator.bio || `${creator.name} is a talented ${creator.creatorType || 'artist'} on MuzikaX. Stay tuned for their upcoming releases!`}
           </p>
+          
+          {/* Display genres if available */}
+          {creator.genres && creator.genres.length > 0 && (
+            <div className="mt-4">
+              <h3 className="text-gray-400 text-sm mb-2">Genres</h3>
+              <div className="flex flex-wrap gap-2">
+                {creator.genres.map((genre, index) => (
+                  <span 
+                    key={index} 
+                    className="px-3 py-1 bg-gray-700 text-gray-300 text-xs rounded-full"
+                  >
+                    {genre}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
         
         {/* Search Bar */}

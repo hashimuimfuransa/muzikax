@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../contexts/AuthContext'
-import { getUserFavorites } from '../../services/userService'
+import { getUserPlaylists } from '../../services/userService'
 
 interface Track {
   id: string
@@ -16,28 +16,34 @@ interface Track {
   duration?: string
 }
 
-export default function Favorites() {
-  const [tracks, setTracks] = useState<Track[]>([])
+interface Playlist {
+  id: string
+  name: string
+  tracks: Track[]
+}
+
+export default function Playlists() {
+  const [playlists, setPlaylists] = useState<Playlist[]>([])
   const [loading, setLoading] = useState(true)
   const router = useRouter()
-  const { isAuthenticated, isLoading } = useAuth() // Add isLoading
+  const { isAuthenticated, isLoading } = useAuth()
 
-  // Load favorites from backend
+  // Load playlists from backend
   useEffect(() => {
-    const loadFavorites = async () => {
+    const loadPlaylists = async () => {
       if (isAuthenticated && !isLoading) {
         try {
-          const favorites = await getUserFavorites()
-          setTracks(favorites)
+          const userPlaylists = await getUserPlaylists()
+          setPlaylists(userPlaylists)
         } catch (error) {
-          console.error('Error loading favorites:', error)
+          console.error('Error loading playlists:', error)
         } finally {
           setLoading(false)
         }
       }
     }
 
-    loadFavorites()
+    loadPlaylists()
   }, [isAuthenticated, isLoading])
 
   // Check authentication on component mount
@@ -47,7 +53,7 @@ export default function Favorites() {
       // If not authenticated, redirect to login
       router.push('/login')
     }
-  }, [isAuthenticated, router, isLoading]) // Add isLoading to dependency array
+  }, [isAuthenticated, router, isLoading])
 
   // Show loading state while checking auth
   if (isLoading || loading) {
@@ -58,7 +64,7 @@ export default function Favorites() {
     )
   }
 
-  // Don't render the favorites if not authenticated
+  // Don't render the playlists if not authenticated
   if (!isAuthenticated) {
     return null
   }
@@ -74,10 +80,10 @@ export default function Favorites() {
           <div className="flex items-center justify-between mb-8 sm:mb-12">
             <div>
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] mb-2">
-                Your Favorites
+                Your Playlists
               </h1>
               <p className="text-gray-400 text-sm sm:text-base">
-                All your saved tracks in one place
+                All your custom playlists in one place
               </p>
             </div>
             <button 
@@ -88,17 +94,17 @@ export default function Favorites() {
             </button>
           </div>
 
-          {tracks.length === 0 ? (
+          {playlists.length === 0 ? (
             // Empty State
             <div className="card-bg rounded-2xl p-8 sm:p-12 text-center border border-gray-700/50">
               <div className="mx-auto w-16 h-16 rounded-full bg-gray-800/50 flex items-center justify-center mb-6">
                 <svg className="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
                 </svg>
               </div>
-              <h3 className="text-xl sm:text-2xl font-bold text-white mb-3">No favorites yet</h3>
+              <h3 className="text-xl sm:text-2xl font-bold text-white mb-3">No playlists yet</h3>
               <p className="text-gray-500 mb-6 max-w-md mx-auto">
-                Start exploring music and save your favorite tracks to see them here
+                Start creating playlists and adding your favorite tracks to see them here
               </p>
               <button 
                 onClick={() => router.push('/explore')}
@@ -108,35 +114,37 @@ export default function Favorites() {
               </button>
             </div>
           ) : (
-            // Favorites List
+            // Playlists List
             <div className="space-y-4">
-              {tracks.map((track) => (
-                <div key={track.id} className="card-bg rounded-2xl p-4 sm:p-5 flex items-center gap-4 transition-all hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50">
+              {playlists.map((playlist) => (
+                <div key={playlist.id} className="card-bg rounded-2xl p-4 sm:p-5 flex items-center gap-4 transition-all hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50">
                   <div className="relative">
-                    <img 
-                      src={track.coverImage} 
-                      alt={track.title} 
-                      className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg object-cover"
-                    />
-                    <button className="absolute inset-0 w-full h-full rounded-lg bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                      <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
-                      </svg>
-                    </button>
+                    {playlist.tracks.length > 0 ? (
+                      <img 
+                        src={playlist.tracks[0].coverImage} 
+                        alt={playlist.name} 
+                        className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg object-cover"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg bg-gray-800 flex items-center justify-center">
+                        <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                        </svg>
+                      </div>
+                    )}
                   </div>
                   
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-white text-sm sm:text-base truncate">{track.title}</h3>
-                    <p className="text-gray-400 text-xs sm:text-sm truncate">{track.artist}</p>
+                    <h3 className="font-bold text-white text-sm sm:text-base truncate">{playlist.name}</h3>
+                    <p className="text-gray-400 text-xs sm:text-sm">
+                      {playlist.tracks.length} {playlist.tracks.length === 1 ? 'track' : 'tracks'}
+                    </p>
                   </div>
                   
                   <div className="flex items-center gap-3">
-                    <span className="text-gray-500 text-xs sm:text-sm hidden sm:block">
-                      {track.duration || '3:45'}
-                    </span>
                     <button className="p-1.5 sm:p-2 rounded-full hover:bg-gray-800/50 transition-colors">
-                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-[#FF4D67]" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                        <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd"></path>
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
                       </svg>
                     </button>
                   </div>

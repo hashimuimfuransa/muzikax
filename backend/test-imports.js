@@ -1,17 +1,18 @@
-// Test imports
+// Test file to check if imports work
 console.log('Testing imports...');
 
 try {
-  const adminController = require('./src/controllers/adminController');
-  console.log('adminController imported successfully');
-  console.log('Functions available:', Object.keys(adminController));
+  console.log('Importing favoriteRoutes...');
+  const favoriteRoutes = require('./dist/routes/features/favoriteRoutes');
+  console.log('favoriteRoutes imported successfully:', !!favoriteRoutes);
 } catch (error) {
-  console.error('Error importing adminController:', error);
+  console.error('Error importing favoriteRoutes:', error);
 }
 
 try {
-  const adminRoutes = require('./src/routes/adminRoutes');
-  console.log('adminRoutes imported successfully');
+  console.log('Importing playlistRoutes...');
+  const playlistRoutes = require('./dist/routes/features/playlistRoutes');
+  console.log('playlistRoutes imported successfully:', !!playlistRoutes);
 } catch (error) {
-  console.error('Error importing adminRoutes:', error);
+  console.error('Error importing playlistRoutes:', error);
 }
