@@ -12,6 +12,7 @@ const FullPagePlayer = () => {
     isPlaying,
     togglePlayPause,
     closePlayer,
+    minimizeAndGoBack, // Use the new function
     progress,
     duration,
     setProgress,
@@ -110,9 +111,15 @@ const FullPagePlayer = () => {
     setToast({message: 'Comment added!', type: 'success'});
   };
 
+  // Redirect to home page if there's no current track
+  useEffect(() => {
+    if (!currentTrack) {
+      router.push('/');
+    }
+  }, [currentTrack, router]);
+
   // Don't render if there's no current track
   if (!currentTrack) {
-    router.push('/');
     return null;
   }
 
@@ -128,7 +135,7 @@ const FullPagePlayer = () => {
       {/* Header */}
       <div className="flex justify-between items-center p-4 border-b border-gray-800">
         <button 
-          onClick={() => router.back()}
+          onClick={minimizeAndGoBack} // Use the new function
           className="flex items-center text-gray-400 hover:text-white transition-colors"
         >
           <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -139,14 +146,17 @@ const FullPagePlayer = () => {
         
         <h1 className="text-xl font-bold">Now Playing</h1>
         
-        <button 
-          onClick={closePlayer}
-          className="text-gray-400 hover:text-white transition-colors"
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-          </svg>
-        </button>
+        <div className="flex space-x-4">
+          <button 
+            onClick={closePlayer}
+            className="text-gray-400 hover:text-white transition-colors"
+            title="Close player"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
       </div>
       
       <div className="container mx-auto px-4 py-8">

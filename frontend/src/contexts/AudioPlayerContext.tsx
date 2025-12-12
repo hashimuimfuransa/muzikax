@@ -8,19 +8,62 @@ import { addTrackToFavorites, removeTrackFromFavorites, getUserFavorites, create
 // Add this function to handle recently played tracks
 const addRecentlyPlayedTrack = async (trackId: string) => {
   try {
-    const token = localStorage.getItem('accessToken');
-    if (!token) {
-      throw new Error('No access token found');
+    // Import the makeAuthenticatedRequest helper from userService
+    // We'll implement a simplified version here to avoid circular dependencies
+    
+    let accessToken = localStorage.getItem('accessToken');
+    
+    if (!accessToken) {
+      // If no access token, silently fail without error
+      return false;
     }
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/recently-played`, {
+    // Add authorization header
+    const requestOptions = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        'Authorization': `Bearer ${accessToken}`
       },
       body: JSON.stringify({ trackId })
-    });
+    };
+
+    // Make initial request
+    let response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/recently-played`, requestOptions);
+
+    // If token is expired, try to refresh it
+    if (response.status === 401) {
+      console.log('Token might be expired, attempting to refresh...');
+      
+      try {
+        const refreshToken = localStorage.getItem('refreshToken');
+        if (refreshToken) {
+          const refreshResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh-token`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ refreshToken })
+          });
+          
+          if (refreshResponse.ok) {
+            const refreshData = await refreshResponse.json();
+            localStorage.setItem('accessToken', refreshData.accessToken);
+            localStorage.setItem('refreshToken', refreshData.refreshToken);
+            
+            // Retry the request with new token
+            requestOptions.headers = {
+              ...requestOptions.headers,
+              'Authorization': `Bearer ${refreshData.accessToken}`
+            };
+            
+            response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/recently-played`, requestOptions);
+          }
+        }
+      } catch (refreshError) {
+        console.error('Error refreshing token:', refreshError);
+      }
+    }
 
     if (!response.ok) {
       const errorData = await response.json();
@@ -30,6 +73,7 @@ const addRecentlyPlayedTrack = async (trackId: string) => {
     return true;
   } catch (error) {
     console.error('Error adding track to recently played:', error);
+    // Silently fail for unauthorized users to avoid interrupting playback
     return false;
   }
 };
@@ -74,6 +118,7 @@ interface AudioPlayerContextType {
   stopTrack: () => void;
   togglePlayPause: () => void;
   toggleMinimize: () => void;
+  minimizeAndGoBack: () => void; // Add this new function
   closePlayer: () => void;
   setProgress: (progress: number) => void;
   progress: number;
@@ -234,9 +279,6 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
         });
     }
 
-    // Navigate to full player page
-    router.push('/player');
-
     // Small delay to ensure audio element is properly initialized
     setTimeout(() => {
       // Play the new track
@@ -249,6 +291,13 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
       });
     }, 0);
   };
+
+  // Navigate to full player page when a track is played and not minimized
+  useEffect(() => {
+    if (currentTrack && !isMinimized) {
+      router.push('/player');
+    }
+  }, [currentTrack, isMinimized, router]);
 
   const playNextTrack = () => {
     const context = currentPlaybackContext.current;
@@ -371,7 +420,13 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const toggleMinimize = () => {
-    setIsMinimized(!isMinimized);
+    const willBeMinimized = !isMinimized;
+    setIsMinimized(willBeMinimized);
+  };
+  
+  const minimizeAndGoBack = () => {
+    setIsMinimized(true);
+    router.back();
   };
 
   const closePlayer = () => {
@@ -482,6 +537,7 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
         stopTrack,
         togglePlayPause,
         toggleMinimize,
+        minimizeAndGoBack, // Add this new function
         closePlayer,
         progress,
         duration,
