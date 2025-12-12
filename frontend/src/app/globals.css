@@ -71,6 +71,26 @@ body {
     opacity: 0;
   }
   
+  /* Animated blob background */
+  .animate-blob {
+    animation: blob 7s infinite;
+  }
+  
+  .animation-delay-2000 {
+    animation-delay: 2s;
+  }
+  
+  .animation-delay-4000 {
+    animation-delay: 4s;
+  }
+  
+  /* Animated gradient background */
+  .animate-gradient-bg {
+    background: linear-gradient(-45deg, #111827, #1e293b, #FF4D67, #FFCB2B, #1e293b, #111827);
+    background-size: 400% 400%;
+    animation: gradient 8s ease infinite;
+  }
+  
   @keyframes fadeIn {
     from {
       opacity: 0;
@@ -79,6 +99,33 @@ body {
     to {
       opacity: 1;
       transform: translateY(0);
+    }
+  }
+  
+  @keyframes blob {
+    0% {
+      transform: translate(0px, 0px) scale(1);
+    }
+    33% {
+      transform: translate(30px, -50px) scale(1.1);
+    }
+    66% {
+      transform: translate(-20px, 20px) scale(0.9);
+    }
+    100% {
+      transform: translate(0px, 0px) scale(1);
+    }
+  }
+  
+  @keyframes gradient {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
     }
   }
 }
@@ -95,4 +142,25 @@ body {
   background: #1E293B;
   border-radius: 14px;
   padding: 16px;
+}
+
+/* Animation delay utilities */
+.delay-1000 {
+  animation-delay: 1s;
+}
+
+.delay-2000 {
+  animation-delay: 2s;
+}
+
+.delay-3000 {
+  animation-delay: 3s;
+}
+
+.delay-4000 {
+  animation-delay: 4s;
+}
+
+.delay-5000 {
+  animation-delay: 5s;
 }

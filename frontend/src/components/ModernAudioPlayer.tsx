@@ -245,8 +245,18 @@ const ModernAudioPlayer = () => {
       
       {/* Minimized Player */}
       {isMinimized && (
-        <div className="fixed bottom-4 right-4 w-80 bg-gray-900 border border-gray-800 rounded-xl shadow-2xl z-50">
-          <div className="flex items-center p-3">
+        <div className="fixed bottom-4 right-4 w-80 bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-xl shadow-2xl z-50 backdrop-blur-lg animate-gradient-bg">
+          {/* Animated Gradient Overlay */}
+          <div className="absolute inset-0 rounded-xl overflow-hidden">
+            <div className="absolute top-0 left-0 w-1/3 h-1/3 bg-[#FF4D67] rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
+            <div className="absolute bottom-0 right-0 w-1/3 h-1/3 bg-[#FFCB2B] rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob delay-2000"></div>
+          </div>
+          
+          {/* Enhanced Animated Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#FF4D67] via-[#FFCB2B] to-[#FF4D67] bg-[length:200%_200%] animate-gradient opacity-10 rounded-xl blur-xl"></div>
+          
+          {/* Player Content */}
+          <div className="relative z-10 flex items-center p-3">
             <div className="relative">
               <img 
                 src={currentTrack.coverImage} 

@@ -404,449 +404,462 @@ const FullPagePlayer = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white">
-      {/* Toast Notification */}
-      {toast && (
-        <div className={`fixed top-4 right-4 z-50 px-4 py-2 rounded-lg shadow-lg ${toast.type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white`}>
-          {toast.message}
-        </div>
-      )}
-      
-      {/* Playlist Selection Modal */}
-      <PlaylistSelectionModal
-        isOpen={isPlaylistModalOpen}
-        onClose={() => setIsPlaylistModalOpen(false)}
-        onTrackAdded={handleTrackAdded}
-      />
-      
-      {/* Share Modal */}
-      {isShareModalOpen && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-xl p-6 w-full max-w-md mx-4">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold">Share Track</h3>
-              <button 
-                onClick={() => setIsShareModalOpen(false)}
-                className="text-gray-400 hover:text-white"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-              </button>
-            </div>
-            
-            <div className="flex items-center mb-6 p-4 bg-gray-700 rounded-lg">
-              <img 
-                src={currentTrack.coverImage} 
-                alt={currentTrack.title} 
-                className="w-16 h-16 rounded-lg object-cover"
-              />
-              <div className="ml-4">
-                <h4 className="font-bold truncate">{currentTrack.title}</h4>
-                <p className="text-gray-400 text-sm">{currentTrack.artist}</p>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-4 gap-4">
-              <button 
-                onClick={() => {
-                  shareTrack('facebook');
-                  setIsShareModalOpen(false);
-                }}
-                className="flex flex-col items-center p-3 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.879V14.89h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.989C18.343 21.129 22 16.99 22 12z"></path>
-                </svg>
-                <span className="text-xs mt-2">Facebook</span>
-              </button>
-              
-              <button 
-                onClick={() => {
-                  shareTrack('twitter');
-                  setIsShareModalOpen(false);
-                }}
-                className="flex flex-col items-center p-3 bg-sky-500 rounded-lg hover:bg-sky-600 transition-colors"
-              >
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"></path>
-                </svg>
-                <span className="text-xs mt-2">Twitter</span>
-              </button>
-              
-              <button 
-                onClick={() => {
-                  shareTrack('whatsapp');
-                  setIsShareModalOpen(false);
-                }}
-                className="flex flex-col items-center p-3 bg-green-500 rounded-lg hover:bg-green-600 transition-colors"
-              >
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"></path>
-                </svg>
-                <span className="text-xs mt-2">WhatsApp</span>
-              </button>
-              
-              <button 
-                onClick={() => {
-                  shareTrack('linkedin');
-                  setIsShareModalOpen(false);
-                }}
-                className="flex flex-col items-center p-3 bg-blue-700 rounded-lg hover:bg-blue-800 transition-colors"
-              >
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"></path>
-                </svg>
-                <span className="text-xs mt-2">LinkedIn</span>
-              </button>
-            </div>
-            
-            <button 
-              onClick={() => {
-                shareTrack('copy');
-                setToast({message: 'Link copied to clipboard!', type: 'success'});
-                setIsShareModalOpen(false);
-              }}
-              className="w-full mt-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg flex items-center justify-center transition-colors"
-            >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-              </svg>
-              Copy Link
-            </button>
-          </div>
-        </div>
-      )}
-      
-      {/* Header */}
-      <div className="flex justify-between items-center p-4 border-b border-gray-800">
-        <button 
-          onClick={minimizeAndGoBack}
-          className="flex items-center text-gray-400 hover:text-white transition-colors"
-        >
-          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
-          </svg>
-          Back
-        </button>
-        
-        <h1 className="text-xl font-bold">Now Playing</h1>
-        
-        <div className="flex space-x-4">
-          {/* Volume Control */}
-          <div className="flex items-center">
-            <svg className="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
-            </svg>
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.01"
-              value={volume}
-              onChange={handleVolumeChange}
-              className="w-20 accent-[#FF4D67]"
-            />
-          </div>
-          
-          <button 
-            onClick={closePlayer}
-            className="text-gray-400 hover:text-white transition-colors"
-            title="Close player"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-          </button>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black text-white relative overflow-hidden animate-gradient-bg">
+      {/* Animated Gradient Background */}
+      <div className="absolute inset-0 z-0">
+        <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-[#FF4D67] rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+        <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-[#FFCB2B] rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob delay-2000"></div>
+        <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob delay-4000"></div>
       </div>
       
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Player Section */}
-          <div className="lg:col-span-2">
-            <div className="flex flex-col items-center">
-              {/* Album Art */}
-              <div className="relative mb-8">
+      {/* Enhanced Animated Gradient Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-r from-[#FF4D67] via-[#FFCB2B] to-[#FF4D67] bg-[length:200%_200%] animate-gradient opacity-5 rounded-full blur-3xl"></div>
+      
+      {/* Content Container */}
+      <div className="relative z-10">
+        {/* Toast Notification */}
+        {toast && (
+          <div className={`fixed top-4 right-4 z-50 px-4 py-2 rounded-lg shadow-lg ${toast.type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white`}>
+            {toast.message}
+          </div>
+        )}
+        
+        {/* Playlist Selection Modal */}
+        <PlaylistSelectionModal
+          isOpen={isPlaylistModalOpen}
+          onClose={() => setIsPlaylistModalOpen(false)}
+          onTrackAdded={handleTrackAdded}
+        />
+        
+        {/* Share Modal */}
+        {isShareModalOpen && (
+          <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+            <div className="bg-gray-800 rounded-xl p-6 w-full max-w-md mx-4">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold">Share Track</h3>
+                <button 
+                  onClick={() => setIsShareModalOpen(false)}
+                  className="text-gray-400 hover:text-white"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                </button>
+              </div>
+              
+              <div className="flex items-center mb-6 p-4 bg-gray-700 rounded-lg">
                 <img 
                   src={currentTrack.coverImage} 
                   alt={currentTrack.title} 
-                  className="w-64 h-64 md:w-80 md:h-80 rounded-2xl object-cover shadow-2xl"
+                  className="w-16 h-16 rounded-lg object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent rounded-2xl"></div>
-              </div>
-              
-              {/* Track Info */}
-              <div className="text-center mb-8 w-full">
-                <h2 className="text-3xl font-bold text-white truncate">{currentTrack.title}</h2>
-                <Link 
-                  href={`/artists/${(typeof currentTrack.creatorId === 'object' && currentTrack.creatorId !== null) 
-                    ? (currentTrack.creatorId as any)._id 
-                    : currentTrack.creatorId}`}
-                  className="text-[#FF4D67] hover:text-[#ff3350] mt-2 inline-block"
-                >
-                  {currentTrack.artist}
-                </Link>
-              </div>
-              
-              {/* Progress Bar */}
-              <div className="w-full max-w-2xl mb-6">
-                <div 
-                  ref={progressRef}
-                  onClick={handleProgressClick}
-                  className="w-full h-1.5 bg-gray-700 rounded-full cursor-pointer group"
-                >
-                  <div 
-                    className="h-full bg-[#FF4D67] rounded-full relative"
-                    style={{ width: `${duration > 0 ? (progress / duration) * 100 : 0}%` }}
-                  >
-                    <div className="absolute right-0 top-1/2 transform translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-[#FF4D67] rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  </div>
-                </div>
-                
-                <div className="flex justify-between text-sm text-gray-400 mt-2">
-                  <span>{formatTime(progress)}</span>
-                  <span>{formatTime(duration)}</span>
+                <div className="ml-4">
+                  <h4 className="font-bold truncate">{currentTrack.title}</h4>
+                  <p className="text-gray-400 text-sm">{currentTrack.artist}</p>
                 </div>
               </div>
               
-              {/* Controls */}
-              <div className="flex justify-center items-center space-x-8 mb-8">
-                <button 
-                  onClick={playPreviousTrack}
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8.445 14.832A1 1 0 0010 14v-2.798l5.445 3.63A1 1 0 0017 14V6a1 1 0 00-1.555-.832L10 8.798V6a1 1 0 00-1.555-.832l-6 4a1 1 0 000 1.664l6 4z"></path>
-                  </svg>
-                </button>
-              
-                <button 
-                  onClick={togglePlayPause}
-                  className="w-16 h-16 rounded-full bg-[#FF4D67] flex items-center justify-center text-white hover:bg-[#ff3350] transition-colors"
-                >
-                  {isPlaying ? (
-                    <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd"></path>
-                    </svg>
-                  ) : (
-                    <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
-                    </svg>
-                  )}
-                </button>
-              
-                <button 
-                  onClick={() => playNextTrack()}
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M4.555 5.168A1 1 0 003 6v8a1 1 0 001.555.832L10 11.202V14a1 1 0 001.555.832l6-4a1 1 0 000-1.664l-6-4A1 1 0 0010 6v2.798l-5.445-3.63z"></path>
-                  </svg>
-                </button>
-              </div>
-              
-              {/* Action Buttons */}
-              <div className="flex justify-center items-center space-x-6 mb-8">
+              <div className="grid grid-cols-4 gap-4">
                 <button 
                   onClick={() => {
-                    if (!isAuthenticated) {
-                      router.push('/login');
-                      return;
-                    }
-                  
-                    toggleFavorite();
-                    // Show visual feedback
-                    const isNowFavorite = !isFavorite;
-                    const message = isNowFavorite ? 'Added to favorites!' : 'Removed from favorites!';
-                    setToast({message, type: 'success'});
+                    shareTrack('facebook');
+                    setIsShareModalOpen(false);
                   }}
-                  className={`flex flex-col items-center text-gray-400 hover:text-white transition-colors ${isFavorite ? 'text-red-500' : ''}`}
-                  title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                  className="flex flex-col items-center p-3 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
                 >
-                  <svg className="w-6 h-6" fill={isFavorite ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.879V14.89h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.989C18.343 21.129 22 16.99 22 12z"></path>
                   </svg>
-                  <span className="text-xs mt-1">Like</span>
+                  <span className="text-xs mt-2">Facebook</span>
                 </button>
-              
+                
                 <button 
-                  onClick={handleAddToPlaylist}
-                  className="flex flex-col items-center text-gray-400 hover:text-white transition-colors"
-                  title="Add to playlist"
+                  onClick={() => {
+                    shareTrack('twitter');
+                    setIsShareModalOpen(false);
+                  }}
+                  className="flex flex-col items-center p-3 bg-sky-500 rounded-lg hover:bg-sky-600 transition-colors"
                 >
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path fillRule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V5zm11 1H6v8l4-2 4 2V6z" clipRule="evenodd"></path>
+                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"></path>
                   </svg>
-                  <span className="text-xs mt-1">Playlist</span>
+                  <span className="text-xs mt-2">Twitter</span>
                 </button>
-              
-                {/* Share Button */}
+                
                 <button 
-                  onClick={() => setIsShareModalOpen(true)}
-                  className="flex flex-col items-center text-gray-400 hover:text-white transition-colors"
-                  title="Share track"
+                  onClick={() => {
+                    shareTrack('whatsapp');
+                    setIsShareModalOpen(false);
+                  }}
+                  className="flex flex-col items-center p-3 bg-green-500 rounded-lg hover:bg-green-600 transition-colors"
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
+                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"></path>
                   </svg>
-                  <span className="text-xs mt-1">Share</span>
+                  <span className="text-xs mt-2">WhatsApp</span>
                 </button>
+                
+                <button 
+                  onClick={() => {
+                    shareTrack('linkedin');
+                    setIsShareModalOpen(false);
+                  }}
+                  className="flex flex-col items-center p-3 bg-blue-700 rounded-lg hover:bg-blue-800 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"></path>
+                  </svg>
+                  <span className="text-xs mt-2">LinkedIn</span>
+                </button>
+              </div>
               
-                {currentTrack.creatorId && (
+              <button 
+                onClick={() => {
+                  shareTrack('copy');
+                  setToast({message: 'Link copied to clipboard!', type: 'success'});
+                  setIsShareModalOpen(false);
+                }}
+                className="w-full mt-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg flex items-center justify-center transition-colors"
+              >
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                </svg>
+                Copy Link
+              </button>
+            </div>
+          </div>
+        )}
+        
+        {/* Header */}
+        <div className="flex justify-between items-center p-4 border-b border-gray-800">
+          <button 
+            onClick={minimizeAndGoBack}
+            className="flex items-center text-gray-400 hover:text-white transition-colors"
+          >
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+            Back
+          </button>
+          
+          <h1 className="text-xl font-bold">Now Playing</h1>
+          
+          <div className="flex space-x-4">
+            {/* Volume Control */}
+            <div className="flex items-center">
+              <svg className="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
+              </svg>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value={volume}
+                onChange={handleVolumeChange}
+                className="w-20 accent-[#FF4D67]"
+              />
+            </div>
+            
+            <button 
+              onClick={closePlayer}
+              className="text-gray-400 hover:text-white transition-colors"
+              title="Close player"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+        
+        <div className="container mx-auto px-4 py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Main Player Section */}
+            <div className="lg:col-span-2">
+              <div className="flex flex-col items-center">
+                {/* Album Art */}
+                <div className="relative mb-8">
+                  <img 
+                    src={currentTrack.coverImage} 
+                    alt={currentTrack.title} 
+                    className="w-64 h-64 md:w-80 md:h-80 rounded-2xl object-cover shadow-2xl"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent rounded-2xl"></div>
+                </div>
+                
+                {/* Track Info */}
+                <div className="text-center mb-8 w-full">
+                  <h2 className="text-3xl font-bold text-white truncate">{currentTrack.title}</h2>
                   <Link 
                     href={`/artists/${(typeof currentTrack.creatorId === 'object' && currentTrack.creatorId !== null) 
                       ? (currentTrack.creatorId as any)._id 
                       : currentTrack.creatorId}`}
-                    className="flex flex-col items-center text-gray-400 hover:text-white transition-colors"
-                    title="View Artist Profile"
+                    className="text-[#FF4D67] hover:text-[#ff3350] mt-2 inline-block"
                   >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                    </svg>
-                    <span className="text-xs mt-1">Artist</span>
+                    {currentTrack.artist}
                   </Link>
-                )}
-              </div>
-              
-              {/* Navigation Buttons to Favorites and Playlists */}
-              <div className="flex justify-center space-x-4 mt-4">
-                <button 
-                  onClick={() => router.push('/favorites')}
-                  className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm transition-colors"
-                >
-                  View Favorites
-                </button>
-                <button 
-                  onClick={() => router.push('/playlists')}
-                  className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm transition-colors"
-                >
-                  View Playlists
-                </button>
-              </div>
-            </div>
-          </div>
-          
-          {/* Comments and Creator Section */}
-          <div className="lg:col-span-1 space-y-6">
-            {/* Uploaded By Section */}
-            <div className="bg-gray-800/50 rounded-xl p-6">
-              <h3 className="text-xl font-bold mb-4">Uploaded By</h3>
-              
-              {loadingCreator ? (
-                <div className="flex items-center justify-center py-4">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF4D67]"></div>
                 </div>
-              ) : creator ? (
-                <div className="space-y-4">
-                  {/* Creator Info */}
-                  <div className="flex items-center space-x-4">
-                    {creator.avatar ? (
-                      <img 
-                        src={creator.avatar} 
-                        alt={creator.name} 
-                        className="w-12 h-12 rounded-full object-cover"
-                      />
-                    ) : (
-                      generateAvatar(creator.name)
-                    )}
-                    <div>
-                      <h4 className="font-semibold text-lg">{creator.name}</h4>
-                      <p className="text-gray-400 text-sm">
-                        {creator.followersCount || 0} followers
-                      </p>
+                
+                {/* Progress Bar */}
+                <div className="w-full max-w-2xl mb-6">
+                  <div 
+                    ref={progressRef}
+                    onClick={handleProgressClick}
+                    className="w-full h-1.5 bg-gray-700 rounded-full cursor-pointer group"
+                  >
+                    <div 
+                      className="h-full bg-[#FF4D67] rounded-full relative"
+                      style={{ width: `${duration > 0 ? (progress / duration) * 100 : 0}%` }}
+                    >
+                      <div className="absolute right-0 top-1/2 transform translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-[#FF4D67] rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     </div>
                   </div>
                   
-                  {/* Other Tracks by Creator */}
-                  {creatorTracks.length > 0 && (
-                    <div className="mt-4">
-                      <h5 className="font-medium mb-2">More from {creator.name}</h5>
-                      <div className="space-y-2">
-                        {creatorTracks.map((track: any) => (
-                          <div 
-                            key={track._id}
-                            className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-700/50 cursor-pointer transition-colors"
-                            onClick={() => {
-                              // Play the track
-                              const trackData = {
-                                id: track._id,
-                                title: track.title,
-                                artist: track.artist || creator.name,
-                                coverImage: track.coverArt || track.coverURL || currentTrack.coverImage,
-                                audioUrl: track.audioUrl || track.audioURL,
-                                duration: track.duration,
-                                creatorId: (typeof currentTrack.creatorId === 'object' && currentTrack.creatorId !== null) 
-                                  ? (currentTrack.creatorId as any)._id 
-                                  : currentTrack.creatorId
-                              };
-                              // Assuming there's a playTrack function available in context
-                              // For now, we'll just navigate to the artist page
-                              const artistId = (typeof currentTrack.creatorId === 'object' && currentTrack.creatorId !== null) 
-                                ? (currentTrack.creatorId as any)._id 
-                                : currentTrack.creatorId;
-                              router.push(`/artists/${artistId}`);
-                            }}
-                          >
-                            <img 
-                              src={track.coverArt || track.coverURL || currentTrack.coverImage} 
-                              alt={track.title} 
-                              className="w-10 h-10 rounded object-cover"
-                            />
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium truncate">{track.title}</p>
-                              <p className="text-xs text-gray-400 truncate">{track.artist || creator.name}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* View Full Profile Button */}
-                  <button
-                    onClick={() => router.push(`/artists/${creator._id}`)}
-                    className="w-full mt-4 py-2 bg-[#FF4D67] hover:bg-[#ff3350] rounded-lg text-white font-medium transition-colors"
+                  <div className="flex justify-between text-sm text-gray-400 mt-2">
+                    <span>{formatTime(progress)}</span>
+                    <span>{formatTime(duration)}</span>
+                  </div>
+                </div>
+                
+                {/* Controls */}
+                <div className="flex justify-center items-center space-x-8 mb-8">
+                  <button 
+                    onClick={playPreviousTrack}
+                    className="text-gray-400 hover:text-white transition-colors"
                   >
-                    View Full Profile
+                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M8.445 14.832A1 1 0 0010 14v-2.798l5.445 3.63A1 1 0 0017 14V6a1 1 0 00-1.555-.832L10 8.798V6a1 1 0 00-1.555-.832l-6 4a1 1 0 000 1.664l6 4z"></path>
+                    </svg>
+                  </button>
+                
+                  <button 
+                    onClick={togglePlayPause}
+                    className="w-16 h-16 rounded-full bg-[#FF4D67] flex items-center justify-center text-white hover:bg-[#ff3350] transition-colors"
+                  >
+                    {isPlaying ? (
+                      <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd"></path>
+                      </svg>
+                    ) : (
+                      <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
+                      </svg>
+                    )}
+                  </button>
+                
+                  <button 
+                    onClick={() => playNextTrack()}
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
+                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M4.555 5.168A1 1 0 003 6v8a1 1 0 001.555.832L10 11.202V14a1 1 0 001.555.832l6-4a1 1 0 000-1.664l-6-4A1 1 0 0010 6v2.798l-5.445-3.63z"></path>
+                    </svg>
                   </button>
                 </div>
-              ) : (
-                <p className="text-gray-400 text-center py-4">Creator information not available</p>
-              )}
+                
+                {/* Action Buttons */}
+                <div className="flex justify-center items-center space-x-6 mb-8">
+                  <button 
+                    onClick={() => {
+                      if (!isAuthenticated) {
+                        router.push('/login');
+                        return;
+                      }
+                    
+                      toggleFavorite();
+                      // Show visual feedback
+                      const isNowFavorite = !isFavorite;
+                      const message = isNowFavorite ? 'Added to favorites!' : 'Removed from favorites!';
+                      setToast({message, type: 'success'});
+                    }}
+                    className={`flex flex-col items-center text-gray-400 hover:text-white transition-colors ${isFavorite ? 'text-red-500' : ''}`}
+                    title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                  >
+                    <svg className="w-6 h-6" fill={isFavorite ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                    </svg>
+                    <span className="text-xs mt-1">Like</span>
+                  </button>
+                
+                  <button 
+                    onClick={handleAddToPlaylist}
+                    className="flex flex-col items-center text-gray-400 hover:text-white transition-colors"
+                    title="Add to playlist"
+                  >
+                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                      <path fillRule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V5zm11 1H6v8l4-2 4 2V6z" clipRule="evenodd"></path>
+                    </svg>
+                    <span className="text-xs mt-1">Playlist</span>
+                  </button>
+                
+                  {/* Share Button */}
+                  <button 
+                    onClick={() => setIsShareModalOpen(true)}
+                    className="flex flex-col items-center text-gray-400 hover:text-white transition-colors"
+                    title="Share track"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
+                    </svg>
+                    <span className="text-xs mt-1">Share</span>
+                  </button>
+                
+                  {currentTrack.creatorId && (
+                    <Link 
+                      href={`/artists/${(typeof currentTrack.creatorId === 'object' && currentTrack.creatorId !== null) 
+                        ? (currentTrack.creatorId as any)._id 
+                        : currentTrack.creatorId}`}
+                      className="flex flex-col items-center text-gray-400 hover:text-white transition-colors"
+                      title="View Artist Profile"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                      </svg>
+                      <span className="text-xs mt-1">Artist</span>
+                    </Link>
+                  )}
+                </div>
+                
+                {/* Navigation Buttons to Favorites and Playlists */}
+                <div className="flex justify-center space-x-4 mt-4">
+                  <button 
+                    onClick={() => router.push('/favorites')}
+                    className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm transition-colors"
+                  >
+                    View Favorites
+                  </button>
+                  <button 
+                    onClick={() => router.push('/playlists')}
+                    className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm transition-colors"
+                  >
+                    View Playlists
+                  </button>
+                </div>
+              </div>
             </div>
             
-            {/* Comments Section */}
-            <div className="bg-gray-800/50 rounded-xl p-6">
-              <h3 className="text-xl font-bold mb-4">Comments</h3>
-              
-              {/* Add Comment Form */}
-              <div className="mb-6">
-                <textarea
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value)}
-                  placeholder="Add a comment..."
-                  className="w-full bg-gray-700 text-white rounded-lg p-3 mb-2 focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
-                  rows={3}
-                />
-                <button
-                  onClick={handleAddComment}
-                  disabled={!comment.trim() || !isAuthenticated}
-                  className="bg-[#FF4D67] hover:bg-[#ff3350] text-white px-4 py-2 rounded-lg disabled:opacity-50"
-                >
-                  Post Comment
-                </button>
+            {/* Comments and Creator Section */}
+            <div className="lg:col-span-1 space-y-6">
+              {/* Uploaded By Section */}
+              <div className="bg-gray-800/50 rounded-xl p-6">
+                <h3 className="text-xl font-bold mb-4">Uploaded By</h3>
+                
+                {loadingCreator ? (
+                  <div className="flex items-center justify-center py-4">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF4D67]"></div>
+                  </div>
+                ) : creator ? (
+                  <div className="space-y-4">
+                    {/* Creator Info */}
+                    <div className="flex items-center space-x-4">
+                      {creator.avatar ? (
+                        <img 
+                          src={creator.avatar} 
+                          alt={creator.name} 
+                          className="w-12 h-12 rounded-full object-cover"
+                        />
+                      ) : (
+                        generateAvatar(creator.name)
+                      )}
+                      <div>
+                        <h4 className="font-semibold text-lg">{creator.name}</h4>
+                        <p className="text-gray-400 text-sm">
+                          {creator.followersCount || 0} followers
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {/* Other Tracks by Creator */}
+                    {creatorTracks.length > 0 && (
+                      <div className="mt-4">
+                        <h5 className="font-medium mb-2">More from {creator.name}</h5>
+                        <div className="space-y-2">
+                          {creatorTracks.map((track: any) => (
+                            <div 
+                              key={track._id}
+                              className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-700/50 cursor-pointer transition-colors"
+                              onClick={() => {
+                                // Play the track
+                                const trackData = {
+                                  id: track._id,
+                                  title: track.title,
+                                  artist: track.artist || creator.name,
+                                  coverImage: track.coverArt || track.coverURL || currentTrack.coverImage,
+                                  audioUrl: track.audioUrl || track.audioURL,
+                                  duration: track.duration,
+                                  creatorId: (typeof currentTrack.creatorId === 'object' && currentTrack.creatorId !== null) 
+                                    ? (currentTrack.creatorId as any)._id 
+                                    : currentTrack.creatorId
+                                };
+                                // Assuming there's a playTrack function available in context
+                                // For now, we'll just navigate to the artist page
+                                const artistId = (typeof currentTrack.creatorId === 'object' && currentTrack.creatorId !== null) 
+                                  ? (currentTrack.creatorId as any)._id 
+                                  : currentTrack.creatorId;
+                                router.push(`/artists/${artistId}`);
+                              }}
+                            >
+                              <img 
+                                src={track.coverArt || track.coverURL || currentTrack.coverImage} 
+                                alt={track.title} 
+                                className="w-10 h-10 rounded object-cover"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium truncate">{track.title}</p>
+                                <p className="text-xs text-gray-400 truncate">{track.artist || creator.name}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* View Full Profile Button */}
+                    <button
+                      onClick={() => router.push(`/artists/${creator._id}`)}
+                      className="w-full mt-4 py-2 bg-[#FF4D67] hover:bg-[#ff3350] rounded-lg text-white font-medium transition-colors"
+                    >
+                      View Full Profile
+                    </button>
+                  </div>
+                ) : (
+                  <p className="text-gray-400 text-center py-4">Creator information not available</p>
+                )}
               </div>
               
-              {/* Comments List */}
-              <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
-                {threadedComments.length > 0 ? (
-                  threadedComments.map(comment => (
-                    <CommentItem key={comment.id} comment={comment} />
-                  ))
-                ) : (
-                  <p className="text-gray-400 text-center py-4">No comments yet. Be the first to comment!</p>
-                )}
+              {/* Comments Section */}
+              <div className="bg-gray-800/50 rounded-xl p-6">
+                <h3 className="text-xl font-bold mb-4">Comments</h3>
+                
+                {/* Add Comment Form */}
+                <div className="mb-6">
+                  <textarea
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    placeholder="Add a comment..."
+                    className="w-full bg-gray-700 text-white rounded-lg p-3 mb-2 focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+                    rows={3}
+                  />
+                  <button
+                    onClick={handleAddComment}
+                    disabled={!comment.trim() || !isAuthenticated}
+                    className="bg-[#FF4D67] hover:bg-[#ff3350] text-white px-4 py-2 rounded-lg disabled:opacity-50"
+                  >
+                    Post Comment
+                  </button>
+                </div>
+                
+                {/* Comments List */}
+                <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
+                  {threadedComments.length > 0 ? (
+                    threadedComments.map(comment => (
+                      <CommentItem key={comment.id} comment={comment} />
+                    ))
+                  ) : (
+                    <p className="text-gray-400 text-center py-4">No comments yet. Be the first to comment!</p>
+                  )}
+                </div>
               </div>
             </div>
           </div>
