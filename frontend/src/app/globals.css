@@ -3,21 +3,26 @@
 @tailwind utilities;
 
 :root {
-  --background: #111827;
+  --background: #0f172a;
   --foreground: #ffffff;
   --primary: #FF4D67;
   --accent: #FFCB2B;
-  --dark: #111827;
+  --dark: #0f172a;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #111827;
+    --background: #0f172a;
     --foreground: #ffffff;
     --primary: #FF4D67;
     --accent: #FFCB2B;
-    --dark: #111827;
+    --dark: #0f172a;
   }
+}
+
+/* Global button styles */
+button {
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -86,7 +91,7 @@ body {
   
   /* Animated gradient background */
   .animate-gradient-bg {
-    background: linear-gradient(-45deg, #111827, #1e293b, #FF4D67, #FFCB2B, #1e293b, #111827);
+    background: linear-gradient(-45deg, #0f172a, #1e293b, #FF4D67, #FFCB2B, #1e293b, #0f172a);
     background-size: 400% 400%;
     animation: gradient 8s ease infinite;
   }

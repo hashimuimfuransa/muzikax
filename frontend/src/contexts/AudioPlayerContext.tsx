@@ -68,6 +68,10 @@ interface AudioPlayerContextType {
   loadComments: (trackId: string) => void;
   setVolume: (volume: number) => void;
   shareTrack: (platform: string) => void; // Add shareTrack function
+  // Music visualization properties
+  audioAnalyser: AnalyserNode | null;
+  audioContext: AudioContext | null;
+  frequencyData: Uint8Array | null;
 }
 
 const AudioPlayerContext = createContext<AudioPlayerContextType | undefined>(undefined);
@@ -100,6 +104,13 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     type: 'playlist' | 'album' | 'single'; 
     data?: any 
   }>({ type: 'single' });
+  
+  // Audio visualization refs
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const sourceRef = useRef<MediaElementAudioSourceNode | null>(null);
+  const frequencyDataRef = useRef<Uint8Array | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
   
   // Refs to hold current values for audio event handlers
   const currentTrackRef = useRef<Track | null>(null);
@@ -217,6 +228,29 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [currentTrack, isMinimized, router]);
   
+  // Audio visualization effect
+  useEffect(() => {
+    const updateFrequencyData = () => {
+      if (analyserRef.current && frequencyDataRef.current) {
+        analyserRef.current.getByteFrequencyData(frequencyDataRef.current);
+        // Continue the animation loop
+        animationFrameRef.current = requestAnimationFrame(updateFrequencyData);
+      }
+    };
+
+    // Start the visualization loop when playing
+    if (isPlaying && analyserRef.current) {
+      animationFrameRef.current = requestAnimationFrame(updateFrequencyData);
+    }
+
+    // Clean up the animation frame on unmount or when stopped
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [isPlaying]);
+
   const playTrack = (track: Track, contextPlaylist?: Track[], albumContext?: { albumId: string, tracks: Track[] }, isCycling: boolean = false) => {
     console.log('PLAY TRACK CALLED with track:', track);
     console.log('Current track before playTrack:', currentTrack);
@@ -247,6 +281,12 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
       console.log('Stopping current audio');
       audioRef.current.pause();
       audioRef.current = null;
+    }
+    
+    // Clean up previous audio context
+    if (sourceRef.current) {
+      sourceRef.current.disconnect();
+      sourceRef.current = null;
     }
     
     // Set the playback context
@@ -371,6 +411,8 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     // Start playing the audio
     audio.play().catch(error => {
       console.error('Error playing track:', error);
+      // Even if play fails, we still set the track so UI reflects the current state
+      setIsPlaying(false);
     });
     console.log('Audio play initiated');
   };
@@ -652,6 +694,12 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
       audioRef.current = null;
     }
     
+    // Clean up previous audio context
+    if (sourceRef.current) {
+      sourceRef.current.disconnect();
+      sourceRef.current = null;
+    }
+    
     // Create new audio element
     const audio = new Audio(track.audioUrl);
     audioRef.current = audio;
@@ -723,6 +771,8 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     // Start playing the audio
     audio.play().catch(error => {
       console.error('Error playing track:', error);
+      // Even if play fails, we still set the track so UI reflects the current state
+      setIsPlaying(false);
     });
   };
 
@@ -751,6 +801,13 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
       audioRef.current.pause();
       audioRef.current = null;
     }
+    
+    // Clean up audio visualization
+    if (sourceRef.current) {
+      sourceRef.current.disconnect();
+      sourceRef.current = null;
+    }
+    
     setIsPlaying(false);
     setProgress(0);
     setDuration(0);
@@ -1032,7 +1089,11 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
         loadComments,
         volume,
         setVolume: updateVolume,
-        shareTrack // Export shareTrack function
+        shareTrack, // Export shareTrack function
+        // Audio visualization properties
+        audioAnalyser: analyserRef.current,
+        audioContext: audioContextRef.current,
+        frequencyData: frequencyDataRef.current
       }}
     >
       {children}

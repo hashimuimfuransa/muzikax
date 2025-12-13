@@ -37,7 +37,7 @@ const ModernAudioPlayer = () => {
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
   const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-
+  
   // Check if current track is in favorites
   useEffect(() => {
     if (currentTrack) {
@@ -245,15 +245,9 @@ const ModernAudioPlayer = () => {
       
       {/* Minimized Player */}
       {isMinimized && (
-        <div className="fixed bottom-4 right-4 w-80 bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-xl shadow-2xl z-50 backdrop-blur-lg animate-gradient-bg">
-          {/* Animated Gradient Overlay */}
-          <div className="absolute inset-0 rounded-xl overflow-hidden">
-            <div className="absolute top-0 left-0 w-1/3 h-1/3 bg-[#FF4D67] rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-            <div className="absolute bottom-0 right-0 w-1/3 h-1/3 bg-[#FFCB2B] rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob delay-2000"></div>
-          </div>
-          
-          {/* Enhanced Animated Gradient Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-r from-[#FF4D67] via-[#FFCB2B] to-[#FF4D67] bg-[length:200%_200%] animate-gradient opacity-10 rounded-xl blur-xl"></div>
+        <div className="fixed bottom-4 right-4 w-80 bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-xl shadow-2xl z-50 backdrop-blur-lg">
+          {/* Simple gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#FF4D67]/20 via-[#FFCB2B]/20 to-[#8B5CF6]/20 rounded-xl"></div>
           
           {/* Player Content */}
           <div className="relative z-10 flex items-center p-3">
@@ -270,7 +264,7 @@ const ModernAudioPlayer = () => {
                 >
                   {isPlaying ? (
                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd"></path>
+                      <path fillRule="evenodd" d="M10 18a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd"></path>
                     </svg>
                   ) : (
                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -327,7 +321,7 @@ const ModernAudioPlayer = () => {
                 title="Expand player"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 0h-4m4 0l-5-5"></path>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5m11 5v-4m0 0h-4m4 0l-5-5"></path>
                 </svg>
               </button>
               
@@ -343,7 +337,6 @@ const ModernAudioPlayer = () => {
           </div>
         </div>
       )}
-
       {/* Full Player - Only show when on the player page */}
       {!isMinimized && currentTrack && (
         <div className="hidden">

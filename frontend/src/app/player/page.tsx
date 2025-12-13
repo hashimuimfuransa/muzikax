@@ -1,7 +1,7 @@
 'use client';
 
 import { useAudioPlayer } from '../../contexts/AudioPlayerContext';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../contexts/AuthContext';
@@ -39,7 +39,8 @@ const FullPagePlayer = () => {
     audioRef,
     volume,
     setVolume,
-    shareTrack
+    shareTrack,
+    frequencyData
   } = useAudioPlayer();
   
   const router = useRouter();
@@ -63,38 +64,7 @@ const FullPagePlayer = () => {
   
   const hasAutoPlayedRef = useRef(false);
   
-  // Automatically play the track when the full player page loads
-  useEffect(() => {
-    console.log('Auto-play useEffect triggered');
-    console.log('currentTrack:', currentTrack);
-    console.log('audioRef.current:', audioRef.current);
-    console.log('isPlaying:', isPlaying);
-    console.log('hasAutoPlayedRef.current:', hasAutoPlayedRef.current);
-    
-    // Reset the auto-play flag when the track changes
-    if (currentTrack && !hasAutoPlayedRef.current) {
-      hasAutoPlayedRef.current = true;
-      
-      if (currentTrack && audioRef.current) {
-        // Ensure the audio is playing when the full player page loads
-        // Only auto-play if not already playing
-        if (!isPlaying) {
-          // Small delay to ensure the audio element is ready
-          const timer = setTimeout(() => {
-            console.log('Triggering togglePlayPause for auto-play');
-            togglePlayPause();
-          }, 100);
-          return () => clearTimeout(timer);
-        }
-      }
-    }
-    
-    // Reset the flag when there's no current track
-    if (!currentTrack) {
-      hasAutoPlayedRef.current = false;
-    }
-  }, [currentTrack, audioRef, isPlaying]);
-
+  // Removed canvas refs as we're no longer using music visualization  
   // Process comments to create a threaded structure
   const processComments = (): CommentWithReplies[] => {
     // Convert existing comments to CommentWithReplies format
@@ -403,18 +373,11 @@ const FullPagePlayer = () => {
     setVolume(newVolume);
   };
 
+  // Removed music visualization effect as requested
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black text-white relative overflow-hidden animate-gradient-bg">
-      {/* Animated Gradient Background */}
-      <div className="absolute inset-0 z-0">
-        <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-[#FF4D67] rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
-        <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-[#FFCB2B] rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob delay-2000"></div>
-        <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob delay-4000"></div>
-      </div>
-      
-      {/* Enhanced Animated Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-r from-[#FF4D67] via-[#FFCB2B] to-[#FF4D67] bg-[length:200%_200%] animate-gradient opacity-5 rounded-full blur-3xl"></div>
-      
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white relative overflow-hidden">
+      {/* Simple gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-r from-[#FF4D67]/20 via-[#FFCB2B]/20 to-[#8B5CF6]/20 z-0"></div>      
       {/* Content Container */}
       <div className="relative z-10">
         {/* Toast Notification */}
@@ -534,7 +497,7 @@ const FullPagePlayer = () => {
         <div className="flex justify-between items-center p-4 border-b border-gray-800">
           <button 
             onClick={minimizeAndGoBack}
-            className="flex items-center text-gray-400 hover:text-white transition-colors"
+            className="flex items-center text-gray-400 hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-gray-800"
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
@@ -563,7 +526,7 @@ const FullPagePlayer = () => {
             
             <button 
               onClick={closePlayer}
-              className="text-gray-400 hover:text-white transition-colors"
+              className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-700 transition-all duration-200"
               title="Close player"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -623,44 +586,77 @@ const FullPagePlayer = () => {
                 </div>
                 
                 {/* Controls */}
-                <div className="flex justify-center items-center space-x-8 mb-8">
-                  <button 
+                <div className="flex justify-center items-center gap-10 mb-10">
+                  {/* Previous */}
+                  <button
                     onClick={playPreviousTrack}
-                    className="text-gray-400 hover:text-white transition-colors"
+                    className="
+                      w-12 h-12 rounded-full
+                      bg-white/10 backdrop-blur-md
+                      flex items-center justify-center
+                      text-white
+                      shadow-md
+                      hover:bg-white/20
+                      hover:scale-110
+                      active:scale-95
+                      transition-all duration-300
+                    "
                   >
-                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M8.445 14.832A1 1 0 0010 14v-2.798l5.445 3.63A1 1 0 0017 14V6a1 1 0 00-1.555-.832L10 8.798V6a1 1 0 00-1.555-.832l-6 4a1 1 0 000 1.664l6 4z"></path>
+                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M6 5v14l8-7-8-7zm9 0h2v14h-2z" />
                     </svg>
                   </button>
-                
-                  <button 
+
+                  {/* Play / Pause */}
+                  <button
                     onClick={togglePlayPause}
-                    className="w-16 h-16 rounded-full bg-[#FF4D67] flex items-center justify-center text-white hover:bg-[#ff3350] transition-colors"
+                    className="
+                      w-20 h-20 rounded-full
+                      bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B]
+                      flex items-center justify-center
+                      text-white
+                      shadow-[0_0_40px_rgba(255,77,103,0.6)]
+                      hover:shadow-[0_0_60px_rgba(255,77,103,0.9)]
+                      hover:scale-105
+                      active:scale-95
+                      transition-all duration-300
+                    "
                   >
                     {isPlaying ? (
-                      <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd"></path>
+                      <svg className="w-9 h-9" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M6 5h4v14H6zm8 0h4v14h-4z" />
                       </svg>
                     ) : (
-                      <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
+                      <svg className="w-9 h-9 ml-1" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8 5v14l11-7z" />
                       </svg>
                     )}
                   </button>
-                
-                  <button 
+
+                  {/* Next */}
+                  <button
                     onClick={() => playNextTrack()}
-                    className="text-gray-400 hover:text-white transition-colors"
+                    className="
+                      w-12 h-12 rounded-full
+                      bg-white/10 backdrop-blur-md
+                      flex items-center justify-center
+                      text-white
+                      shadow-md
+                      hover:bg-white/20
+                      hover:scale-110
+                      active:scale-95
+                      transition-all duration-300
+                    "
                   >
-                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M4.555 5.168A1 1 0 003 6v8a1 1 0 001.555.832L10 11.202V14a1 1 0 001.555.832l6-4a1 1 0 000-1.664l-6-4A1 1 0 0010 6v2.798l-5.445-3.63z"></path>
+                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M18 5v14l-8-7 8-7zm-9 0H7v14h2z" />
                     </svg>
                   </button>
                 </div>
                 
                 {/* Action Buttons */}
-                <div className="flex justify-center items-center space-x-6 mb-8">
-                  <button 
+                <div className="flex justify-center gap-6">
+                  <button
                     onClick={() => {
                       if (!isAuthenticated) {
                         router.push('/login');
@@ -673,50 +669,110 @@ const FullPagePlayer = () => {
                       const message = isNowFavorite ? 'Added to favorites!' : 'Removed from favorites!';
                       setToast({message, type: 'success'});
                     }}
-                    className={`flex flex-col items-center text-gray-400 hover:text-white transition-colors ${isFavorite ? 'text-red-500' : ''}`}
-                    title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                    className={`
+                      group flex flex-col items-center gap-1
+                      text-sm
+                      ${isFavorite ? 'text-[#FF4D67]' : 'text-gray-400'}
+                      hover:text-white
+                      transition-all
+                    `}
                   >
-                    <svg className="w-6 h-6" fill={isFavorite ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                    </svg>
-                    <span className="text-xs mt-1">Like</span>
+                    <div
+                      className="
+                        w-12 h-12 rounded-full
+                        bg-white/10 backdrop-blur-md
+                        flex items-center justify-center
+                        group-hover:bg-white/20
+                        transition-all
+                      "
+                    >
+                      <svg className="w-6 h-6" fill={isFavorite ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                      </svg>
+                    </div>
+                    <span>Like</span>
                   </button>
-                
-                  <button 
+
+                  <button
                     onClick={handleAddToPlaylist}
-                    className="flex flex-col items-center text-gray-400 hover:text-white transition-colors"
-                    title="Add to playlist"
+                    className={`
+                      group flex flex-col items-center gap-1
+                      text-sm
+                      text-gray-400
+                      hover:text-white
+                      transition-all
+                    `}
                   >
-                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                      <path fillRule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V5zm11 1H6v8l4-2 4 2V6z" clipRule="evenodd"></path>
-                    </svg>
-                    <span className="text-xs mt-1">Playlist</span>
+                    <div
+                      className="
+                        w-12 h-12 rounded-full
+                        bg-white/10 backdrop-blur-md
+                        flex items-center justify-center
+                        group-hover:bg-white/20
+                        transition-all
+                      "
+                    >
+                      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fillRule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V5zm11 1H6v8l4-2 4 2V6z" clipRule="evenodd"></path>
+                      </svg>
+                    </div>
+                    <span>Playlist</span>
                   </button>
-                
-                  {/* Share Button */}
-                  <button 
+
+                  <button
                     onClick={() => setIsShareModalOpen(true)}
-                    className="flex flex-col items-center text-gray-400 hover:text-white transition-colors"
-                    title="Share track"
+                    className={`
+                      group flex flex-col items-center gap-1
+                      text-sm
+                      text-gray-400
+                      hover:text-white
+                      transition-all
+                    `}
                   >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
-                    </svg>
-                    <span className="text-xs mt-1">Share</span>
+                    <div
+                      className="
+                        w-12 h-12 rounded-full
+                        bg-white/10 backdrop-blur-md
+                        flex items-center justify-center
+                        group-hover:bg-white/20
+                        transition-all
+                      "
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
+                      </svg>
+                    </div>
+                    <span>Share</span>
                   </button>
-                
+
                   {currentTrack.creatorId && (
                     <Link 
                       href={`/artists/${(typeof currentTrack.creatorId === 'object' && currentTrack.creatorId !== null) 
                         ? (currentTrack.creatorId as any)._id 
                         : currentTrack.creatorId}`}
-                      className="flex flex-col items-center text-gray-400 hover:text-white transition-colors"
+                      className={`
+                        group flex flex-col items-center gap-1
+                        text-sm
+                        text-gray-400
+                        hover:text-white
+                        transition-all
+                      `}
                       title="View Artist Profile"
                     >
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                      </svg>
-                      <span className="text-xs mt-1">Artist</span>
+                      <div
+                        className="
+                          w-12 h-12 rounded-full
+                          bg-white/10 backdrop-blur-md
+                          flex items-center justify-center
+                          group-hover:bg-white/20
+                          transition-all
+                        "
+                      >
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                      </div>
+                      <span>Artist</span>
                     </Link>
                   )}
                 </div>
