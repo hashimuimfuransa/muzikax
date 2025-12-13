@@ -109,7 +109,7 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const sourceRef = useRef<MediaElementAudioSourceNode | null>(null);
-  const frequencyDataRef = useRef<Uint8Array | null>(null);
+  const frequencyDataRef = useRef<Uint8Array<ArrayBuffer> | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   
   // Refs to hold current values for audio event handlers
@@ -227,29 +227,6 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
       if (!explicitlyPlayedRef.current) console.log('- Not explicitly played');
     }
   }, [currentTrack, isMinimized, router]);
-  
-  // Audio visualization effect
-  useEffect(() => {
-    const updateFrequencyData = () => {
-      if (analyserRef.current && frequencyDataRef.current) {
-        analyserRef.current.getByteFrequencyData(frequencyDataRef.current);
-        // Continue the animation loop
-        animationFrameRef.current = requestAnimationFrame(updateFrequencyData);
-      }
-    };
-
-    // Start the visualization loop when playing
-    if (isPlaying && analyserRef.current) {
-      animationFrameRef.current = requestAnimationFrame(updateFrequencyData);
-    }
-
-    // Clean up the animation frame on unmount or when stopped
-    return () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
-    };
-  }, [isPlaying]);
 
   const playTrack = (track: Track, contextPlaylist?: Track[], albumContext?: { albumId: string, tracks: Track[] }, isCycling: boolean = false) => {
     console.log('PLAY TRACK CALLED with track:', track);
@@ -1090,7 +1067,7 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
         volume,
         setVolume: updateVolume,
         shareTrack, // Export shareTrack function
-        // Audio visualization properties
+        // Music visualization properties
         audioAnalyser: analyserRef.current,
         audioContext: audioContextRef.current,
         frequencyData: frequencyDataRef.current
