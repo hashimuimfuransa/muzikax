@@ -39,7 +39,10 @@ const FullPagePlayer = () => {
     audioRef,
     volume,
     setVolume,
+    playbackRate,
+    setPlaybackRate,
     shareTrack,
+    downloadTrack, // Add downloadTrack from context
     frequencyData
   } = useAudioPlayer();
   
@@ -372,6 +375,17 @@ const FullPagePlayer = () => {
     const newVolume = parseFloat(e.target.value);
     setVolume(newVolume);
   };
+  
+  // Handle playback rate change
+  const handlePlaybackRateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newRate = parseFloat(e.target.value);
+    setPlaybackRate(newRate);
+  };
+  
+  // Get playback rate label for display
+  const getPlaybackRateLabel = () => {
+    return `${playbackRate}x`;
+  };
 
   // Removed music visualization effect as requested
   return (
@@ -494,23 +508,38 @@ const FullPagePlayer = () => {
         )}
         
         {/* Header */}
-        <div className="flex justify-between items-center p-4 border-b border-gray-800">
+        <div className="flex justify-between items-center p-3 border-b border-gray-800 gap-2">
           <button 
             onClick={minimizeAndGoBack}
-            className="flex items-center text-gray-400 hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-gray-800"
+            className="flex items-center text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-800 min-w-[40px] min-h-[40px]"
           >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
             </svg>
-            Back
           </button>
           
-          <h1 className="text-xl font-bold">Now Playing</h1>
+          <h1 className="text-lg font-bold px-1 whitespace-nowrap">Now Playing</h1>
           
-          <div className="flex space-x-4">
-            {/* Volume Control */}
+          <div className="flex items-center gap-2">
+            {/* Speed Control */}
             <div className="flex items-center">
-              <svg className="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <select
+                value={playbackRate}
+                onChange={handlePlaybackRateChange}
+                className="bg-gray-800 text-white text-sm rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+              >
+                <option value="0.5">0.5x</option>
+                <option value="0.75">0.75x</option>
+                <option value="1">1x</option>
+                <option value="1.25">1.25x</option>
+                <option value="1.5">1.5x</option>
+                <option value="2">2x</option>
+              </select>
+            </div>
+            
+            {/* Volume Control */}
+            <div className="flex items-center min-w-[100px]">
+              <svg className="w-4 h-4 mr-1 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
               </svg>
               <input
@@ -520,16 +549,16 @@ const FullPagePlayer = () => {
                 step="0.01"
                 value={volume}
                 onChange={handleVolumeChange}
-                className="w-20 accent-[#FF4D67]"
+                className="w-full accent-[#FF4D67] flex-grow"
               />
             </div>
             
             <button 
               onClick={closePlayer}
-              className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-700 transition-all duration-200"
+              className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-700 transition-all duration-200 min-w-[40px] min-h-[40px]"
               title="Close player"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
               </svg>
             </button>
@@ -744,7 +773,34 @@ const FullPagePlayer = () => {
                     </div>
                     <span>Share</span>
                   </button>
-
+                  
+                  {/* Download Button */}
+                  <button
+                    onClick={downloadTrack}
+                    className={`
+                      group flex flex-col items-center gap-1
+                      text-sm
+                      text-gray-400
+                      hover:text-white
+                      transition-all
+                    `}
+                  >
+                    <div
+                      className="
+                        w-12 h-12 rounded-full
+                        bg-white/10 backdrop-blur-md
+                        flex items-center justify-center
+                        group-hover:bg-white/20
+                        transition-all
+                      "
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                      </svg>
+                    </div>
+                    <span>Download</span>
+                  </button>
+                  
                   {currentTrack.creatorId && (
                     <Link 
                       href={`/artists/${(typeof currentTrack.creatorId === 'object' && currentTrack.creatorId !== null) 

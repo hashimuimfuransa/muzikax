@@ -26,7 +26,10 @@ const ModernAudioPlayer = () => {
     audioRef,
     volume,
     setVolume,
-    shareTrack
+    playbackRate,
+    setPlaybackRate,
+    shareTrack,
+    downloadTrack
   } = useAudioPlayer();
   
   const router = useRouter();
@@ -282,39 +285,75 @@ const ModernAudioPlayer = () => {
               </div>
             </div>
             
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               {/* Play / Pause Button */}
-              <button 
+              <button
                 onClick={togglePlayPause}
-                className="text-white hover:text-[#FF4D67] transition-colors"
+                className="
+                  w-10 h-10 rounded-full 
+                  bg-white/10 hover:bg-white/20 
+                  flex items-center justify-center
+                  transition-all
+                "
               >
                 {isPlaying ? (
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd"></path>
+                  /* Pause Icon */
+                  <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
+                    <rect x="6" y="5" width="4" height="14" rx="1" />
+                    <rect x="14" y="5" width="4" height="14" rx="1" />
                   </svg>
                 ) : (
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
+                  /* Play Icon */
+                  <svg className="w-5 h-5 text-white ml-[1px]" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M8 5v14l11-7z" />
                   </svg>
                 )}
               </button>
               
               {/* Expand Button */}
-              <button 
+              <button
                 onClick={goToFullPlayer}
-                className="text-gray-400 hover:text-white transition-colors"
-                title="Expand player"
+                className="
+                  w-9 h-9 rounded-full
+                  bg-white/5 hover:bg-white/15
+                  flex items-center justify-center
+                  transition
+                "
+                title="Open full player"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5m11 5v-4m0 0h-4m4 0l-5-5"></path>
+                <svg className="w-5 h-5 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 5v14" />
+                  <path d="M5 12l7-7 7 7" />
                 </svg>
               </button>
+              
+              {/* Speed Control */}
+              <div className="flex items-center">
+                <select
+                  value={playbackRate}
+                  onChange={(e) => setPlaybackRate(parseFloat(e.target.value))}
+                  className="bg-black/70 text-white text-xs rounded px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-[#FF4D67]"
+                >
+                  <option value="0.5">0.5x</option>
+                  <option value="0.75">0.75x</option>
+                  <option value="1">1x</option>
+                  <option value="1.25">1.25x</option>
+                  <option value="1.5">1.5x</option>
+                  <option value="2">2x</option>
+                </select>
+              </div>
               
               {/* Share Button with Hidden Volume */}
               <div className="group relative">
                 <button 
                   onClick={() => setIsShareModalOpen(true)}
-                  className="text-gray-400 hover:text-white transition-colors"
+                  className="
+                    w-8 h-8 rounded-full
+                    flex items-center justify-center
+                    text-gray-400 hover:text-white
+                    hover:bg-white/10
+                    transition
+                  "
                   title="Share track"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -330,14 +369,43 @@ const ModernAudioPlayer = () => {
                   step="0.01"
                   value={volume}
                   onChange={handleVolumeChange}
-                  className="absolute -top-10 right-0 hidden group-hover:block w-24 accent-[#FF4D67]"
+                  className="
+                    absolute -top-12 right-0
+                    w-28 px-2 py-1
+                    bg-black/70 rounded-lg
+                    hidden group-hover:block
+                    accent-[#FF4D67]
+                  "
                 />
               </div>
+              
+              {/* Download Button */}
+              <button 
+                onClick={downloadTrack}
+                className="
+                  w-8 h-8 rounded-full
+                  flex items-center justify-center
+                  text-gray-400 hover:text-white
+                  hover:bg-white/10
+                  transition
+                "
+                title="Download track"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+              </button>
               
               {/* Close Button */}
               <button 
                 onClick={closePlayer}
-                className="text-gray-400 hover:text-white transition-colors"
+                className="
+                  w-8 h-8 rounded-full
+                  flex items-center justify-center
+                  text-gray-400 hover:text-white
+                  hover:bg-white/10
+                  transition
+                "
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>

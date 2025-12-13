@@ -43,6 +43,7 @@ interface AudioPlayerContextType {
   favoritesLoading: boolean;
   comments: Comment[];
   volume: number;
+  playbackRate: number;
   playTrack: (track: Track, contextPlaylist?: Track[], albumContext?: { albumId: string, tracks: Track[] }) => void;
   playNextTrack: () => Promise<void>;
   playPreviousTrack: () => void;
@@ -67,7 +68,9 @@ interface AudioPlayerContextType {
   removeComment: (commentId: string) => void;
   loadComments: (trackId: string) => void;
   setVolume: (volume: number) => void;
-  shareTrack: (platform: string) => void; // Add shareTrack function
+  setPlaybackRate: (rate: number) => void;
+  shareTrack: (platform: string) => void;
+  downloadTrack: () => void; // Add downloadTrack function
   // Music visualization properties
   audioAnalyser: AnalyserNode | null;
   audioContext: AudioContext | null;
@@ -97,6 +100,7 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [volume, setVolume] = useState(1);
+  const [playbackRate, setPlaybackRate] = useState(1);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const hasIncrementedPlayCount = useRef<Set<string>>(new Set());
   const router = useRouter();
@@ -206,6 +210,13 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
 
   // Flag to track if the track was explicitly played by user
   const explicitlyPlayedRef = useRef(false);
+  
+  // Update audio playback rate when it changes
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.playbackRate = playbackRate;
+    }
+  }, [playbackRate]);
   
   // Navigate to full player page when a track is played and not minimized
   // Only navigate when explicitly playing a new track, not when auto-playing next track
@@ -321,6 +332,9 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     
     // Set initial volume
     audio.volume = volume;
+    
+    // Set initial playback rate
+    audio.playbackRate = playbackRate;
 
     // Set up event listeners
     audio.onplay = () => {
@@ -1030,6 +1044,21 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // Add downloadTrack function
+  const downloadTrack = () => {
+    if (!currentTrack) return;
+    
+    // Create a temporary link element
+    const link = document.createElement('a');
+    link.href = currentTrack.audioUrl;
+    link.download = `${currentTrack.title.replace(/\s+/g, '_')}.mp3`; // Suggest a filename
+    
+    // Trigger the download
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <AudioPlayerContext.Provider
       value={{
@@ -1066,7 +1095,10 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
         loadComments,
         volume,
         setVolume: updateVolume,
-        shareTrack, // Export shareTrack function
+        playbackRate,
+        setPlaybackRate,
+        shareTrack,
+        downloadTrack, // Export downloadTrack function
         // Music visualization properties
         audioAnalyser: analyserRef.current,
         audioContext: audioContextRef.current,
