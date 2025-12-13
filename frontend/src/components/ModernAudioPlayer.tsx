@@ -245,76 +245,61 @@ const ModernAudioPlayer = () => {
       
       {/* Minimized Player */}
       {isMinimized && (
-        <div className="fixed bottom-4 right-4 w-80 bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-xl shadow-2xl z-50 backdrop-blur-lg">
+        <div className="fixed bottom-4 right-4 w-[340px] rounded-2xl 
+        bg-black/70 backdrop-blur-xl border border-white/10 
+        shadow-[0_10px_40px_rgba(0,0,0,0.6)] z-50 animate-[fadeInUp_0.3s_ease-out]">
           {/* Simple gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-r from-[#FF4D67]/20 via-[#FFCB2B]/20 to-[#8B5CF6]/20 rounded-xl"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-[#FF4D67]/20 via-[#FFCB2B]/20 to-[#8B5CF6]/20 rounded-2xl"></div>
           
           {/* Player Content */}
           <div className="relative z-10 flex items-center p-3">
-            <div className="relative">
-              <img 
-                src={currentTrack.coverImage} 
-                alt={currentTrack.title} 
-                className="w-12 h-12 rounded-lg object-cover"
+            <div className="relative shrink-0">
+              <img
+                src={currentTrack.coverImage}
+                alt={currentTrack.title}
+                className={`w-12 h-12 rounded-xl object-cover transition-transform duration-300 ${
+                  isPlaying ? 'scale-105' : ''
+                }`}
               />
-              <div className="absolute inset-0 bg-black/30 rounded-lg flex items-center justify-center">
-                <button 
-                  onClick={togglePlayPause}
-                  className="text-white hover:text-[#FF4D67] transition-colors"
-                >
-                  {isPlaying ? (
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd"></path>
-                    </svg>
-                  ) : (
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
-                    </svg>
-                  )}
-                </button>
-              </div>
+              {/* Optional glow effect */}
+              <div className="absolute -inset-1 bg-gradient-to-r from-pink-500 to-purple-500 blur opacity-30 rounded-xl"></div>
             </div>
             
             <div className="ml-3 flex-1 min-w-0">
               <h4 className="text-white font-medium text-sm truncate">{currentTrack.title}</h4>
               <p className="text-gray-400 text-xs truncate">{currentTrack.artist}</p>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              {/* Volume Control */}
-              <div className="flex items-center">
-                <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.01"
-                  value={volume}
-                  onChange={handleVolumeChange}
-                  className="w-16 accent-[#FF4D67]"
+              
+              {/* Mini Progress Bar */}
+              <div
+                ref={progressRef}
+                onClick={handleProgressClick}
+                className="mt-1 h-1 w-full bg-white/10 rounded-full cursor-pointer"
+              >
+                <div
+                  className="h-full bg-gradient-to-r from-[#FF4D67] to-[#8B5CF6] rounded-full transition-all"
+                  style={{ width: `${(progress / duration) * 100 || 0}%` }}
                 />
               </div>
-              
-              {/* Share Button */}
+            </div>
+            
+            <div className="flex items-center gap-3">
+              {/* Play / Pause Button */}
               <button 
-                onClick={() => setIsShareModalOpen(true)}
-                className="text-gray-400 hover:text-white transition-colors"
-                title="Share track"
+                onClick={togglePlayPause}
+                className="text-white hover:text-[#FF4D67] transition-colors"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
-                </svg>
+                {isPlaying ? (
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd"></path>
+                  </svg>
+                ) : (
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
+                  </svg>
+                )}
               </button>
               
-              <button 
-                onClick={handleAddToPlaylist}
-                className="text-gray-400 hover:text-white transition-colors"
-                title="Add to playlist"
-              >
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                  <path fillRule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V5zm11 1H6v8l4-2 4 2V6z" clipRule="evenodd"></path>
-                </svg>
-              </button>
-              
+              {/* Expand Button */}
               <button 
                 onClick={goToFullPlayer}
                 className="text-gray-400 hover:text-white transition-colors"
@@ -325,6 +310,31 @@ const ModernAudioPlayer = () => {
                 </svg>
               </button>
               
+              {/* Share Button with Hidden Volume */}
+              <div className="group relative">
+                <button 
+                  onClick={() => setIsShareModalOpen(true)}
+                  className="text-gray-400 hover:text-white transition-colors"
+                  title="Share track"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
+                  </svg>
+                </button>
+                
+                {/* Hidden Volume Slider */}
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value={volume}
+                  onChange={handleVolumeChange}
+                  className="absolute -top-10 right-0 hidden group-hover:block w-24 accent-[#FF4D67]"
+                />
+              </div>
+              
+              {/* Close Button */}
               <button 
                 onClick={closePlayer}
                 className="text-gray-400 hover:text-white transition-colors"

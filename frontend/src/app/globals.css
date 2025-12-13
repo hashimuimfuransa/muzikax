@@ -133,6 +133,18 @@ body {
       background-position: 0% 50%;
     }
   }
+  
+  /* Fade in up animation for minimized player */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 }
 
 /* Custom utility classes */
