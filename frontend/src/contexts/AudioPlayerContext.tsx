@@ -629,15 +629,15 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
     
-    // Calculate previous track index
-    const prevIndex = currentTrackIndexRef.current - 1;
-    console.log('Previous track index:', prevIndex);
+    // Calculate previous track index with wrapping
+    let prevIndex = currentTrackIndexRef.current - 1;
     
-    // Check if we're trying to go before the start of the playlist
+    // Handle wrapping to the end of the playlist if we're at the beginning
     if (prevIndex < 0) {
-      console.log('Already at the beginning of playlist, cannot play previous track');
-      return;
+      prevIndex = playlistRef.current.length - 1;
     }
+    
+    console.log('Previous track index:', prevIndex);
     
     // Get previous track
     const prevTrack = playlistRef.current[prevIndex];
