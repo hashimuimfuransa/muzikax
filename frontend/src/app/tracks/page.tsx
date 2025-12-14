@@ -225,9 +225,9 @@ export default function TracksPage() {
                             audioUrl: fullTrack.audioURL,
                             creatorId: typeof fullTrack.creatorId === 'object' && fullTrack.creatorId !== null ? (fullTrack.creatorId as any)._id : fullTrack.creatorId,
                             type: fullTrack.type, // Include track type for WhatsApp functionality
-                            creatorWhatsapp: typeof fullTrack.creatorId === 'object' && fullTrack.creatorId !== null 
+                            creatorWhatsapp: (typeof fullTrack.creatorId === 'object' && fullTrack.creatorId !== null 
                               ? (fullTrack.creatorId as any).whatsappContact 
-                              : undefined // Include creator's WhatsApp contact
+                              : undefined) // Include creator's WhatsApp contact
                           });
                           
                           // Set the current playlist to all trending tracks
@@ -241,9 +241,9 @@ export default function TracksPage() {
                               audioUrl: t.audioURL,
                               creatorId: typeof t.creatorId === 'object' && t.creatorId !== null ? (t.creatorId as any)._id : t.creatorId,
                               type: t.type, // Include track type for WhatsApp functionality
-                              creatorWhatsapp: typeof t.creatorId === 'object' && t.creatorId !== null 
+                              creatorWhatsapp: (typeof t.creatorId === 'object' && t.creatorId !== null 
                                 ? (t.creatorId as any).whatsappContact 
-                                : undefined // Include creator's WhatsApp contact
+                                : undefined) // Include creator's WhatsApp contact
                             }));
                           setCurrentPlaylist(playlistTracks);
                         }

@@ -236,9 +236,9 @@ export default function Profile() {
     creatorId: track.creatorId,
     likes: track.likes,
     type: track.type, // Include track type for WhatsApp functionality
-    creatorWhatsapp: typeof track.creatorId === 'object' && track.creatorId !== null 
+    creatorWhatsapp: (typeof track.creatorId === 'object' && track.creatorId !== null 
       ? (track.creatorId as any).whatsappContact 
-      : undefined // Include creator's WhatsApp contact
+      : undefined) // Include creator's WhatsApp contact
   });
 
   const handleSubmit = async (e: React.FormEvent) => {

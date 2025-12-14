@@ -1055,21 +1055,35 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
   };
 
   // Add downloadTrack function
-  const downloadTrack = () => {
+  const downloadTrack = async () => {
     if (!currentTrack) return;
     
     // Check if the track is a beat
-    if (currentTrack.type === 'beat') {
-      // For beats, show an alert with WhatsApp contact information
-      if (currentTrack.creatorWhatsapp) {
+    const isBeat = currentTrack.type === 'beat' || 
+                  (currentTrack.title && currentTrack.title.toLowerCase().includes('beat'));
+    
+    if (isBeat) {
+      // For beats, we need to ensure we have the creator's WhatsApp number
+      let creatorWhatsapp = currentTrack.creatorWhatsapp;
+      
+      // If we don't have the WhatsApp number, fetch it directly
+      if (!creatorWhatsapp && currentTrack.creatorId) {
+        const { fetchCreatorWhatsapp } = await import('@/services/trackService');
+        const whatsappResult = await fetchCreatorWhatsapp(currentTrack.creatorId);
+        if (whatsappResult) {
+          creatorWhatsapp = whatsappResult;
+        }
+      }
+      
+      if (creatorWhatsapp) {
         // Show alert with WhatsApp contact and option to copy
         const message = `This is a beat that requires contacting the creator via WhatsApp to obtain.
 
-Creator's WhatsApp: ${currentTrack.creatorWhatsapp}
+Creator's WhatsApp: ${creatorWhatsapp}
 
 Would you like to copy the WhatsApp number to your clipboard?`;
         if (confirm(message)) {
-          navigator.clipboard.writeText(currentTrack.creatorWhatsapp)
+          navigator.clipboard.writeText(creatorWhatsapp)
             .then(() => {
               alert('WhatsApp number copied to clipboard!');
             })

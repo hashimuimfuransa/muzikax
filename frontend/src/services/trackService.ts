@@ -95,6 +95,26 @@ export const fetchCreatorProfile = async (creatorId: string): Promise<any> => {
 };
 
 /**
+ * Fetch a creator's WhatsApp contact by ID
+ * Simplified approach to get just the WhatsApp number
+ */
+export const fetchCreatorWhatsapp = async (creatorId: string): Promise<string | null> => {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/public/creators/${creatorId}`);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch creator WhatsApp: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.whatsappContact || null;
+  } catch (error) {
+    console.error('Error fetching creator WhatsApp:', error);
+    return null;
+  }
+};
+
+/**
  * Fetch all tracks with pagination
  */
 export const fetchAllTracks = async (page: number = 1, limit: number = 10): Promise<PaginatedTracks> => {
@@ -173,9 +193,10 @@ export const fetchTracksByCreatorPublic = async (creatorId: string): Promise<any
       artist: track.creatorId?.name || 'Unknown Artist',
       duration: track.duration || 0,
       type: track.type || 'song', // Include track type for WhatsApp functionality
-      creatorWhatsapp: (track.creatorId && typeof track.creatorId === 'object' && track.creatorId !== null) 
-        ? track.creatorId.whatsappContact 
-        : undefined // Include creator's WhatsApp contact
+      creatorWhatsapp: track.creatorId?.whatsappContact || 
+        ((track.creatorId && typeof track.creatorId === 'object' && track.creatorId !== null) 
+          ? track.creatorId.whatsappContact 
+          : undefined) // Include creator's WhatsApp contact
     }));
   } catch (error) {
     console.error('Error fetching creator tracks:', error);

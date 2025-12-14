@@ -380,13 +380,25 @@ const ModernAudioPlayer = () => {
               </div>
               
               {/* WhatsApp Button for Beats or Download Button for other tracks */}
-              {currentTrack.type === 'beat' ? (
+              {(currentTrack.type === 'beat' || (currentTrack.title && currentTrack.title.toLowerCase().includes('beat'))) ? (
                 <button 
-                  onClick={() => {
-                    if (currentTrack.creatorWhatsapp) {
+                  onClick={async () => {
+                    // For beats, we need to ensure we have the creator's WhatsApp number
+                    let creatorWhatsapp = currentTrack.creatorWhatsapp;
+                    
+                    // If we don't have the WhatsApp number, fetch it directly
+                    if (!creatorWhatsapp && currentTrack.creatorId) {
+                      const { fetchCreatorWhatsapp } = await import('@/services/trackService');
+                      const whatsappResult = await fetchCreatorWhatsapp(currentTrack.creatorId);
+                      if (whatsappResult) {
+                        creatorWhatsapp = whatsappResult;
+                      }
+                    }
+                    
+                    if (creatorWhatsapp) {
                       // Open WhatsApp with pre-filled message
                       const message = `Hi, I'm interested in your beat "${currentTrack.title}" that I found on MuzikaX.`;
-                      window.open(`https://wa.me/${currentTrack.creatorWhatsapp}?text=${encodeURIComponent(message)}`, '_blank');
+                      window.open(`https://wa.me/${creatorWhatsapp}?text=${encodeURIComponent(message)}`, '_blank');
                     } else {
                       alert('Unfortunately, the creator has not provided their WhatsApp contact information.');
                     }
