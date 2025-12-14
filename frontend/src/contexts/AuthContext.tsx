@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
-import { updateUserProfile } from '@/services/userService'
+import { updateUserProfile, updateUserWhatsAppContact, getUserWhatsAppContact } from '@/services/userService'
 
 interface User {
   id: string
@@ -14,6 +14,7 @@ interface User {
   genres?: string[]
   followersCount?: number
   followingCount?: number
+  whatsappContact?: string // Add WhatsApp contact field
 }
 
 interface AuthContextType {
@@ -22,6 +23,7 @@ interface AuthContextType {
   logout: () => void
   upgradeToCreator: (creatorType: 'artist' | 'dj' | 'producer') => Promise<boolean>
   updateProfile: (updatedData: Partial<User>) => Promise<boolean>
+  updateWhatsAppContact: (whatsappContact: string) => Promise<boolean>
   isAuthenticated: boolean
   userRole: 'fan' | 'creator' | 'admin' | null
   isLoading: boolean
@@ -40,6 +42,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const parsedUser = JSON.parse(storedUser)
         console.log('AuthProvider - parsedUser:', parsedUser);
+        
+        // Ensure whatsappContact is a string, not an object
+        if (parsedUser && parsedUser.whatsappContact) {
+          if (typeof parsedUser.whatsappContact === 'object' && parsedUser.whatsappContact !== null) {
+            // If it's an object, extract the actual WhatsApp number
+            parsedUser.whatsappContact = parsedUser.whatsappContact.whatsappContact || '';
+          }
+        }
+        
         setUser(parsedUser)
       } catch (error) {
         console.error('Error parsing user data:', error)
@@ -60,6 +71,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('user');
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
+    // Redirect to login page
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login';
+    }
   };
 
   const upgradeToCreator = async (creatorType: 'artist' | 'dj' | 'producer'): Promise<boolean> => {
@@ -166,11 +181,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (!updatedUser) {
         console.error('Failed to update profile on backend');
+        // Check if it's an authentication issue
+        const accessToken = localStorage.getItem('accessToken');
+        if (!accessToken) {
+          logout();
+        }
         return false;
       }
 
+      // Ensure whatsappContact is a string, not an object
+      let whatsappContactValue = updatedUser.whatsappContact || '';
+      if (typeof whatsappContactValue === 'object' && whatsappContactValue !== null) {
+        // If it's an object, extract the actual WhatsApp number
+        whatsappContactValue = (whatsappContactValue as any).whatsappContact || '';
+      }
+
       // Update local state and localStorage with the response from backend
-      setUser({
+      const newUser = {
         ...user,
         ...updatedData,
         id: updatedUser._id,
@@ -181,26 +208,56 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         avatar: updatedUser.avatar,
         bio: updatedUser.bio,
         genres: updatedUser.genres,
-        followersCount: updatedUser.followersCount
-      });
+        followersCount: updatedUser.followersCount,
+        whatsappContact: whatsappContactValue // Ensure it's a string
+      };
+
+      setUser(newUser);
       
-      localStorage.setItem('user', JSON.stringify({
-        ...user,
-        ...updatedData,
-        id: updatedUser._id,
-        name: updatedUser.name,
-        email: updatedUser.email,
-        role: updatedUser.role,
-        creatorType: updatedUser.creatorType,
-        avatar: updatedUser.avatar,
-        bio: updatedUser.bio,
-        genres: updatedUser.genres,
-        followersCount: updatedUser.followersCount
-      }));
+      localStorage.setItem('user', JSON.stringify(newUser));
       
       return true;
     } catch (error) {
       console.error('Error updating profile:', error);
+      return false;
+    }
+  }
+
+  const updateWhatsAppContact = async (whatsappContact: string): Promise<boolean> => {
+    if (!user) {
+      console.log('No user found for WhatsApp contact update');
+      return false;
+    }
+
+    try {
+      // Call the update function
+      const updatedUser = await updateUserWhatsAppContact(whatsappContact);
+
+      if (!updatedUser) {
+        console.log('Failed to update WhatsApp contact on backend');
+        return false;
+      }
+
+      // Extract the whatsappContact from the response and ensure it's a string
+      let updatedWhatsAppContact = updatedUser.whatsappContact || '';
+      if (typeof updatedWhatsAppContact === 'object' && updatedWhatsAppContact !== null) {
+        // If it's an object, extract the actual WhatsApp number
+        updatedWhatsAppContact = (updatedWhatsAppContact as any).whatsappContact || '';
+      }
+
+      // Update local state and localStorage with the response from backend
+      const newUser = {
+        ...user,
+        whatsappContact: updatedWhatsAppContact
+      };
+
+      setUser(newUser);
+
+      localStorage.setItem('user', JSON.stringify(newUser));
+
+      return true;
+    } catch (error) {
+      console.error('Error updating WhatsApp contact:', error);
       return false;
     }
   }
@@ -213,7 +270,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user, isAuthenticated, userRole, isLoading]);
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, upgradeToCreator, updateProfile, isAuthenticated, userRole, isLoading }}>
+    <AuthContext.Provider value={{ user, login, logout, upgradeToCreator, updateProfile, updateWhatsAppContact, isAuthenticated, userRole, isLoading }}>
       {children}
     </AuthContext.Provider>
   )

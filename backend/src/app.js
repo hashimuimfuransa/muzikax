@@ -13,6 +13,7 @@ const uploadRoutes = require('./routes/uploadRoutes');
 const creatorRoutes = require('./routes/creatorRoutes');
 const albumRoutes = require('./routes/albumRoutes');
 const commentRoutes = require('./routes/commentRoutes'); // Add comment routes
+const eventRoutes = require('./routes/eventRoutes'); // Add event routes
 const { protect } = require('./utils/jwt');
 const { updateOwnProfile } = require('./controllers/profileController');
 console.log('About to import public routes...');
@@ -24,6 +25,10 @@ const favoriteRoutes = require('./routes/features/favoriteRoutes');
 const playlistRoutes = require('./routes/features/playlistRoutes');
 const recentlyPlayedRoutes = require('./routes/recentlyPlayedRoutes');
 const recommendationRoutes = require('./routes/recommendationRoutes');
+const postRoutes = require('./routes/postRoutes');
+
+// Import WhatsApp routes
+const whatsappRoutes = require('./routes/whatsappRoutes');
 
 console.log('ROUTES IMPORTED');
 
@@ -64,6 +69,10 @@ console.log('Tracks routes registered');
 console.log('Registering user routes...');
 app.use('/api/users', userRoutes);
 console.log('Users routes registered');
+
+// Register post routes early to avoid conflicts
+app.use('/api/posts', postRoutes);
+console.log('Post routes registered');
 
 // Register the new feature routes
 app.use('/api/favorites', favoriteRoutes);
@@ -122,6 +131,25 @@ try {
   console.log('Comment routes registered successfully');
 } catch (error) {
   console.error('Error registering comment routes:', error);
+}
+
+// Register event routes
+console.log('Attempting to register event routes...');
+try {
+  console.log('Event routes object:', eventRoutes);
+  app.use('/api/events', eventRoutes);
+  console.log('Event routes registered successfully');
+} catch (error) {
+  console.error('Error registering event routes:', error);
+}
+
+// Register WhatsApp routes
+console.log('Attempting to register WhatsApp routes...');
+try {
+  app.use('/api/whatsapp', whatsappRoutes);
+  console.log('WhatsApp routes registered successfully');
+} catch (error) {
+  console.error('Error registering WhatsApp routes:', error);
 }
 
 // Directly implement profile update route in app.js to avoid 404 issues

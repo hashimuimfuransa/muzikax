@@ -96,5 +96,6 @@ TrackSchema.index({ genre: 1 });
 TrackSchema.index({ type: 1 });
 TrackSchema.index({ albumId: 1 });
 TrackSchema.index({ createdAt: -1 }); // For sorting by newest
-exports.default = mongoose_1.default.model('Track', TrackSchema);
-//# sourceMappingURL=Track.js.map
+
+const TrackModel = mongoose_1.default.model('Track', TrackSchema);
+module.exports = TrackModel;

@@ -3,6 +3,9 @@ const refreshToken = async (): Promise<string | null> => {
   try {
     const refreshToken = localStorage.getItem('refreshToken');
     if (!refreshToken) {
+      // Clear user data if no refresh token is available
+      localStorage.removeItem('user');
+      localStorage.removeItem('accessToken');
       return null;
     }
 
@@ -19,9 +22,18 @@ const refreshToken = async (): Promise<string | null> => {
       localStorage.setItem('accessToken', data.accessToken);
       localStorage.setItem('refreshToken', data.refreshToken);
       return data.accessToken;
+    } else {
+      // If refresh token is invalid, clear user data and redirect to login
+      localStorage.removeItem('user');
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
     }
   } catch (error) {
     console.error('Error refreshing token:', error);
+    // Clear user data on refresh error
+    localStorage.removeItem('user');
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
   }
   return null;
 };
@@ -65,6 +77,11 @@ const makeAuthenticatedRequest = async (url: string, options: RequestInit = {}):
       };
       
       response = await fetch(url, requestOptions);
+    } else {
+      // If token refresh failed, redirect to login
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login';
+      }
     }
   }
 
@@ -260,5 +277,60 @@ export const updateUserProfile = async (profileData: any): Promise<any> => {
   } catch (error) {
     console.error('Error updating profile:', error);
     return null;
+  }
+};
+
+/**
+ * Update user's WhatsApp contact
+ */
+export const updateUserWhatsAppContact = async (whatsappContact: string): Promise<any> => {
+  try {
+    const response = await makeAuthenticatedRequest(`${process.env.NEXT_PUBLIC_API_URL}/api/whatsapp/contact`, {
+      method: 'PUT',
+      body: JSON.stringify({ whatsappContact })
+    });
+
+    // If user is not authenticated (401), return null
+    if (response.status === 401) {
+      return null;
+    }
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to update WhatsApp contact');
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error updating WhatsApp contact:', error);
+    return null;
+  }
+};
+
+/**
+ * Get user's WhatsApp contact
+ */
+export const getUserWhatsAppContact = async (): Promise<string> => {
+  try {
+    const response = await makeAuthenticatedRequest(`${process.env.NEXT_PUBLIC_API_URL}/api/whatsapp/contact`, {
+      method: 'GET'
+    });
+
+    // If user is not authenticated (401), return empty string
+    if (response.status === 401) {
+      return '';
+    }
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to fetch WhatsApp contact');
+    }
+
+    const data = await response.json();
+    return data.whatsappContact || '';
+  } catch (error) {
+    console.error('Error fetching WhatsApp contact:', error);
+    return '';
   }
 };

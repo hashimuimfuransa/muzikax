@@ -44,18 +44,8 @@ interface Album {
   updatedAt: string;
 }
 
-// Add User interface
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  followersCount?: number;
-  // Add other user properties as needed
-}
-
 export default function Profile() {
-  const [activeTab, setActiveTab] = useState<'profile' | 'favorites' | 'analytics' | 'tracks' | 'albums'>('profile')
+  const [activeTab, setActiveTab] = useState<'profile' | 'favorites' | 'analytics' | 'tracks' | 'albums' | 'whatsapp'>('profile')
   const [analytics, setAnalytics] = useState<CreatorAnalytics | null>(null)
   const [tracks, setTracks] = useState<ITrack[]>([])
   const [albums, setAlbums] = useState<ProfileAlbum[]>([])
@@ -73,9 +63,10 @@ export default function Profile() {
   const [bio, setBio] = useState('')
   const [genres, setGenres] = useState<string[]>([])
   const [newGenre, setNewGenre] = useState('')
+  const [whatsappContact, setWhatsappContact] = useState('') // Add WhatsApp contact state
   const { currentTrack, isPlaying, playTrack, setCurrentPlaylist } = useAudioPlayer()
   const router = useRouter()
-  const { isAuthenticated, user, isLoading, updateProfile } = useAuth()
+  const { isAuthenticated, user, isLoading, updateProfile, updateWhatsAppContact } = useAuth() // Import both functions
 
   // Check authentication on component mount
   useEffect(() => {
@@ -91,6 +82,16 @@ export default function Profile() {
     if (isAuthenticated && user) {
       setBio(user.bio || '')
       setGenres(user.genres || [])
+      // Properly initialize WhatsApp contact - check if it's an object or string
+      let whatsappNumber = '';
+      if (typeof user.whatsappContact === 'string') {
+        whatsappNumber = user.whatsappContact;
+      } else if (user.whatsappContact && typeof user.whatsappContact === 'object') {
+        // If it's an object, try to extract the actual WhatsApp number
+        whatsappNumber = (user.whatsappContact as any).whatsappContact || '';
+      }
+      console.log('Initializing WhatsApp contact:', whatsappNumber, typeof whatsappNumber)
+      setWhatsappContact(whatsappNumber)
       
       // Fetch analytics for creators
       if (user.role === 'creator') {
@@ -100,6 +101,22 @@ export default function Profile() {
       }
     }
   }, [isAuthenticated, user])
+
+  // Add a separate effect to update WhatsApp contact when user changes
+  useEffect(() => {
+    if (user && user.whatsappContact !== undefined) {
+      // Properly extract WhatsApp contact - check if it's an object or string
+      let whatsappNumber = '';
+      if (typeof user.whatsappContact === 'string') {
+        whatsappNumber = user.whatsappContact;
+      } else if (user.whatsappContact && typeof user.whatsappContact === 'object') {
+        // If it's an object, try to extract the actual WhatsApp number
+        whatsappNumber = (user.whatsappContact as any).whatsappContact || '';
+      }
+      console.log('Updating WhatsApp contact from user change:', whatsappNumber, typeof whatsappNumber)
+      setWhatsappContact(whatsappNumber)
+    }
+  }, [user?.whatsappContact])
 
   // Listen for track updates (when favorites are added/removed)
   useEffect(() => {
@@ -198,6 +215,18 @@ export default function Profile() {
     }
   }
 
+  // Map ITrack to Track interface for audio player
+  const mapTrackForPlayer = (track: ITrack) => ({
+    id: track._id,
+    title: track.title,
+    artist: 'Unknown Artist', // This would need to be fetched from the creator data
+    coverImage: track.coverURL,
+    audioUrl: track.audioURL,
+    duration: 0, // Would need to calculate or fetch duration
+    creatorId: track.creatorId,
+    likes: track.likes
+  });
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -220,6 +249,12 @@ export default function Profile() {
         bio: bio.trim(),
         genres: genres // Use the genres from state directly
       }
+      
+      // Only include fields that have values
+      if (name.trim()) updateData.name = name.trim();
+      if (email.trim()) updateData.email = email.trim();
+      if (bio.trim()) updateData.bio = bio.trim();
+      if (genres.length > 0) updateData.genres = genres;
       
       // Only include password fields if they have values
       if (currentPassword) {
@@ -439,69 +474,24 @@ export default function Profile() {
                   </p>
                 </div>
                 <div 
-                  className="card-bg rounded-xl p-4 border border-gray-700/30 cursor-pointer hover:border-[#FF4D67]/50 transition-colors"
-                  onClick={() => router.push('/community')}
-                >
-                  <h3 className="text-gray-400 text-xs mb-1">Followers</h3>
-                  <p className="text-white font-medium text-sm">
-                    {user?.followersCount?.toLocaleString() || '0'}
-                  </p>
-                </div>
-                <div 
                   className="card-bg rounded-xl p-4 border border-gray-700/30 cursor-pointer hover:border-[#FFCB2B]/50 transition-colors"
-                  onClick={() => router.push('/community')}
+                  onClick={() => router.push('/')}
                 >
                   <h3 className="text-gray-400 text-xs mb-1">Following</h3>
                   <p className="text-white font-medium text-sm">
                     {user?.followingCount?.toLocaleString() || '0'}
                   </p>
                 </div>
-              </div>
+                <div className="card-bg rounded-xl p-4 border border-gray-700/30">
+                  <h3 className="text-gray-400 text-xs mb-1">Followers</h3>
+                  <p className="text-white font-medium text-sm">
+                    {user?.followersCount?.toLocaleString() || '0'}
+                  </p>
+                </div>
+            </div>
           </div>
 
-          {/* Quick Navigation Buttons - Added for easier access to key pages */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-            <button
-              onClick={() => router.push('/recently-played')}
-              className="card-bg rounded-xl p-4 border border-gray-700/30 hover:border-[#FF4D67] transition-colors flex flex-col items-center justify-center"
-            >
-              <div className="w-10 h-10 rounded-full bg-[#FF4D67]/10 flex items-center justify-center mb-3">
-                <svg className="w-5 h-5 text-[#FF4D67]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-              </div>
-              <h3 className="text-white font-medium text-sm">Recently Played</h3>
-              <p className="text-gray-400 text-xs mt-1">View your listening history</p>
-            </button>
-            
-            <button
-              onClick={() => router.push('/favorites')}
-              className="card-bg rounded-xl p-4 border border-gray-700/30 hover:border-[#FFCB2B] transition-colors flex flex-col items-center justify-center"
-            >
-              <div className="w-10 h-10 rounded-full bg-[#FFCB2B]/10 flex items-center justify-center mb-3">
-                <svg className="w-5 h-5 text-[#FFCB2B]" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                  <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd"></path>
-                </svg>
-              </div>
-              <h3 className="text-white font-medium text-sm">Favorites</h3>
-              <p className="text-gray-400 text-xs mt-1">Your liked tracks</p>
-            </button>
-            
-            <button
-              onClick={() => setActiveTab('profile')}
-              className="card-bg rounded-xl p-4 border border-gray-700/30 hover:border-[#6C63FF] transition-colors flex flex-col items-center justify-center"
-            >
-              <div className="w-10 h-10 rounded-full bg-[#6C63FF]/10 flex items-center justify-center mb-3">
-                <svg className="w-5 h-5 text-[#6C63FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                </svg>
-              </div>
-              <h3 className="text-white font-medium text-sm">Profile</h3>
-              <p className="text-gray-400 text-xs mt-1">Account settings</p>
-            </button>
-          </div>
-
-          {/* Tabs - Mobile Responsive */}
+          {/* Navigation Tabs */}
           <div className="flex overflow-x-auto border-b border-gray-800 mb-6 scrollbar-hide">
             <button
               className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors whitespace-nowrap ${
@@ -554,6 +544,16 @@ export default function Profile() {
                   onClick={() => setActiveTab('albums')}
                 >
                   My Albums
+                </button>
+                <button
+                  className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors whitespace-nowrap ${
+                    activeTab === 'whatsapp'
+                      ? 'text-[#FF4D67] border-b-2 border-[#FF4D67]'
+                      : 'text-gray-500 hover:text-gray-300'
+                  }`}
+                  onClick={() => setActiveTab('whatsapp')}
+                >
+                  WhatsApp Contact
                 </button>
               </>
             )}
@@ -758,23 +758,25 @@ export default function Profile() {
                   No analytics data available
                 </div>
               ) : null}
-              
-              <div className="mt-6">
-                <h4 className="text-lg font-semibold text-white mb-4">Recent Activity</h4>
-                <div className="card-bg rounded-xl p-5 border border-gray-700/30">
-                  <div className="text-center py-6 text-gray-400 text-sm">
-                    Recent activity data will appear here
-                  </div>
-                </div>
-              </div>
             </div>
           )}
 
           {/* Creator Tracks Tab */}
           {activeTab === 'tracks' && user?.role === 'creator' && (
             <div className="card-bg rounded-2xl p-5 sm:p-6 border border-gray-700/50">
-              <h3 className="text-lg sm:text-xl font-bold text-white mb-5">My Tracks</h3>
-              
+              <div className="flex justify-between items-center mb-5">
+                <h3 className="text-lg sm:text-xl font-bold text-white">My Tracks</h3>
+                <button 
+                  onClick={() => router.push('/upload')}
+                  className="px-4 py-2 bg-[#FF4D67] text-white rounded-lg hover:bg-[#FF4D67]/80 transition-colors text-sm font-medium flex items-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd"></path>
+                  </svg>
+                  Upload Track
+                </button>
+              </div>
+
               {error && (
                 <div className="bg-red-900/50 border border-red-700 rounded-lg p-4 mb-5">
                   <div className="text-red-300 text-sm">{error}</div>
@@ -786,161 +788,141 @@ export default function Profile() {
                   </button>
                 </div>
               )}
-              
+
               {loadingTracks ? (
                 <div className="flex justify-center items-center h-40">
                   <div className="text-white text-sm">Loading tracks...</div>
                 </div>
-              ) : filteredTracks.length === 0 ? (
-                <div className="text-center py-8 text-gray-400 text-sm">
-                  You haven't uploaded any tracks yet
-                </div>
-              ) : (
+              ) : tracks && tracks.length > 0 ? (
                 <>
-                  {/* Search bar for tracks */}
-                  <div className="mb-5">
-                    <div className="relative">
-                      <input
-                        type="text"
-                        placeholder="Search your tracks..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full px-4 py-3 pl-10 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm"
-                      />
-                      <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                        <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd"></path>
-                      </svg>
-                    </div>
-                  </div>
-                  
-                  {filteredTracks.length > 0 ? (
-                    <>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                        {filteredTracks.map((track) => (
-                          <div key={track._id} className="card-bg rounded-xl overflow-hidden border border-gray-700/30 hover:border-[#FF4D67]/50 transition-colors">
-                            <div className="relative">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {filteredTracks.map((track) => (
+                      <div key={track._id} className="card-bg rounded-xl p-4 border border-gray-700/30 hover:border-[#FF4D67]/50 transition-colors group">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-12 h-12 rounded-lg bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center overflow-hidden">
+                            {track.coverURL ? (
                               <img 
-                                src={track.coverURL || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'} 
+                                src={track.coverURL} 
                                 alt={track.title} 
-                                className="w-full h-40 object-cover"
+                                className="w-full h-full object-cover"
                               />
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-4">
-                                <h3 className="font-bold text-white truncate">{track.title}</h3>
-                              </div>
-                              <button 
-                                onClick={() => {
-                                  playTrack({
-                                    id: track._id,
-                                    title: track.title,
-                                    artist: typeof track.creatorId === 'object' && track.creatorId !== null ? (track.creatorId as any).name : 'Unknown Artist',
-                                    coverImage: track.coverURL || '',
-                                    audioUrl: track.audioURL,
-                                    creatorId: typeof track.creatorId === 'object' && track.creatorId !== null ? (track.creatorId as any)._id : track.creatorId
-                                  });
-                                  
-                                  // Set the current playlist to all user tracks
-                                  const playlistTracks = tracks.map(t => ({
-                                    id: t._id,
-                                    title: t.title,
-                                    artist: typeof t.creatorId === 'object' && t.creatorId !== null ? (t.creatorId as any).name : 'Unknown Artist',
-                                    coverImage: t.coverURL || '',
-                                    audioUrl: t.audioURL,
-                                    creatorId: typeof t.creatorId === 'object' && t.creatorId !== null ? (t.creatorId as any)._id : t.creatorId
-                                  }));
-                                  
-                                  setCurrentPlaylist(playlistTracks);
-                                }}
-                                className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/50 flex items-center justify-center hover:bg-[#FF4D67] transition-colors"
-                              >
-                                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
-                                </svg>
-                              </button>
-                            </div>
-                            <div className="p-4">
-                              <h4 className="font-semibold text-white truncate text-base">{track.title}</h4>
-                              <div className="flex justify-between text-sm text-gray-400 mt-2">
-                                <span>{track.plays.toLocaleString()} plays</span>
-                                <span>{track.likes.toLocaleString()} likes</span>
-                              </div>
-                              <div className="flex justify-between text-xs text-gray-500 mt-1">
-                                <span>{new Date(track.createdAt).toLocaleDateString()}</span>
-                                <span>{track.genre}</span>
-                              </div>
-                              <div className="flex justify-end mt-3 space-x-2">
-                                <button 
-                                  onClick={() => router.push(`/edit-track/${track._id}`)}
-                                  className="px-3 py-1.5 bg-gray-700 text-white rounded hover:bg-gray-600 text-xs font-medium transition-colors"
-                                >
-                                  Edit
-                                </button>
-                                <button 
-                                  onClick={() => {
-                                    setItemToDelete({
-                                      type: 'track',
-                                      id: track._id,
-                                      title: track.title
-                                    });
-                                    setShowDeleteModal(true);
-                                  }}
-                                  className="px-3 py-1.5 bg-red-700 text-white rounded hover:bg-red-600 text-xs font-medium transition-colors"
-                                >
-                                  Delete
-                                </button>
-                              </div>
-                            </div>
+                            ) : (
+                              <span className="text-white font-bold text-xs">
+                                {track.title.charAt(0)}
+                              </span>
+                            )}
                           </div>
-                        ))}
-                      </div>
-
-                      {/* Pagination */}
-                      {tracksTotalPages > 1 && (
-                        <div className="flex justify-center items-center space-x-2 mt-6">
-                          <button
-                            onClick={() => handlePageChange(tracksPage - 1, 'tracks')}
-                            disabled={tracksPage === 1}
-                            className={`px-4 py-2 rounded-md text-sm ${
-                              tracksPage === 1 
-                                ? 'bg-gray-800 text-gray-500 cursor-not-allowed' 
-                                : 'bg-gray-700 text-white hover:bg-gray-600'
-                            }`}
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium text-white truncate">{track.title}</h4>
+                            <p className="text-gray-400 text-xs truncate">Unknown Artist</p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex justify-between items-center text-xs text-gray-400 mb-3">
+                          <span>{new Date(track.createdAt).toLocaleDateString()}</span>
+                          <span>{track.likes || 0} likes</span>
+                        </div>
+                        
+                        <div className="flex gap-2">
+                          <button 
+                            onClick={() => {
+                              // Map tracks to the format expected by the audio player
+                              const mappedTracks = filteredTracks.map(mapTrackForPlayer);
+                              setCurrentPlaylist(mappedTracks);
+                              playTrack(mapTrackForPlayer(track));
+                            }}
+                            className="flex-1 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors text-sm font-medium"
                           >
-                            Previous
+                            Play
                           </button>
-                          
-                          <span className="text-white mx-2 text-sm">
-                            Page {tracksPage} of {tracksTotalPages}
-                          </span>
-                          
-                          <button
-                            onClick={() => handlePageChange(tracksPage + 1, 'tracks')}
-                            disabled={tracksPage === tracksTotalPages}
-                            className={`px-4 py-2 rounded-md text-sm ${
-                              tracksPage === tracksTotalPages 
-                                ? 'bg-gray-800 text-gray-500 cursor-not-allowed' 
-                                : 'bg-gray-700 text-white hover:bg-gray-600'
-                            }`}
+                          <button 
+                            onClick={() => router.push(`/edit-track/${track._id}`)}
+                            className="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors"
                           >
-                            Next
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
+                          </button>
+                          <button 
+                            onClick={() => {
+                              setItemToDelete({
+                                type: 'track',
+                                id: track._id,
+                                title: track.title
+                              });
+                              setShowDeleteModal(true);
+                            }}
+                            className="px-3 py-2 bg-red-900/50 hover:bg-red-900 text-red-400 rounded-lg transition-colors"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1v3M4 7h16"></path>
+                            </svg>
                           </button>
                         </div>
-                      )}
-                    </>
-                  ) : (
-                    <div className="text-center py-8 text-gray-400 text-sm">
-                      No tracks found matching your search
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {tracksTotalPages > 1 && (
+                    <div className="flex justify-center items-center gap-2 mt-6">
+                      <button
+                        onClick={() => handlePageChange(Math.max(1, tracksPage - 1), 'tracks')}
+                        disabled={tracksPage === 1}
+                        className="px-3 py-1.5 bg-gray-800 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700 transition-colors text-sm"
+                      >
+                        Previous
+                      </button>
+                      
+                      <span className="text-white text-sm">
+                        Page {tracksPage} of {tracksTotalPages}
+                      </span>
+                      
+                      <button
+                        onClick={() => handlePageChange(Math.min(tracksTotalPages, tracksPage + 1), 'tracks')}
+                        disabled={tracksPage === tracksTotalPages}
+                        className="px-3 py-1.5 bg-gray-800 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700 transition-colors text-sm"
+                      >
+                        Next
+                      </button>
                     </div>
                   )}
                 </>
-              )}
+              ) : !error ? (
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                    </svg>
+                  </div>
+                  <h4 className="text-white font-medium mb-2">No tracks yet</h4>
+                  <p className="text-gray-400 text-sm mb-4">Start uploading your music to share with fans</p>
+                  <button 
+                    onClick={() => router.push('/upload')}
+                    className="px-4 py-2 bg-[#FF4D67] text-white rounded-lg hover:bg-[#FF4D67]/80 transition-colors text-sm font-medium"
+                  >
+                    Upload Your First Track
+                  </button>
+                </div>
+              ) : null}
             </div>
           )}
 
           {/* Creator Albums Tab */}
           {activeTab === 'albums' && user?.role === 'creator' && (
             <div className="card-bg rounded-2xl p-5 sm:p-6 border border-gray-700/50">
-              <h3 className="text-lg sm:text-xl font-bold text-white mb-5">My Albums</h3>
-              
+              <div className="flex justify-between items-center mb-5">
+                <h3 className="text-lg sm:text-xl font-bold text-white">My Albums</h3>
+                <button 
+                  onClick={() => router.push('/create-album')}
+                  className="px-4 py-2 bg-[#FFCB2B] text-gray-900 rounded-lg hover:bg-[#FFCB2B]/80 transition-colors text-sm font-medium flex items-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M5 4a1 1 0 00-2 0v7.268a2 2 0 000 3.464V16a1 1 0 102 0v-1.268a2 2 0 000-3.464V4zM11 4a1 1 0 10-2 0v1.268a2 2 0 000 3.464V16a1 1 0 102 0V8.732a2 2 0 000-3.464V4zM16 3a1 1 0 011 1v7.268a2 2 0 010 3.464V16a1 1 0 11-2 0v-1.268a2 2 0 010-3.464V4a1 1 0 011-1z"></path>
+                  </svg>
+                  Create Album
+                </button>
+              </div>
+
               {error && (
                 <div className="bg-red-900/50 border border-red-700 rounded-lg p-4 mb-5">
                   <div className="text-red-300 text-sm">{error}</div>
@@ -952,85 +934,93 @@ export default function Profile() {
                   </button>
                 </div>
               )}
-              
+
               {loadingAlbums ? (
                 <div className="flex justify-center items-center h-40">
                   <div className="text-white text-sm">Loading albums...</div>
                 </div>
-              ) : filteredAlbums.length === 0 ? (
-                <div className="text-center py-8 text-gray-400 text-sm">
-                  You haven't created any albums yet
-                </div>
-              ) : (
-                <>
-                  {/* Search bar for albums */}
-                  <div className="mb-5">
-                    <div className="relative">
-                      <input
-                        type="text"
-                        placeholder="Search your albums..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full px-4 py-3 pl-10 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm"
-                      />
-                      <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                        <path fillRule="evenodd" d="M8 4a4 4 0 00-2 0v7.268a2 2 0 000 3.464V16a1 1 0 102 0v-1.268a2 2 0 000-3.464V4zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd"></path>
-                      </svg>
-                    </div>
-                  </div>
-                  
-                  {filteredAlbums.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                      {filteredAlbums.map((album) => (
-                        <div key={album.id} className="card-bg rounded-xl overflow-hidden border border-gray-700/30 hover:border-[#FF4D67]/50 transition-colors">
-                          <div className="relative">
+              ) : albums && albums.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredAlbums.map((album) => (
+                    <div key={album.id} className="card-bg rounded-xl p-4 border border-gray-700/30 hover:border-[#FFCB2B]/50 transition-colors group">
+                      <div className="relative mb-3">
+                        <div className="aspect-square rounded-lg bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center overflow-hidden">
+                          {album.coverImage ? (
                             <img 
-                              src={album.coverImage || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'} 
+                              src={album.coverImage} 
                               alt={album.title} 
-                              className="w-full h-40 object-cover"
+                              className="w-full h-full object-cover"
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-4">
-                              <h3 className="font-bold text-white truncate">{album.title}</h3>
-                            </div>
-                          </div>
-                          <div className="p-4">
-                            <h4 className="font-semibold text-white truncate text-base">{album.title}</h4>
-                            <div className="flex justify-between text-sm text-gray-400 mt-2">
-                              <span>{album.year}</span>
-                              <span>{album.tracks} tracks</span>
-                            </div>
-                            <div className="flex justify-end mt-3 space-x-2">
-                              <button 
-                                onClick={() => router.push(`/album/${album.id}`)}
-                                className="px-3 py-1.5 bg-gray-700 text-white rounded hover:bg-gray-600 text-xs font-medium transition-colors"
-                              >
-                                View
-                              </button>
-                              <button 
-                                onClick={() => {
-                                  setItemToDelete({
-                                    type: 'album',
-                                    id: album.id,
-                                    title: album.title
-                                  });
-                                  setShowDeleteModal(true);
-                                }}
-                                className="px-3 py-1.5 bg-red-700 text-white rounded hover:bg-red-600 text-xs font-medium transition-colors"
-                              >
-                                Delete
-                              </button>
-                            </div>
-                          </div>
+                          ) : (
+                            <span className="text-white font-bold text-2xl">
+                              {album.title.charAt(0)}
+                            </span>
+                          )}
                         </div>
-                      ))}
+                        <button 
+                          onClick={() => {
+                            // View album tracks
+                            router.push(`/album/${album.id}`);
+                          }}
+                          className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg"
+                        >
+                          <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                          </svg>
+                        </button>
+                      </div>
+                      
+                      <h4 className="font-medium text-white truncate mb-1">{album.title}</h4>
+                      <p className="text-gray-400 text-xs mb-2">{album.artist}</p>
+                      <div className="flex justify-between items-center text-xs text-gray-400">
+                        <span>{album.year}</span>
+                        <span>{album.tracks} tracks</span>
+                      </div>
+                      
+                      <div className="flex gap-2 mt-3">
+                        <button 
+                          onClick={() => router.push(`/edit-album/${album.id}`)}
+                          className="flex-1 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors text-sm font-medium"
+                        >
+                          Edit
+                        </button>
+                        <button 
+                          onClick={() => {
+                            setItemToDelete({
+                              type: 'album',
+                              id: album.id,
+                              title: album.title
+                            });
+                            setShowDeleteModal(true);
+                          }}
+                          className="px-3 py-2 bg-red-900/50 hover:bg-red-900 text-red-400 rounded-lg transition-colors"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1v3M4 7h16"></path>
+                          </svg>
+                        </button>
+                      </div>
                     </div>
-                  ) : (
-                    <div className="text-center py-8 text-gray-400 text-sm">
-                      No albums found matching your search
-                    </div>
-                  )}
-                </>
-              )}
+                  ))}
+                </div>
+              ) : !error ? (
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 4a1 1 0 00-2 0v7.268a2 2 0 000 3.464V16a1 1 0 102 0v-1.268a2 2 0 000-3.464V4zM11 4a1 1 0 10-2 0v1.268a2 2 0 000 3.464V16a1 1 0 102 0V8.732a2 2 0 000-3.464V4zM16 3a1 1 0 011 1v7.268a2 2 0 010 3.464V16a1 1 0 11-2 0v-1.268a2 2 0 010-3.464V4a1 1 0 011-1z"></path>
+                    </svg>
+                  </div>
+                  <h4 className="text-white font-medium mb-2">No albums yet</h4>
+                  <p className="text-gray-400 text-sm mb-4">Create your first album to showcase your music collection</p>
+                  <button 
+                    onClick={() => router.push('/create-album')}
+                    className="px-4 py-2 bg-[#FFCB2B] text-gray-900 rounded-lg hover:bg-[#FFCB2B]/80 transition-colors text-sm font-medium"
+                  >
+                    Create Your First Album
+                  </button>
+                </div>
+              ) : null}
             </div>
           )}
         </div>
@@ -1038,29 +1028,94 @@ export default function Profile() {
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && itemToDelete && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
           <div className="card-bg rounded-2xl p-6 max-w-md w-full border border-gray-700/50">
-            <h3 className="text-xl font-bold text-white mb-2">Confirm Deletion</h3>
-            <p className="text-gray-400 mb-6">
+            <h3 className="text-lg font-bold text-white mb-2">Confirm Deletion</h3>
+            <p className="text-gray-400 text-sm mb-6">
               Are you sure you want to delete "{itemToDelete.title}"? This action cannot be undone.
             </p>
-            <div className="flex justify-end space-x-3">
+            <div className="flex gap-3 justify-end">
               <button
                 onClick={() => {
                   setShowDeleteModal(false);
                   setItemToDelete(null);
                 }}
-                className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmDelete}
-                className="px-4 py-2 bg-red-700 text-white rounded-lg hover:bg-red-600 transition-colors"
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
               >
                 Delete
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* WhatsApp Contact Tab */}
+      {activeTab === 'whatsapp' && user?.role === 'creator' && (
+        <div className="card-bg rounded-2xl p-5 sm:p-6 border border-gray-700/50">
+          <h3 className="text-lg sm:text-xl font-bold text-white mb-5">WhatsApp Contact Information</h3>
+          
+          <div className="max-w-2xl">
+            <p className="text-gray-400 text-sm mb-6">
+              Fans can contact you via WhatsApp for beats and collaborations. This information will be visible to other users when they view your profile or tracks marked as beats.
+            </p>
+            
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              // Use the new WhatsApp contact update function
+              const success = await updateWhatsAppContact(whatsappContact.trim());
+              if (success) {
+                alert('WhatsApp contact updated successfully!');
+              } else {
+                alert('Failed to update WhatsApp contact. Please try again.');
+              }
+            }} className="space-y-6">
+              <div>
+                <label htmlFor="whatsappContact" className="block text-sm font-medium text-gray-300 mb-2">
+                  WhatsApp Number
+                </label>
+                <input
+                  type="text"
+                  id="whatsappContact"
+                  value={whatsappContact}
+                  onChange={(e) => setWhatsappContact(e.target.value)}
+                  placeholder="Enter your WhatsApp number (e.g., +1234567890)"
+                  className="w-full px-3 py-2.5 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm"
+                />
+                <p className="mt-2 text-xs text-gray-400">
+                  Include country code. Leave empty if you don't want to be contacted via WhatsApp.
+                </p>
+              </div>
+              
+              <div className="bg-gray-800/30 rounded-lg p-4 border border-gray-700/50">
+                <h4 className="font-medium text-white mb-2 flex items-center gap-2">
+                  <svg className="w-5 h-5 text-[#25D366]" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.480-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.87 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                  </svg>
+                  How it works
+                </h4>
+                <ul className="text-xs text-gray-400 space-y-1">
+                  <li>• Users can contact you directly via WhatsApp for beats</li>
+                  <li>• Your number is only visible for tracks marked as "beats"</li>
+                  <li>• You can update this information at any time</li>
+                  <li>• Leave empty to disable WhatsApp contact</li>
+                </ul>
+              </div>
+              
+              <div className="flex justify-end pt-2">
+                <button 
+                  type="submit"
+                  className="px-5 py-2.5 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-opacity text-sm"
+                >
+                  Save WhatsApp Number
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

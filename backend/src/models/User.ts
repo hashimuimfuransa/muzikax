@@ -23,6 +23,7 @@ export interface IUser extends Document {
     trackId: mongoose.Types.ObjectId;
     playedAt: Date;
   }[]; // Add recently played tracks field
+  whatsappContact: string; // Add WhatsApp contact field
   createdAt: Date;
   updatedAt: Date;
 }
@@ -101,6 +102,10 @@ const UserSchema: Schema = new Schema({
       }
     }],
     default: []
+  },
+  whatsappContact: {
+    type: String,
+    default: ''
   }
 }, {
   timestamps: true

@@ -33,7 +33,7 @@ export const updateOwnProfile = async (req: Request, res: Response): Promise<voi
       return;
     }
 
-    const { name, email, bio, genres, socials, avatar, password, currentPassword } = req.body;
+    const { name, email, bio, genres, socials, avatar, password, currentPassword, whatsappContact } = req.body;
 
     // Validate input data
     if (name !== undefined && (typeof name !== 'string' || name.trim().length === 0)) {
@@ -48,6 +48,11 @@ export const updateOwnProfile = async (req: Request, res: Response): Promise<voi
 
     if (bio !== undefined && typeof bio !== 'string') {
       res.status(400).json({ message: 'Bio must be a string' });
+      return;
+    }
+
+    if (whatsappContact !== undefined && typeof whatsappContact !== 'string') {
+      res.status(400).json({ message: 'WhatsApp contact must be a string' });
       return;
     }
 
@@ -82,6 +87,7 @@ export const updateOwnProfile = async (req: Request, res: Response): Promise<voi
     if (genres !== undefined) user.genres = genres;
     if (socials !== undefined) user.socials = socials;
     if (avatar !== undefined) user.avatar = avatar;
+    if (whatsappContact !== undefined) user.whatsappContact = whatsappContact;
 
     // Only allow password update if provided and current password is verified
     if (password) {
@@ -121,6 +127,7 @@ export const updateOwnProfile = async (req: Request, res: Response): Promise<voi
       genres: updatedUser.genres,
       followersCount: updatedUser.followersCount,
       socials: updatedUser.socials,
+      whatsappContact: updatedUser.whatsappContact,
       createdAt: updatedUser.createdAt
     });
   } catch (error: any) {

@@ -57,5 +57,6 @@ const CommentSchema = new mongoose_1.Schema({
 CommentSchema.index({ trackId: 1 });
 CommentSchema.index({ userId: 1 });
 CommentSchema.index({ createdAt: -1 }); // For sorting by newest
-exports.default = mongoose_1.default.model('Comment', CommentSchema);
-//# sourceMappingURL=Comment.js.map
+
+const CommentModel = mongoose_1.default.model('Comment', CommentSchema);
+module.exports = CommentModel;

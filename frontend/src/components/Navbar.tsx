@@ -39,9 +39,6 @@ export default function Navbar() {
               <Link href="/explore" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">
                 Explore
               </Link>
-              <Link href="/community" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">
-                Community
-              </Link>
               
               {/* Search Bar */}
               <form onSubmit={handleSearch} className="relative">
@@ -166,9 +163,6 @@ export default function Navbar() {
           </Link>
           <Link href="/explore" className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800">
             Explore
-          </Link>
-          <Link href="/community" className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800">
-            Community
           </Link>
           {/* Upload button for all users with proper navigation */}
           <button 

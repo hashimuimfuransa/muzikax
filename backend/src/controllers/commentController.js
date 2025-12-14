@@ -1,5 +1,5 @@
-const Comment = require('../models/Comment').default;
-const Track = require('../models/Track').default;
+const Comment = require('../models/Comment');
+const Track = require('../models/Track');
 
 // Add a comment to a track
 const addCommentToTrack = async (req, res) => {
@@ -47,16 +47,33 @@ const addCommentToTrack = async (req, res) => {
 const getCommentsForTrack = async (req, res) => {
   try {
     const { trackId } = req.params;
+    
+    console.log('Fetching comments for track:', trackId);
+
+    // Validate trackId
+    if (!trackId) {
+      console.log('No track ID provided');
+      res.status(400).json({ message: 'Track ID is required' });
+      return;
+    }
 
     // Find comments for the track and populate user info
+    console.log('Finding comments for track ID:', trackId);
     const comments = await Comment.find({ trackId })
       .populate('userId', 'name')
       .sort({ createdAt: -1 });
 
+    console.log('Found', comments.length, 'comments');
     res.json(comments);
   } catch (error) {
     console.error('Error fetching comments:', error);
-    res.status(500).json({ message: error.message });
+    // Log more details about the error
+    if (error instanceof Error) {
+      console.error('Error name:', error.name);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+    }
+    res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 };
 
