@@ -16,6 +16,8 @@ interface BackendTrack {
   duration?: string | number
   audioUrl?: string
   audioURL?: string
+  type?: 'song' | 'beat' | 'mix'; // Add track type for WhatsApp functionality
+  creatorWhatsapp?: string; // Add creator's WhatsApp contact
   // Add other properties as needed
 }
 
@@ -76,7 +78,9 @@ export default function FavoritesPage() {
       artist: track.artist,
       coverImage: track.coverImage || track.coverURL || '/placeholder-track.png',
       audioUrl: track.audioUrl || track.audioURL || '',
-      duration: typeof track.duration === 'string' ? parseInt(track.duration) : track.duration
+      duration: typeof track.duration === 'string' ? parseInt(track.duration) : track.duration,
+      type: track.type || 'song', // Include track type for WhatsApp functionality
+      creatorWhatsapp: track.creatorWhatsapp // Include creator's WhatsApp contact
     };
   };
 
@@ -101,7 +105,9 @@ export default function FavoritesPage() {
           id: track._id || track.id, // Use _id if available, otherwise use id
           coverImage: track.coverImage || track.coverURL || '',
           audioUrl: track.audioUrl || track.audioURL || '',
-          duration: track.duration
+          duration: track.duration,
+          type: track.type || 'song', // Include track type for WhatsApp functionality
+          creatorWhatsapp: track.creatorWhatsapp // Include creator's WhatsApp contact
         }))
         setTracks(mappedTracks)
       } catch (error) {

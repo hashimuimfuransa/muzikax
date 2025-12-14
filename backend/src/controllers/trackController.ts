@@ -39,7 +39,7 @@ export const getAllTracks = async (req: Request, res: Response): Promise<void> =
     const skip = (page - 1) * limit;
 
     const tracks = await Track.find()
-      .populate('creatorId', 'name avatar')
+      .populate('creatorId', 'name avatar whatsappContact')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
@@ -80,7 +80,7 @@ export const getTracksByCreatorSimple = async (req: Request, res: Response): Pro
   try {
     const tracks = await Track.find({ creatorId: req.params['creatorId'] as string })
       .sort({ createdAt: -1 })
-      .populate('creatorId', 'name avatar');
+      .populate('creatorId', 'name avatar whatsappContact');
 
     res.json(tracks);
   } catch (error: any) {
@@ -99,7 +99,7 @@ export const getTracksByCreator = async (req: Request, res: Response): Promise<v
     if (pageParam === undefined && limitParam === undefined) {
       const tracks = await Track.find({ creatorId: req.params['creatorId'] as string })
         .sort({ createdAt: -1 })
-        .populate('creatorId', 'name avatar');
+        .populate('creatorId', 'name avatar whatsappContact');
       
       res.json(tracks);
       return;
@@ -114,7 +114,7 @@ export const getTracksByCreator = async (req: Request, res: Response): Promise<v
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
-      .populate('creatorId', 'name avatar');
+      .populate('creatorId', 'name avatar whatsappContact');
 
     const total = await Track.countDocuments({ creatorId: req.params['creatorId'] as string });
 
@@ -143,7 +143,7 @@ export const getTracksByAuthUser = async (req: Request, res: Response): Promise<
     if (pageParam === undefined && limitParam === undefined) {
       const tracks = await Track.find({ creatorId })
         .sort({ createdAt: -1 })
-        .populate('creatorId', 'name avatar');
+        .populate('creatorId', 'name avatar whatsappContact');
       
       res.json(tracks);
       return;
@@ -158,7 +158,7 @@ export const getTracksByAuthUser = async (req: Request, res: Response): Promise<
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
-      .populate('creatorId', 'name avatar');
+      .populate('creatorId', 'name avatar whatsappContact');
 
     const total = await Track.countDocuments({ creatorId });
 
@@ -259,7 +259,7 @@ export const getTrendingTracks = async (req: Request, res: Response): Promise<vo
     const tracks = await Track.find()
       .sort({ plays: -1, createdAt: -1 })
       .limit(limit)
-      .populate('creatorId', 'name avatar');
+      .populate('creatorId', 'name avatar whatsappContact');
 
     res.json(tracks);
   } catch (error: any) {

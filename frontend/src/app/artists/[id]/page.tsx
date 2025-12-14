@@ -36,6 +36,8 @@ interface Track {
   audioUrl: string
   createdAt: string
   albumId?: string // Added to identify if track belongs to an album
+  type?: 'song' | 'beat' | 'mix'; // Add track type for WhatsApp functionality
+  creatorWhatsapp?: string; // Add creator's WhatsApp contact
 }
 
 interface Album {
@@ -178,7 +180,9 @@ export default function ArtistProfilePage() {
       coverImage: track.coverArt || '', // This is handled in the audio player component
       audioUrl: track.audioUrl,
       duration: track.duration,
-      creatorId: creatorId // The current artist's ID
+      creatorId: creatorId, // The current artist's ID
+      type: track.type || 'song', // Include track type for WhatsApp functionality
+      creatorWhatsapp: track.creatorWhatsapp // Include creator's WhatsApp contact
     };
     
     playTrack(playerTrack);

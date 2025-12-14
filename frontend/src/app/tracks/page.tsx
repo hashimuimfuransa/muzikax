@@ -223,7 +223,11 @@ export default function TracksPage() {
                             artist: track.artist,
                             coverImage: track.coverImage,
                             audioUrl: fullTrack.audioURL,
-                            creatorId: typeof fullTrack.creatorId === 'object' && fullTrack.creatorId !== null ? (fullTrack.creatorId as any)._id : fullTrack.creatorId
+                            creatorId: typeof fullTrack.creatorId === 'object' && fullTrack.creatorId !== null ? (fullTrack.creatorId as any)._id : fullTrack.creatorId,
+                            type: fullTrack.type, // Include track type for WhatsApp functionality
+                            creatorWhatsapp: typeof fullTrack.creatorId === 'object' && fullTrack.creatorId !== null 
+                              ? (fullTrack.creatorId as any).whatsappContact 
+                              : undefined // Include creator's WhatsApp contact
                           });
                           
                           // Set the current playlist to all trending tracks
@@ -235,7 +239,11 @@ export default function TracksPage() {
                               artist: typeof t.creatorId === 'object' && t.creatorId !== null ? (t.creatorId as any).name : 'Unknown Artist',
                               coverImage: t.coverURL || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
                               audioUrl: t.audioURL,
-                              creatorId: typeof t.creatorId === 'object' && t.creatorId !== null ? (t.creatorId as any)._id : t.creatorId
+                              creatorId: typeof t.creatorId === 'object' && t.creatorId !== null ? (t.creatorId as any)._id : t.creatorId,
+                              type: t.type, // Include track type for WhatsApp functionality
+                              creatorWhatsapp: typeof t.creatorId === 'object' && t.creatorId !== null 
+                                ? (t.creatorId as any).whatsappContact 
+                                : undefined // Include creator's WhatsApp contact
                             }));
                           setCurrentPlaylist(playlistTracks);
                         }

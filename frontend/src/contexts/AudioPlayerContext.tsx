@@ -17,6 +17,8 @@ interface Track {
   creatorId?: string; // Add creator ID for linking to artist profile
   albumId?: string; // Add album ID for album playback logic
   likes?: number; // Add likes property to track like counts
+  type?: 'song' | 'beat' | 'mix'; // Add type field to distinguish beats
+  creatorWhatsapp?: string; // Add creator's WhatsApp contact for beats
 }
 
 interface Playlist {
@@ -315,7 +317,7 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
       // Store the original playlist before switching to single track context
       storeOriginalPlaylist();
       currentPlaybackContext.current = { type: 'single' };
-      // For single track, create a playlist with just this track
+      // For For single track, create a playlist with just this track
       setPlaylist([track]);
       // Update ref synchronously
       playlistRef.current = [track];
@@ -457,7 +459,11 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
               creatorId: (typeof nextTrack.creatorId === 'object' && nextTrack.creatorId !== null) 
                 ? (nextTrack.creatorId as any)._id 
                 : nextTrack.creatorId,
-              likes: nextTrack.likes
+              likes: nextTrack.likes,
+              type: nextTrack.type, // Include track type
+              creatorWhatsapp: (typeof nextTrack.creatorId === 'object' && nextTrack.creatorId !== null) 
+                ? (nextTrack.creatorId as any).whatsappContact 
+                : undefined // Include creator's WhatsApp contact
             };
             
             // Play the recommended track
@@ -550,7 +556,11 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
               creatorId: (typeof nextTrack.creatorId === 'object' && nextTrack.creatorId !== null) 
                 ? (nextTrack.creatorId as any)._id 
                 : nextTrack.creatorId,
-              likes: nextTrack.likes
+              likes: nextTrack.likes,
+              type: nextTrack.type, // Include track type
+              creatorWhatsapp: (typeof nextTrack.creatorId === 'object' && nextTrack.creatorId !== null) 
+                ? (nextTrack.creatorId as any).whatsappContact 
+                : undefined // Include creator's WhatsApp contact
             }));
             
             // Add new tracks to the playlist
@@ -1048,6 +1058,34 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
   const downloadTrack = () => {
     if (!currentTrack) return;
     
+    // Check if the track is a beat
+    if (currentTrack.type === 'beat') {
+      // For beats, show an alert with WhatsApp contact information
+      if (currentTrack.creatorWhatsapp) {
+        // Show alert with WhatsApp contact and option to copy
+        const message = `This is a beat that requires contacting the creator via WhatsApp to obtain.
+
+Creator's WhatsApp: ${currentTrack.creatorWhatsapp}
+
+Would you like to copy the WhatsApp number to your clipboard?`;
+        if (confirm(message)) {
+          navigator.clipboard.writeText(currentTrack.creatorWhatsapp)
+            .then(() => {
+              alert('WhatsApp number copied to clipboard!');
+            })
+            .catch(err => {
+              console.error('Failed to copy WhatsApp number: ', err);
+              alert('Failed to copy WhatsApp number. Please try again.');
+            });
+        }
+      } else {
+        // No WhatsApp contact available
+        alert('This is a beat that requires contacting the creator via WhatsApp to obtain. Unfortunately, the creator has not provided their WhatsApp contact information.');
+      }
+      return;
+    }
+    
+    // For non-beat tracks, proceed with normal download
     // Create a temporary link element
     const link = document.createElement('a');
     link.href = currentTrack.audioUrl;

@@ -26,6 +26,8 @@ interface AlbumTrack {
   plays: number;
   likes: number;
   creatorId: string | Creator;
+  type?: 'song' | 'beat' | 'mix'; // Add track type for WhatsApp functionality
+  creatorWhatsapp?: string; // Add creator's WhatsApp contact
 }
 
 interface Album {
@@ -94,7 +96,11 @@ export default function AlbumDetailPage() {
               audioURL: track.audioURL,
               plays: track.plays || 0,
               likes: track.likes || 0,
-              creatorId: track.creatorId || ''
+              creatorId: track.creatorId || '',
+              type: track.type || 'song', // Include track type for WhatsApp functionality
+              creatorWhatsapp: (track.creatorId && typeof track.creatorId === 'object' && track.creatorId !== null) 
+                ? track.creatorId.whatsappContact 
+                : undefined // Include creator's WhatsApp contact
             };
           }),
           description: albumData.description,
@@ -112,7 +118,9 @@ export default function AlbumDetailPage() {
           artist: track.artist,
           coverImage: track.coverImage,
           audioUrl: track.audioUrl,
-          creatorId: typeof track.creatorId === 'object' ? track.creatorId._id : track.creatorId
+          creatorId: typeof track.creatorId === 'object' ? track.creatorId._id : track.creatorId,
+          type: track.type, // Include track type for WhatsApp functionality
+          creatorWhatsapp: track.creatorWhatsapp // Include creator's WhatsApp contact
         }))
         setCurrentPlaylist(playerTracks)
       } catch (err: any) {
@@ -135,7 +143,9 @@ export default function AlbumDetailPage() {
         artist: firstTrack.artist,
         coverImage: firstTrack.coverImage,
         audioUrl: firstTrack.audioUrl,
-        creatorId: typeof firstTrack.creatorId === 'object' ? firstTrack.creatorId._id : firstTrack.creatorId
+        creatorId: typeof firstTrack.creatorId === 'object' ? firstTrack.creatorId._id : firstTrack.creatorId,
+        type: firstTrack.type, // Include track type for WhatsApp functionality
+        creatorWhatsapp: firstTrack.creatorWhatsapp // Include creator's WhatsApp contact
       })
     }
   }
@@ -147,7 +157,9 @@ export default function AlbumDetailPage() {
       artist: track.artist,
       coverImage: track.coverImage,
       audioUrl: track.audioUrl,
-      creatorId: typeof track.creatorId === 'object' ? track.creatorId._id : track.creatorId
+      creatorId: typeof track.creatorId === 'object' ? track.creatorId._id : track.creatorId,
+      type: track.type, // Include track type for WhatsApp functionality
+      creatorWhatsapp: track.creatorWhatsapp // Include creator's WhatsApp contact
     })
   }
 

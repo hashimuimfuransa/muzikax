@@ -171,7 +171,11 @@ export const fetchTracksByCreatorPublic = async (creatorId: string): Promise<any
       audioUrl: track.audioURL || '',
       coverArt: track.coverURL || '',
       artist: track.creatorId?.name || 'Unknown Artist',
-      duration: track.duration || 0
+      duration: track.duration || 0,
+      type: track.type || 'song', // Include track type for WhatsApp functionality
+      creatorWhatsapp: (track.creatorId && typeof track.creatorId === 'object' && track.creatorId !== null) 
+        ? track.creatorId.whatsappContact 
+        : undefined // Include creator's WhatsApp contact
     }));
   } catch (error) {
     console.error('Error fetching creator tracks:', error);

@@ -311,6 +311,16 @@ export default function Upload() {
     
     if (!response.ok) {
       const errorData = await response.json();
+      
+      // Check if it's a WhatsApp requirement error for beats
+      if (type === 'beat' && errorData.redirectToProfile) {
+        if (confirm(`Beats require a WhatsApp contact number. Would you like to go to your profile to add your WhatsApp number?\n\nError: ${errorData.message}`)) {
+          // Redirect to profile page with WhatsApp tab active
+          router.push('/profile?tab=whatsapp');
+        }
+        return;
+      }
+      
       throw new Error(errorData.message || 'Failed to upload track');
     }
     
@@ -416,6 +426,16 @@ export default function Upload() {
       
       if (!response.ok) {
         const errorData = await response.json();
+        
+        // Check if it's a WhatsApp requirement error for beats
+        if (track.type === 'beat' && errorData.redirectToProfile) {
+          if (confirm(`Beats require a WhatsApp contact number. Would you like to go to your profile to add your WhatsApp number?\n\nError: ${errorData.message}`)) {
+            // Redirect to profile page with WhatsApp tab active
+            router.push('/profile?tab=whatsapp');
+          }
+          return;
+        }
+        
         throw new Error(`Failed to upload track "${track.title}": ${errorData.message || 'Unknown error'}`);
       }
       
@@ -443,27 +463,25 @@ export default function Upload() {
       
       if (!albumResponse.ok) {
         const errorData = await albumResponse.json();
-        throw new Error(`Failed to create album: ${errorData.message || 'Unknown error'}`);
+        throw new Error(errorData.message || 'Failed to create album');
       }
       
       const albumResult = await albumResponse.json();
       console.log('Album created successfully:', albumResult);
+      
+      // Reset form
+      setAlbumTitle('');
+      setAlbumDescription('');
+      setAlbumCoverUrl(null);
+      setAlbumTracks([]);
+      
+      alert('Album uploaded successfully!');
+      router.push('/profile'); // Redirect to profile page
     } catch (error: any) {
       console.error('Error creating album:', error);
-      alert(`Error creating album: ${error.message || 'Unknown error'}`);
-      // Note: Tracks were uploaded successfully, but album creation failed
-      // In a production app, you might want to clean up the orphaned tracks
+      alert(`Failed to create album: ${error.message}`);
     }
-    
-    // Reset album form
-    setAlbumTitle('');
-    setAlbumDescription('');
-    setAlbumCoverUrl(null);
-    setAlbumTracks([]);
-    
-    alert('Album uploaded successfully!');
-    router.push('/profile'); // Redirect to profile page
-  }
+  };
 
   const handleUpgradeToCreator = async () => {
     setIsUpgrading(true)

@@ -77,6 +77,16 @@ export default function Profile() {
     }
   }, [isAuthenticated, router, isLoading]) // Add isLoading to dependency array
 
+  // Check URL parameters to set active tab
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabParam = urlParams.get('tab');
+    
+    if (tabParam === 'whatsapp' && user?.role === 'creator') {
+      setActiveTab('whatsapp');
+    }
+  }, [user]);
+
   // Fetch user data when authenticated
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -224,7 +234,11 @@ export default function Profile() {
     audioUrl: track.audioURL,
     duration: 0, // Would need to calculate or fetch duration
     creatorId: track.creatorId,
-    likes: track.likes
+    likes: track.likes,
+    type: track.type, // Include track type for WhatsApp functionality
+    creatorWhatsapp: typeof track.creatorId === 'object' && track.creatorId !== null 
+      ? (track.creatorId as any).whatsappContact 
+      : undefined // Include creator's WhatsApp contact
   });
 
   const handleSubmit = async (e: React.FormEvent) => {

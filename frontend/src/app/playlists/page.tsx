@@ -16,6 +16,8 @@ interface Track {
   duration?: string
   audioUrl?: string // Made optional
   creatorId?: string // Made optional
+  type?: 'song' | 'beat' | 'mix'; // Add track type for WhatsApp functionality
+  creatorWhatsapp?: string; // Add creator's WhatsApp contact
 }
 
 interface Playlist {
@@ -46,7 +48,9 @@ export default function Playlists() {
               ...track,
               id: track._id || track.id, // Use _id if available, otherwise use id
               audioUrl: track.audioURL || track.audioUrl || '', // Ensure audioUrl is properly mapped
-              coverImage: track.coverImage || track.coverURL || '' // Ensure coverImage is properly mapped
+              coverImage: track.coverImage || track.coverURL || '', // Ensure coverImage is properly mapped
+              type: track.type || 'song', // Include track type for WhatsApp functionality
+              creatorWhatsapp: track.creatorWhatsapp // Include creator's WhatsApp contact
             }))
           }))
           setPlaylists(mappedPlaylists)
@@ -82,7 +86,9 @@ export default function Playlists() {
           artist: track.artist,
           coverImage: track.coverImage || '',
           audioUrl: track.audioUrl || '',
-          creatorId: track.creatorId || ''
+          creatorId: track.creatorId || '',
+          type: track.type || 'song', // Include track type for WhatsApp functionality
+          creatorWhatsapp: track.creatorWhatsapp // Include creator's WhatsApp contact
         }))
       
       // Only play if we have tracks with audio

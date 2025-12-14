@@ -90,11 +90,12 @@ export const getCreatorTracks = async (req: Request, res: Response): Promise<voi
     
     console.log('Creator Tracks - Page:', page, 'Limit:', limit, 'Skip:', skip);
 
-    // Get tracks for this creator
+    // Get tracks for this creator with populated creator information including WhatsApp contact
     const tracks = await Track.find({ creatorId })
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(limit);
+      .limit(limit)
+      .populate('creatorId', 'name avatar whatsappContact');
       
     const total = await Track.countDocuments({ creatorId });
 

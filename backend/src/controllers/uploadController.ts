@@ -3,6 +3,17 @@ import Track from '../models/Track';
 import User from '../models/User';
 import { protect } from '../utils/jwt';
 
+// Helper function to check if user has WhatsApp contact
+const checkUserHasWhatsApp = async (userId: string): Promise<boolean> => {
+  try {
+    const user = await User.findById(userId);
+    return user ? !!user.whatsappContact && user.whatsappContact.trim().length > 0 : false;
+  } catch (error) {
+    console.error('Error checking user WhatsApp contact:', error);
+    return false;
+  }
+};
+
 // Upload track with cover image
 export const uploadTrack = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -31,6 +42,18 @@ export const uploadTrack = async (req: Request, res: Response): Promise<void> =>
     if (user.role !== 'creator') {
       res.status(401).json({ message: 'Not authorized as creator' });
       return;
+    }
+
+    // If track is a beat, validate that creator has WhatsApp contact
+    if (type === 'beat') {
+      const hasWhatsApp = await checkUserHasWhatsApp(user._id);
+      if (!hasWhatsApp) {
+        res.status(400).json({ 
+          message: 'Beats require a WhatsApp contact number. Please add your WhatsApp number in your profile before uploading beats.',
+          redirectToProfile: true
+        });
+        return;
+      }
     }
 
     // If no cover image provided, try to use user's avatar
