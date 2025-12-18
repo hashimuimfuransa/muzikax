@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import Comment from '../models/Comment';
 import Track from '../models/Track';
-
+import mongoose from 'mongoose';
 // Add a comment to a track
 export const addCommentToTrack = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -48,10 +48,9 @@ export const getCommentsForTrack = async (req: Request, res: Response): Promise<
     const { trackId } = req.params;
 
     // Find comments for the track and populate user info
-    const comments = await Comment.find({ trackId })
+    const comments = await Comment.find({ trackId: new mongoose.Types.ObjectId(trackId) })
       .populate('userId', 'name')
       .sort({ createdAt: -1 });
-
     res.json(comments);
   } catch (error: any) {
     console.error('Error fetching comments:', error);

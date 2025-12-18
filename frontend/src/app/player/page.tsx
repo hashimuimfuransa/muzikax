@@ -43,8 +43,8 @@ const FullPagePlayer = () => {
     setPlaybackRate,
     shareTrack,
     downloadTrack, // Add downloadTrack from context
-    frequencyData
-  } = useAudioPlayer();
+    shufflePlaylist, // Add shufflePlaylist from context
+    frequencyData  } = useAudioPlayer();
   
   const router = useRouter();
   const { isAuthenticated, user } = useAuth();
@@ -616,8 +616,7 @@ const FullPagePlayer = () => {
                 
                 {/* Controls */}
                 <div className="flex justify-center items-center gap-10 mb-10">
-                  {/* Previous */}
-                  <button
+                  {/* Previous */}                  <button
                     onClick={playPreviousTrack}
                     className="
                       w-12 h-12 rounded-full
@@ -634,9 +633,7 @@ const FullPagePlayer = () => {
                     <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M6 5v14l8-7-8-7zm9 0h2v14h-2z" />
                     </svg>
-                  </button>
-
-                  {/* Play / Pause */}
+                  </button>                  {/* Play / Pause */}
                   <button
                     onClick={togglePlayPause}
                     className="
@@ -774,13 +771,40 @@ const FullPagePlayer = () => {
                     <span>Share</span>
                   </button>
                   
+                  {/* Shuffle Button */}
+                  <button
+                    onClick={shufflePlaylist}
+                    className={`
+                      group flex flex-col items-center gap-1
+                      text-sm
+                      text-gray-400
+                      hover:text-white
+                      transition-all
+                    `}
+                    title="Shuffle playlist"
+                  >
+                    <div
+                      className="
+                        w-12 h-12 rounded-full
+                        bg-white/10 backdrop-blur-md
+                        flex items-center justify-center
+                        group-hover:bg-white/20
+                        transition-all
+                      "
+                    >
+                      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z" />
+                      </svg>
+                    </div>
+                    <span>Shuffle</span>
+                  </button>
+                  
                   {/* Download Button */}
                   <button
                     onClick={async () => {
                       // Simple logic to detect if track is a beat
                       const isBeat = currentTrack.type === 'beat' || 
-                                    (currentTrack.title && currentTrack.title.toLowerCase().includes('beat'));
-                      
+                                    (currentTrack.title && currentTrack.title.toLowerCase().includes('beat'));                      
                       if (isBeat) {
                         // For beats, we need to ensure we have the creator's WhatsApp number
                         let creatorWhatsapp = currentTrack.creatorWhatsapp;

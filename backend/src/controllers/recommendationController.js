@@ -13,11 +13,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getSimilarTracks = exports.getGeneralRecommendations = exports.getPersonalizedRecommendations = void 0;
 
-const Track_1 = require("../models/Track");
-const User_1 = require("../models/User");
-const mongoose_1 = require("mongoose");
-
-/**
+const Track = require("../models/Track");
+const User = require("../models/User").default;
+const mongoose_1 = require("mongoose");/**
  * Get personalized recommendations based on user's recently played tracks and preferences
  */
 const getPersonalizedRecommendations = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -38,8 +36,7 @@ const getPersonalizedRecommendations = (req, res) => __awaiter(void 0, void 0, v
         }
 
         // Get user's recently played tracks
-        const user = yield User_1.default.findById(userId).populate({
-            path: 'recentlyPlayed.trackId',
+        const user = yield User.findById(userId).populate({            path: 'recentlyPlayed.trackId',
             model: 'Track',
             populate: {
                 path: 'creatorId',
@@ -106,7 +103,7 @@ const getPersonalizedRecommendations = (req, res) => __awaiter(void 0, void 0, v
         console.log('Query:', query);
 
         // Get recommended tracks
-        const recommendedTracks = yield Track_1.default.find(query)
+        const recommendedTracks = yield Track.find(query)
             .populate({
                 path: 'creatorId',
                 model: 'User',
@@ -114,9 +111,7 @@ const getPersonalizedRecommendations = (req, res) => __awaiter(void 0, void 0, v
             })
             .sort({ plays: -1 }) // Sort by popularity
             .limit(limit * 2) // Get more tracks to filter and shuffle
-            .lean();
-
-        console.log('Found tracks:', recommendedTracks.length);
+            .lean();        console.log('Found tracks:', recommendedTracks.length);
 
         // Shuffle and limit results
         const shuffledTracks = recommendedTracks
@@ -151,7 +146,7 @@ const getGeneralRecommendations = (req, res) => __awaiter(void 0, void 0, void 0
 
         console.log('Query:', query);
 
-        const tracks = yield Track_1.default.find(query)
+        const tracks = yield Track.find(query)
             .populate({
                 path: 'creatorId',
                 model: 'User',
@@ -184,7 +179,7 @@ const getSimilarTracks = (req, res) => __awaiter(void 0, void 0, void 0, functio
         console.log('Limit:', limit);
 
         // Get the reference track
-        const referenceTrack = yield Track_1.default.findById(trackId);
+        const referenceTrack = yield Track.findById(trackId);
         if (!referenceTrack) {
             console.log('Track not found, returning 404');
             res.status(404).json({ message: 'Track not found' });
@@ -222,7 +217,7 @@ const getSimilarTracks = (req, res) => __awaiter(void 0, void 0, void 0, functio
         console.log('Query:', query);
 
         // Find similar tracks
-        const similarTracks = yield Track_1.default.find(query)
+        const similarTracks = yield Track.find(query)
             .populate({
                 path: 'creatorId',
                 model: 'User',

@@ -64,6 +64,7 @@ interface AudioPlayerContextType {
   addToFavorites: (track: Track) => void;
   removeFromFavorites: (trackId: string) => void;
   setCurrentPlaylist: (tracks: Track[]) => void;
+  shufflePlaylist: () => void; // Add shufflePlaylist function
   currentTrackIndex: number;
   audioRef: React.RefObject<HTMLAudioElement | null>;
   addComment: (comment: Omit<Comment, 'id' | 'timestamp'>) => void;
@@ -78,7 +79,6 @@ interface AudioPlayerContextType {
   audioContext: AudioContext | null;
   frequencyData: Uint8Array | null;
 }
-
 const AudioPlayerContext = createContext<AudioPlayerContextType | undefined>(undefined);
 
 export const useAudioPlayer = () => {
@@ -962,6 +962,32 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     setPlaylist(tracks);
   };
 
+  // Add shufflePlaylist function
+  const shufflePlaylist = () => {
+    if (playlist.length <= 1) return;
+    
+    // Create a copy of the current playlist
+    const shuffledPlaylist = [...playlist];
+    
+    // Fisher-Yates shuffle algorithm
+    for (let i = shuffledPlaylist.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffledPlaylist[i], shuffledPlaylist[j]] = [shuffledPlaylist[j], shuffledPlaylist[i]];
+    }
+    
+    // Update the playlist state
+    setPlaylist(shuffledPlaylist);
+    playlistRef.current = shuffledPlaylist;
+    
+    // If we have a current track, find its new index in the shuffled playlist
+    if (currentTrack) {
+      const newIndex = shuffledPlaylist.findIndex(track => track.id === currentTrack.id);
+      if (newIndex !== -1) {
+        setCurrentTrackIndex(newIndex);
+        currentTrackIndexRef.current = newIndex;
+      }
+    }
+  };
   const addComment = async (comment: Omit<Comment, 'id' | 'timestamp'>) => {
     if (!currentTrack?.id) {
       console.error('Cannot add comment: No current track');
@@ -1140,6 +1166,7 @@ Would you like to copy the WhatsApp number to your clipboard?`;
         addToFavorites,
         removeFromFavorites,
         setCurrentPlaylist,
+        shufflePlaylist, // Export shufflePlaylist function
         currentTrackIndex,
         audioRef,
         addComment,
@@ -1154,8 +1181,7 @@ Would you like to copy the WhatsApp number to your clipboard?`;
         // Music visualization properties
         audioAnalyser: analyserRef.current,
         audioContext: audioContextRef.current,
-        frequencyData: frequencyDataRef.current
-      }}
+        frequencyData: frequencyDataRef.current      }}
     >
       {children}
     </AudioPlayerContext.Provider>

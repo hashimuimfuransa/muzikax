@@ -29,9 +29,9 @@ const ModernAudioPlayer = () => {
     playbackRate,
     setPlaybackRate,
     shareTrack,
-    downloadTrack
-  } = useAudioPlayer();
-  
+    downloadTrack,
+    shufflePlaylist
+  } = useAudioPlayer();  
   const router = useRouter();
   const { isAuthenticated } = useAuth();
 
@@ -310,8 +310,23 @@ const ModernAudioPlayer = () => {
                 )}
               </button>
               
-              {/* Expand Button */}
+              {/* Shuffle Button */}
               <button
+                onClick={shufflePlaylist}
+                className="
+                  w-8 h-8 rounded-full
+                  bg-white/5 hover:bg-white/15
+                  flex items-center justify-center
+                  transition
+                "
+                title="Shuffle playlist"
+              >
+                <svg className="w-4 h-4 text-gray-300" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z" />
+                </svg>
+              </button>
+              
+              {/* Expand Button */}              <button
                 onClick={goToFullPlayer}
                 className="
                   w-9 h-9 rounded-full
