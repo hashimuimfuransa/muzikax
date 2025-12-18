@@ -1,5 +1,5 @@
 const User = require('../models/User').default;
-const Track = require('../models/Track').default;
+const Track = require('../models/Track');
 const Playlist = require('../models/Playlist').default;
 
 // Add track to user's favorites

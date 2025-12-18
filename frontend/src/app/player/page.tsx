@@ -143,6 +143,42 @@ const FullPagePlayer = () => {
     }
   }, [toast]);
 
+  // Listen for shuffle events to show appropriate notifications
+  useEffect(() => {
+    const handleShuffleAttempted = (event: CustomEvent) => {
+      const { success, reason, playlistChanged, playlistLength } = event.detail;
+      
+      if (!success) {
+        // Show message when shuffle couldn't be performed
+        setToast({
+          message: reason || 'Unable to shuffle playlist',
+          type: 'error'
+        });
+      } else {
+        // Show success message when shuffle was performed
+        if (playlistChanged) {
+          setToast({
+            message: 'Playlist shuffled successfully!',
+            type: 'success'
+          });
+        } else {
+          setToast({
+            message: 'Playlist order unchanged',
+            type: 'success'
+          });
+        }
+      }
+    };
+
+    // Add event listener
+    window.addEventListener('shuffleAttempted', handleShuffleAttempted as EventListener);
+    
+    // Clean up event listener
+    return () => {
+      window.removeEventListener('shuffleAttempted', handleShuffleAttempted as EventListener);
+    };
+  }, []);
+
   // Fetch creator profile and tracks when currentTrack changes
   useEffect(() => {
     const fetchCreatorData = async () => {
@@ -396,11 +432,10 @@ const FullPagePlayer = () => {
       <div className="relative z-10">
         {/* Toast Notification */}
         {toast && (
-          <div className={`fixed top-4 right-4 z-50 px-4 py-2 rounded-lg shadow-lg ${toast.type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white`}>
+          <div className={`fixed top-20 right-4 z-50 px-4 py-2 rounded-lg shadow-lg ${toast.type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white`}>
             {toast.message}
           </div>
-        )}
-        
+        )}        
         {/* Playlist Selection Modal */}
         <PlaylistSelectionModal
           isOpen={isPlaylistModalOpen}

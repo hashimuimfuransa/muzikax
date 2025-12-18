@@ -964,8 +964,17 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
 
   // Add shufflePlaylist function
   const shufflePlaylist = () => {
-    if (playlist.length <= 1) return;
-    
+    if (playlist.length <= 1) {
+      // Dispatch event to notify UI that shuffle was attempted but playlist is too small
+      window.dispatchEvent(new CustomEvent('shuffleAttempted', { 
+        detail: { 
+          success: false, 
+          reason: 'Playlist has only one track or is empty',
+          playlistLength: playlist.length
+        } 
+      }));
+      return;
+    }
     // Create a copy of the current playlist
     const shuffledPlaylist = [...playlist];
     
@@ -975,18 +984,38 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
       [shuffledPlaylist[i], shuffledPlaylist[j]] = [shuffledPlaylist[j], shuffledPlaylist[i]];
     }
     
+    // Check if the playlist actually changed order
+    let playlistChanged = false;
+    for (let i = 0; i < playlist.length; i++) {
+      if (playlist[i].id !== shuffledPlaylist[i].id) {
+        playlistChanged = true;
+        break;
+      }
+    }
+    
     // Update the playlist state
     setPlaylist(shuffledPlaylist);
     playlistRef.current = shuffledPlaylist;
     
     // If we have a current track, find its new index in the shuffled playlist
+    let newIndex = -1;
     if (currentTrack) {
-      const newIndex = shuffledPlaylist.findIndex(track => track.id === currentTrack.id);
+      newIndex = shuffledPlaylist.findIndex(track => track.id === currentTrack.id);
       if (newIndex !== -1) {
         setCurrentTrackIndex(newIndex);
         currentTrackIndexRef.current = newIndex;
       }
     }
+    
+    // Dispatch event to notify UI that shuffle was successful
+    window.dispatchEvent(new CustomEvent('shuffleAttempted', { 
+      detail: { 
+        success: true, 
+        playlistChanged,
+        playlistLength: shuffledPlaylist.length,
+        currentTrackNewIndex: newIndex
+      } 
+    }));
   };
   const addComment = async (comment: Omit<Comment, 'id' | 'timestamp'>) => {
     if (!currentTrack?.id) {
