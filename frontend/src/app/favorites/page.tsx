@@ -111,7 +111,8 @@ export default function FavoritesPage() {
           likes: track.likes || 0,
           type: track.type || 'song', // Include track type for WhatsApp functionality
           creatorWhatsapp: track.creatorWhatsapp // Include creator's WhatsApp contact
-        }))        setTracks(mappedTracks)
+        }));
+        setTracks(mappedTracks);
       } catch (error) {
         console.error('Error loading favorites:', error)
       } finally {
