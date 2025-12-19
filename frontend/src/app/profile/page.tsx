@@ -204,7 +204,7 @@ export default function Profile() {
       const transformedAlbums = albumsData.map((album: any) => ({
         id: album._id,
         title: album.title,
-        artist: typeof album.creatorId === 'object' && album.creatorId !== null ? album.creatorId.name : 'Unknown Artist',
+        artist: (typeof album.creatorId === 'object' && album.creatorId !== null && 'name' in album.creatorId) ? (album.creatorId as any).name : 'Unknown Artist',
         coverImage: album.coverURL,
         year: new Date(album.releaseDate || album.createdAt).getFullYear(),
         tracks: album.tracks?.length || 0,
@@ -230,7 +230,7 @@ export default function Profile() {
   const mapTrackForPlayer = (track: ITrack) => ({
     id: track._id,
     title: track.title,
-    artist: track.creatorId?.name || 'Unknown Artist', // This would need to be fetched from the creator data
+    artist: (typeof track.creatorId === 'object' && track.creatorId !== null && 'name' in track.creatorId) ? (track.creatorId as any).name : 'Unknown Artist', // This would need to be fetched from the creator data
     coverImage: track.coverURL,
     audioUrl: track.audioURL,
     duration: 0, // Would need to calculate or fetch duration
@@ -854,7 +854,7 @@ export default function Profile() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <h4 className="font-medium text-white truncate">{track.title}</h4>
-                            <p className="text-gray-400 text-xs truncate">{track.creatorId?.name || 'Unknown Artist'}</p>
+                            <p className="text-gray-400 text-xs truncate">{(typeof track.creatorId === 'object' && track.creatorId !== null && 'name' in track.creatorId) ? (track.creatorId as any).name : 'Unknown Artist'}</p>
                           </div>
                         </div>
                         
