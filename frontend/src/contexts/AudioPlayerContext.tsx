@@ -380,14 +380,17 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     // Mark this as an explicit play action
     explicitlyPlayedRef.current = true;
     
-    // Add to recently played
-    addRecentlyPlayed(track.id)
-      .then(() => {
-        console.log(`Successfully added track ${track.id} to recently played`);
-      })
-      .catch((error: any) => {
-        console.error(`Failed to add track ${track.id} to recently played:`, error);
-      });
+    // Add to recently played (only for authenticated users)
+    const accessToken = localStorage.getItem('accessToken');
+    if (accessToken) {
+      addRecentlyPlayed(track.id)
+        .then(() => {
+          console.log(`Successfully added track ${track.id} to recently played`);
+        })
+        .catch((error: any) => {
+          console.error(`Failed to add track ${track.id} to recently played:`, error);
+        });
+    }
     
     // Increment play count for this track (only once per session)
     if (!hasIncrementedPlayCount.current.has(track.id)) {
@@ -748,14 +751,17 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     // Mark this as an auto-played action (not explicitly played by user)
     explicitlyPlayedRef.current = false;
     
-    // Add to recently played
-    addRecentlyPlayed(track.id)
-      .then(() => {
-        console.log(`Successfully added track ${track.id} to recently played`);
-      })
-      .catch((error: any) => {
-        console.error(`Failed to add track ${track.id} to recently played:`, error);
-      });
+    // Add to recently played (only for authenticated users)
+    const accessToken = localStorage.getItem('accessToken');
+    if (accessToken) {
+      addRecentlyPlayed(track.id)
+        .then(() => {
+          console.log(`Successfully added track ${track.id} to recently played`);
+        })
+        .catch((error: any) => {
+          console.error(`Failed to add track ${track.id} to recently played:`, error);
+        });
+    }
     
     // Increment play count for this track (only once per session)
     if (!hasIncrementedPlayCount.current.has(track.id)) {

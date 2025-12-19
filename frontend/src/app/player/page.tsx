@@ -543,10 +543,10 @@ const FullPagePlayer = () => {
         )}
         
         {/* Header */}
-        <div className="flex justify-between items-center p-3 border-b border-gray-800 gap-2">
+        <div className="flex justify-between items-center p-3 border-b border-gray-800 gap-2 flex-wrap">
           <button 
             onClick={minimizeAndGoBack}
-            className="flex items-center text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-800 min-w-[40px] min-h-[40px]"
+            className="flex items-center text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-800 min-w-[40px] min-h-[40px] touch-manipulation"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
@@ -556,41 +556,12 @@ const FullPagePlayer = () => {
           <h1 className="text-lg font-bold px-1 whitespace-nowrap">Now Playing</h1>
           
           <div className="flex items-center gap-2">
-            {/* Speed Control */}
-            <div className="flex items-center">
-              <select
-                value={playbackRate}
-                onChange={handlePlaybackRateChange}
-                className="bg-gray-800 text-white text-sm rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
-              >
-                <option value="0.5">0.5x</option>
-                <option value="0.75">0.75x</option>
-                <option value="1">1x</option>
-                <option value="1.25">1.25x</option>
-                <option value="1.5">1.5x</option>
-                <option value="2">2x</option>
-              </select>
-            </div>
             
-            {/* Volume Control */}
-            <div className="flex items-center min-w-[100px]">
-              <svg className="w-4 h-4 mr-1 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
-              </svg>
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.01"
-                value={volume}
-                onChange={handleVolumeChange}
-                className="w-full accent-[#FF4D67] flex-grow"
-              />
-            </div>
+
             
             <button 
               onClick={closePlayer}
-              className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-700 transition-all duration-200 min-w-[40px] min-h-[40px]"
+              className="w-12 h-12 sm:w-10 sm:h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-700 transition-all duration-200 min-w-[40px] min-h-[40px] touch-manipulation"
               title="Close player"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -600,24 +571,24 @@ const FullPagePlayer = () => {
           </div>
         </div>
         
-        <div className="container mx-auto px-4 py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="container mx-auto px-4 py-4 sm:py-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-8">
             {/* Main Player Section */}
-            <div className="lg:col-span-2">
+            <div className="md:col-span-2">
               <div className="flex flex-col items-center">
                 {/* Album Art */}
                 <div className="relative mb-8">
                   <img 
                     src={currentTrack.coverImage} 
                     alt={currentTrack.title} 
-                    className="w-64 h-64 md:w-80 md:h-80 rounded-2xl object-cover shadow-2xl"
+                    className="w-48 h-48 sm:w-64 sm:h-64 md:w-80 md:h-80 rounded-2xl object-cover shadow-2xl"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent rounded-2xl"></div>
                 </div>
                 
                 {/* Track Info */}
-                <div className="text-center mb-8 w-full">
-                  <h2 className="text-3xl font-bold text-white truncate">{currentTrack.title}</h2>
+                <div className="text-center mb-4 sm:mb-8 w-full">
+                  <h2 className="text-2xl sm:text-3xl font-bold text-white truncate">{currentTrack.title}</h2>
                   <Link 
                     href={`/artists/${(typeof currentTrack.creatorId === 'object' && currentTrack.creatorId !== null) 
                       ? (currentTrack.creatorId as any)._id 
@@ -627,7 +598,7 @@ const FullPagePlayer = () => {
                     {currentTrack.artist}
                   </Link>
                   {/* Play Count and Likes */}
-                  <div className="flex justify-center gap-6 mt-3 text-gray-300">
+                  <div className="flex justify-center gap-4 sm:gap-6 mt-3 text-gray-300">
                     <div className="flex items-center">
                       <svg className="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
@@ -647,13 +618,13 @@ const FullPagePlayer = () => {
                   <div 
                     ref={progressRef}
                     onClick={handleProgressClick}
-                    className="w-full h-1.5 bg-gray-700 rounded-full cursor-pointer group"
+                    className="w-full h-2 sm:h-1.5 bg-gray-700 rounded-full cursor-pointer group touch-pan-x"
                   >
                     <div 
                       className="h-full bg-[#FF4D67] rounded-full relative"
                       style={{ width: `${duration > 0 ? (progress / duration) * 100 : 0}%` }}
                     >
-                      <div className="absolute right-0 top-1/2 transform translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-[#FF4D67] rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                      <div className="absolute right-0 top-1/2 transform translate-x-1/2 -translate-y-1/2 w-4 h-4 sm:w-3 sm:h-3 bg-[#FF4D67] rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     </div>
                   </div>
                   
@@ -664,8 +635,26 @@ const FullPagePlayer = () => {
                 </div>
                 
                 {/* Controls */}
-                <div className="flex justify-center items-center gap-10 mb-10">
-                  {/* Previous */}                  <button
+                <div className="flex justify-center items-center w-full max-w-2xl mb-6">
+                  {/* Speed Control - Left */}
+                  <div className="flex items-center mr-1 sm:mr-2">
+                    <select
+                      value={playbackRate}
+                      onChange={handlePlaybackRateChange}
+                      className="bg-gray-800 text-white text-xs rounded-full px-1.5 py-0.5 sm:px-2 sm:py-1 focus:outline-none focus:ring-1 focus:ring-[#FF4D67] touch-manipulation"
+                    >
+                      <option value="0.5">0.5x</option>
+                      <option value="0.75">0.75x</option>
+                      <option value="1">1x</option>
+                      <option value="1.25">1.25x</option>
+                      <option value="1.5">1.5x</option>
+                      <option value="2">2x</option>
+                    </select>
+                  </div>
+                  
+                  {/* Main Controls - Center */}
+                  <div className="flex justify-center items-center gap-4 sm:gap-6">
+                    {/* Previous */}                  <button
                     onClick={playPreviousTrack}
                     className="
                       w-12 h-12 rounded-full
@@ -686,7 +675,7 @@ const FullPagePlayer = () => {
                   <button
                     onClick={togglePlayPause}
                     className="
-                      w-20 h-20 rounded-full
+                      w-24 h-24 md:w-20 md:h-20 rounded-full
                       bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B]
                       flex items-center justify-center
                       text-white
@@ -695,14 +684,15 @@ const FullPagePlayer = () => {
                       hover:scale-105
                       active:scale-95
                       transition-all duration-300
+                      touch-manipulation
                     "
                   >
                     {isPlaying ? (
-                      <svg className="w-9 h-9" fill="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-10 h-10 md:w-9 md:h-9" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M6 5h4v14H6zm8 0h4v14h-4z" />
                       </svg>
                     ) : (
-                      <svg className="w-9 h-9 ml-1" fill="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-10 h-10 md:w-9 md:h-9 ml-1" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M8 5v14l11-7z" />
                       </svg>
                     )}
@@ -712,7 +702,7 @@ const FullPagePlayer = () => {
                   <button
                     onClick={() => playNextTrack()}
                     className="
-                      w-12 h-12 rounded-full
+                      w-14 h-14 md:w-12 md:h-12 rounded-full
                       bg-white/10 backdrop-blur-md
                       flex items-center justify-center
                       text-white
@@ -721,16 +711,34 @@ const FullPagePlayer = () => {
                       hover:scale-110
                       active:scale-95
                       transition-all duration-300
+                      touch-manipulation
                     "
                   >
-                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-7 h-7 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M18 5v14l-8-7 8-7zm-9 0H7v14h2z" />
                     </svg>
                   </button>
+                  </div>
+                  
+                  {/* Volume Control - Right */}
+                  <div className="flex items-center ml-1 sm:ml-2">
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4 mr-1 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
+                    </svg>
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.01"
+                      value={volume}
+                      onChange={handleVolumeChange}
+                      className="w-12 sm:w-16 accent-[#FF4D67] touch-pan-x"
+                    />
+                  </div>
                 </div>
                 
                 {/* Action Buttons */}
-                <div className="flex justify-center gap-6">
+                <div className="flex justify-center gap-3 sm:gap-6">
                   <button
                     onClick={() => {
                       if (!isAuthenticated) {
@@ -780,11 +788,12 @@ const FullPagePlayer = () => {
                   >
                     <div
                       className="
-                        w-12 h-12 rounded-full
+                        w-14 h-14 md:w-12 md:h-12 rounded-full
                         bg-white/10 backdrop-blur-md
                         flex items-center justify-center
                         group-hover:bg-white/20
                         transition-all
+                        touch-manipulation
                       "
                     >
                       <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -847,6 +856,8 @@ const FullPagePlayer = () => {
                     </div>
                     <span>Shuffle</span>
                   </button>
+                  
+
                   
                   {/* Download Button */}
                   <button
@@ -935,11 +946,12 @@ Would you like to open WhatsApp to contact the creator?`;
                     >
                       <div
                         className="
-                          w-12 h-12 rounded-full
+                          w-14 h-14 md:w-12 md:h-12 rounded-full
                           bg-white/10 backdrop-blur-md
                           flex items-center justify-center
                           group-hover:bg-white/20
                           transition-all
+                          touch-manipulation
                         "
                       >
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -952,16 +964,16 @@ Would you like to open WhatsApp to contact the creator?`;
                 </div>
                 
                 {/* Navigation Buttons to Favorites and Playlists */}
-                <div className="flex justify-center space-x-4 mt-4">
+                <div className="flex justify-center space-x-3 sm:space-x-4 mt-4">
                   <button 
                     onClick={() => router.push('/favorites')}
-                    className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm transition-colors"
+                    className="px-3 py-2 sm:px-4 sm:py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm transition-colors touch-manipulation"
                   >
                     View Favorites
                   </button>
                   <button 
                     onClick={() => router.push('/playlists')}
-                    className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm transition-colors"
+                    className="px-3 py-2 sm:px-4 sm:py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm transition-colors touch-manipulation"
                   >
                     View Playlists
                   </button>
@@ -970,9 +982,9 @@ Would you like to open WhatsApp to contact the creator?`;
             </div>
             
             {/* Comments and Creator Section */}
-            <div className="lg:col-span-1 space-y-6">
+            <div className="md:col-span-1 space-y-4 sm:space-y-6">
               {/* Uploaded By Section */}
-              <div className="bg-gray-800/50 rounded-xl p-6">
+              <div className="bg-gray-800/50 rounded-xl p-4 sm:p-6">
                 <h3 className="text-xl font-bold mb-4">Uploaded By</h3>
                 
                 {loadingCreator ? (
@@ -987,13 +999,13 @@ Would you like to open WhatsApp to contact the creator?`;
                         <img 
                           src={creator.avatar} 
                           alt={creator.name} 
-                          className="w-12 h-12 rounded-full object-cover"
+                          className="w-12 h-12 sm:w-12 sm:h-12 rounded-full object-cover"
                         />
                       ) : (
                         generateAvatar(creator.name)
                       )}
                       <div>
-                        <h4 className="font-semibold text-lg">{creator.name}</h4>
+                        <h4 className="font-semibold text-lg sm:text-lg">{creator.name}</h4>
                         <p className="text-gray-400 text-sm">
                           {creator.followersCount || 0} followers
                         </p>
@@ -1008,7 +1020,7 @@ Would you like to open WhatsApp to contact the creator?`;
                           {creatorTracks.map((track: any) => (
                             <div 
                               key={track._id}
-                              className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-700/50 cursor-pointer transition-colors"
+                              className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-700/50 cursor-pointer transition-colors touch-manipulation"
                               onClick={() => {
                                 // Play the track
                                 const trackData = {
@@ -1033,7 +1045,7 @@ Would you like to open WhatsApp to contact the creator?`;
                               <img 
                                 src={track.coverArt || track.coverURL || currentTrack.coverImage} 
                                 alt={track.title} 
-                                className="w-10 h-10 rounded object-cover"
+                                className="w-10 h-10 sm:w-10 sm:h-10 rounded object-cover"
                               />
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium truncate">{track.title}</p>
@@ -1068,20 +1080,20 @@ Would you like to open WhatsApp to contact the creator?`;
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
                     placeholder="Add a comment..."
-                    className="w-full bg-gray-700 text-white rounded-lg p-3 mb-2 focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+                    className="w-full bg-gray-700 text-white rounded-lg p-3 mb-2 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] touch-pan-y"
                     rows={3}
                   />
                   <button
                     onClick={handleAddComment}
                     disabled={!comment.trim() || !isAuthenticated}
-                    className="bg-[#FF4D67] hover:bg-[#ff3350] text-white px-4 py-2 rounded-lg disabled:opacity-50"
+                    className="bg-[#FF4D67] hover:bg-[#ff3350] text-white px-4 py-3 rounded-lg disabled:opacity-50 touch-manipulation w-full sm:w-auto"
                   >
                     Post Comment
                   </button>
                 </div>
                 
                 {/* Comments List */}
-                <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
+                <div className="space-y-4 max-h-[400px] sm:max-h-[500px] overflow-y-auto pr-2 touch-pan-y">
                   {threadedComments.length > 0 ? (
                     threadedComments.map(comment => (
                       <CommentItem key={comment.id} comment={comment} />
