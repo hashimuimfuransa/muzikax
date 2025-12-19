@@ -25,8 +25,8 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex-shrink-0 flex items-center">
-            <Link href="/" className="text-xl sm:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B]">
-              MUZIKAX
+            <Link href="/" className="flex items-center">
+              <img src="/muzikax.png" alt="MuzikaX Logo" className="h-8 w-auto" />
             </Link>
           </div>
 

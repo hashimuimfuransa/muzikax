@@ -31,7 +31,8 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="MuzikaX" />
         <meta name="theme-color" content="#000000" />
         <link rel="manifest" href="/manifest.json" />
-        <link rel="apple-touch-icon" href="/android-chrome-192x192.png" />
+        <link rel="apple-touch-icon" href="/muzikax.png" />
+        <link rel="icon" href="/muzikax.png" type="image/png" />
       </head>
       <body>
         <AuthProvider>
