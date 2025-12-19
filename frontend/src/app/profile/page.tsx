@@ -15,6 +15,7 @@ interface CreatorAnalytics {
   totalPlays: number
   totalLikes: number
   tracks: number
+  topCountries?: Array<{ country: string; count: number }>
 }
 
 interface ProfileAlbum {
@@ -203,7 +204,7 @@ export default function Profile() {
       const transformedAlbums = albumsData.map((album: any) => ({
         id: album._id,
         title: album.title,
-        artist: typeof album.creatorId === 'object' ? album.creatorId.name : 'Unknown Artist',
+        artist: typeof album.creatorId === 'object' && album.creatorId !== null ? album.creatorId.name : 'Unknown Artist',
         coverImage: album.coverURL,
         year: new Date(album.releaseDate || album.createdAt).getFullYear(),
         tracks: album.tracks?.length || 0,
@@ -229,7 +230,7 @@ export default function Profile() {
   const mapTrackForPlayer = (track: ITrack) => ({
     id: track._id,
     title: track.title,
-    artist: 'Unknown Artist', // This would need to be fetched from the creator data
+    artist: track.creatorId?.name || 'Unknown Artist', // This would need to be fetched from the creator data
     coverImage: track.coverURL,
     audioUrl: track.audioURL,
     duration: 0, // Would need to calculate or fetch duration
@@ -753,20 +754,45 @@ export default function Profile() {
                   <div className="text-white text-sm">Loading analytics...</div>
                 </div>
               ) : analytics ? (
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-                  <div className="card-bg rounded-xl p-5 border border-gray-700/30 text-center">
-                    <div className="text-2xl sm:text-3xl font-bold text-[#FF4D67] mb-2">{analytics.totalTracks}</div>
-                    <div className="text-gray-400 text-sm">Total Tracks</div>
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                    <div className="card-bg rounded-xl p-5 border border-gray-700/30 text-center">
+                      <div className="text-2xl sm:text-3xl font-bold text-[#FF4D67] mb-2">{analytics.totalTracks}</div>
+                      <div className="text-gray-400 text-sm">Total Tracks</div>
+                    </div>
+                    <div className="card-bg rounded-xl p-5 border border-gray-700/30 text-center">
+                      <div className="text-2xl sm:text-3xl font-bold text-[#FFCB2B] mb-2">{analytics.totalPlays.toLocaleString()}</div>
+                      <div className="text-gray-400 text-sm">Total Plays</div>
+                    </div>
+                    <div className="card-bg rounded-xl p-5 border border-gray-700/30 text-center">
+                      <div className="text-2xl sm:text-3xl font-bold text-[#6C63FF] mb-2">{analytics.totalLikes.toLocaleString()}</div>
+                      <div className="text-gray-400 text-sm">Total Likes</div>
+                    </div>
                   </div>
-                  <div className="card-bg rounded-xl p-5 border border-gray-700/30 text-center">
-                    <div className="text-2xl sm:text-3xl font-bold text-[#FFCB2B] mb-2">{analytics.totalPlays.toLocaleString()}</div>
-                    <div className="text-gray-400 text-sm">Total Plays</div>
-                  </div>
-                  <div className="card-bg rounded-xl p-5 border border-gray-700/30 text-center">
-                    <div className="text-2xl sm:text-3xl font-bold text-[#6C63FF] mb-2">{analytics.totalLikes.toLocaleString()}</div>
-                    <div className="text-gray-400 text-sm">Total Likes</div>
-                  </div>
-                </div>
+                  
+                  {/* Geography Data */}
+                  {analytics.topCountries && analytics.topCountries.length > 0 && (
+                    <div className="card-bg rounded-xl p-5 border border-gray-700/30 mb-6">
+                      <h4 className="text-lg font-bold text-white mb-4">Top Listener Locations</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        {analytics.topCountries.map((countryData, index) => (
+                          <div key={index} className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg hover:bg-gray-800/50 transition-colors">
+                            <div className="flex items-center">
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center text-white text-xs font-bold mr-3">
+                                {index + 1}
+                              </div>
+                              <span className="text-white font-medium">{countryData.country}</span>
+                            </div>
+                            <span className="text-gray-400 text-sm">{countryData.count} listeners</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-4 text-xs text-gray-500">
+                        Based on IP address tracking of listeners
+                      </div>
+                    </div>
+                  )}
+                </>
               ) : !error ? (
                 <div className="text-center py-8 text-gray-400 text-sm">
                   No analytics data available
@@ -828,7 +854,7 @@ export default function Profile() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <h4 className="font-medium text-white truncate">{track.title}</h4>
-                            <p className="text-gray-400 text-xs truncate">Unknown Artist</p>
+                            <p className="text-gray-400 text-xs truncate">{track.creatorId?.name || 'Unknown Artist'}</p>
                           </div>
                         </div>
                         

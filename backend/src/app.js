@@ -3,6 +3,7 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const geoip = require('geoip-lite');
 const connectDB = require('./config/db').default;
 const authRoutes = require('./routes/authRoutes');
 const trackRoutes = require('./routes/trackRoutes');
@@ -38,6 +39,14 @@ console.log('APP FILE LOADED');
 
 // Load env vars
 dotenv.config();
+
+// Update geoip-lite database
+try {
+  geoip.reloadDataSync();
+  console.log('GeoIP database updated successfully');
+} catch (error) {
+  console.error('Failed to update GeoIP database:', error);
+}
 
 // Connect to database
 connectDB();

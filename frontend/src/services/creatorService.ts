@@ -5,6 +5,7 @@ export interface CreatorAnalytics {
   totalPlays: number;
   totalLikes: number;
   tracks: number;
+  topCountries?: Array<{ country: string; count: number }>;
 }
 
 export interface PaginatedTracks {

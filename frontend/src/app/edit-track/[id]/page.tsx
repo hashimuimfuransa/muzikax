@@ -132,12 +132,13 @@ export default function EditTrackPage({ params }: { params: Promise<{ id: string
         console.log('User ID type:', typeof user?.id)
         
         // Check if user is authorized to edit this track
-        // Both IDs should now be strings that can be directly compared
-        console.log('Direct comparison result:', track.creatorId === user?.id)
-        console.log('Loose comparison result:', track.creatorId == user?.id)
+        // Handle both cases: when creatorId is populated (object) or not (ObjectId)
+        const trackOwnerId = track.creatorId && typeof track.creatorId === 'object' && '_id' in track.creatorId ? 
+          track.creatorId._id.toString() : 
+          track.creatorId.toString();
         
-        if (track.creatorId !== user?.id) {
-          const errorMsg = `You are not authorized to edit this track. Track owner ID: "${track.creatorId}", Your ID: "${user?.id}"`
+        if (trackOwnerId !== user?.id) {
+          const errorMsg = `You are not authorized to edit this track. Track owner ID: "${trackOwnerId}", Your ID: "${user?.id}"`
           console.log('ERROR DETAILS:', errorMsg)
           setError(errorMsg)
           return

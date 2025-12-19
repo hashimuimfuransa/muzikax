@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import Track from '../models/Track';
+import ListenerGeography from '../models/ListenerGeography';
 
 /**
  * Get creator analytics data
@@ -41,11 +42,30 @@ export const getCreatorAnalytics = async (req: Request, res: Response): Promise<
     const totalLikes = tracks.reduce((sum, track) => sum + track.likes, 0);
     console.log('Creator Analytics - Total likes:', totalLikes);
 
+    // Get geography data for listener locations
+    const listenerGeographies = await ListenerGeography.find({ creatorId });
+    
+    // Aggregate geography data by country
+    const geographyData: { [country: string]: number } = {};
+    listenerGeographies.forEach(entry => {
+      if (entry.country) { // Check if country exists
+        const currentCount = geographyData[entry.country] || 0;
+        geographyData[entry.country] = currentCount + 1;
+      }
+    });
+    
+    // Convert to array and sort by count
+    const topCountries = Object.entries(geographyData)
+      .map(([country, count]) => ({ country, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10); // Top 10 countries
+
     const response = {
       totalTracks,
       totalPlays,
       totalLikes,
-      tracks: tracks.length
+      tracks: tracks.length,
+      topCountries
     };
     
     console.log('Creator Analytics - Response:', response);

@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getCreatorTracks = exports.getCreatorAnalytics = void 0;
 const Track_1 = __importDefault(require("../models/Track"));
+const ListenerGeography_1 = __importDefault(require("../models/ListenerGeography"));
 /**
  * Get creator analytics data
  * This is an independent controller for creator-specific functionality
@@ -38,11 +39,30 @@ const getCreatorAnalytics = async (req, res) => {
         // Get total likes for all tracks
         const totalLikes = tracks.reduce((sum, track) => sum + track.likes, 0);
         console.log('Creator Analytics - Total likes:', totalLikes);
+        // Get geography data for listener locations
+        const listenerGeographies = await ListenerGeography_1.default.find({ creatorId });
+        
+        // Aggregate geography data by country
+        const geographyData = {};
+        listenerGeographies.forEach(entry => {
+            if (entry.country) { // Check if country exists
+                const currentCount = geographyData[entry.country] || 0;
+                geographyData[entry.country] = currentCount + 1;
+            }
+        });
+        
+        // Convert to array and sort by count
+        const topCountries = Object.entries(geographyData)
+            .map(([country, count]) => ({ country, count }))
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 10); // Top 10 countries
+
         const response = {
             totalTracks,
             totalPlays,
             totalLikes,
-            tracks: tracks.length
+            tracks: tracks.length,
+            topCountries
         };
         console.log('Creator Analytics - Response:', response);
         res.json(response);

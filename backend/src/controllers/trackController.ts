@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import Track from '../models/Track';
+import ListenerGeography from '../models/ListenerGeography';
+import geoip from 'geoip-lite';
 // import User from '../models/User'; // Not used in this controller
 
 // Upload track
@@ -186,8 +188,17 @@ export const updateTrack = async (req: Request, res: Response): Promise<void> =>
     }
 
     // Check if user is the creator
-    if (track.creatorId.toString() !== (req as any).user._id.toString()) {
-      res.status(401).json({ message: 'Not authorized' });
+    // Handle both cases: when creatorId is populated (object) or not (ObjectId)
+    const trackOwnerId = track.creatorId && typeof track.creatorId === 'object' && '_id' in track.creatorId ? 
+      track.creatorId._id.toString() : 
+      track.creatorId.toString();
+      
+    if (trackOwnerId !== (req as any).user._id.toString()) {
+      res.status(401).json({ 
+        message: 'You are not authorized to edit this track.',
+        trackOwnerId,
+        userId: (req as any).user._id.toString()
+      });
       return;
     }
 
@@ -216,11 +227,20 @@ export const deleteTrack = async (req: Request, res: Response): Promise<void> =>
     }
 
     // Check if user is the creator or admin
+    // Handle both cases: when creatorId is populated (object) or not (ObjectId)
+    const trackOwnerId = track.creatorId && typeof track.creatorId === 'object' && '_id' in track.creatorId ? 
+      track.creatorId._id.toString() : 
+      track.creatorId.toString();
+      
     if (
-      track.creatorId.toString() !== (req as any).user._id.toString() &&
+      trackOwnerId !== (req as any).user._id.toString() &&
       (req as any).user.role !== 'admin'
     ) {
-      res.status(401).json({ message: 'Not authorized' });
+      res.status(401).json({ 
+        message: 'You are not authorized to delete this track.',
+        trackOwnerId,
+        userId: (req as any).user._id.toString()
+      });
       return;
     }
 
@@ -245,8 +265,34 @@ export const incrementPlayCount = async (req: Request, res: Response): Promise<v
       return;
     }
 
+    // Capture IP address and store geography data
+    const ipAddress = req.ip || req.connection.remoteAddress || '';
+    if (ipAddress) {
+      // Remove IPv6 prefix if present
+      const cleanIpAddress = ipAddress.replace('::ffff:', '');
+      
+      // Get geography data from IP
+      const geo = geoip.lookup(cleanIpAddress);
+      
+      if (geo) {
+        // Store geography data
+        await ListenerGeography.create({
+          trackId: track._id,
+          creatorId: track.creatorId,
+          ipAddress: cleanIpAddress,
+          country: geo.country,
+          region: geo.region,
+          city: geo.city,
+          latitude: geo.ll[0],
+          longitude: geo.ll[1],
+          timestamp: new Date()
+        });
+      }
+    }
+
     res.json(track);
   } catch (error: any) {
+    console.error('Error incrementing play count:', error);
     res.status(500).json({ message: error.message });
   }
 };

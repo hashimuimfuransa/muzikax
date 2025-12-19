@@ -5,6 +5,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getTrendingTracks = exports.incrementPlayCount = exports.deleteTrack = exports.updateTrack = exports.getTracksByAuthUser = exports.getTracksByCreator = exports.getTracksByCreatorSimple = exports.getTrackById = exports.getAllTracks = exports.uploadTrack = void 0;
 const Track_1 = __importDefault(require("../models/Track"));
+const ListenerGeography_1 = __importDefault(require("../models/ListenerGeography"));
+const geoip = require('geoip-lite');
 // import User from '../models/User'; // Not used in this controller
 // Upload track
 const uploadTrack = async (req, res) => {
@@ -170,8 +172,17 @@ const updateTrack = async (req, res) => {
             return;
         }
         // Check if user is the creator
-        if (track.creatorId.toString() !== req.user._id.toString()) {
-            res.status(401).json({ message: 'Not authorized' });
+        // Handle both cases: when creatorId is populated (object) or not (ObjectId)
+        const trackOwnerId = track.creatorId && typeof track.creatorId === 'object' && '_id' in track.creatorId ? 
+            track.creatorId._id.toString() : 
+            track.creatorId.toString();
+        
+        if (trackOwnerId !== req.user._id.toString()) {
+            res.status(401).json({ 
+                message: 'You are not authorized to edit this track.',
+                trackOwnerId,
+                userId: req.user._id.toString()
+            });
             return;
         }
         // Update fields if provided
@@ -200,9 +211,18 @@ const deleteTrack = async (req, res) => {
             return;
         }
         // Check if user is the creator or admin
-        if (track.creatorId.toString() !== req.user._id.toString() &&
+        // Handle both cases: when creatorId is populated (object) or not (ObjectId)
+        const trackOwnerId = track.creatorId && typeof track.creatorId === 'object' && '_id' in track.creatorId ? 
+            track.creatorId._id.toString() : 
+            track.creatorId.toString();
+        
+        if (trackOwnerId !== req.user._id.toString() &&
             req.user.role !== 'admin') {
-            res.status(401).json({ message: 'Not authorized' });
+            res.status(401).json({ 
+                message: 'You are not authorized to delete this track.',
+                trackOwnerId,
+                userId: req.user._id.toString()
+            });
             return;
         }
         await track.deleteOne();
@@ -221,9 +241,36 @@ const incrementPlayCount = async (req, res) => {
             res.status(404).json({ message: 'Track not found' });
             return;
         }
+
+        // Capture IP address and store geography data
+        const ipAddress = req.ip || req.connection.remoteAddress || '';
+        if (ipAddress) {
+            // Remove IPv6 prefix if present
+            const cleanIpAddress = ipAddress.replace('::ffff:', '');
+            
+            // Get geography data from IP
+            const geo = geoip.lookup(cleanIpAddress);
+            
+            if (geo) {
+                // Store geography data
+                await ListenerGeography_1.default.create({
+                    trackId: track._id,
+                    creatorId: track.creatorId,
+                    ipAddress: cleanIpAddress,
+                    country: geo.country,
+                    region: geo.region,
+                    city: geo.city,
+                    latitude: geo.ll[0],
+                    longitude: geo.ll[1],
+                    timestamp: new Date()
+                });
+            }
+        }
+
         res.json(track);
     }
     catch (error) {
+        console.error('Error incrementing play count:', error);
         res.status(500).json({ message: error.message });
     }
 };
