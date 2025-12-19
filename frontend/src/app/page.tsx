@@ -148,15 +148,7 @@ export default function Home() {
       image:
         "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
       cta: "Upload Track",
-    },
-    {
-      id: 3,
-      title: "Join Our Community",
-      subtitle: "Connect with creators and music lovers",
-      image:
-        "https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
-      cta: "Join Now",
-    },
+    }
   ];
 
   // Auto-advance slider
@@ -611,16 +603,7 @@ export default function Home() {
                 >
                   {heroSlides[currentSlide].cta}
                 </button>
-                <button
-                  className="px-5 py-2.5 sm:px-6 sm:py-3 bg-transparent border-2 border-white text-white font-medium rounded-lg transition-all hover:bg-white/10 text-sm sm:text-base"
-                  onClick={() => {
-                    // Learn More button functionality
-                    console.log("Learn more clicked for slide:", currentSlide);
-                    // Could show a modal or scroll to a specific section
-                  }}
-                >
-                  Learn More
-                </button>
+
               </div>
             </div>
           </div>
