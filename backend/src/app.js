@@ -48,9 +48,7 @@ try {
   console.error('Failed to update GeoIP database:', error);
 }
 
-// Connect to database
-connectDB();
-
+// Create app first without connecting to database immediately
 const app = express();
 
 console.log('APP CREATED');

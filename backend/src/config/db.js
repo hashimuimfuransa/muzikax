@@ -39,15 +39,31 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importDefault(require("mongoose"));
 const dotenv = __importStar(require("dotenv"));
 dotenv.config();
+
+// Add this to db.js to prevent multiple connections
+let cachedDb = null;
+
 const connectDB = async () => {
-    try {
-        const conn = await mongoose_1.default.connect(process.env['MONGO_URI'] || 'mongodb://localhost:27017/muzikax');
-        console.log(`MongoDB Connected: ${conn.connection.host}`);
-    }
-    catch (error) {
-        console.error(`Error: ${error.message}`);
-        process.exit(1);
-    }
+  if (cachedDb) {
+    console.log('Using existing database connection');
+    return cachedDb;
+  }
+  
+  try {
+    const conn = await mongoose_1.default.connect(process.env['MONGO_URI'] || 'mongodb://localhost:27017/muzikax', {
+      // Add these options for better serverless compatibility
+      maxPoolSize: 10,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+    });
+    console.log(`MongoDB Connected: ${conn.connection.host}`);
+    cachedDb = conn;
+    return conn;
+  }
+  catch (error) {
+    console.error(`Error: ${error.message}`);
+    throw error; // Don't exit process in serverless
+  }
 };
 module.exports = connectDB;
 //# sourceMappingURL=db.js.map
