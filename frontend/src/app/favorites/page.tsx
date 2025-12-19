@@ -79,11 +79,12 @@ export default function FavoritesPage() {
       coverImage: track.coverImage || track.coverURL || '/placeholder-track.png',
       audioUrl: track.audioUrl || track.audioURL || '',
       duration: typeof track.duration === 'string' ? parseInt(track.duration) : track.duration,
+      plays: track.plays || 0,
+      likes: track.likes || 0,
       type: track.type || 'song', // Include track type for WhatsApp functionality
       creatorWhatsapp: track.creatorWhatsapp // Include creator's WhatsApp contact
     };
   };
-
   // Play a track
   const handlePlayTrack = (track: BackendTrack) => {
     // Set the current playlist to all favorites for continuous playback
@@ -106,10 +107,11 @@ export default function FavoritesPage() {
           coverImage: track.coverImage || track.coverURL || '',
           audioUrl: track.audioUrl || track.audioURL || '',
           duration: track.duration,
+          plays: track.plays || 0,
+          likes: track.likes || 0,
           type: track.type || 'song', // Include track type for WhatsApp functionality
           creatorWhatsapp: track.creatorWhatsapp // Include creator's WhatsApp contact
-        }))
-        setTracks(mappedTracks)
+        }))        setTracks(mappedTracks)
       } catch (error) {
         console.error('Error loading favorites:', error)
       } finally {

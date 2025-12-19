@@ -736,13 +736,14 @@ export default function Home() {
                             artist: track.artist,
                             coverImage: track.coverImage,
                             audioUrl: fullTrack.audioURL,
+                            plays: fullTrack.plays || 0,
+                            likes: fullTrack.likes || 0,
                             creatorId: typeof fullTrack.creatorId === 'object' && fullTrack.creatorId !== null ? (fullTrack.creatorId as any)._id : fullTrack.creatorId,
                             type: fullTrack.type, // Include track type for WhatsApp functionality
                             creatorWhatsapp: (typeof fullTrack.creatorId === 'object' && fullTrack.creatorId !== null 
                               ? (fullTrack.creatorId as any).whatsappContact 
                               : undefined) // Include creator's WhatsApp contact
                           });
-
                           // Set the current playlist to all trending tracks
                           const playlistTracks = trendingTracksData
                             .filter((t) => t.audioURL) // Only tracks with audio

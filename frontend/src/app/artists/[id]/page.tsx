@@ -179,6 +179,8 @@ export default function ArtistProfilePage() {
       artist: track.artist,
       coverImage: track.coverArt || '', // This is handled in the audio player component
       audioUrl: track.audioUrl,
+      plays: track.plays || 0,
+      likes: track.likes || 0,
       duration: track.duration,
       creatorId: creatorId, // The current artist's ID
       type: track.type || 'song', // Include track type for WhatsApp functionality

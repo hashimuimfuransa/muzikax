@@ -16,11 +16,11 @@ interface Track {
   duration?: number; // in seconds
   creatorId?: string; // Add creator ID for linking to artist profile
   albumId?: string; // Add album ID for album playback logic
+  plays?: number; // Add plays property to track play counts
   likes?: number; // Add likes property to track like counts
   type?: 'song' | 'beat' | 'mix'; // Add type field to distinguish beats
   creatorWhatsapp?: string; // Add creator's WhatsApp contact for beats
 }
-
 interface Playlist {
   id: string;
   name: string;
