@@ -4,30 +4,30 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteUser = exports.updateUserRole = exports.getUserById = exports.getContentStats = exports.getUserStats = exports.getPlatformStats = exports.searchUsers = exports.getAdminAnalytics = void 0;
-const User_1 = __importDefault(require("../models/User"));
-const Track_1 = __importDefault(require("../models/Track"));
-const mongoose_1 = __importDefault(require("mongoose"));
+const User_1 = require("../models/User");
+const Track_1 = require("../models/Track");
+const mongoose_1 = require("mongoose");
 // Get admin dashboard analytics
 const getAdminAnalytics = async (_req, res) => {
     try {
         // Get total users
-        const totalUsers = await User_1.default.countDocuments();
+        const totalUsers = await User_1.countDocuments();
         // Get total creators
-        const totalCreators = await User_1.default.countDocuments({ role: 'creator' });
+        const totalCreators = await User_1.countDocuments({ role: 'creator' });
         // Get total admins
-        const totalAdmins = await User_1.default.countDocuments({ role: 'admin' });
+        const totalAdmins = await User_1.countDocuments({ role: 'admin' });
         // Get total tracks
-        const totalTracks = await Track_1.default.countDocuments();
+        const totalTracks = await Track_1.countDocuments();
         // Get total plays
-        const allTracks = await Track_1.default.find({}, 'plays');
+        const allTracks = await Track_1.find({}, 'plays');
         const totalPlays = allTracks.reduce((sum, track) => sum + track.plays, 0);
         // Get trending tracks
-        const trendingTracks = await Track_1.default.find()
+        const trendingTracks = await Track_1.find()
             .sort({ plays: -1 })
             .limit(5)
             .populate('creatorId', 'name');
         // Get recent users
-        const recentUsers = await User_1.default.find()
+        const recentUsers = await User_1.find()
             .select('-password')
             .sort({ createdAt: -1 })
             .limit(5);
@@ -77,12 +77,12 @@ const searchUsers = async (req, res) => {
         if (role && role !== 'all') {
             searchCriteria.role = role;
         }
-        const users = await User_1.default.find(searchCriteria)
+        const users = await User_1.find(searchCriteria)
             .select('-password')
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(Number(limit));
-        const total = await User_1.default.countDocuments(searchCriteria);
+        const total = await User_1.countDocuments(searchCriteria);
         res.json({
             users: users.map(user => ({
                 id: user._id,
@@ -109,7 +109,7 @@ const getPlatformStats = async (_req, res) => {
         // Get user growth data (last 30 days)
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-        const userGrowth = await User_1.default.aggregate([
+        const userGrowth = await User_1.aggregate([
             {
                 $match: {
                     createdAt: { $gte: thirtyDaysAgo }
@@ -128,7 +128,7 @@ const getPlatformStats = async (_req, res) => {
             }
         ]);
         // Get content statistics by type
-        const contentStats = await Track_1.default.aggregate([
+        const contentStats = await Track_1.aggregate([
             {
                 $group: {
                     _id: "$type",
@@ -138,7 +138,7 @@ const getPlatformStats = async (_req, res) => {
             }
         ]);
         // Get top creators by play count
-        const topCreators = await Track_1.default.aggregate([
+        const topCreators = await Track_1.aggregate([
             {
                 $group: {
                     _id: "$creatorId",
@@ -188,7 +188,7 @@ exports.getPlatformStats = getPlatformStats;
 const getUserStats = async (_req, res) => {
     try {
         // Count users by role
-        const userRoles = await User_1.default.aggregate([
+        const userRoles = await User_1.aggregate([
             {
                 $group: {
                     _id: "$role",
@@ -197,7 +197,7 @@ const getUserStats = async (_req, res) => {
             }
         ]);
         // Count creators by type
-        const creatorTypes = await User_1.default.aggregate([
+        const creatorTypes = await User_1.aggregate([
             {
                 $match: { role: "creator" }
             },
@@ -209,7 +209,7 @@ const getUserStats = async (_req, res) => {
             }
         ]);
         // Recently joined users
-        const recentUsers = await User_1.default.find()
+        const recentUsers = await User_1.find()
             .select('name email role creatorType createdAt')
             .sort({ createdAt: -1 })
             .limit(10);
@@ -236,9 +236,9 @@ exports.getUserStats = getUserStats;
 const getContentStats = async (_req, res) => {
     try {
         // Total tracks
-        const totalTracks = await Track_1.default.countDocuments();
+        const totalTracks = await Track_1.countDocuments();
         // Tracks by type
-        const tracksByType = await Track_1.default.aggregate([
+        const tracksByType = await Track_1.aggregate([
             {
                 $group: {
                     _id: "$type",
@@ -247,7 +247,7 @@ const getContentStats = async (_req, res) => {
             }
         ]);
         // Tracks by genre
-        const tracksByGenre = await Track_1.default.aggregate([
+        const tracksByGenre = await Track_1.aggregate([
             {
                 $group: {
                     _id: "$genre",
@@ -262,7 +262,7 @@ const getContentStats = async (_req, res) => {
             }
         ]);
         // Most played tracks
-        const mostPlayedTracks = await Track_1.default.find()
+        const mostPlayedTracks = await Track_1.find()
             .sort({ plays: -1 })
             .limit(10)
             .populate('creatorId', 'name');
@@ -294,7 +294,7 @@ const getUserById = async (req, res) => {
             res.status(400).json({ message: 'Invalid user ID' });
             return;
         }
-        const user = await User_1.default.findById(id).select('-password');
+        const user = await User_1.findById(id).select('-password');
         if (!user) {
             res.status(404).json({ message: 'User not found' });
             return;
@@ -349,7 +349,7 @@ const updateUserRole = async (req, res) => {
         else {
             updateData.creatorType = null;
         }
-        const user = await User_1.default.findByIdAndUpdate(id, updateData, { new: true, select: '-password' });
+        const user = await User_1.findByIdAndUpdate(id, updateData, { new: true, select: '-password' });
         if (!user) {
             res.status(404).json({ message: 'User not found' });
             return;
@@ -379,7 +379,7 @@ const deleteUser = async (req, res) => {
             return;
         }
         // Prevent deleting admin users
-        const user = await User_1.default.findById(id);
+        const user = await User_1.findById(id);
         if (!user) {
             res.status(404).json({ message: 'User not found' });
             return;
@@ -389,7 +389,7 @@ const deleteUser = async (req, res) => {
             return;
         }
         // Delete user
-        await User_1.default.findByIdAndDelete(id);
+        await User_1.findByIdAndDelete(id);
         // TODO: Also delete associated content (tracks, playlists, etc.)
         res.json({ message: 'User deleted successfully' });
     }

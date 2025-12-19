@@ -1,6 +1,6 @@
-const User = require('../models/User').default;
+const User = require('../models/User');
 const Track = require('../models/Track');
-const Playlist = require('../models/Playlist').default;
+const Playlist = require('../models/Playlist');
 
 // Add track to user's favorites
 const addFavorite = async (req, res) => {

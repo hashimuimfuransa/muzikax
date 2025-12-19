@@ -4,8 +4,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getCreatorTracks = exports.getCreatorAnalytics = void 0;
-const Track_1 = __importDefault(require("../models/Track"));
-const ListenerGeography_1 = __importDefault(require("../models/ListenerGeography"));
+const Track_1 = require("../models/Track");
+const ListenerGeography_1 = require("../models/ListenerGeography");
 /**
  * Get creator analytics data
  * This is an independent controller for creator-specific functionality
@@ -30,17 +30,17 @@ const getCreatorAnalytics = async (req, res) => {
             return;
         }
         // Get total tracks
-        const totalTracks = await Track_1.default.countDocuments({ creatorId });
+        const totalTracks = await Track_1.countDocuments({ creatorId });
         console.log('Creator Analytics - Total tracks:', totalTracks);
         // Get total plays for all tracks
-        const tracks = await Track_1.default.find({ creatorId });
+        const tracks = await Track_1.find({ creatorId });
         const totalPlays = tracks.reduce((sum, track) => sum + track.plays, 0);
         console.log('Creator Analytics - Total plays:', totalPlays);
         // Get total likes for all tracks
         const totalLikes = tracks.reduce((sum, track) => sum + track.likes, 0);
         console.log('Creator Analytics - Total likes:', totalLikes);
         // Get geography data for listener locations
-        const listenerGeographies = await ListenerGeography_1.default.find({ creatorId });
+        const listenerGeographies = await ListenerGeography_1.find({ creatorId });
         
         // Aggregate geography data by country
         const geographyData = {};
@@ -102,11 +102,11 @@ const getCreatorTracks = async (req, res) => {
         const skip = (page - 1) * limit;
         console.log('Creator Tracks - Page:', page, 'Limit:', limit, 'Skip:', skip);
         // Get tracks for this creator
-        const tracks = await Track_1.default.find({ creatorId })
+        const tracks = await Track_1.find({ creatorId })
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit);
-        const total = await Track_1.default.countDocuments({ creatorId });
+        const total = await Track_1.countDocuments({ creatorId });
         const response = {
             tracks,
             page,

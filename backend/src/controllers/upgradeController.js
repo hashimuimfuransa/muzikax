@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.upgradeToCreator = void 0;
-const User_1 = __importDefault(require("../models/User"));
+const User_1 = require("../models/User");
 // Upgrade user to creator (user can upgrade themselves)
 const upgradeToCreator = async (req, res) => {
     try {
@@ -21,7 +21,7 @@ const upgradeToCreator = async (req, res) => {
             res.status(400).json({ message: 'Valid creatorType is required: artist, dj, or producer' });
             return;
         }
-        const user = await User_1.default.findById(userId);
+        const user = await User_1.findById(userId);
         if (!user) {
             res.status(404).json({ message: 'User not found' });
             return;

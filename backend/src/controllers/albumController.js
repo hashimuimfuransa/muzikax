@@ -4,9 +4,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.protect = exports.incrementAlbumPlayCount = exports.deleteAlbum = exports.updateAlbum = exports.getAlbumsByCreator = exports.getAlbumById = exports.getAllAlbums = exports.createAlbum = void 0;
-const Album_1 = __importDefault(require("../models/Album"));
-const Track_1 = __importDefault(require("../models/Track"));
-const User_1 = __importDefault(require("../models/User"));
+const Album_1 = require("../models/Album");
+const Track_1 = require("../models/Track");
+const User_1 = require("../models/User");
 const jwt_1 = require("../utils/jwt");
 Object.defineProperty(exports, "protect", { enumerable: true, get: function () { return jwt_1.protect; } });
 // Create a new album
@@ -34,7 +34,7 @@ const createAlbum = async (req, res) => {
             return;
         }
         // Verify that all tracks belong to the creator
-        const tracks = await Track_1.default.find({
+        const tracks = await Track_1.find({
             _id: { $in: trackIds },
             creatorId: user._id
         });
@@ -45,13 +45,13 @@ const createAlbum = async (req, res) => {
         // If no cover image provided, try to use user's avatar
         let finalCoverURL = coverURL;
         if (!finalCoverURL) {
-            const userData = await User_1.default.findById(user._id);
+            const userData = await User_1.findById(user._id);
             if (userData && userData.avatar) {
                 finalCoverURL = userData.avatar;
                 console.log('Using user avatar as cover image:', finalCoverURL);
             }
         }
-        const album = await Album_1.default.create({
+        const album = await Album_1.create({
             creatorId: user._id,
             creatorType: user.creatorType,
             title,
@@ -62,7 +62,7 @@ const createAlbum = async (req, res) => {
             releaseDate: new Date()
         });
         // Update tracks to reference this album
-        await Track_1.default.updateMany({ _id: { $in: trackIds } }, { $set: { albumId: album._id } });
+        await Track_1.updateMany({ _id: { $in: trackIds } }, { $set: { albumId: album._id } });
         console.log('Album created successfully:', album._id);
         res.status(201).json(album);
     }
@@ -78,13 +78,13 @@ const getAllAlbums = async (req, res) => {
         const page = parseInt(req.query['page']) || 1;
         const limit = parseInt(req.query['limit']) || 10;
         const skip = (page - 1) * limit;
-        const albums = await Album_1.default.find()
+        const albums = await Album_1.find()
             .populate('creatorId', 'name avatar')
             .populate({ path: 'tracks', populate: { path: 'creatorId', select: 'name avatar' } })
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit);
-        const total = await Album_1.default.countDocuments();
+        const total = await Album_1.countDocuments();
         res.json({
             albums,
             pagination: {
@@ -103,7 +103,7 @@ exports.getAllAlbums = getAllAlbums;
 // Get album by ID
 const getAlbumById = async (req, res) => {
     try {
-        const album = await Album_1.default.findById(req.params['id'])
+        const album = await Album_1.findById(req.params['id'])
             .populate('creatorId', 'name avatar')
             .populate({ path: 'tracks', populate: { path: 'creatorId', select: 'name avatar' } });
         if (!album) {
@@ -122,7 +122,7 @@ const getAlbumsByCreator = async (req, res) => {
     try {
         const creatorId = req.params['creatorId'];
         const query = { creatorId: creatorId };
-        const albums = await Album_1.default.find(query).lean()
+        const albums = await Album_1.find(query).lean()
             .populate({ path: 'tracks', populate: { path: 'creatorId', select: 'name avatar' } })
             .sort({ createdAt: -1 });
         res.json(albums);
@@ -137,7 +137,7 @@ const updateAlbum = async (req, res) => {
     try {
         const { title, description, genre, coverURL, trackIds } = req.body;
         const user = req.user;
-        let album = await Album_1.default.findById(req.params['id']);
+        let album = await Album_1.findById(req.params['id']);
         if (!album) {
             res.status(404).json({ message: 'Album not found' });
             return;
@@ -149,7 +149,7 @@ const updateAlbum = async (req, res) => {
         }
         // If trackIds are provided, verify they belong to the creator
         if (trackIds && Array.isArray(trackIds) && trackIds.length > 0) {
-            const tracks = await Track_1.default.find({
+            const tracks = await Track_1.find({
                 _id: { $in: trackIds },
                 creatorId: user._id
             });
@@ -180,7 +180,7 @@ exports.updateAlbum = updateAlbum;
 const deleteAlbum = async (req, res) => {
     try {
         const user = req.user;
-        const album = await Album_1.default.findById(req.params['id']);
+        const album = await Album_1.findById(req.params['id']);
         if (!album) {
             res.status(404).json({ message: 'Album not found' });
             return;
@@ -191,7 +191,7 @@ const deleteAlbum = async (req, res) => {
             return;
         }
         // Remove album reference from tracks
-        await Track_1.default.updateMany({ _id: { $in: album.tracks } }, { $unset: { albumId: "" } });
+        await Track_1.updateMany({ _id: { $in: album.tracks } }, { $unset: { albumId: "" } });
         await album.deleteOne();
         res.json({ message: 'Album removed' });
     }
@@ -203,7 +203,7 @@ exports.deleteAlbum = deleteAlbum;
 // Increment album play count
 const incrementAlbumPlayCount = async (req, res) => {
     try {
-        const album = await Album_1.default.findById(req.params['id']);
+        const album = await Album_1.findById(req.params['id']);
         if (!album) {
             res.status(404).json({ message: 'Album not found' });
             return;

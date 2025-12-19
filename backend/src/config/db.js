@@ -49,5 +49,5 @@ const connectDB = async () => {
         process.exit(1);
     }
 };
-exports.default = connectDB;
+module.exports = connectDB;
 //# sourceMappingURL=db.js.map

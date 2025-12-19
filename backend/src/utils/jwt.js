@@ -121,7 +121,7 @@ var protect = function (req, res, next) { return __awaiter(void 0, void 0, void 
                     res.status(401).json({ message: 'Not authorized, invalid or expired token' });
                     return [2 /*return*/];
                 }
-                return [4 /*yield*/, User_1.default.findById(decoded.id).select('-password')];
+                return [4 /*yield*/, User_1.findById(decoded.id).select('-password')];
             case 2:
                 user = _a.sent();
                 console.log('User found from token:', user ? user._id : 'Not found');

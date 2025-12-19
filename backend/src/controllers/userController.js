@@ -4,21 +4,21 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateOwnProfile = exports.followCreator = exports.getCreatorAnalytics = exports.approveCreator = exports.deleteUser = exports.upgradeToCreator = exports.updateUser = exports.getUserById = exports.getPublicCreators = exports.getUsers = void 0;
-const User_1 = __importDefault(require("../models/User"));
-const Track_1 = __importDefault(require("../models/Track"));
-const bcryptjs_1 = __importDefault(require("bcryptjs"));
+const User_1 = require("../models/User");
+const Track_1 = require("../models/Track");
+const bcryptjs_1 = require("bcryptjs");
 // Get all users (admin only)
 const getUsers = async (req, res) => {
     try {
         const page = parseInt(req.query['page']) || 1;
         const limit = parseInt(req.query['limit']) || 10;
         const skip = (page - 1) * limit;
-        const users = await User_1.default.find()
+        const users = await User_1.find()
             .select('-password')
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit);
-        const total = await User_1.default.countDocuments();
+        const total = await User_1.countDocuments();
         res.json({
             users,
             page,
@@ -36,7 +36,7 @@ const getPublicCreators = async (req, res) => {
     try {
         const limit = parseInt(req.query['limit']) || 10;
         // Find users with role 'creator' and sort by followersCount descending
-        const creators = await User_1.default.find({ role: 'creator' })
+        const creators = await User_1.find({ role: 'creator' })
             .select('-password')
             .sort({ followersCount: -1, createdAt: -1 })
             .limit(limit);
@@ -53,7 +53,7 @@ exports.getPublicCreators = getPublicCreators;
 // Get user by ID
 const getUserById = async (req, res) => {
     try {
-        const user = await User_1.default.findById(req.params['id']).select('-password');
+        const user = await User_1.findById(req.params['id']).select('-password');
         if (!user) {
             res.status(404).json({ message: 'User not found' });
             return;
@@ -68,7 +68,7 @@ exports.getUserById = getUserById;
 // Update user (admin only)
 const updateUser = async (req, res) => {
     try {
-        const user = await User_1.default.findById(req.params['id']);
+        const user = await User_1.findById(req.params['id']);
         if (!user) {
             res.status(404).json({ message: 'User not found' });
             return;
@@ -84,8 +84,8 @@ const updateUser = async (req, res) => {
         user.avatar = avatar || user.avatar;
         // Only allow password update if provided
         if (password) {
-            const salt = await bcryptjs_1.default.genSalt(10);
-            user.password = await bcryptjs_1.default.hash(password, salt);
+            const salt = await bcryptjs_1.genSalt(10);
+            user.password = await bcryptjs_1.hash(password, salt);
         }
         const updatedUser = await user.save();
         res.json({
@@ -123,7 +123,7 @@ const upgradeToCreator = async (req, res) => {
             res.status(400).json({ message: 'Valid creatorType is required: artist, dj, or producer' });
             return;
         }
-        const user = await User_1.default.findById(userId);
+        const user = await User_1.findById(userId);
         if (!user) {
             res.status(404).json({ message: 'User not found' });
             return;
@@ -154,13 +154,13 @@ exports.upgradeToCreator = upgradeToCreator;
 // Delete user (admin only)
 const deleteUser = async (req, res) => {
     try {
-        const user = await User_1.default.findById(req.params['id']);
+        const user = await User_1.findById(req.params['id']);
         if (!user) {
             res.status(404).json({ message: 'User not found' });
             return;
         }
         // Also delete all tracks by this user
-        await Track_1.default.deleteMany({ creatorId: user._id });
+        await Track_1.deleteMany({ creatorId: user._id });
         await user.deleteOne();
         res.json({ message: 'User removed' });
     }
@@ -172,7 +172,7 @@ exports.deleteUser = deleteUser;
 // Approve creator (admin only)
 const approveCreator = async (req, res) => {
     try {
-        const user = await User_1.default.findById(req.params['id']);
+        const user = await User_1.findById(req.params['id']);
         if (!user) {
             res.status(404).json({ message: 'User not found' });
             return;
@@ -223,10 +223,10 @@ const getCreatorAnalytics = async (req, res) => {
             return;
         }
         // Get total tracks
-        const totalTracks = await Track_1.default.countDocuments({ creatorId });
+        const totalTracks = await Track_1.countDocuments({ creatorId });
         console.log('Total tracks:', totalTracks);
         // Get total plays for all tracks
-        const tracks = await Track_1.default.find({ creatorId });
+        const tracks = await Track_1.find({ creatorId });
         const totalPlays = tracks.reduce((sum, track) => sum + track.plays, 0);
         console.log('Total plays:', totalPlays);
         // Get total likes for all tracks
@@ -268,7 +268,7 @@ const followCreator = async (req, res) => {
             return;
         }
         // Find the creator
-        const creator = await User_1.default.findById(creatorId);
+        const creator = await User_1.findById(creatorId);
         if (!creator) {
             res.status(404).json({ message: 'Creator not found' });
             return;
@@ -299,7 +299,7 @@ const updateOwnProfile = async (req, res) => {
             return;
         }
         const userId = req.user._id;
-        const user = await User_1.default.findById(userId).select('+password');
+        const user = await User_1.findById(userId).select('+password');
         if (!user) {
             res.status(404).json({ message: 'User not found' });
             return;
@@ -326,14 +326,14 @@ const updateOwnProfile = async (req, res) => {
                 return;
             }
             // Verify current password
-            const isMatch = await bcryptjs_1.default.compare(currentPassword, user.password);
+            const isMatch = await bcryptjs_1.compare(currentPassword, user.password);
             if (!isMatch) {
                 res.status(400).json({ message: 'Current password is incorrect' });
                 return;
             }
             // Hash and set new password
-            const salt = await bcryptjs_1.default.genSalt(10);
-            user.password = await bcryptjs_1.default.hash(password, salt);
+            const salt = await bcryptjs_1.genSalt(10);
+            user.password = await bcryptjs_1.hash(password, salt);
         }
         const updatedUser = await user.save();
         res.json({

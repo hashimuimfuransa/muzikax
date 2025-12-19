@@ -23,7 +23,7 @@ const updateOwnProfile = async (req, res) => {
             res.status(400).json({ message: 'Invalid user ID' });
             return;
         }
-        const user = await User_1.default.findById(userId).select('+password');
+        const user = await User_1.findById(userId).select('+password');
         if (!user) {
             res.status(404).json({ message: 'User not found' });
             return;
@@ -57,7 +57,7 @@ const updateOwnProfile = async (req, res) => {
         }
         // Check if email is already in use by another user
         if (email && email !== user.email) {
-            const existingUser = await User_1.default.findOne({ email });
+            const existingUser = await User_1.findOne({ email });
             if (existingUser) {
                 res.status(400).json({ message: 'Email is already in use by another account' });
                 return;

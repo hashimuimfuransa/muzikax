@@ -4,24 +4,24 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateUserProfile = exports.getUserProfile = exports.refreshToken = exports.login = exports.register = void 0;
-const bcryptjs_1 = __importDefault(require("bcryptjs"));
-const User_1 = __importDefault(require("../models/User"));
+const bcryptjs_1 = require("bcryptjs");
+const User_1 = require("../models/User");
 const jwt_1 = require("../utils/jwt");
 // Register user
 const register = async (req, res) => {
     try {
         const { name, email, password, role, creatorType } = req.body;
         // Check if user exists
-        const userExists = await User_1.default.findOne({ email });
+        const userExists = await User_1.findOne({ email });
         if (userExists) {
             res.status(400).json({ message: 'User already exists' });
             return;
         }
         // Hash password
-        const salt = await bcryptjs_1.default.genSalt(10);
-        const hashedPassword = await bcryptjs_1.default.hash(password, salt);
+        const salt = await bcryptjs_1.genSalt(10);
+        const hashedPassword = await bcryptjs_1.hash(password, salt);
         // Create user
-        const user = await User_1.default.create({
+        const user = await User_1.create({
             name,
             email,
             password: hashedPassword,
@@ -54,13 +54,13 @@ const login = async (req, res) => {
     try {
         const { email, password } = req.body;
         // Find user
-        const user = await User_1.default.findOne({ email }).select('+password');
+        const user = await User_1.findOne({ email }).select('+password');
         if (!user) {
             res.status(401).json({ message: 'Invalid email or password' });
             return;
         }
         // Check password
-        const isMatch = await bcryptjs_1.default.compare(password, user.password);
+        const isMatch = await bcryptjs_1.compare(password, user.password);
         if (!isMatch) {
             res.status(401).json({ message: 'Invalid email or password' });
             return;
@@ -100,7 +100,7 @@ const refreshToken = async (req, res) => {
             res.status(401).json({ message: 'Invalid refresh token' });
             return;
         }
-        const user = await User_1.default.findById(decoded.id);
+        const user = await User_1.findById(decoded.id);
         if (!user) {
             res.status(401).json({ message: 'Invalid refresh token' });
             return;
@@ -121,7 +121,7 @@ exports.refreshToken = refreshToken;
 // Get user profile
 const getUserProfile = async (req, res) => {
     try {
-        const user = await User_1.default.findById(req.user._id);
+        const user = await User_1.findById(req.user._id);
         if (!user) {
             res.status(404).json({ message: 'User not found' });
             return;
@@ -147,7 +147,7 @@ exports.getUserProfile = getUserProfile;
 // Update user profile
 const updateUserProfile = async (req, res) => {
     try {
-        const user = await User_1.default.findById(req.user._id);
+        const user = await User_1.findById(req.user._id);
         if (!user) {
             res.status(404).json({ message: 'User not found' });
             return;

@@ -1,0 +1,22 @@
+{
+  "version": 2,
+  "public": false,
+  "github": {
+    "autoJobCancelation": true
+  },
+  "builds": [
+    {
+      "src": "frontend/package.json",
+      "use": "@vercel/next",
+      "config": {
+        "distDir": "out"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "frontend/$1"
+    }
+  ]
+}

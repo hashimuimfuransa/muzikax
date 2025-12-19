@@ -4,8 +4,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.protect = exports.uploadTrack = void 0;
-const Track_1 = __importDefault(require("../models/Track"));
-const User_1 = __importDefault(require("../models/User"));
+const Track_1 = require("../models/Track");
+const User_1 = require("../models/User");
 const jwt_1 = require("../utils/jwt");
 Object.defineProperty(exports, "protect", { enumerable: true, get: function () { return jwt_1.protect; } });
 // Upload track with cover image
@@ -37,7 +37,7 @@ const uploadTrack = async (req, res) => {
         // If no cover image provided, try to use user's avatar
         let finalCoverURL = coverURL;
         if (!finalCoverURL) {
-            const userData = await User_1.default.findById(user._id);
+            const userData = await User_1.findById(user._id);
             if (userData && userData.avatar) {
                 finalCoverURL = userData.avatar;
                 console.log('Using user avatar as cover image:', finalCoverURL);
@@ -57,7 +57,7 @@ const uploadTrack = async (req, res) => {
         if (albumId) {
             trackData.albumId = albumId;
         }
-        const track = await Track_1.default.create(trackData);
+        const track = await Track_1.create(trackData);
         console.log('Track created successfully:', track);
         res.status(201).json(track);
     }

@@ -14,7 +14,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getSimilarTracks = exports.getGeneralRecommendations = exports.getPersonalizedRecommendations = void 0;
 
 const Track = require("../models/Track");
-const User = require("../models/User").default;
+const User = require("../models/User");
 const mongoose_1 = require("mongoose");/**
  * Get personalized recommendations based on user's recently played tracks and preferences
  */

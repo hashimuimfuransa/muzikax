@@ -1,6 +1,6 @@
 const Post = require('../models/Post');
 const Comment = require('../models/Comment');
-const User = require('../models/User').default;
+const User = require('../models/User');
 
 // Create a new post
 const createPost = async (req, res) => {

@@ -90,5 +90,5 @@ const AlbumSchema = new mongoose_1.Schema({
 AlbumSchema.index({ creatorId: 1 });
 AlbumSchema.index({ genre: 1 });
 AlbumSchema.index({ createdAt: -1 }); // For sorting by newest
-exports.default = mongoose_1.default.model('Album', AlbumSchema);
+module.exports = mongoose_1.default.model('Album', AlbumSchema);
 //# sourceMappingURL=Album.js.map

@@ -57,7 +57,7 @@ var updateWhatsAppContact = function (req, res) { return __awaiter(void 0, void 
                     res.status(400).json({ message: 'Invalid user ID' });
                     return [2 /*return*/];
                 }
-                return [4 /*yield*/, User_1.default.findById(userId).select('+password')];
+                return [4 /*yield*/, User_1.findById(userId).select('+password')];
             case 1:
                 user = _a.sent();
                 if (!user) {
@@ -131,7 +131,7 @@ var getWhatsAppContact = function (req, res) { return __awaiter(void 0, void 0, 
                     res.status(400).json({ message: 'Invalid user ID' });
                     return [2 /*return*/];
                 }
-                return [4 /*yield*/, User_1.default.findById(userId)];
+                return [4 /*yield*/, User_1.findById(userId)];
             case 1:
                 user = _a.sent();
                 if (!user) {

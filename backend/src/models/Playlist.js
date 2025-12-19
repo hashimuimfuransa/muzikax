@@ -63,5 +63,5 @@ const PlaylistSchema = new mongoose_1.Schema({
 // Indexes for better query performance
 PlaylistSchema.index({ userId: 1 });
 PlaylistSchema.index({ isPublic: 1 });
-exports.default = mongoose_1.default.model('Playlist', PlaylistSchema);
+module.exports = mongoose_1.default.model('Playlist', PlaylistSchema);
 //# sourceMappingURL=Playlist.js.map

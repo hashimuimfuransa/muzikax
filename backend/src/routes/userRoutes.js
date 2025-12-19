@@ -103,5 +103,5 @@ router.route('/me')
 // User route for following a creator
 router.route('/follow/:id')
     .post(jwt_1.protect, userController_1.followCreator);
-exports.default = router;
+module.exports = router;
 //# sourceMappingURL=userRoutes.js.map

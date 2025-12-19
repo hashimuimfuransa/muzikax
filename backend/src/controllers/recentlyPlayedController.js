@@ -4,8 +4,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getRecentlyPlayed = exports.addRecentlyPlayed = void 0;
-const User_1 = __importDefault(require("../models/User"));
-const mongoose_1 = __importDefault(require("mongoose"));
+const User_1 = require("../models/User");
+const mongoose_1 = require("mongoose");
 
 // Add track to recently played
 const addRecentlyPlayed = async (req, res) => {
@@ -24,7 +24,7 @@ const addRecentlyPlayed = async (req, res) => {
         }
 
         // Find the user and update their recently played tracks
-        const user = await User_1.default.findById(userId);
+        const user = await User_1.findById(userId);
         if (!user) {
             res.status(404).json({ message: 'User not found' });
             return;
@@ -68,7 +68,7 @@ const getRecentlyPlayed = async (req, res) => {
         }
 
         // Find the user and populate their recently played tracks
-        const user = await User_1.default.findById(userId).populate({
+        const user = await User_1.findById(userId).populate({
             path: 'recentlyPlayed.trackId',
             model: 'Track',
             populate: {

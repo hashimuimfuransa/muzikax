@@ -4,8 +4,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getTrendingTracks = exports.incrementPlayCount = exports.deleteTrack = exports.updateTrack = exports.getTracksByAuthUser = exports.getTracksByCreator = exports.getTracksByCreatorSimple = exports.getTrackById = exports.getAllTracks = exports.uploadTrack = void 0;
-const Track_1 = __importDefault(require("../models/Track"));
-const ListenerGeography_1 = __importDefault(require("../models/ListenerGeography"));
+const Track_1 = require("../models/Track");
+const ListenerGeography_1 = require("../models/ListenerGeography");
 const geoip = require('geoip-lite');
 // import User from '../models/User'; // Not used in this controller
 // Upload track
@@ -18,7 +18,7 @@ const uploadTrack = async (req, res) => {
             res.status(400).json({ message: 'Title and audio URL are required' });
             return;
         }
-        const track = await Track_1.default.create({
+        const track = await Track_1.create({
             creatorId: user._id,
             creatorType: user.creatorType,
             title,
@@ -41,12 +41,12 @@ const getAllTracks = async (req, res) => {
         const page = parseInt(req.query['page']) || 1;
         const limit = parseInt(req.query['limit']) || 10;
         const skip = (page - 1) * limit;
-        const tracks = await Track_1.default.find()
+        const tracks = await Track_1.find()
             .populate('creatorId', 'name avatar')
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit);
-        const total = await Track_1.default.countDocuments();
+        const total = await Track_1.countDocuments();
         res.json({
             tracks,
             page,
@@ -62,7 +62,7 @@ exports.getAllTracks = getAllTracks;
 // Get track by ID
 const getTrackById = async (req, res) => {
     try {
-        const track = await Track_1.default.findById(req.params['id'])
+        const track = await Track_1.findById(req.params['id'])
             .populate('creatorId', 'name avatar whatsappContact');
         if (!track) {
             res.status(404).json({ message: 'Track not found' });
@@ -78,7 +78,7 @@ exports.getTrackById = getTrackById;
 // Get all tracks by creator (without pagination)
 const getTracksByCreatorSimple = async (req, res) => {
     try {
-        const tracks = await Track_1.default.find({ creatorId: req.params['creatorId'] })
+        const tracks = await Track_1.find({ creatorId: req.params['creatorId'] })
             .sort({ createdAt: -1 })
             .populate('creatorId', 'name avatar');
         res.json(tracks);
@@ -96,7 +96,7 @@ const getTracksByCreator = async (req, res) => {
         const limitParam = req.query['limit'];
         // If no pagination parameters, return all tracks
         if (pageParam === undefined && limitParam === undefined) {
-            const tracks = await Track_1.default.find({ creatorId: req.params['creatorId'] })
+            const tracks = await Track_1.find({ creatorId: req.params['creatorId'] })
                 .sort({ createdAt: -1 })
                 .populate('creatorId', 'name avatar');
             res.json(tracks);
@@ -106,12 +106,12 @@ const getTracksByCreator = async (req, res) => {
         const page = parseInt(pageParam) || 1;
         const limit = parseInt(limitParam) || 10;
         const skip = (page - 1) * limit;
-        const tracks = await Track_1.default.find({ creatorId: req.params['creatorId'] })
+        const tracks = await Track_1.find({ creatorId: req.params['creatorId'] })
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit)
             .populate('creatorId', 'name avatar');
-        const total = await Track_1.default.countDocuments({ creatorId: req.params['creatorId'] });
+        const total = await Track_1.countDocuments({ creatorId: req.params['creatorId'] });
         res.json({
             tracks,
             page,
@@ -134,7 +134,7 @@ const getTracksByAuthUser = async (req, res) => {
         const creatorId = req.user._id;
         // If no pagination parameters, return all tracks
         if (pageParam === undefined && limitParam === undefined) {
-            const tracks = await Track_1.default.find({ creatorId })
+            const tracks = await Track_1.find({ creatorId })
                 .sort({ createdAt: -1 })
                 .populate('creatorId', 'name avatar');
             res.json(tracks);
@@ -144,12 +144,12 @@ const getTracksByAuthUser = async (req, res) => {
         const page = parseInt(pageParam) || 1;
         const limit = parseInt(limitParam) || 10;
         const skip = (page - 1) * limit;
-        const tracks = await Track_1.default.find({ creatorId })
+        const tracks = await Track_1.find({ creatorId })
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit)
             .populate('creatorId', 'name avatar');
-        const total = await Track_1.default.countDocuments({ creatorId });
+        const total = await Track_1.countDocuments({ creatorId });
         res.json({
             tracks,
             page,
@@ -166,7 +166,7 @@ exports.getTracksByAuthUser = getTracksByAuthUser;
 const updateTrack = async (req, res) => {
     try {
         const { title, genre, coverURL, description } = req.body;
-        const track = await Track_1.default.findById(req.params['id']);
+        const track = await Track_1.findById(req.params['id']);
         if (!track) {
             res.status(404).json({ message: 'Track not found' });
             return;
@@ -205,7 +205,7 @@ exports.updateTrack = updateTrack;
 // Delete track
 const deleteTrack = async (req, res) => {
     try {
-        const track = await Track_1.default.findById(req.params['id']);
+        const track = await Track_1.findById(req.params['id']);
         if (!track) {
             res.status(404).json({ message: 'Track not found' });
             return;
@@ -236,7 +236,7 @@ exports.deleteTrack = deleteTrack;
 // Increment play count
 const incrementPlayCount = async (req, res) => {
     try {
-        const track = await Track_1.default.findByIdAndUpdate(req.params['id'], { $inc: { plays: 1 } }, { new: true });
+        const track = await Track_1.findByIdAndUpdate(req.params['id'], { $inc: { plays: 1 } }, { new: true });
         if (!track) {
             res.status(404).json({ message: 'Track not found' });
             return;
@@ -253,7 +253,7 @@ const incrementPlayCount = async (req, res) => {
             
             if (geo) {
                 // Store geography data
-                await ListenerGeography_1.default.create({
+                await ListenerGeography_1.create({
                     trackId: track._id,
                     creatorId: track.creatorId,
                     ipAddress: cleanIpAddress,
@@ -279,7 +279,7 @@ exports.incrementPlayCount = incrementPlayCount;
 const getTrendingTracks = async (req, res) => {
     try {
         const limit = parseInt(req.query['limit']) || 10;
-        const tracks = await Track_1.default.find()
+        const tracks = await Track_1.find()
             .sort({ plays: -1, createdAt: -1 })
             .limit(limit)
             .populate('creatorId', 'name avatar');

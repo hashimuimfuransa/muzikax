@@ -9,4 +9,4 @@ console.log('SETTING UP PROFILE ROUTES');
 // User route for updating own profile
 router.route('/me')
     .put(jwt_1.protect, profileController_1.updateOwnProfile);
-exports.default = router;
+module.exports = router;

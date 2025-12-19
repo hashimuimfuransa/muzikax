@@ -85,4 +85,4 @@ var UserSchema = new mongoose_1.Schema({
 });
 // Index for email
 UserSchema.index({ email: 1 });
-exports.default = mongoose_1.default.model('User', UserSchema);
+module.exports = mongoose_1.default.model('User', UserSchema);
