@@ -51,7 +51,7 @@ const PWAInstallPrompt = () => {
   if (!showInstallPrompt) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 left-4 md:left-auto md:w-80 bg-white rounded-lg shadow-xl p-4 z-50 border border-gray-200">
+    <div className="fixed bottom-20 right-4 left-4 md:left-auto md:w-80 bg-white rounded-lg shadow-xl p-4 z-[10000] border border-gray-200 md:bottom-4">
       <div className="flex justify-between items-start">
         <div>
           <h3 className="font-bold text-lg text-gray-900">Install MuzikaX App</h3>

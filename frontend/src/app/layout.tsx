@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import Navbar from "../components/Navbar";
+import MobileNavbar from "../components/MobileNavbar";
 import { AuthProvider } from "../contexts/AuthContext";
 import { AudioPlayerProvider } from "../contexts/AudioPlayerContext";
 import ModernAudioPlayer from "../components/ModernAudioPlayer";
@@ -34,12 +35,13 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/muzikax.png" />
         <link rel="icon" href="/muzikax.png" type="image/png" />
       </head>
-      <body>
+      <body className="pb-24 md:pb-0">
         <AuthProvider>
           <AudioPlayerProvider>
             <Navbar />
             {children}
             <ModernAudioPlayer />
+            <MobileNavbar />
             <PWAInstallPrompt />
           </AudioPlayerProvider>
         </AuthProvider>

@@ -66,6 +66,10 @@ body {
     animation: fadeIn 0.5s ease-in-out;
   }
   
+  .animate-fade-in-simple {
+    animation: fadeInSimple 0.3s ease-in-out;
+  }
+  
   .animate-fade-in-delay {
     animation: fadeIn 0.5s ease-in-out 0.2s forwards;
     opacity: 0;
@@ -107,6 +111,15 @@ body {
     }
   }
   
+  @keyframes fadeInSimple {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  
   @keyframes blob {
     0% {
       transform: translate(0px, 0px) scale(1);
@@ -144,6 +157,17 @@ body {
       opacity: 1;
       transform: translateY(0);
     }
+  }
+  
+  /* Spin animation for loading spinner */
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  
+  .animate-spin {
+    animation: spin 1s linear infinite;
   }
 }
 
@@ -193,4 +217,21 @@ body {
 
 .touch-pan-y {
   touch-action: pan-y;
+}
+
+/* Safe area insets for mobile devices */
+.safe-area-pb {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@media (max-width: 767px) {
+  .mobile-navbar-height {
+    height: calc(60px + env(safe-area-inset-bottom));
+  }
+  
+  /* Ensure mobile navbar is visible above all content */
+  .mobile-navbar-container,
+  [data-testid="mobile-navbar"] {
+    z-index: 9999 !important;
+  }
 }

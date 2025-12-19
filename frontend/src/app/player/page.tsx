@@ -425,8 +425,7 @@ const FullPagePlayer = () => {
 
   // Removed music visualization effect as requested
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white relative overflow-hidden">
-      {/* Simple gradient overlay */}
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white relative overflow-hidden pb-28 md:pb-0">      {/* Simple gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-r from-[#FF4D67]/20 via-[#FFCB2B]/20 to-[#8B5CF6]/20 z-0"></div>      
       {/* Content Container */}
       <div className="relative z-10">

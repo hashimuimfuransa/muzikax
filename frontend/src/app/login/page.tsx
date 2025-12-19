@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../contexts/AuthContext'
@@ -12,8 +12,18 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
   const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   const { login } = useAuth()
+
+  // Reset form when switching between login/signup
+  useEffect(() => {
+    setEmail('')
+    setPassword('')
+    setName('')
+    setError('')
+    setStep(1)
+  }, [isLogin])
 
   const handleEmailSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -27,7 +37,8 @@ export default function Login() {
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('Logging in...', { email, password })
+    setIsLoading(true)
+    setError('')
     
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
@@ -41,6 +52,7 @@ export default function Login() {
       if (!response.ok) {
         const errorData = await response.json()
         setError(errorData.message || 'Login failed')
+        setIsLoading(false)
         return
       }
 
@@ -69,12 +81,15 @@ export default function Login() {
     } catch (error) {
       console.error('Login error:', error)
       setError('An unexpected error occurred. Please try again.')
+    } finally {
+      setIsLoading(false)
     }
   }
 
   const handleSignupSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('Signing up...', { email, password, name })
+    setIsLoading(true)
+    setError('')
     
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/register`, {
@@ -88,6 +103,7 @@ export default function Login() {
       if (!response.ok) {
         const errorData = await response.json()
         setError(errorData.message || 'Registration failed')
+        setIsLoading(false)
         return
       }
 
@@ -116,6 +132,8 @@ export default function Login() {
     } catch (error) {
       console.error('Signup error:', error)
       setError('An unexpected error occurred. Please try again.')
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -129,24 +147,31 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-900 to-black p-4">
-      <div className="absolute -top-40 -left-40 w-80 h-80 bg-[#FF4D67]/10 rounded-full blur-3xl -z-10"></div>
-      <div className="absolute -bottom-40 -right-40 w-80 h-80 bg-[#FFCB2B]/10 rounded-full blur-3xl -z-10"></div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-900 to-black p-4 pb-24 overflow-visible relative">
+      <div className="absolute top-1/3 left-0 w-48 h-48 bg-[#FF4D67]/10 rounded-full blur-3xl -z-10 opacity-70 md:w-64 md:h-64 md:top-1/4 md:left-1/4"></div>
+      <div className="absolute bottom-1/3 right-0 w-48 h-48 bg-[#FFCB2B]/10 rounded-full blur-3xl -z-10 opacity-70 md:w-64 md:h-64 md:bottom-1/4 md:right-1/4"></div>
       
-      <div className="w-full max-w-md space-y-6 sm:space-y-8 card-bg rounded-2xl p-6 sm:p-8 border border-gray-700/50 shadow-2xl shadow-[#FF4D67]/10">
-        <div className="text-center">
-          <h1 className="text-2xl sm:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B]">
+      <div className="w-full max-w-md space-y-6 sm:space-y-8 card-bg rounded-2xl p-6 sm:p-8 border border-gray-700/50 shadow-2xl shadow-[#FF4D67]/10 relative z-10">
+        <div className="text-center animate-fade-in">
+          <div className="flex justify-center mb-4">
+            <img 
+              src="/muzikax.png" 
+              alt="MuzikaX - Rwanda's Digital Music Ecosystem" 
+              className="h-20 w-20 sm:h-24 sm:w-24 mx-auto transition-transform duration-300 hover:scale-105 object-contain drop-shadow-2xl rounded-lg"
+            />
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">
             MUZIKAX
           </h1>
-          <h2 className="mt-3 sm:mt-4 text-xl sm:text-2xl font-bold text-white">
+          <h2 className="mt-2 sm:mt-3 text-xl sm:text-2xl font-bold text-white">
             {isLogin ? 'Welcome back' : 'Create account'}
           </h2>
-          <p className="mt-1 sm:mt-2 text-gray-400 text-sm sm:text-base">
+          <p className="mt-2 sm:mt-3 text-gray-300 text-sm sm:text-base max-w-md mx-auto">
             {isLogin 
               ? 'Sign in to your account to continue' 
               : 'Join our community of Rwandan music creators and fans'}
           </p>
-          <p className="mt-2 text-gray-500 text-xs sm:text-sm">
+          <p className="mt-2 text-gray-400 text-xs sm:text-sm max-w-md mx-auto">
             {isLogin ? '' : 'All new accounts start as regular users. You can upgrade to a creator account later.'}
           </p>
         </div>
@@ -209,9 +234,18 @@ export default function Login() {
             <div>
               <button
                 type="submit"
-                className="w-full py-2.5 sm:py-3 px-4 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FF4D67] focus:ring-offset-gray-900 text-sm sm:text-base"
+                disabled={isLoading}
+                className="w-full py-2.5 sm:py-3 px-4 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FF4D67] focus:ring-offset-gray-900 text-sm sm:text-base flex items-center justify-center disabled:opacity-70"
               >
-                Next
+                {isLoading ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Processing...
+                  </>
+                ) : 'Next'}
               </button>
             </div>
           </form>
@@ -253,9 +287,18 @@ export default function Login() {
             <div>
               <button
                 type="submit"
-                className="w-full py-2.5 sm:py-3 px-4 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FF4D67] focus:ring-offset-gray-900 text-sm sm:text-base"
+                disabled={isLoading}
+                className="w-full py-2.5 sm:py-3 px-4 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FF4D67] focus:ring-offset-gray-900 text-sm sm:text-base flex items-center justify-center disabled:opacity-70"
               >
-                Sign in
+                {isLoading ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Signing in...
+                  </>
+                ) : 'Sign in'}
               </button>
             </div>
           </form>
@@ -315,9 +358,18 @@ export default function Login() {
             <div>
               <button
                 type="submit"
-                className="w-full py-2.5 sm:py-3 px-4 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FF4D67] focus:ring-offset-gray-900 text-sm sm:text-base"
+                disabled={isLoading}
+                className="w-full py-2.5 sm:py-3 px-4 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FF4D67] focus:ring-offset-gray-900 text-sm sm:text-base flex items-center justify-center disabled:opacity-70"
               >
-                Create account
+                {isLoading ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Creating account...
+                  </>
+                ) : 'Create account'}
               </button>
             </div>
           </form>
