@@ -14,6 +14,7 @@ interface Track {
   likes: number
   coverImage: string
   duration?: string
+  audioURL: string
 }
 
 interface Creator {
@@ -33,133 +34,59 @@ interface Album {
   year: number
   tracks: number
 }
-
 // Separate component for the main content that uses useSearchParams
 function SearchResultsContent() {
   const searchParams = useSearchParams()
   const query = searchParams.get('q') || ''
   const [searchQuery, setSearchQuery] = useState(query)
   const [activeTab, setActiveTab] = useState<'tracks' | 'artists' | 'albums'>('tracks')
+  const [tracks, setTracks] = useState<Track[]>([])
+  const [artists, setArtists] = useState<Creator[]>([])
+  const [albums, setAlbums] = useState<Album[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   
-  // Mock data for search results
-  const mockTracks: Track[] = [
-    {
-      id: '1',
-      title: 'Rwandan Vibes',
-      artist: 'Kizito M',
-      album: 'East African Dreams',
-      plays: 12400,
-      likes: 890,
-      coverImage: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '3:45'
-    },
-    {
-      id: '2',
-      title: 'Mountain Echoes',
-      artist: 'Divine Ikirezi',
-      album: 'Nature Sounds',
-      plays: 9800,
-      likes: 756,
-      coverImage: 'https://images.unsplash.com/photo-1507838153414-b4b713384a76?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '4:22'
-    },
-    {
-      id: '3',
-      title: 'City Lights',
-      artist: 'Benji Flavours',
-      album: 'Urban Nights',
-      plays: 15600,
-      likes: 1200,
-      coverImage: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '3:18'
-    },
-    {
-      id: '4',
-      title: 'Sunset Dreams',
-      artist: 'Remy Kayitesi',
-      album: 'Golden Hour',
-      plays: 8700,
-      likes: 620,
-      coverImage: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      duration: '5:01'
+  // Fetch search results from API
+  const fetchSearchResults = async (searchTerm: string) => {
+    if (!searchTerm.trim()) return
+    
+    setLoading(true)
+    setError(null)
+    
+    try {
+      const response = await fetch(`http://localhost:5000/api/search?q=${encodeURIComponent(searchTerm)}&type=all`)
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch search results')
+      }
+      
+      const data = await response.json()
+      
+      setTracks(data.tracks || [])
+      setArtists(data.artists || [])
+      setAlbums(data.albums || [])
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An unknown error occurred')
+      console.error('Search error:', err)
+    } finally {
+      setLoading(false)
     }
-  ]
-
-  const mockArtists: Creator[] = [
-    {
-      id: '1',
-      name: 'Kizito M',
-      type: 'Artist',
-      followers: 12500,
-      avatar: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      verified: true
-    },
-    {
-      id: '2',
-      name: 'Divine Ikirezi',
-      type: 'Producer',
-      followers: 8900,
-      avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      verified: true
-    },
-    {
-      id: '3',
-      name: 'Benji Flavours',
-      type: 'DJ',
-      followers: 15600,
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      verified: true
+  }
+  
+  // Fetch results when query changes
+  useEffect(() => {
+    if (query) {
+      fetchSearchResults(query)
     }
-  ]
-
-  const mockAlbums: Album[] = [
-    {
-      id: '1',
-      title: 'East African Dreams',
-      artist: 'Kizito M',
-      coverImage: 'https://images.unsplash.com/photo-1494232410401-ad00d5433cfa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      year: 2024,
-      tracks: 12
-    },
-    {
-      id: '2',
-      title: 'Urban Nights',
-      artist: 'Benji Flavours',
-      coverImage: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      year: 2023,
-      tracks: 10
-    },
-    {
-      id: '3',
-      title: 'Nature Sounds',
-      artist: 'Divine Ikirezi',
-      coverImage: 'https://images.unsplash.com/photo-1507838153414-b4b713384a76?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      year: 2024,
-      tracks: 8
-    }
-  ]
-
-  // Filter results based on search query
-  const filteredTracks = mockTracks.filter(track => 
-    track.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    track.artist.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (track.album && track.album.toLowerCase().includes(searchQuery.toLowerCase()))
-  )
-
-  const filteredArtists = mockArtists.filter(artist => 
-    artist.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    artist.type.toLowerCase().includes(searchQuery.toLowerCase())
-  )
-
-  const filteredAlbums = mockAlbums.filter(album => 
-    album.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    album.artist.toLowerCase().includes(searchQuery.toLowerCase())
-  )
-
+  }, [query])
+  
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    // In a real app, this would trigger a new search
-    console.log('Searching for:', searchQuery)
+    if (searchQuery.trim()) {
+      // Update URL with new search query
+      window.history.pushState({}, '', `/search?q=${encodeURIComponent(searchQuery.trim())}`)
+      fetchSearchResults(searchQuery.trim())
+    }
   }
 
   return (
@@ -203,7 +130,7 @@ function SearchResultsContent() {
           {/* Results Info */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
             <p className="text-gray-400">
-              Found {filteredTracks.length + filteredArtists.length + filteredAlbums.length} results for "{query}"
+              {loading ? 'Searching...' : `Found ${tracks.length + artists.length + albums.length} results for "${query}"`}
             </p>
             
             {/* Tabs */}
@@ -216,7 +143,7 @@ function SearchResultsContent() {
                 }`}
                 onClick={() => setActiveTab('tracks')}
               >
-                Tracks ({filteredTracks.length})
+                Tracks ({tracks.length})
               </button>
               <button
                 className={`py-2 px-4 font-medium text-sm sm:text-base transition-colors ${
@@ -226,7 +153,7 @@ function SearchResultsContent() {
                 }`}
                 onClick={() => setActiveTab('artists')}
               >
-                Artists ({filteredArtists.length})
+                Artists ({artists.length})
               </button>
               <button
                 className={`py-2 px-4 font-medium text-sm sm:text-base transition-colors ${
@@ -236,19 +163,38 @@ function SearchResultsContent() {
                 }`}
                 onClick={() => setActiveTab('albums')}
               >
-                Albums ({filteredAlbums.length})
+                Albums ({albums.length})
               </button>
             </div>
           </div>
           
           {/* Search Results */}
-          {searchQuery ? (
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#FF4D67]"></div>
+              <p className="mt-4 text-gray-400">Searching for "{query}"...</p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-12">
+              <svg className="w-16 h-16 mx-auto text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+              </svg>
+              <h3 className="mt-4 text-lg font-medium text-white">Error loading search results</h3>
+              <p className="mt-2 text-gray-400">{error}</p>
+              <button 
+                onClick={() => fetchSearchResults(query)}
+                className="mt-4 px-4 py-2 bg-[#FF4D67] hover:bg-[#FF4D67]/80 text-white rounded-full text-sm font-medium transition-colors"
+              >
+                Try Again
+              </button>
+            </div>
+          ) : searchQuery ? (
             <>
               {/* Tracks Tab */}
               {activeTab === 'tracks' && (
                 <div className="space-y-4">
-                  {filteredTracks.length > 0 ? (
-                    filteredTracks.map((track) => (
+                  {tracks.length > 0 ? (
+                    tracks.map((track) => (
                       <div key={track.id} className="flex items-center gap-4 p-4 card-bg rounded-xl hover:bg-gray-800/50 transition-colors group">
                         <div className="relative">
                           <img 
@@ -275,7 +221,7 @@ function SearchResultsContent() {
                           <p className="text-gray-500 text-xs sm:text-sm">{track.plays.toLocaleString()} plays</p>
                           <div className="flex items-center gap-1 mt-1 justify-end">
                             <svg className="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                              <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd"></path>
+                              <path fillRule="evenodd" d="M3.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                             <span className="text-gray-500 text-xs sm:text-sm">{track.likes}</span>
                           </div>
@@ -297,8 +243,8 @@ function SearchResultsContent() {
               {/* Artists Tab */}
               {activeTab === 'artists' && (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                  {filteredArtists.length > 0 ? (
-                    filteredArtists.map((artist) => (
+                  {artists.length > 0 ? (
+                    artists.map((artist) => (
                       <div key={artist.id} className="group card-bg rounded-xl p-4 transition-all duration-300 hover:border-[#FFCB2B]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FFCB2B]/10">
                         <div className="flex flex-col items-center text-center">
                           <div className="relative mb-3">
@@ -341,8 +287,8 @@ function SearchResultsContent() {
               {/* Albums Tab */}
               {activeTab === 'albums' && (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                  {filteredAlbums.length > 0 ? (
-                    filteredAlbums.map((album) => (
+                  {albums.length > 0 ? (
+                    albums.map((album) => (
                       <div key={album.id} className="group card-bg rounded-xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10">
                         <div className="relative">
                           <img 

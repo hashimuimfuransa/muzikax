@@ -20,10 +20,11 @@ interface Track {
 }
 
 interface Creator {
+  _id: string
   id: string
   name: string
-  type: string
-  followers: number
+  creatorType: string
+  followersCount: number
   avatar: string
   verified?: boolean
 }
@@ -43,9 +44,11 @@ const categories = [
 function ExploreContent() {
   const [activeTab, setActiveTab] = useState<'tracks' | 'creators'>('tracks')
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const [searchTerm, setSearchTerm] = useState<string>('')
   const searchParams = useSearchParams()
   const router = useRouter()
   const { tracks: trendingTracksData, loading: trendingLoading, refresh: refreshTrendingTracks } = useTrendingTracks(20)
+  const { creators: popularCreatorsData, loading: creatorsLoading, refresh: refreshCreators } = usePopularCreators(20)
   const { currentTrack, isPlaying, playTrack, setCurrentPlaylist, favorites, favoritesLoading, addToFavorites, removeFromFavorites } = useAudioPlayer()
 
   // State for tracking which tracks are favorited
@@ -153,54 +156,38 @@ function ExploreContent() {
     duration: ''
   }));
 
-  const allCreators: Creator[] = [
-    {
-      id: '1',
-      name: 'Kizito M',
-      type: 'Artist',
-      followers: 12500,
-      avatar: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      verified: true
-    },
-    {
-      id: '2',
-      name: 'Divine Ikirezi',
-      type: 'Producer',
-      followers: 8900,
-      avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      verified: true
-    },
-    {
-      id: '3',
-      name: 'Benji Flavours',
-      type: 'DJ',
-      followers: 15600,
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-      verified: true
-    },
-    {
-      id: '4',
-      name: 'Remy Kayitesi',
-      type: 'Artist',
-      followers: 7200,
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'
-    },
-    {
-      id: '5',
-      name: 'Gloria Muhire',
-      type: 'Artist',
-      followers: 9800,
-      avatar: 'https://images.unsplash.com/photo-1494232410401-ad00d5433cfa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'
-    }
-  ]
+  // Transform real creators data to match existing interface
+  const allCreators: Creator[] = popularCreatorsData.map(creator => ({
+    _id: creator._id,
+    id: creator._id || 'unknown',
+    name: creator.name,
+    creatorType: creator.creatorType || 'artist',
+    followersCount: creator.followersCount || 0,
+    avatar: creator.avatar || 'https://images.unsplash.com/photo-1519681393784-d120267933ba?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
+    verified: true // Assuming all creators from backend are verified for now
+  }))
 
-  // Filter tracks based on selected category
-  const filteredTracks = selectedCategory 
-    ? allTracks.filter(track => track.category === selectedCategory)
-    : allTracks
+  // Filter tracks based on selected category and search term
+  const filteredTracks = allTracks.filter(track => {
+    // Apply category filter if selected
+    const categoryMatch = selectedCategory ? track.category === selectedCategory : true;
+    
+    // Apply search filter if search term exists
+    const searchMatch = searchTerm 
+      ? track.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        track.artist.toLowerCase().includes(searchTerm.toLowerCase())
+      : true;
+    
+    return categoryMatch && searchMatch;
+  });
 
-  // Filter creators based on selected category (for demo, we'll show all creators regardless of category)
-  const filteredCreators = allCreators
+  // Filter creators based on search term
+  const filteredCreators = allCreators.filter(creator => {
+    return searchTerm 
+      ? creator.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        creator.creatorType.toLowerCase().includes(searchTerm.toLowerCase())
+      : true; // Show all creators if no search term
+  });
 
   const handleCategoryClick = (categoryId: string) => {
     if (selectedCategory === categoryId) {
@@ -241,6 +228,8 @@ function ExploreContent() {
               <input
                 type="text"
                 placeholder="Search tracks, artists, albums..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full py-2.5 sm:py-3 px-4 sm:px-6 pl-10 sm:pl-12 bg-gray-800/70 backdrop-blur-sm border border-gray-700/50 rounded-full text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm sm:text-base shadow-lg"
               />
               <div className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-gray-400">
@@ -371,19 +360,19 @@ function ExploreContent() {
                               setCurrentPlaylist(playlistTracks);
                             }
                           }}
-                          className="w-12 h-12 sm:w-14 sm:h-14 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+                          className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[#FF4D67] flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 shadow-lg hover:bg-[#ff2a4d] hover:scale-105">
                           {currentTrack?.id === track.id && isPlaying ? (
-                            <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <svg className="w-6 h-6 sm:w-7 sm:h-7" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd"></path>
                             </svg>
                           ) : (
-                            <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                              <path fillRule="evenodd" d="M4.318 6.318a4 4 0 000 6.364L12 20.364l7.682-7.682a4 4 0 00-6.364-6.364L12 7.636l-1.318-1.318a4 4 0 000-5.656z" clipRule="evenodd"></path>
+                            <svg className="w-6 h-6 sm:w-7 sm:h-7 ml-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
                             </svg>
                           )}
                         </button>
                       </div>
-                      <div className="absolute top-2 right-2 sm:top-3 sm:right-3">
+                      <div className="absolute top-3 right-3 sm:top-4 sm:right-4">
                         <button 
                           onClick={(e) => {
                             e.stopPropagation();
@@ -393,16 +382,17 @@ function ExploreContent() {
                               toggleFavorite(track.id, fullTrack);
                             }
                           }}
-                          className="p-1.5 sm:p-2 rounded-full bg-black/30 backdrop-blur-sm text-white opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110"
+                          className="p-2 sm:p-2.5 rounded-full bg-black/40 backdrop-blur-md text-white opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 hover:bg-black/60 shadow-md"
                         >
                           <svg 
-                            className={`w-4 h-4 sm:w-5 sm:h-5 transition-all duration-200 ${favoriteStatus[track.id] ? 'text-red-500 fill-current scale-110' : 'stroke-current'}`}
+                            className={`w-5 h-5 sm:w-6 sm:h-6 transition-all duration-300 ${favoriteStatus[track.id] ? 'text-red-500 fill-current scale-110' : 'stroke-current'}`}
                             fill={favoriteStatus[track.id] ? "currentColor" : "none"}
                             stroke="currentColor"
+                            strokeWidth="1.5"
                             viewBox="0 0 24 24" 
                             xmlns="http://www.w3.org/2000/svg"
                           >
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4 4 0 000 6.364L12 20.364l7.682-7.682a4 4 0 00-6.364-6.364L12 7.636l-1.318-1.318a4 4 0 000-5.656z"></path>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4 4 0 000 6.364L12 20.364l7.682-7.682a4 4 0 00-6.364-6.364L12 7.636l-1.318-1.318a4 4 0 000-5.656z"></path>
                           </svg>
                         </button>
                       </div>
@@ -431,40 +421,48 @@ function ExploreContent() {
 
         {/* Creators Grid */}
         {activeTab === 'creators' && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {filteredCreators.map((creator) => (
-              <div key={creator.id} className="group card-bg rounded-2xl p-4 sm:p-6 transition-all duration-300 hover:border-[#FFCB2B]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FFCB2B]/10">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="relative">
-                    <img 
-                      src={creator.avatar} 
-                      alt={creator.name} 
-                      className="w-16 h-16 rounded-full object-cover"
-                    />
-                    {creator.verified && (
-                      <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-[#FF4D67] rounded-full flex items-center justify-center">
-                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
-                        </svg>
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-white text-lg">{creator.name}</h3>
-                    <p className="text-gray-400 text-sm">{creator.type}</p>
-                  </div>
-                </div>
-                
-                <div className="flex justify-between text-sm text-gray-500 mb-4">
-                  <span>{creator.followers.toLocaleString()} followers</span>
-                </div>
-                
-                <button className="w-full py-2.5 sm:py-3 gradient-secondary rounded-lg text-white font-medium hover:opacity-90 transition-opacity text-sm sm:text-base">
-                  Follow
-                </button>
+          <>
+            {creatorsLoading ? (
+              <div className="flex justify-center items-center h-64">
+                <div className="text-white">Loading creators...</div>
               </div>
-            ))}
-          </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                {filteredCreators.map((creator) => (
+                  <div key={creator.id} className="group card-bg rounded-2xl p-4 sm:p-6 transition-all duration-300 hover:border-[#FFCB2B]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FFCB2B]/10">
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="relative">
+                        <img 
+                          src={creator.avatar} 
+                          alt={creator.name} 
+                          className="w-16 h-16 rounded-full object-cover"
+                        />
+                        {creator.verified && (
+                          <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-[#FF4D67] rounded-full flex items-center justify-center">
+                            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-white text-lg">{creator.name}</h3>
+                        <p className="text-gray-400 text-sm">{creator.creatorType}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-between text-sm text-gray-500 mb-4">
+                      <span>{creator.followersCount.toLocaleString()} followers</span>
+                    </div>
+                    
+                    <button className="w-full py-3 sm:py-3.5 bg-gradient-to-r from-[#FFCB2B] to-[#FFA726] rounded-lg text-gray-900 font-bold hover:opacity-90 transition-all duration-300 text-sm sm:text-base shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
+                      Follow
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

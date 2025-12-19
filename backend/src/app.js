@@ -30,6 +30,8 @@ const postRoutes = require('./routes/postRoutes');
 // Import WhatsApp routes
 const whatsappRoutes = require('./routes/whatsappRoutes');
 
+// Import search routes
+const searchRoutes = require('./routes/searchRoutes');
 console.log('ROUTES IMPORTED');
 
 console.log('APP FILE LOADED');
@@ -152,8 +154,16 @@ try {
   console.error('Error registering WhatsApp routes:', error);
 }
 
-// Directly implement profile update route in app.js to avoid 404 issues
+// Register search routes
+console.log('Attempting to register search routes...');
+try {
+  app.use('/api/search', searchRoutes);
+  console.log('Search routes registered successfully');
+} catch (error) {
+  console.error('Error registering search routes:', error);
+}
 
+// Directly implement profile update route in app.js to avoid 404 issues
 // User route for updating own profile directly in app
 app.put('/api/profile/me', protect, updateOwnProfile);
 
