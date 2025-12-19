@@ -2097,9 +2097,9 @@ export default function Home() {
           <div className="container mx-auto px-4 md:px-8">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
               <div className="col-span-1 md:col-span-2">
-                <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] mb-4">
-                  MUZIKAX
-                </h2>
+                <div className="mb-4">
+                  <img src="/muzikax.png" alt="MuzikaX Logo" className="h-8 w-auto" />
+                </div>
                 <p className="text-gray-400 mb-6">
                   Discover, share, and enjoy the best of Rwandan music. Connect
                   with talented creators and experience the rich sounds of our
