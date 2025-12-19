@@ -133,8 +133,8 @@ export default function EditTrackPage({ params }: { params: Promise<{ id: string
         
         // Check if user is authorized to edit this track
         // Handle both cases: when creatorId is populated (object) or not (ObjectId)
-        const trackOwnerId = track.creatorId && typeof track.creatorId === 'object' && '_id' in track.creatorId ? 
-          track.creatorId._id.toString() : 
+        const trackOwnerId = track.creatorId && typeof track.creatorId === 'object' && track.creatorId !== null && '_id' in track.creatorId ? 
+          (track.creatorId as any)._id.toString() : 
           track.creatorId.toString();
         
         if (trackOwnerId !== user?.id) {
