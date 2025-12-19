@@ -7,6 +7,8 @@ import { getUserFavorites } from '@/services/userService'
 import { useAudioPlayer } from '@/contexts/AudioPlayerContext'
 
 interface BackendTrack {
+  likes: number
+  plays: number
   _id: string
   id: string
   title: string
