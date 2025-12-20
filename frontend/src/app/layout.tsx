@@ -10,6 +10,16 @@ import PWAInstallPrompt from "../components/PWAInstallPrompt";
 export const metadata: Metadata = {
   title: "MuzikaX - Rwanda's Digital Music Ecosystem",
   description: "Connecting Rwandan music creators with fans worldwide",
+  icons: {
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
 };
 
 export const viewport: Viewport = {
@@ -32,8 +42,6 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="MuzikaX" />
         <meta name="theme-color" content="#000000" />
         <link rel="manifest" href="/manifest.json" />
-        <link rel="apple-touch-icon" href="/muzikax.png" />
-        <link rel="icon" href="/muzikax.png" type="image/png" />
       </head>
       <body className="pb-24 md:pb-0">
         <AuthProvider>
