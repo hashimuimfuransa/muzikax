@@ -1,5 +1,6 @@
 const express = require('express');
 const { register, login, refreshToken } = require('../controllers/authController');
+const { googleLogin } = require('../controllers/googleAuthController');
 
 console.log('AUTH ROUTES FILE LOADED');
 
@@ -12,6 +13,9 @@ router.post('/register', register);
 
 // Login route
 router.post('/login', login);
+
+// Google Login route
+router.post('/google', googleLogin);
 
 // Logout route - simple implementation
 router.post('/logout', (req, res) => {

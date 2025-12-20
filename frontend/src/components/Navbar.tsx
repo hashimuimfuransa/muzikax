@@ -27,6 +27,7 @@ export default function Navbar() {
           <div className="flex-shrink-0 flex items-center">
             <Link href="/" className="flex items-center">
               <img src="/muzikax.png" alt="MuzikaX Logo" className="h-8 w-auto" />
+              <span className="ml-3 text-xl font-bold text-white">MuzikaX</span>
             </Link>
           </div>
 

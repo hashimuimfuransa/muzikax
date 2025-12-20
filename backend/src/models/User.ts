@@ -24,6 +24,7 @@ export interface IUser extends Document {
     playedAt: Date;
   }[]; // Add recently played tracks field
   whatsappContact: string; // Add WhatsApp contact field
+  googleId: string; // Add Google ID field
   createdAt: Date;
   updatedAt: Date;
 }
@@ -106,6 +107,10 @@ const UserSchema: Schema = new Schema({
   whatsappContact: {
     type: String,
     default: ''
+  },
+  googleId: {
+    type: String,
+    default: ''
   }
 }, {
   timestamps: true
@@ -113,5 +118,7 @@ const UserSchema: Schema = new Schema({
 
 // Index for email
 UserSchema.index({ email: 1 });
+// Index for googleId
+UserSchema.index({ googleId: 1 });
 
 export default mongoose.model<IUser>('User', UserSchema);

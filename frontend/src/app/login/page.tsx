@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../contexts/AuthContext'
+import { useGoogleLogin } from '@react-oauth/google'
 
 export default function Login() {
   const [isLogin, setIsLogin] = useState(true)
@@ -15,6 +16,70 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   const { login } = useAuth()
+
+  const googleLogin = useGoogleLogin({
+    flow: 'auth-code',
+    onSuccess: async (response) => {
+      try {
+        console.log('Google login response:', response);
+        setIsLoading(true);
+        setError('');
+        
+        // Check if we have a code (authorization code flow)
+        const code = response.code;
+        if (!code) {
+          setError('Google login failed: No authorization code received');
+          setIsLoading(false);
+          return;
+        }
+        
+        // Send the Google authorization code to our backend
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ code }),
+        });
+
+        if (!res.ok) {
+          const errorData = await res.json();
+          setError(errorData.message || 'Google login failed');
+          setIsLoading(false);
+          return;
+        }
+
+        const userData = await res.json();
+        
+        // Store access token and refresh token in localStorage
+        localStorage.setItem('accessToken', userData.accessToken);
+        localStorage.setItem('refreshToken', userData.refreshToken);
+        
+        // Log in the user with actual data from API
+        login({
+          id: userData._id,
+          name: userData.name,
+          email: userData.email,
+          role: userData.role,
+          creatorType: userData.creatorType
+        });
+        
+        // Redirect based on user role
+        if (userData.role === 'admin') {
+          router.push('/admin');
+        } else {
+          router.push('/');
+        }
+      } catch (err) {
+        console.error('Google login error:', err);
+        setError('An unexpected error occurred. Please try again.');
+        setIsLoading(false);
+      }
+    },
+    onError: () => {
+      setError('Google login failed. Please try again.');
+    }
+  });
 
   // Reset form when switching between login/signup
   useEffect(() => {
@@ -153,15 +218,16 @@ export default function Login() {
       
       <div className="w-full max-w-md space-y-6 sm:space-y-8 card-bg rounded-2xl p-6 sm:p-8 border border-gray-700/50 shadow-2xl shadow-[#FF4D67]/10 relative z-10">
         <div className="text-center animate-fade-in">
-          <div className="flex justify-center mb-4">
+          <div className="flex justify-center mb-4 items-center">
             <img 
               src="/muzikax.png" 
               alt="MuzikaX - Rwanda's Digital Music Ecosystem" 
               className="h-20 w-20 sm:h-24 sm:w-24 mx-auto transition-transform duration-300 hover:scale-105 object-contain drop-shadow-2xl rounded-lg"
             />
+         
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">
-            MUZIKAX
+            MuzikaX
           </h1>
           <h2 className="mt-2 sm:mt-3 text-xl sm:text-2xl font-bold text-white">
             {isLogin ? 'Welcome back' : 'Create account'}
@@ -387,21 +453,16 @@ export default function Login() {
             </div>
           </div>
 
-          <div className="mt-4 sm:mt-6 grid grid-cols-3 gap-2 sm:gap-3">
-            <button className="w-full inline-flex justify-center py-2 px-3 rounded-lg bg-gray-800/50 text-gray-300 hover:text-white transition-colors border border-gray-700">
-              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path fillRule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clipRule="evenodd"></path>
-              </svg>
-            </button>
-            <button className="w-full inline-flex justify-center py-2 px-3 rounded-lg bg-gray-800/50 text-gray-300 hover:text-white transition-colors border border-gray-700">
-              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <div className="mt-4 sm:mt-6">
+            <button 
+              onClick={() => googleLogin()}
+              disabled={isLoading}
+              className="w-full inline-flex justify-center py-2 px-4 rounded-lg bg-gray-800/50 text-gray-300 hover:text-white transition-colors border border-gray-700 items-center"
+            >
+              <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"></path>
               </svg>
-            </button>
-            <button className="w-full inline-flex justify-center py-2 px-3 rounded-lg bg-gray-800/50 text-gray-300 hover:text-white transition-colors border border-gray-700">
-              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84"></path>
-              </svg>
+              Continue with Google
             </button>
           </div>
         </div>

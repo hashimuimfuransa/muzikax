@@ -6,6 +6,7 @@ import { AuthProvider } from "../contexts/AuthContext";
 import { AudioPlayerProvider } from "../contexts/AudioPlayerContext";
 import ModernAudioPlayer from "../components/ModernAudioPlayer";
 import PWAInstallPrompt from "../components/PWAInstallPrompt";
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 export const metadata: Metadata = {
   title: "MuzikaX - Rwanda's Digital Music Ecosystem",
@@ -44,15 +45,17 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
       </head>
       <body className="pb-24 md:pb-0">
-        <AuthProvider>
-          <AudioPlayerProvider>
-            <Navbar />
-            {children}
-            <ModernAudioPlayer />
-            <MobileNavbar />
-            <PWAInstallPrompt />
-          </AudioPlayerProvider>
-        </AuthProvider>
+        <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"}>
+          <AuthProvider>
+            <AudioPlayerProvider>
+              <Navbar />
+              {children}
+              <ModernAudioPlayer />
+              <MobileNavbar />
+              <PWAInstallPrompt />
+            </AudioPlayerProvider>
+          </AuthProvider>
+        </GoogleOAuthProvider>
       </body>
     </html>
   );

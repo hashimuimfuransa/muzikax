@@ -190,6 +190,17 @@ if (app._router && app._router.stack) {
   });
 }
 
+// Specifically log auth routes
+console.log('Auth routes specifically:');
+const authRouter = require('./routes/authRoutes');
+if (authRouter && authRouter.stack) {
+  authRouter.stack.forEach((r) => {
+    if (r.route && r.route.path) {
+      console.log(`  AUTH: ${Object.keys(r.route.methods).join(', ').toUpperCase()} ${r.route.path}`);
+    }
+  });
+}
+
 // Health check
 app.get('/health', (_req, res) => {
   console.log('HEALTH CHECK ROUTE HIT');

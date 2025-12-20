@@ -2069,8 +2069,9 @@ export default function Home() {
           <div className="container mx-auto px-4 md:px-8">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
               <div className="col-span-1 md:col-span-2">
-                <div className="mb-4">
+                <div className="mb-4 flex items-center">
                   <img src="/muzikax.png" alt="MuzikaX Logo" className="h-8 w-auto" />
+                  <span className="ml-3 text-xl font-bold text-white">MuzikaX</span>
                 </div>
                 <p className="text-gray-400 mb-6">
                   Discover, share, and enjoy the best of Rwandan music. Connect
