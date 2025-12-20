@@ -7,24 +7,37 @@ const searchAll = async (req, res) => {
   try {
     const query = req.query['q'] || '';
     const type = req.query['type'] || 'all';
+    const genre = req.query['genre'] || '';
     
-    if (!query.trim()) {
-      return res.status(400).json({ message: 'Search query is required' });
+    // Validate that either query or genre is provided
+    if (!query.trim() && !genre) {
+      return res.status(400).json({ message: 'Search query or genre filter is required' });
     }
-
+    
     // Build search criteria
-    const searchRegex = new RegExp(query.trim(), 'i'); // Case insensitive
+    const searchRegex = query.trim() ? new RegExp(query.trim(), 'i') : null; // Case insensitive
     
     const results = {};
     
     // Search tracks if type is 'all' or 'tracks'
     if (type === 'all' || type === 'tracks') {
-      const tracks = await Track.find({
-        $or: [
+      // Build track query
+      const trackQuery = {};
+      
+      // Add text search if query exists
+      if (searchRegex) {
+        trackQuery.$or = [
           { title: searchRegex },
           { description: searchRegex }
-        ]
-      })
+        ];
+      }
+      
+      // Add genre filter if specified
+      if (genre) {
+        trackQuery.genre = genre;
+      }
+      
+      const tracks = await Track.find(trackQuery)
       .populate('creatorId', 'name avatar')
       .limit(20)
       .sort({ plays: -1, createdAt: -1 });
@@ -44,13 +57,18 @@ const searchAll = async (req, res) => {
     
     // Search artists/creators if type is 'all' or 'artists'
     if (type === 'all' || type === 'artists') {
-      const artists = await User.default.find({
-        role: 'creator',
-        $or: [
+      // For artists, we only apply text search since they don't have genres
+      let artistQuery = { role: 'creator' };
+      
+      // Only apply text search if query exists (genre doesn't apply to artists)
+      if (searchRegex) {
+        artistQuery.$or = [
           { name: searchRegex },
           { bio: searchRegex }
-        ]
-      })
+        ];
+      }
+      
+      const artists = await User.find(artistQuery)
       .select('-password')
       .limit(20)
       .sort({ followersCount: -1, createdAt: -1 });
@@ -67,9 +85,20 @@ const searchAll = async (req, res) => {
     
     // Search albums if type is 'all' or 'albums'
     if (type === 'all' || type === 'albums') {
-      const albums = await Album.default.find({
-        title: searchRegex
-      })
+      // Build album query
+      const albumQuery = {};
+      
+      // Add text search if query exists
+      if (searchRegex) {
+        albumQuery.title = searchRegex;
+      }
+      
+      // Add genre filter if specified
+      if (genre) {
+        albumQuery.genre = genre;
+      }
+      
+      const albums = await Album.find(albumQuery)
       .populate('creatorId', 'name')
       .limit(20)
       .sort({ createdAt: -1 });

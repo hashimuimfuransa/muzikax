@@ -420,6 +420,12 @@ export default function Home() {
               Afrobeat
             </Link>
             <Link
+              href="/explore?category=amapiano"
+              className="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors"
+            >
+              Amapiano
+            </Link>
+            <Link
               href="/explore?category=hiphop"
               className="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors"
             >
@@ -444,10 +450,22 @@ export default function Home() {
               Gospel
             </Link>
             <Link
-              href="/explore?category=traditional"
+              href="/explore?category=dancehall"
               className="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors"
             >
-              Traditional
+              Dancehall
+            </Link>
+            <Link
+              href="/explore?category=reggae"
+              className="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors"
+            >
+              Reggae
+            </Link>
+            <Link
+              href="/explore?category=soul"
+              className="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors"
+            >
+              Soul
             </Link>
           </nav>
         </div>

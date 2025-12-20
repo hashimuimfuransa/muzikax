@@ -31,11 +31,26 @@ interface Creator {
 
 const categories = [
   { id: 'afrobeat', name: 'Afrobeat' },
+  { id: 'amapiano', name: 'Amapiano' },
   { id: 'hiphop', name: 'Hip Hop' },
   { id: 'rnb', name: 'R&B' },
   { id: 'afropop', name: 'Afropop' },
   { id: 'gospel', name: 'Gospel' },
   { id: 'traditional', name: 'Traditional' },
+  { id: 'dancehall', name: 'Dancehall' },
+  { id: 'reggae', name: 'Reggae' },
+  { id: 'soul', name: 'Soul' },
+  { id: 'jazz', name: 'Jazz' },
+  { id: 'blues', name: 'Blues' },
+  { id: 'pop', name: 'Pop' },
+  { id: 'rock', name: 'Rock' },
+  { id: 'electronic', name: 'Electronic' },
+  { id: 'house', name: 'House' },
+  { id: 'techno', name: 'Techno' },
+  { id: 'drill', name: 'Drill' },
+  { id: 'trap', name: 'Trap' },
+  { id: 'lofi', name: 'Lo-Fi' },
+  { id: 'ambient', name: 'Ambient' },
   { id: 'beats', name: 'Beats' },
   { id: 'mixes', name: 'Mixes' }
 ]

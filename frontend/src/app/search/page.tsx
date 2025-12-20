@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Suspense } from 'react'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface Track {
   id: string
@@ -40,21 +41,59 @@ function SearchResultsContent() {
   const query = searchParams.get('q') || ''
   const [searchQuery, setSearchQuery] = useState(query)
   const [activeTab, setActiveTab] = useState<'tracks' | 'artists' | 'albums'>('tracks')
+  const [selectedGenre, setSelectedGenre] = useState<string | null>(null)
   const [tracks, setTracks] = useState<Track[]>([])
   const [artists, setArtists] = useState<Creator[]>([])
   const [albums, setAlbums] = useState<Album[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [following, setFollowing] = useState<Record<string, boolean>>({})
+  const { isAuthenticated } = useAuth()
+  
+  // Genre list for filtering
+  const genres = [
+    { id: 'afrobeat', name: 'Afrobeat' },
+    { id: 'amapiano', name: 'Amapiano' },
+    { id: 'hiphop', name: 'Hip Hop' },
+    { id: 'rnb', name: 'R&B' },
+    { id: 'afropop', name: 'Afropop' },
+    { id: 'gospel', name: 'Gospel' },
+    { id: 'traditional', name: 'Traditional' },
+    { id: 'dancehall', name: 'Dancehall' },
+    { id: 'reggae', name: 'Reggae' },
+    { id: 'soul', name: 'Soul' },
+    { id: 'jazz', name: 'Jazz' },
+    { id: 'blues', name: 'Blues' },
+    { id: 'pop', name: 'Pop' },
+    { id: 'rock', name: 'Rock' },
+    { id: 'electronic', name: 'Electronic' },
+    { id: 'house', name: 'House' },
+    { id: 'techno', name: 'Techno' },
+    { id: 'drill', name: 'Drill' },
+    { id: 'trap', name: 'Trap' },
+    { id: 'lofi', name: 'Lo-Fi' },
+    { id: 'ambient', name: 'Ambient' }
+  ]
   
   // Fetch search results from API
   const fetchSearchResults = async (searchTerm: string) => {
-    if (!searchTerm.trim()) return
+    if (!searchTerm.trim() && !selectedGenre) return
     
     setLoading(true)
     setError(null)
     
     try {
-      const response = await fetch(`http://localhost:5000/api/search?q=${encodeURIComponent(searchTerm)}&type=all`)
+      // Build query parameters
+      const params = new URLSearchParams();
+      if (searchTerm.trim()) {
+        params.append('q', searchTerm.trim());
+      }
+      params.append('type', 'all');
+      if (selectedGenre) {
+        params.append('genre', selectedGenre);
+      }
+      
+      const response = await fetch(`http://localhost:5000/api/search?${params.toString()}`)
       
       if (!response.ok) {
         throw new Error('Failed to fetch search results')
@@ -73,12 +112,12 @@ function SearchResultsContent() {
     }
   }
   
-  // Fetch results when query changes
+  // Fetch results when query or genre changes
   useEffect(() => {
-    if (query) {
+    if (query || selectedGenre) {
       fetchSearchResults(query)
     }
-  }, [query])
+  }, [query, selectedGenre])
   
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -86,6 +125,44 @@ function SearchResultsContent() {
       // Update URL with new search query
       window.history.pushState({}, '', `/search?q=${encodeURIComponent(searchQuery.trim())}`)
       fetchSearchResults(searchQuery.trim())
+    }
+  }
+
+  // Handle following an artist
+  const handleFollowArtist = async (artistId: string) => {
+    if (!isAuthenticated) {
+      // Redirect to login if not authenticated
+      window.location.href = '/login';
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        // Redirect to login if no token
+        window.location.href = '/login';
+        return;
+      }
+
+      const response = await fetch(`http://localhost:5000/api/users/follow/${artistId}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        // Update the following state
+        setFollowing(prev => ({
+          ...prev,
+          [artistId]: !prev[artistId]
+        }));
+      } else {
+        console.error('Failed to follow artist');
+      }
+    } catch (error) {
+      console.error('Error following artist:', error);
     }
   }
 
@@ -125,12 +202,91 @@ function SearchResultsContent() {
                 </button>
               </div>
             </form>
+            
+            {/* Genre Filter */}
+            <div className="mt-6 max-w-4xl mx-auto">
+              <div className="flex flex-wrap gap-2 justify-center">
+                <button
+                  className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-colors ${
+                    selectedGenre === null
+                      ? 'bg-[#FF4D67] text-white'
+                      : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50'
+                  }`}
+                  onClick={() => setSelectedGenre(null)}
+                >
+                  All Genres
+                </button>
+                
+                {genres.slice(0, 10).map((genre) => (
+                  <button
+                    key={genre.id}
+                    className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-colors ${
+                      selectedGenre === genre.id
+                        ? 'bg-[#FF4D67] text-white'
+                        : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50'
+                    }`}
+                    onClick={() => setSelectedGenre(genre.id)}
+                  >
+                    {genre.name}
+                  </button>
+                ))}
+                
+                {/* Show more genres dropdown for smaller screens */}
+                <div className="relative md:hidden">
+                  <select 
+                    value={selectedGenre || ''}
+                    onChange={(e) => setSelectedGenre(e.target.value || null)}
+                    className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium bg-gray-800/50 text-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+                  >
+                    <option value="">All Genres</option>
+                    {genres.map((genre) => (
+                      <option key={genre.id} value={genre.id}>
+                        {genre.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                {/* More genres button for larger screens */}
+                <div className="hidden md:block relative">
+                  {genres.length > 10 && (
+                    <details className="group">
+                      <summary className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium bg-gray-800/50 text-gray-300 hover:bg-gray-700/50 cursor-pointer list-none">
+                        More Genres
+                      </summary>
+                      <div className="absolute z-10 mt-2 p-2 bg-gray-800 rounded-lg shadow-lg grid grid-cols-2 sm:grid-cols-3 gap-2 w-64">
+                        {genres.slice(10).map((genre) => (
+                          <button
+                            key={genre.id}
+                            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                              selectedGenre === genre.id
+                                ? 'bg-[#FF4D67] text-white'
+                                : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
+                            }`}
+                            onClick={() => {
+                              setSelectedGenre(genre.id);
+                              // Close the dropdown
+                              const details = document.querySelector('details');
+                              if (details) details.removeAttribute('open');
+                            }}
+                          >
+                            {genre.name}
+                          </button>
+                        ))}
+                      </div>
+                    </details>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
           
           {/* Results Info */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
             <p className="text-gray-400">
-              {loading ? 'Searching...' : `Found ${tracks.length + artists.length + albums.length} results for "${query}"`}
+              {loading ? 'Searching...' : selectedGenre 
+                ? `Found ${tracks.length + artists.length + albums.length} results for "${query || 'all'}" in ${genres.find(g => g.id === selectedGenre)?.name || selectedGenre}`
+                : `Found ${tracks.length + artists.length + albums.length} results for "${query}"`}
             </p>
             
             {/* Tabs */}
@@ -198,7 +354,7 @@ function SearchResultsContent() {
                       <div key={track.id} className="flex items-center gap-4 p-4 card-bg rounded-xl hover:bg-gray-800/50 transition-colors group">
                         <div className="relative">
                           <img 
-                            src={track.coverImage} 
+                            src={track.coverImage || '/placeholder-track.png'} 
                             alt={track.title} 
                             className="w-16 h-16 rounded-lg object-cover"
                           />
@@ -245,11 +401,11 @@ function SearchResultsContent() {
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                   {artists.length > 0 ? (
                     artists.map((artist) => (
-                      <div key={artist.id} className="group card-bg rounded-xl p-4 transition-all duration-300 hover:border-[#FFCB2B]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FFCB2B]/10">
+                      <Link key={artist.id} href={`/artists/${artist.id}`} className="group card-bg rounded-xl p-4 transition-all duration-300 hover:border-[#FFCB2B]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FFCB2B]/10 block">
                         <div className="flex flex-col items-center text-center">
                           <div className="relative mb-3">
                             <img 
-                              src={artist.avatar} 
+                              src={artist.avatar || '/placeholder-avatar.png'} 
                               alt={artist.name} 
                               className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover mx-auto"
                             />
@@ -266,11 +422,28 @@ function SearchResultsContent() {
                           <p className="text-gray-500 text-xs">
                             {artist.followers.toLocaleString()} followers
                           </p>
-                          <button className="mt-2 w-full px-3 py-1.5 bg-transparent border border-[#FFCB2B] text-[#FFCB2B] hover:bg-[#FFCB2B]/10 rounded-full text-xs font-medium transition-colors">
-                            Follow
+                          <button 
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleFollowArtist(artist.id);
+                            }}
+                            disabled={!isAuthenticated}
+                            className={`mt-2 w-full px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                              following[artist.id] 
+                                ? 'bg-[#FF4D67] text-white' 
+                                : isAuthenticated
+                                  ? 'bg-transparent border border-[#FFCB2B] text-[#FFCB2B] hover:bg-[#FFCB2B]/10'
+                                  : 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                            }`}
+                          >
+                            {following[artist.id] 
+                              ? 'Following' 
+                              : isAuthenticated 
+                                ? 'Follow' 
+                                : 'Login to Follow'}
                           </button>
                         </div>
-                      </div>
+                      </Link>
                     ))
                   ) : (
                     <div className="col-span-full text-center py-12">
@@ -292,7 +465,7 @@ function SearchResultsContent() {
                       <div key={album.id} className="group card-bg rounded-xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10">
                         <div className="relative">
                           <img 
-                            src={album.coverImage} 
+                            src={album.coverImage || '/placeholder-album.png'} 
                             alt={album.title} 
                             className="w-full aspect-square object-cover"
                           />

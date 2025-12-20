@@ -360,13 +360,26 @@ export default function EditAlbumPage({ params }: { params: Promise<{ id: string
                   >
                     <option value="">Select a genre</option>
                     <option value="afrobeat">Afrobeat</option>
+                    <option value="amapiano">Amapiano</option>
                     <option value="hiphop">Hip Hop</option>
                     <option value="rnb">R&B</option>
-                    <option value="pop">Pop</option>
-                    <option value="dancehall">Dancehall</option>
-                    <option value="reggae">Reggae</option>
+                    <option value="afropop">Afropop</option>
                     <option value="gospel">Gospel</option>
                     <option value="traditional">Traditional</option>
+                    <option value="dancehall">Dancehall</option>
+                    <option value="reggae">Reggae</option>
+                    <option value="soul">Soul</option>
+                    <option value="jazz">Jazz</option>
+                    <option value="blues">Blues</option>
+                    <option value="pop">Pop</option>
+                    <option value="rock">Rock</option>
+                    <option value="electronic">Electronic</option>
+                    <option value="house">House</option>
+                    <option value="techno">Techno</option>
+                    <option value="drill">Drill</option>
+                    <option value="trap">Trap</option>
+                    <option value="lofi">Lo-Fi</option>
+                    <option value="ambient">Ambient</option>
                   </select>
                 </div>
                 
