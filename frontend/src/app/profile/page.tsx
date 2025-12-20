@@ -9,6 +9,9 @@ import { getAlbumsByCreator, deleteAlbum } from '../../services/albumService'
 import { deleteTrack } from '../../services/trackService'
 import { ITrack } from '../../types'
 import { useAudioPlayer } from '../../contexts/AudioPlayerContext'
+// Import UploadCare components
+import { FileUploaderRegular } from "@uploadcare/react-uploader";
+import "@uploadcare/react-uploader/core.css";
 
 interface CreatorAnalytics {
   totalTracks: number
@@ -65,6 +68,7 @@ export default function Profile() {
   const [genres, setGenres] = useState<string[]>([])
   const [newGenre, setNewGenre] = useState('')
   const [whatsappContact, setWhatsappContact] = useState('') // Add WhatsApp contact state
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null) // Add avatar URL state
   const { currentTrack, isPlaying, playTrack, setCurrentPlaylist } = useAudioPlayer()
   const router = useRouter()
   const { isAuthenticated, user, isLoading, updateProfile, updateWhatsAppContact } = useAuth() // Import both functions
@@ -93,6 +97,7 @@ export default function Profile() {
     if (isAuthenticated && user) {
       setBio(user.bio || '')
       setGenres(user.genres || [])
+      setAvatarUrl(user.avatar || null)
       // Properly initialize WhatsApp contact - check if it's an object or string
       let whatsappNumber = '';
       if (typeof user.whatsappContact === 'string') {
@@ -220,6 +225,16 @@ export default function Profile() {
     }
   }
 
+  // Handle avatar upload success
+  const handleAvatarUploadSuccess = (info: any) => {
+    console.log('Avatar uploaded successfully:', info);
+    if (info && info.cdnUrl) {
+      setAvatarUrl(info.cdnUrl);
+      // Update the user's avatar in the database
+      updateProfile({ avatar: info.cdnUrl });
+    }
+  };
+
   const handlePageChange = (newPage: number, type: 'tracks' | 'albums') => {
     if (type === 'tracks') {
       fetchTracks(newPage)
@@ -262,7 +277,8 @@ export default function Profile() {
         name: name.trim(),
         email: email.trim(),
         bio: bio.trim(),
-        genres: genres // Use the genres from state directly
+        genres: genres, // Use the genres from state directly
+        avatar: avatarUrl // Include avatar URL
       }
       
       // Only include fields that have values
@@ -270,6 +286,7 @@ export default function Profile() {
       if (email.trim()) updateData.email = email.trim();
       if (bio.trim()) updateData.bio = bio.trim();
       if (genres.length > 0) updateData.genres = genres;
+      if (avatarUrl) updateData.avatar = avatarUrl;
       
       // Only include password fields if they have values
       if (currentPassword) {
@@ -426,11 +443,21 @@ export default function Profile() {
           {/* Profile Card */}
           <div className="card-bg rounded-2xl p-5 sm:p-6 mb-6 border border-gray-700/50">
             <div className="flex flex-col sm:flex-row items-center gap-5 mb-5">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center relative overflow-hidden">
-                <span className="text-2xl sm:text-3xl font-bold text-white z-10">
-                  {user?.name?.charAt(0)?.toUpperCase() || 'U'}
-                </span>
-                <div className="absolute inset-0 bg-black/20"></div>
+              <div className="relative">
+                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center relative overflow-hidden">
+                  {avatarUrl ? (
+                    <img 
+                      src={avatarUrl} 
+                      alt="Profile" 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-2xl sm:text-3xl font-bold text-white z-10">
+                      {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                    </span>
+                  )}
+                  <div className="absolute inset-0 bg-black/20"></div>
+                </div>
               </div>
               <div className="text-center sm:text-left flex-1">
                 <h2 className="text-xl sm:text-2xl font-bold text-white">{user?.name || 'User'}</h2>
@@ -467,6 +494,26 @@ export default function Profile() {
                   </div>
                 )}
               </div>
+            </div>
+            {/* Profile Picture Upload Button - Moved to a cleaner location */}
+            <div className="flex justify-center sm:justify-start">
+              <FileUploaderRegular
+                pubkey={process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY || "YOUR_PUBLIC_KEY_HERE"}
+                onFileUploadSuccess={handleAvatarUploadSuccess}
+                multiple={false}
+                className="my-config"
+              >
+                <button 
+                  type="button"
+                  className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium flex items-center gap-2 border border-gray-700"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  </svg>
+                  Change Profile Picture
+                </button>
+              </FileUploaderRegular>
             </div>
 
             {/* Bio Section */}
@@ -580,6 +627,69 @@ export default function Profile() {
               <h3 className="text-lg sm:text-xl font-bold text-white mb-5">Account Settings</h3>
               
               <form onSubmit={handleSubmit} className="space-y-5">
+                {/* Avatar Upload Section */}
+                <div className="pt-2">
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Profile Picture
+                  </label>
+                  <div className="flex flex-col sm:flex-row items-center gap-4">
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center relative overflow-hidden">
+                      {avatarUrl ? (
+                        <img 
+                          src={avatarUrl} 
+                          alt="Profile" 
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-lg font-bold text-white z-10">
+                          {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                        </span>
+                      )}
+                      <div className="absolute inset-0 bg-black/20"></div>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                      {!avatarUrl ? (
+                        <FileUploaderRegular
+                          pubkey={process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY || "YOUR_PUBLIC_KEY_HERE"}
+                          onFileUploadSuccess={handleAvatarUploadSuccess}
+                          multiple={false}
+                          className="my-config"
+                        >
+                          <button 
+                            type="button"
+                            className="px-4 py-2 bg-[#FF4D67] text-white rounded-lg hover:bg-[#FF4D67]/80 transition-colors text-sm font-medium w-full sm:w-auto"
+                          >
+                            Upload Picture
+                          </button>
+                        </FileUploaderRegular>
+                      ) : (
+                        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                          <button 
+                            type="button"
+                            onClick={() => setAvatarUrl(null)}
+                            className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors text-sm font-medium w-full sm:w-auto"
+                          >
+                            Remove
+                          </button>
+                          <FileUploaderRegular
+                            pubkey={process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY || "YOUR_PUBLIC_KEY_HERE"}
+                            onFileUploadSuccess={handleAvatarUploadSuccess}
+                            multiple={false}
+                            className="my-config"
+                          >
+                            <button 
+                              type="button"
+                              className="px-4 py-2 bg-[#FF4D67] text-white rounded-lg hover:bg-[#FF4D67]/80 transition-colors text-sm font-medium w-full sm:w-auto"
+                            >
+                              Change
+                            </button>
+                          </FileUploaderRegular>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
                     Full Name
