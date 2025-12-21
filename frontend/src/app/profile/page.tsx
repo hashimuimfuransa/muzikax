@@ -502,18 +502,7 @@ export default function Profile() {
                 onFileUploadSuccess={handleAvatarUploadSuccess}
                 multiple={false}
                 className="my-config"
-              >
-                <button 
-                  type="button"
-                  className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium flex items-center gap-2 border border-gray-700"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                  </svg>
-                  Change Profile Picture
-                </button>
-              </FileUploaderRegular>
+              />
             </div>
 
             {/* Bio Section */}
@@ -654,14 +643,7 @@ export default function Profile() {
                           onFileUploadSuccess={handleAvatarUploadSuccess}
                           multiple={false}
                           className="my-config"
-                        >
-                          <button 
-                            type="button"
-                            className="px-4 py-2 bg-[#FF4D67] text-white rounded-lg hover:bg-[#FF4D67]/80 transition-colors text-sm font-medium w-full sm:w-auto"
-                          >
-                            Upload Picture
-                          </button>
-                        </FileUploaderRegular>
+                        />
                       ) : (
                         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                           <button 
@@ -676,14 +658,7 @@ export default function Profile() {
                             onFileUploadSuccess={handleAvatarUploadSuccess}
                             multiple={false}
                             className="my-config"
-                          >
-                            <button 
-                              type="button"
-                              className="px-4 py-2 bg-[#FF4D67] text-white rounded-lg hover:bg-[#FF4D67]/80 transition-colors text-sm font-medium w-full sm:w-auto"
-                            >
-                              Change
-                            </button>
-                          </FileUploaderRegular>
+                          />
                         </div>
                       )}
                     </div>
