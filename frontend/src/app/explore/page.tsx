@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { useTrendingTracks, usePopularCreators } from '@/hooks/useTracks'
 import { useAudioPlayer } from '@/contexts/AudioPlayerContext'
 import { Suspense } from 'react'
+import { followCreator } from '@/services/trackService'
 
 interface Track {  
   _id?: string
@@ -470,7 +471,21 @@ function ExploreContent() {
                       <span>{creator.followersCount.toLocaleString()} followers</span>
                     </div>
                     
-                    <button className="w-full py-3 sm:py-3.5 bg-gradient-to-r from-[#FFCB2B] to-[#FFA726] rounded-lg text-gray-900 font-bold hover:opacity-90 transition-all duration-300 text-sm sm:text-base shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
+                    <button 
+                      className="w-full py-3 sm:py-3.5 bg-gradient-to-r from-[#FFCB2B] to-[#FFA726] rounded-lg text-gray-900 font-bold hover:opacity-90 transition-all duration-300 text-sm sm:text-base shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                      onClick={async () => {
+                        try {
+                          // Call the follow creator service
+                          await followCreator(creator.id);
+                          
+                          // Show success feedback
+                          console.log('Successfully followed creator');
+                        } catch (error) {
+                          console.error('Failed to follow creator:', error);
+                          alert('Failed to follow creator. Please try again.');
+                        }
+                      }}
+                    >
                       Follow
                     </button>
                   </div>

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useAudioPlayer } from '@/contexts/AudioPlayerContext'
 import { useAuth } from '@/contexts/AuthContext'
-import { fetchTracksByCreatorPublic } from '@/services/trackService'
+import { fetchTracksByCreatorPublic, followCreator } from '@/services/trackService'
 import { getAlbumsByCreator } from '@/services/albumService'
 
 interface Creator {
@@ -308,13 +308,27 @@ export default function ArtistProfilePage() {
               
               <button 
                 className="px-6 py-3 bg-[#FF4D67] hover:bg-[#FF4D67]/90 text-white rounded-full font-medium transition-colors"
-                onClick={() => {
+                onClick={async () => {
                   // Handle follow action here
                   if (!user) {
                     router.push('/login');
                   } else {
-                    console.log('Following', creator.name);
-                    // In a real implementation, you would make an API call to follow the creator
+                    try {
+                      // Call the follow creator service
+                      await followCreator(creator._id);
+                      
+                      // Update the followers count in the UI
+                      setCreator(prev => ({
+                        ...prev,
+                        followersCount: (prev.followersCount || 0) + 1
+                      }));
+                      
+                      // Show success feedback
+                      console.log('Successfully followed creator');
+                    } catch (error) {
+                      console.error('Failed to follow creator:', error);
+                      alert('Failed to follow creator. Please try again.');
+                    }
                   }
                 }}
               >

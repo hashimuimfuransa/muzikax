@@ -7,6 +7,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useTrendingTracks, usePopularCreators } from "../hooks/useTracks";
 import { useAudioPlayer } from "../contexts/AudioPlayerContext";
 import { getAlbumById } from "../services/albumService";
+import { followCreator } from "../services/trackService";
 
 interface Track {
   id: string;
@@ -861,14 +862,21 @@ export default function Home() {
                   </p>
                   <button 
                     className="mt-2 w-full px-3 py-1.5 bg-transparent border border-[#FFCB2B] text-[#FFCB2B] hover:bg-[#FFCB2B]/10 rounded-full text-xs font-medium transition-colors"
-                    onClick={(e) => {
+                    onClick={async (e) => {
                       e.stopPropagation();
                       if (!isAuthenticated) {
                         router.push('/login');
                       } else {
-                        // Handle follow action here
-                        console.log('Following', creator.name);
-                        // In a real implementation, you would make an API call to follow the creator
+                        try {
+                          // Call the follow creator service
+                          await followCreator(creator.id);
+                          
+                          // Show success feedback
+                          console.log('Successfully followed creator');
+                        } catch (error) {
+                          console.error('Failed to follow creator:', error);
+                          alert('Failed to follow creator. Please try again.');
+                        }
                       }
                     }}
                   >
@@ -1733,14 +1741,21 @@ export default function Home() {
                     </span>
                     <button 
                       className="px-3 py-1.5 sm:px-4 sm:py-2 bg-transparent border border-[#FFCB2B] text-[#FFCB2B] hover:bg-[#FFCB2B]/10 rounded-full text-xs sm:text-sm font-medium transition-colors"
-                      onClick={(e) => {
+                      onClick={async (e) => {
                         e.stopPropagation();
                         if (!isAuthenticated) {
                           router.push('/login');
                         } else {
-                          // Handle follow action here
-                          console.log('Following', creator.name);
-                          // In a real implementation, you would make an API call to follow the creator
+                          try {
+                            // Call the follow creator service
+                            await followCreator(creator.id);
+                            
+                            // Show success feedback
+                            console.log('Successfully followed creator');
+                          } catch (error) {
+                            console.error('Failed to follow creator:', error);
+                            alert('Failed to follow creator. Please try again.');
+                          }
                         }
                       }}
                     >

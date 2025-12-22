@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Suspense } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
+import { followCreator } from '@/services/trackService'
 
 interface Track {
   id: string
@@ -137,32 +138,20 @@ function SearchResultsContent() {
     }
 
     try {
-      const token = localStorage.getItem('accessToken');
-      if (!token) {
-        // Redirect to login if no token
-        window.location.href = '/login';
-        return;
-      }
-
-      const response = await fetch(`http://localhost:5000/api/users/follow/${artistId}`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.ok) {
-        // Update the following state
-        setFollowing(prev => ({
-          ...prev,
-          [artistId]: !prev[artistId]
-        }));
-      } else {
-        console.error('Failed to follow artist');
-      }
+      // Call the follow creator service
+      await followCreator(artistId);
+      
+      // Update the following state
+      setFollowing(prev => ({
+        ...prev,
+        [artistId]: !prev[artistId]
+      }));
+      
+      // Show success feedback
+      console.log('Successfully followed creator');
     } catch (error) {
       console.error('Error following artist:', error);
+      alert('Failed to follow creator. Please try again.');
     }
   }
 
