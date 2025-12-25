@@ -1,5 +1,5 @@
 const express = require('express');
-const { register, login, refreshToken } = require('../controllers/authController');
+const { register, login, refreshToken, getUserProfile } = require('../controllers/authController');
 const { googleLogin } = require('../controllers/googleAuthController');
 
 console.log('AUTH ROUTES FILE LOADED');
@@ -24,6 +24,9 @@ router.post('/logout', (req, res) => {
   // invalidate tokens if we implement token blacklisting.
   res.json({ message: 'Logged out successfully' });
 });
+
+// Get user profile route
+router.get('/me', jwt_1.protect, authController_1.getUserProfile);
 
 // Refresh token route
 router.post('/refresh-token', refreshToken);

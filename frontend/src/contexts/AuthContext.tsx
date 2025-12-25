@@ -24,6 +24,7 @@ interface AuthContextType {
   upgradeToCreator: (creatorType: 'artist' | 'dj' | 'producer') => Promise<boolean>
   updateProfile: (updatedData: Partial<User>) => Promise<boolean>
   updateWhatsAppContact: (whatsappContact: string) => Promise<boolean>
+  fetchUserProfile: () => Promise<boolean>
   isAuthenticated: boolean
   userRole: 'fan' | 'creator' | 'admin' | null
   isLoading: boolean
@@ -52,17 +53,121 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         
         setUser(parsedUser)
+        
+        // Fetch complete user profile to ensure followers count and other data is up to date
+        fetchUserProfile();
       } catch (error) {
         console.error('Error parsing user data:', error)
       }
+    } else {
+      setIsLoading(false);
     }
-    setIsLoading(false)
   }, [])
 
   const login = (userData: User) => {
     console.log('AuthProvider - login called with:', userData);
     setUser(userData)
     localStorage.setItem('user', JSON.stringify(userData))
+  }
+
+  // Function to fetch and update the complete user profile
+  const fetchUserProfile = async (): Promise<boolean> => {
+    try {
+      const accessToken = localStorage.getItem('accessToken');
+      
+      if (!accessToken) {
+        console.error('No access token found');
+        return false;
+      }
+      
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          // Token might be expired, attempt refresh
+          const refreshToken = localStorage.getItem('refreshToken');
+          if (refreshToken) {
+            const refreshResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh-token`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ refreshToken })
+            });
+            
+            if (refreshResponse.ok) {
+              const refreshData = await refreshResponse.json();
+              localStorage.setItem('accessToken', refreshData.accessToken);
+              localStorage.setItem('refreshToken', refreshData.refreshToken);
+              
+              // Retry the profile request with new token
+              const retryResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
+                method: 'GET',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${refreshData.accessToken}`
+                }
+              });
+              
+              if (!retryResponse.ok) {
+                console.error('Failed to fetch user profile after token refresh');
+                return false;
+              }
+              
+              const updatedUserData = await retryResponse.json();
+              
+              // Ensure whatsappContact is a string, not an object
+              let whatsappContactValue = updatedUserData.whatsappContact || '';
+              if (typeof whatsappContactValue === 'object' && whatsappContactValue !== null) {
+                // If it's an object, extract the actual WhatsApp number
+                whatsappContactValue = (whatsappContactValue as any).whatsappContact || '';
+              }
+              
+              const completeUser = {
+                ...updatedUserData,
+                id: updatedUserData._id,
+                whatsappContact: whatsappContactValue
+              };
+              
+              setUser(completeUser);
+              localStorage.setItem('user', JSON.stringify(completeUser));
+              return true;
+            }
+          }
+        }
+        console.error('Failed to fetch user profile:', response.status);
+        return false;
+      }
+      
+      const updatedUserData = await response.json();
+      
+      // Ensure whatsappContact is a string, not an object
+      let whatsappContactValue = updatedUserData.whatsappContact || '';
+      if (typeof whatsappContactValue === 'object' && whatsappContactValue !== null) {
+        // If it's an object, extract the actual WhatsApp number
+        whatsappContactValue = (whatsappContactValue as any).whatsappContact || '';
+      }
+      
+      const completeUser = {
+        ...updatedUserData,
+        id: updatedUserData._id,
+        whatsappContact: whatsappContactValue
+      };
+      
+      setUser(completeUser);
+      localStorage.setItem('user', JSON.stringify(completeUser));
+      
+      return true;
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      return false;
+    }
   }
 
   const logout = () => {
@@ -76,6 +181,106 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       window.location.href = '/login';
     }
   };
+
+  // Function to fetch and update the complete user profile
+  const fetchUserProfile = async (): Promise<boolean> => {
+    try {
+      const accessToken = localStorage.getItem('accessToken');
+      
+      if (!accessToken) {
+        console.error('No access token found');
+        return false;
+      }
+      
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          // Token might be expired, attempt refresh
+          const refreshToken = localStorage.getItem('refreshToken');
+          if (refreshToken) {
+            const refreshResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh-token`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ refreshToken })
+            });
+            
+            if (refreshResponse.ok) {
+              const refreshData = await refreshResponse.json();
+              localStorage.setItem('accessToken', refreshData.accessToken);
+              localStorage.setItem('refreshToken', refreshData.refreshToken);
+              
+              // Retry the profile request with new token
+              const retryResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
+                method: 'GET',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${refreshData.accessToken}`
+                }
+              });
+              
+              if (!retryResponse.ok) {
+                console.error('Failed to fetch user profile after token refresh');
+                return false;
+              }
+              
+              const updatedUserData = await retryResponse.json();
+              
+              // Ensure whatsappContact is a string, not an object
+              let whatsappContactValue = updatedUserData.whatsappContact || '';
+              if (typeof whatsappContactValue === 'object' && whatsappContactValue !== null) {
+                // If it's an object, extract the actual WhatsApp number
+                whatsappContactValue = (whatsappContactValue as any).whatsappContact || '';
+              }
+              
+              const completeUser = {
+                ...updatedUserData,
+                id: updatedUserData._id,
+                whatsappContact: whatsappContactValue
+              };
+              
+              setUser(completeUser);
+              localStorage.setItem('user', JSON.stringify(completeUser));
+              return true;
+            }
+          }
+        }
+        console.error('Failed to fetch user profile:', response.status);
+        return false;
+      }
+      
+      const updatedUserData = await response.json();
+      
+      // Ensure whatsappContact is a string, not an object
+      let whatsappContactValue = updatedUserData.whatsappContact || '';
+      if (typeof whatsappContactValue === 'object' && whatsappContactValue !== null) {
+        // If it's an object, extract the actual WhatsApp number
+        whatsappContactValue = (whatsappContactValue as any).whatsappContact || '';
+      }
+      
+      const completeUser = {
+        ...updatedUserData,
+        id: updatedUserData._id,
+        whatsappContact: whatsappContactValue
+      };
+      
+      setUser(completeUser);
+      localStorage.setItem('user', JSON.stringify(completeUser));
+      
+      return true;
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      return false;
+    }
+  }
 
   const upgradeToCreator = async (creatorType: 'artist' | 'dj' | 'producer'): Promise<boolean> => {
     if (!user) {
@@ -270,7 +475,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user, isAuthenticated, userRole, isLoading]);
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, upgradeToCreator, updateProfile, updateWhatsAppContact, isAuthenticated, userRole, isLoading }}>
+    <AuthContext.Provider value={{ user, login, logout, upgradeToCreator, updateProfile, updateWhatsAppContact, fetchUserProfile, isAuthenticated, userRole, isLoading }}>
       {children}
     </AuthContext.Provider>
   )
