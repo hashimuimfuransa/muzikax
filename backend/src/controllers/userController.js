@@ -267,18 +267,38 @@ const followCreator = async (req, res) => {
             res.status(400).json({ message: 'You cannot follow yourself' });
             return;
         }
-        // Find the creator
-        const creator = await User_1.findById(creatorId);
+        // Find the user and the creator
+        const [user, creator] = await Promise.all([
+            User_1.findById(userId),
+            User_1.findById(creatorId)
+        ]);
+        
         if (!creator) {
             res.status(404).json({ message: 'Creator not found' });
             return;
         }
+        
+        if (!user) {
+            res.status(404).json({ message: 'User not found' });
+            return;
+        }
+        
         // Check if user is already following this creator
-        // For simplicity, we'll just increment the followers count
-        // In a more complex app, you might want to store actual follower relationships
+        const isAlreadyFollowing = user.following.includes(creatorId);
+        if (isAlreadyFollowing) {
+            res.status(400).json({ message: 'You are already following this creator' });
+            return;
+        }
+        
+        // Add creator to user's following list
+        user.following.push(creatorId);
+        
         // Increment the creator's followers count
         creator.followersCount = (creator.followersCount || 0) + 1;
-        await creator.save();
+        
+        // Save both documents
+        await Promise.all([user.save(), creator.save()]);
+        
         res.json({
             message: 'Successfully followed creator',
             followersCount: creator.followersCount
@@ -290,6 +310,115 @@ const followCreator = async (req, res) => {
     }
 };
 exports.followCreator = followCreator;
+
+// Unfollow a creator
+const unfollowCreator = async (req, res) => {
+    try {
+        // Check if user is authenticated
+        if (!req.user) {
+            res.status(401).json({ message: 'Not authorized, no user found' });
+            return;
+        }
+        
+        const userId = req.user._id;
+        const creatorId = req.params['id'];
+        
+        // Validate creatorId
+        if (!creatorId) {
+            res.status(400).json({ message: 'Creator ID is required' });
+            return;
+        }
+        
+        // Check if trying to unfollow self
+        if (userId.toString() === creatorId) {
+            res.status(400).json({ message: 'You cannot unfollow yourself' });
+            return;
+        }
+        
+        // Find the user and the creator
+        const [user, creator] = await Promise.all([
+            User_1.findById(userId),
+            User_1.findById(creatorId)
+        ]);
+        
+        if (!creator) {
+            res.status(404).json({ message: 'Creator not found' });
+            return;
+        }
+        
+        if (!user) {
+            res.status(404).json({ message: 'User not found' });
+            return;
+        }
+        
+        // Check if user is actually following this creator
+        const isFollowing = user.following.includes(creatorId);
+        if (!isFollowing) {
+            res.status(400).json({ message: 'You are not following this creator' });
+            return;
+        }
+        
+        // Remove creator from user's following list
+        user.following = user.following.filter(id => id.toString() !== creatorId);
+        
+        // Decrement the creator's followers count, ensuring it doesn't go below 0
+        creator.followersCount = Math.max(0, (creator.followersCount || 0) - 1);
+        
+        // Save both documents
+        await Promise.all([user.save(), creator.save()]);
+        
+        res.json({
+            message: 'Successfully unfollowed creator',
+            followersCount: creator.followersCount
+        });
+    }
+    catch (error) {
+        console.error('Error in unfollowCreator:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+exports.unfollowCreator = unfollowCreator;
+
+// Check if user is following a creator
+const checkFollowStatus = async (req, res) => {
+    try {
+        // Check if user is authenticated
+        if (!req.user) {
+            res.status(401).json({ message: 'Not authorized, no user found' });
+            return;
+        }
+        
+        const userId = req.user._id;
+        const creatorId = req.params['id'];
+        
+        // Validate creatorId
+        if (!creatorId) {
+            res.status(400).json({ message: 'Creator ID is required' });
+            return;
+        }
+        
+        // Find the user
+        const user = await User_1.findById(userId);
+        
+        if (!user) {
+            res.status(404).json({ message: 'User not found' });
+            return;
+        }
+        
+        // Check if the user is following this creator
+        const isFollowing = user.following.includes(creatorId);
+        
+        res.json({
+            isFollowing: isFollowing
+        });
+    }
+    catch (error) {
+        console.error('Error in checkFollowStatus:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+exports.checkFollowStatus = checkFollowStatus;
+
 // Update user's own profile
 const updateOwnProfile = async (req, res) => {
     try {

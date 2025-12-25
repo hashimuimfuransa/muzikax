@@ -76,6 +76,11 @@ var UserSchema = new mongoose_1.Schema({
             }],
         default: []
     },
+    following: {
+        type: [mongoose_1.Schema.Types.ObjectId],
+        ref: 'User',
+        default: []
+    },
     whatsappContact: {
         type: String,
         default: ''

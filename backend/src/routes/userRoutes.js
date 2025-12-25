@@ -103,5 +103,14 @@ router.route('/me')
 // User route for following a creator
 router.route('/follow/:id')
     .post(jwt_1.protect, userController_1.followCreator);
+
+// User route for unfollowing a creator
+router.route('/unfollow/:id')
+    .delete(jwt_1.protect, userController_1.unfollowCreator);
+
+// User route for checking follow status
+router.route('/following/:id')
+    .get(jwt_1.protect, userController_1.checkFollowStatus);
+
 module.exports = router;
 //# sourceMappingURL=userRoutes.js.map

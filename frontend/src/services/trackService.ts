@@ -356,6 +356,108 @@ export const followCreator = async (creatorId: string): Promise<boolean> => {
 };
 
 /**
+ * Unfollow a creator
+ */
+export const unfollowCreator = async (creatorId: string): Promise<boolean> => {
+  try {
+    // Get access token from localStorage
+    let accessToken = localStorage.getItem('accessToken');
+    
+    if (!accessToken) {
+      throw new Error('No access token found');
+    }
+
+    // Make API call to unfollow creator
+    let response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/unfollow/${creatorId}`, {
+      method: 'DELETE',  // Using DELETE method for unfollow
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`
+      }
+    });
+
+    // If token is expired, try to refresh it
+    if (response.status === 401) {
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (refreshToken) {
+        // Try to refresh the token
+        const refreshResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh-token`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ refreshToken })
+        });
+        
+        if (refreshResponse.ok) {
+          const refreshData = await refreshResponse.json();
+          // Save new tokens
+          localStorage.setItem('accessToken', refreshData.accessToken);
+          localStorage.setItem('refreshToken', refreshData.refreshToken);
+          
+          // Retry the original request with new token
+          accessToken = refreshData.accessToken;
+          response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/unfollow/${creatorId}`, {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${accessToken}`
+            }
+          });
+        } else {
+          throw new Error('Token refresh failed');
+        }
+      } else {
+        throw new Error('No refresh token found');
+      }
+    }
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to unfollow creator');
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error unfollowing creator:', error);
+    throw error;
+  }
+};
+
+/**
+ * Check if user is following a creator
+ */
+export const checkFollowStatus = async (creatorId: string): Promise<boolean> => {
+  try {
+    const accessToken = localStorage.getItem('accessToken');
+    
+    if (!accessToken) {
+      // If not authenticated, user is not following
+      return false;
+    }
+
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/following/${creatorId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`
+      }
+    });
+
+    if (!response.ok) {
+      // If there's an error, assume not following
+      return false;
+    }
+
+    const data = await response.json();
+    return data.isFollowing || false;
+  } catch (error) {
+    console.error('Error checking follow status:', error);
+    return false;
+  }
+};
+
+/**
  * Increment track play count
  */
 export const incrementTrackPlayCount = async (trackId: string): Promise<boolean> => {
