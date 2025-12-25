@@ -3,11 +3,10 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useAuth } from "../contexts/AuthContext";
-import { useTrendingTracks, usePopularCreators } from "../hooks/useTracks";
-import { useAudioPlayer } from "../contexts/AudioPlayerContext";
-import { getAlbumById } from "../services/albumService";
-import { followCreator, unfollowCreator, checkFollowStatus } from "../services/trackService";
+import { useAuth } from "../../contexts/AuthContext";
+import { useTrendingTracks, usePopularCreators } from "../../hooks/useTracks";
+import { useAudioPlayer } from "../../contexts/AudioPlayerContext";
+import { getAlbumById } from "../../services/albumService";
 
 interface Track {
   id: string;
@@ -63,9 +62,6 @@ export default function Home() {
 
   // State for tracking which tracks are favorited
   const [favoriteStatus, setFavoriteStatus] = useState<Record<string, boolean>>({});
-
-  // State for tracking which creators are followed
-  const [followStatus, setFollowStatus] = useState<Record<string, boolean>>({});
 
   // Update favorite status when favorites change or when favorites are loaded
   useEffect(() => {
@@ -228,30 +224,6 @@ export default function Home() {
     avatar: creator.avatar || "", // Preserve empty values so we can show fallback in UI
     verified: true, // For now, we'll assume all creators are verified
   }));
-  
-  // Check follow status for each popular creator when creators load or user changes
-  useEffect(() => {
-    const checkFollowStatusForCreators = async () => {
-      if (isAuthenticated && popularCreators.length > 0) {
-        const newFollowStatus: Record<string, boolean> = {};
-        for (const creator of popularCreators) {
-          try {
-            const isFollowing = await checkFollowStatus(creator.id);
-            newFollowStatus[creator.id] = isFollowing;
-          } catch (error) {
-            console.error(`Error checking follow status for creator ${creator.id}:`, error);
-            newFollowStatus[creator.id] = false;
-          }
-        }
-        setFollowStatus(prev => ({ ...prev, ...newFollowStatus }));
-      } else if (!isAuthenticated) {
-        // Reset follow status when user is not authenticated
-        setFollowStatus({});
-      }
-    };
-
-    checkFollowStatusForCreators();
-  }, [popularCreatorsData, isAuthenticated]); // Only run when popular creators data or authentication status changes
   
   // Fetch real albums from the API
   const [popularAlbums, setPopularAlbums] = useState<Album[]>([]);
@@ -448,12 +420,6 @@ export default function Home() {
               Afrobeat
             </Link>
             <Link
-              href="/explore?category=amapiano"
-              className="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors"
-            >
-              Amapiano
-            </Link>
-            <Link
               href="/explore?category=hiphop"
               className="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors"
             >
@@ -478,22 +444,10 @@ export default function Home() {
               Gospel
             </Link>
             <Link
-              href="/explore?category=dancehall"
+              href="/explore?category=traditional"
               className="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors"
             >
-              Dancehall
-            </Link>
-            <Link
-              href="/explore?category=reggae"
-              className="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors"
-            >
-              Reggae
-            </Link>
-            <Link
-              href="/explore?category=soul"
-              className="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors"
-            >
-              Soul
+              Traditional
             </Link>
           </nav>
         </div>
@@ -888,46 +842,19 @@ export default function Home() {
                     {creator.followers.toLocaleString()} followers
                   </p>
                   <button 
-                    className={`mt-2 w-full px-3 py-1.5 ${followStatus[creator.id] ? 'bg-gray-600 hover:bg-gray-700 border-gray-600' : 'bg-transparent border border-[#FFCB2B] text-[#FFCB2B] hover:bg-[#FFCB2B]/10'} rounded-full text-xs font-medium transition-colors`}
-                    onClick={async (e) => {
+                    className="mt-2 w-full px-3 py-1.5 bg-transparent border border-[#FFCB2B] text-[#FFCB2B] hover:bg-[#FFCB2B]/10 rounded-full text-xs font-medium transition-colors"
+                    onClick={(e) => {
                       e.stopPropagation();
                       if (!isAuthenticated) {
                         router.push('/login');
                       } else {
-                        try {
-                          if (followStatus[creator.id]) {
-                            // Unfollow the creator
-                            await unfollowCreator(creator.id);
-                            
-                            // Update the followers count in the UI
-                            setFollowStatus(prev => ({
-                              ...prev,
-                              [creator.id]: false
-                            }));
-                            
-                            // Show success feedback
-                            console.log('Successfully unfollowed creator');
-                          } else {
-                            // Follow the creator
-                            await followCreator(creator.id);
-                            
-                            // Update the follow status
-                            setFollowStatus(prev => ({
-                              ...prev,
-                              [creator.id]: true
-                            }));
-                            
-                            // Show success feedback
-                            console.log('Successfully followed creator');
-                          }
-                        } catch (error) {
-                          console.error('Failed to follow/unfollow creator:', error);
-                          alert('Failed to follow/unfollow creator. Please try again.');
-                        }
+                        // Handle follow action here
+                        console.log('Following', creator.name);
+                        // In a real implementation, you would make an API call to follow the creator
                       }
                     }}
                   >
-                    {followStatus[creator.id] ? 'Unfollow' : 'Follow'}
+                    Follow
                   </button>
                 </div>
               </div>
@@ -1787,46 +1714,19 @@ export default function Home() {
                       {creator.followers.toLocaleString()} followers
                     </span>
                     <button 
-                      className={`px-3 py-1.5 sm:px-4 sm:py-2 ${followStatus[creator.id] ? 'bg-gray-600 hover:bg-gray-700 border-gray-600' : 'bg-transparent border border-[#FFCB2B] text-[#FFCB2B] hover:bg-[#FFCB2B]/10'} rounded-full text-xs sm:text-sm font-medium transition-colors`}
-                      onClick={async (e) => {
+                      className="px-3 py-1.5 sm:px-4 sm:py-2 bg-transparent border border-[#FFCB2B] text-[#FFCB2B] hover:bg-[#FFCB2B]/10 rounded-full text-xs sm:text-sm font-medium transition-colors"
+                      onClick={(e) => {
                         e.stopPropagation();
                         if (!isAuthenticated) {
                           router.push('/login');
                         } else {
-                          try {
-                            if (followStatus[creator.id]) {
-                              // Unfollow the creator
-                              await unfollowCreator(creator.id);
-                              
-                              // Update the followers count in the UI
-                              setFollowStatus(prev => ({
-                                ...prev,
-                                [creator.id]: false
-                              }));
-                              
-                              // Show success feedback
-                              console.log('Successfully unfollowed creator');
-                            } else {
-                              // Follow the creator
-                              await followCreator(creator.id);
-                              
-                              // Update the follow status
-                              setFollowStatus(prev => ({
-                                ...prev,
-                                [creator.id]: true
-                              }));
-                              
-                              // Show success feedback
-                              console.log('Successfully followed creator');
-                            }
-                          } catch (error) {
-                            console.error('Failed to follow/unfollow creator:', error);
-                            alert('Failed to follow/unfollow creator. Please try again.');
-                          }
+                          // Handle follow action here
+                          console.log('Following', creator.name);
+                          // In a real implementation, you would make an API call to follow the creator
                         }
                       }}
                     >
-                      {followStatus[creator.id] ? 'Unfollow' : 'Follow'}
+                      Follow
                     </button>
                   </div>
                 </div>
@@ -2151,9 +2051,8 @@ export default function Home() {
           <div className="container mx-auto px-4 md:px-8">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
               <div className="col-span-1 md:col-span-2">
-                <div className="mb-4 flex items-center">
+                <div className="mb-4">
                   <img src="/muzikax.png" alt="MuzikaX Logo" className="h-8 w-auto" />
-                  <span className="ml-3 text-xl font-bold text-white">MuzikaX</span>
                 </div>
                 <p className="text-gray-400 mb-6">
                   Discover, share, and enjoy the best of Rwandan music. Connect

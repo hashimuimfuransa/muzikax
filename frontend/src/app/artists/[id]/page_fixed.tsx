@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useAudioPlayer } from '@/contexts/AudioPlayerContext'
 import { useAuth } from '@/contexts/AuthContext'
-import { fetchTracksByCreatorPublic, followCreator } from '@/services/trackService'
+import { fetchTracksByCreatorPublic, followCreator, unfollowCreator, checkFollowStatus } from '@/services/trackService'
 import { getAlbumsByCreator } from '@/services/albumService'
 
 interface Creator {
@@ -94,6 +94,7 @@ export default function ArtistProfilePage() {
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'tracks' | 'albums'>('tracks') // Added for tab switching
   const [searchFilter, setSearchFilter] = useState('') // Added for search filtering
+  const [isFollowing, setIsFollowing] = useState(false) // Added to track follow status
   const params = useParams()
   const router = useRouter()
   const { playTrack } = useAudioPlayer()
@@ -152,6 +153,17 @@ export default function ArtistProfilePage() {
           setStats(statsData)
         }
         
+        // Check if user is following this creator
+        if (user) {
+          try {
+            const isFollowingStatus = await checkFollowStatus(creatorId);
+            setIsFollowing(isFollowingStatus);
+          } catch (followCheckError) {
+            console.error('Error checking follow status:', followCheckError);
+            setIsFollowing(false);
+          }
+        }
+        
         setError(null)
       } catch (err) {
         console.error('Failed to fetch data:', err)
@@ -164,7 +176,7 @@ export default function ArtistProfilePage() {
     if (creatorId) {
       fetchData()
     }
-  }, [creatorId])
+  }, [creatorId, user])
   
   const handlePlayTrack = (track: Track) => {
     // Validate that we have a valid audio URL
@@ -307,34 +319,56 @@ export default function ArtistProfilePage() {
               </div>
               
               <button 
-                className="px-6 py-3 bg-[#FF4D67] hover:bg-[#FF4D67]/90 text-white rounded-full font-medium transition-colors"
+                className={`px-6 py-3 ${isFollowing ? 'bg-gray-600 hover:bg-gray-700' : 'bg-[#FF4D67] hover:bg-[#FF4D67]/90'} text-white rounded-full font-medium transition-colors`}
                 onClick={async () => {
-                  // Handle follow action here
+                  // Handle follow/unfollow action here
                   if (!user) {
                     router.push('/login');
                   } else {
                     try {
-                      // Call the follow creator service
-                      await followCreator(creator._id);
-                      
-                      // Update the followers count in the UI
-                      setCreator(prev => 
-                        prev ? {
-                          ...prev,
-                          followersCount: prev.followersCount + 1
-                        } : null
-                      );
-                      
-                      // Show success feedback
-                      console.log('Successfully followed creator');
+                      if (isFollowing) {
+                        // Unfollow the creator
+                        await unfollowCreator(creator._id);
+                        
+                        // Update the followers count in the UI
+                        setCreator(prev => 
+                          prev ? {
+                            ...prev,
+                            followersCount: Math.max(0, prev.followersCount - 1)  // Prevent negative counts
+                          } : null
+                        );
+                        
+                        // Update the follow status
+                        setIsFollowing(false);
+                        
+                        // Show success feedback
+                        console.log('Successfully unfollowed creator');
+                      } else {
+                        // Follow the creator
+                        await followCreator(creator._id);
+                        
+                        // Update the followers count in the UI
+                        setCreator(prev => 
+                          prev ? {
+                            ...prev,
+                            followersCount: prev.followersCount + 1
+                          } : null
+                        );
+                        
+                        // Update the follow status
+                        setIsFollowing(true);
+                        
+                        // Show success feedback
+                        console.log('Successfully followed creator');
+                      }
                     } catch (error) {
-                      console.error('Failed to follow creator:', error);
-                      alert('Failed to follow creator. Please try again.');
+                      console.error('Failed to follow/unfollow creator:', error);
+                      alert('Failed to follow/unfollow creator. Please try again.');
                     }
                   }
                 }}
               >
-                Follow
+                {isFollowing ? 'Unfollow' : 'Follow'}
               </button>            </div>
           </div>
         </div>
