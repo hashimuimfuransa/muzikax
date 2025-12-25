@@ -1,11 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import "../globals.css";
-import Navbar from "../components/Navbar";
-import MobileNavbar from "../components/MobileNavbar";
-import { AuthProvider } from "../contexts/AuthContext";
-import { AudioPlayerProvider } from "../contexts/AudioPlayerContext";
-import ModernAudioPlayer from "../components/ModernAudioPlayer";
-import PWAInstallPrompt from "../components/PWAInstallPrompt";
+import "../../globals.css";
+import Navbar from "../../components/Navbar";
+import MobileNavbar from "../../components/MobileNavbar";
+import { AuthProvider } from "../../contexts/AuthContext";
+import { AudioPlayerProvider } from "../../contexts/AudioPlayerContext";
+import ModernAudioPlayer from "../../components/ModernAudioPlayer";
+import PWAInstallPrompt from "../../components/PWAInstallPrompt";
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
 export const metadata: Metadata = {
