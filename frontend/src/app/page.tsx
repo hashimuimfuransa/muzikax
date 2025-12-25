@@ -7,7 +7,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useTrendingTracks, usePopularCreators } from "../hooks/useTracks";
 import { useAudioPlayer } from "../contexts/AudioPlayerContext";
 import { getAlbumById } from "../services/albumService";
-import { followCreator } from "../services/trackService";
+import { followCreator, unfollowCreator, checkFollowStatus } from "../services/trackService";
 
 interface Track {
   id: string;
@@ -63,6 +63,9 @@ export default function Home() {
 
   // State for tracking which tracks are favorited
   const [favoriteStatus, setFavoriteStatus] = useState<Record<string, boolean>>({});
+
+  // State for tracking which creators are followed
+  const [followStatus, setFollowStatus] = useState<Record<string, boolean>>({});
 
   // Update favorite status when favorites change or when favorites are loaded
   useEffect(() => {
@@ -225,6 +228,30 @@ export default function Home() {
     avatar: creator.avatar || "", // Preserve empty values so we can show fallback in UI
     verified: true, // For now, we'll assume all creators are verified
   }));
+  
+  // Check follow status for each popular creator when creators load or user changes
+  useEffect(() => {
+    const checkFollowStatusForCreators = async () => {
+      if (isAuthenticated && popularCreators.length > 0) {
+        const newFollowStatus = {};
+        for (const creator of popularCreators) {
+          try {
+            const isFollowing = await checkFollowStatus(creator.id);
+            newFollowStatus[creator.id] = isFollowing;
+          } catch (error) {
+            console.error(`Error checking follow status for creator ${creator.id}:`, error);
+            newFollowStatus[creator.id] = false;
+          }
+        }
+        setFollowStatus(prev => ({ ...prev, ...newFollowStatus }));
+      } else if (!isAuthenticated) {
+        // Reset follow status when user is not authenticated
+        setFollowStatus({});
+      }
+    };
+
+    checkFollowStatusForCreators();
+  }, [popularCreatorsData, isAuthenticated]); // Only run when popular creators data or authentication status changes
   
   // Fetch real albums from the API
   const [popularAlbums, setPopularAlbums] = useState<Album[]>([]);
@@ -861,26 +888,46 @@ export default function Home() {
                     {creator.followers.toLocaleString()} followers
                   </p>
                   <button 
-                    className="mt-2 w-full px-3 py-1.5 bg-transparent border border-[#FFCB2B] text-[#FFCB2B] hover:bg-[#FFCB2B]/10 rounded-full text-xs font-medium transition-colors"
+                    className={`mt-2 w-full px-3 py-1.5 ${followStatus[creator.id] ? 'bg-gray-600 hover:bg-gray-700 border-gray-600' : 'bg-transparent border border-[#FFCB2B] text-[#FFCB2B] hover:bg-[#FFCB2B]/10'} rounded-full text-xs font-medium transition-colors`}
                     onClick={async (e) => {
                       e.stopPropagation();
                       if (!isAuthenticated) {
                         router.push('/login');
                       } else {
                         try {
-                          // Call the follow creator service
-                          await followCreator(creator.id);
-                          
-                          // Show success feedback
-                          console.log('Successfully followed creator');
+                          if (followStatus[creator.id]) {
+                            // Unfollow the creator
+                            await unfollowCreator(creator.id);
+                            
+                            // Update the followers count in the UI
+                            setFollowStatus(prev => ({
+                              ...prev,
+                              [creator.id]: false
+                            }));
+                            
+                            // Show success feedback
+                            console.log('Successfully unfollowed creator');
+                          } else {
+                            // Follow the creator
+                            await followCreator(creator.id);
+                            
+                            // Update the follow status
+                            setFollowStatus(prev => ({
+                              ...prev,
+                              [creator.id]: true
+                            }));
+                            
+                            // Show success feedback
+                            console.log('Successfully followed creator');
+                          }
                         } catch (error) {
-                          console.error('Failed to follow creator:', error);
-                          alert('Failed to follow creator. Please try again.');
+                          console.error('Failed to follow/unfollow creator:', error);
+                          alert('Failed to follow/unfollow creator. Please try again.');
                         }
                       }
                     }}
                   >
-                    Follow
+                    {followStatus[creator.id] ? 'Unfollow' : 'Follow'}
                   </button>
                 </div>
               </div>
@@ -1740,26 +1787,46 @@ export default function Home() {
                       {creator.followers.toLocaleString()} followers
                     </span>
                     <button 
-                      className="px-3 py-1.5 sm:px-4 sm:py-2 bg-transparent border border-[#FFCB2B] text-[#FFCB2B] hover:bg-[#FFCB2B]/10 rounded-full text-xs sm:text-sm font-medium transition-colors"
+                      className={`px-3 py-1.5 sm:px-4 sm:py-2 ${followStatus[creator.id] ? 'bg-gray-600 hover:bg-gray-700 border-gray-600' : 'bg-transparent border border-[#FFCB2B] text-[#FFCB2B] hover:bg-[#FFCB2B]/10'} rounded-full text-xs sm:text-sm font-medium transition-colors`}
                       onClick={async (e) => {
                         e.stopPropagation();
                         if (!isAuthenticated) {
                           router.push('/login');
                         } else {
                           try {
-                            // Call the follow creator service
-                            await followCreator(creator.id);
-                            
-                            // Show success feedback
-                            console.log('Successfully followed creator');
+                            if (followStatus[creator.id]) {
+                              // Unfollow the creator
+                              await unfollowCreator(creator.id);
+                              
+                              // Update the followers count in the UI
+                              setFollowStatus(prev => ({
+                                ...prev,
+                                [creator.id]: false
+                              }));
+                              
+                              // Show success feedback
+                              console.log('Successfully unfollowed creator');
+                            } else {
+                              // Follow the creator
+                              await followCreator(creator.id);
+                              
+                              // Update the follow status
+                              setFollowStatus(prev => ({
+                                ...prev,
+                                [creator.id]: true
+                              }));
+                              
+                              // Show success feedback
+                              console.log('Successfully followed creator');
+                            }
                           } catch (error) {
-                            console.error('Failed to follow creator:', error);
-                            alert('Failed to follow creator. Please try again.');
+                            console.error('Failed to follow/unfollow creator:', error);
+                            alert('Failed to follow/unfollow creator. Please try again.');
                           }
                         }
                       }}
                     >
-                      Follow
+                      {followStatus[creator.id] ? 'Unfollow' : 'Follow'}
                     </button>
                   </div>
                 </div>
