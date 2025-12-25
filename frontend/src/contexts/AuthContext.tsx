@@ -37,29 +37,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user')
-    console.log('AuthProvider - storedUser:', storedUser);
-    if (storedUser) {
-      try {
-        const parsedUser = JSON.parse(storedUser)
-        console.log('AuthProvider - parsedUser:', parsedUser);
-        
-        // Ensure whatsappContact is a string, not an object
-        if (parsedUser && parsedUser.whatsappContact) {
-          if (typeof parsedUser.whatsappContact === 'object' && parsedUser.whatsappContact !== null) {
-            // If it's an object, extract the actual WhatsApp number
-            parsedUser.whatsappContact = parsedUser.whatsappContact.whatsappContact || '';
+    // Check if we're in the browser before accessing localStorage
+    if (typeof window !== 'undefined') {
+      const storedUser = localStorage.getItem('user')
+      console.log('AuthProvider - storedUser:', storedUser);
+      if (storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser)
+          console.log('AuthProvider - parsedUser:', parsedUser);
+          
+          // Ensure whatsappContact is a string, not an object
+          if (parsedUser && parsedUser.whatsappContact) {
+            if (typeof parsedUser.whatsappContact === 'object' && parsedUser.whatsappContact !== null) {
+              // If it's an object, extract the actual WhatsApp number
+              parsedUser.whatsappContact = parsedUser.whatsappContact.whatsappContact || '';
+            }
           }
+          
+          setUser(parsedUser)
+          
+          // Fetch complete user profile to ensure followers count and other data is up to date
+          fetchUserProfile();
+        } catch (error) {
+          console.error('Error parsing user data:', error)
         }
-        
-        setUser(parsedUser)
-        
-        // Fetch complete user profile to ensure followers count and other data is up to date
-        fetchUserProfile();
-      } catch (error) {
-        console.error('Error parsing user data:', error)
+      } else {
+        setIsLoading(false);
       }
     } else {
+      // On the server, just set loading to false
       setIsLoading(false);
     }
   }, [])
@@ -67,11 +73,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = (userData: User) => {
     console.log('AuthProvider - login called with:', userData);
     setUser(userData)
-    localStorage.setItem('user', JSON.stringify(userData))
+    // Check if we're in the browser before accessing localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('user', JSON.stringify(userData))
+    }
   }
 
   // Function to fetch and update the complete user profile
   const fetchUserProfile = async (): Promise<boolean> => {
+    // Check if we're in the browser before accessing localStorage
+    if (typeof window === 'undefined') {
+      console.log('Not running in browser, skipping fetchUserProfile');
+      return false;
+    }
+    
     try {
       const accessToken = localStorage.getItem('accessToken');
       
@@ -173,116 +188,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     console.log('AuthProvider - logout called');
     setUser(null);
-    localStorage.removeItem('user');
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    // Redirect to login page
+    // Check if we're in the browser before accessing localStorage
     if (typeof window !== 'undefined') {
+      localStorage.removeItem('user');
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      // Redirect to login page
       window.location.href = '/login';
     }
   };
 
-  // Function to fetch and update the complete user profile
-  const fetchUserProfile = async (): Promise<boolean> => {
-    try {
-      const accessToken = localStorage.getItem('accessToken');
-      
-      if (!accessToken) {
-        console.error('No access token found');
-        return false;
-      }
-      
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${accessToken}`
-        }
-      });
-      
-      if (!response.ok) {
-        if (response.status === 401) {
-          // Token might be expired, attempt refresh
-          const refreshToken = localStorage.getItem('refreshToken');
-          if (refreshToken) {
-            const refreshResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh-token`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ refreshToken })
-            });
-            
-            if (refreshResponse.ok) {
-              const refreshData = await refreshResponse.json();
-              localStorage.setItem('accessToken', refreshData.accessToken);
-              localStorage.setItem('refreshToken', refreshData.refreshToken);
-              
-              // Retry the profile request with new token
-              const retryResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
-                method: 'GET',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${refreshData.accessToken}`
-                }
-              });
-              
-              if (!retryResponse.ok) {
-                console.error('Failed to fetch user profile after token refresh');
-                return false;
-              }
-              
-              const updatedUserData = await retryResponse.json();
-              
-              // Ensure whatsappContact is a string, not an object
-              let whatsappContactValue = updatedUserData.whatsappContact || '';
-              if (typeof whatsappContactValue === 'object' && whatsappContactValue !== null) {
-                // If it's an object, extract the actual WhatsApp number
-                whatsappContactValue = (whatsappContactValue as any).whatsappContact || '';
-              }
-              
-              const completeUser = {
-                ...updatedUserData,
-                id: updatedUserData._id,
-                whatsappContact: whatsappContactValue
-              };
-              
-              setUser(completeUser);
-              localStorage.setItem('user', JSON.stringify(completeUser));
-              return true;
-            }
-          }
-        }
-        console.error('Failed to fetch user profile:', response.status);
-        return false;
-      }
-      
-      const updatedUserData = await response.json();
-      
-      // Ensure whatsappContact is a string, not an object
-      let whatsappContactValue = updatedUserData.whatsappContact || '';
-      if (typeof whatsappContactValue === 'object' && whatsappContactValue !== null) {
-        // If it's an object, extract the actual WhatsApp number
-        whatsappContactValue = (whatsappContactValue as any).whatsappContact || '';
-      }
-      
-      const completeUser = {
-        ...updatedUserData,
-        id: updatedUserData._id,
-        whatsappContact: whatsappContactValue
-      };
-      
-      setUser(completeUser);
-      localStorage.setItem('user', JSON.stringify(completeUser));
-      
-      return true;
-    } catch (error) {
-      console.error('Error fetching user profile:', error);
+  const upgradeToCreator = async (creatorType: 'artist' | 'dj' | 'producer'): Promise<boolean> => {
+    // Check if we're in the browser before accessing localStorage
+    if (typeof window === 'undefined') {
+      console.log('Not running in browser, cannot upgrade user');
       return false;
     }
-  }
-
-  const upgradeToCreator = async (creatorType: 'artist' | 'dj' | 'producer'): Promise<boolean> => {
+    
     if (!user) {
       console.error('No user found for upgrade');
       return false;
@@ -375,6 +297,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const updateProfile = async (updatedData: Partial<User>): Promise<boolean> => {
+    // Check if we're in the browser before accessing localStorage
+    if (typeof window === 'undefined') {
+      console.log('Not running in browser, cannot update profile');
+      return false;
+    }
+    
     if (!user) {
       console.error('No user found for profile update');
       return false;
@@ -429,6 +357,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const updateWhatsAppContact = async (whatsappContact: string): Promise<boolean> => {
+    // Check if we're in the browser before accessing localStorage
+    if (typeof window === 'undefined') {
+      console.log('Not running in browser, cannot update WhatsApp contact');
+      return false;
+    }
+    
     if (!user) {
       console.log('No user found for WhatsApp contact update');
       return false;
@@ -471,7 +405,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const userRole = user?.role || null
   
   useEffect(() => {
-    console.log('AuthContext values:', { user, isAuthenticated, userRole, isLoading });
+    // Only log in the browser
+    if (typeof window !== 'undefined') {
+      console.log('AuthContext values:', { user, isAuthenticated, userRole, isLoading });
+    }
   }, [user, isAuthenticated, userRole, isLoading]);
 
   return (
