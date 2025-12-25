@@ -299,7 +299,7 @@ export const followCreator = async (creatorId: string): Promise<boolean> => {
     }
 
     // Make API call to follow creator
-    let response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user/follow/${creatorId}`, {
+    let response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/follow/${creatorId}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -328,7 +328,7 @@ export const followCreator = async (creatorId: string): Promise<boolean> => {
           
           // Retry the original request with new token
           accessToken = refreshData.accessToken;
-          response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user/follow/${creatorId}`, {
+          response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/follow/${creatorId}`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
