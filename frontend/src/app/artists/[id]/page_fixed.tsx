@@ -318,10 +318,12 @@ export default function ArtistProfilePage() {
                       await followCreator(creator._id);
                       
                       // Update the followers count in the UI
-                      setCreator(prev => ({
-                        ...prev,
-                        followersCount: (prev.followersCount || 0) + 1
-                      }));
+                      setCreator(prev => 
+                        prev ? {
+                          ...prev,
+                          followersCount: prev.followersCount + 1
+                        } : null
+                      );
                       
                       // Show success feedback
                       console.log('Successfully followed creator');
