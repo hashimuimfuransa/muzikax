@@ -509,25 +509,25 @@ export default function Upload() {
       {/* Upgrade Prompt Modal */}
       {showUpgradePrompt && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="card-bg rounded-2xl p-5 sm:p-8 max-w-md w-full border border-gray-700/50 shadow-2xl my-8">
+          <div className="card-bg rounded-2xl p-4 sm:p-5 md:p-8 max-w-sm sm:max-w-md w-full border border-gray-700/50 shadow-2xl my-4 sm:my-8">
             <div className="text-center">
-              <div className="mx-auto w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-[#FF4D67]/10 flex items-center justify-center mb-3 sm:mb-4">
-                <svg className="w-6 h-6 sm:w-8 sm:h-8 text-[#FF4D67]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <div className="mx-auto w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 rounded-full bg-[#FF4D67]/10 flex items-center justify-center mb-2 sm:mb-3 md:mb-4">
+                <svg className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 text-[#FF4D67]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                 </svg>
               </div>
               
-              <h2 className="text-lg sm:text-2xl font-bold text-white mb-2">Become a Creator</h2>
-              <p className="text-gray-400 text-xs sm:text-sm mb-5 sm:mb-6">
+              <h2 className="text-base sm:text-lg md:text-2xl font-bold text-white mb-1 sm:mb-2 md:mb-3">Become a Creator</h2>
+              <p className="text-gray-400 text-xs sm:text-sm md:text-base mb-3 sm:mb-4 md:mb-6">
                 You need to upgrade your account to upload music. Please select your creator type below.
               </p>
               
-              <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-5 sm:mb-6">
+              <div className="grid grid-cols-3 gap-1 sm:gap-2 md:gap-3 mb-3 sm:mb-4 md:mb-6">
                 {(['artist', 'dj', 'producer'] as const).map((type) => (
                   <button
                     key={type}
                     type="button"
-                    className={`py-2 sm:py-3 px-1 sm:px-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${
+                    className={`py-1.5 sm:py-2 md:py-3 px-1 sm:px-2 rounded-lg text-xs sm:text-sm md:text-base font-medium transition-all ${
                       selectedCreatorType === type
                         ? 'bg-[#FF4D67] text-white'
                         : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50'
@@ -539,11 +539,11 @@ export default function Upload() {
                 ))}
               </div>
               
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-2 sm:gap-3">
                 <button
                   onClick={handleUpgradeToCreator}
                   disabled={isUpgrading}
-                  className={`w-full py-2.5 sm:py-3 px-4 rounded-lg text-white font-medium transition-opacity ${
+                  className={`w-full py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 rounded-lg text-white font-medium transition-opacity ${
                     isUpgrading 
                       ? 'bg-gray-600 cursor-not-allowed' 
                       : 'gradient-primary hover:opacity-90'
@@ -553,7 +553,7 @@ export default function Upload() {
                 </button>
                 <button
                   onClick={() => router.push('/')}
-                  className="w-full py-2.5 sm:py-3 px-4 bg-gray-800/50 border border-gray-700 rounded-lg text-white font-medium hover:bg-gray-700/50 transition-colors"
+                  className="w-full py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 bg-gray-800/50 border border-gray-700 rounded-lg text-white font-medium hover:bg-gray-700/50 transition-colors"
                 >
                   Cancel
                 </button>
