@@ -64,15 +64,28 @@ app.use((_req, _res, next) => {
 app.use(helmet());
 
 // Enable CORS for specific origins
-const corsOptions = {
-  origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : [
+const allowedOrigins = process.env.CORS_ORIGIN ? 
+  process.env.CORS_ORIGIN.split(',').map(origin => origin.trim()) : 
+  [
     'https://muzikax.vercel.app',  // Production frontend
     'http://localhost:3000',       // Local development
     'http://localhost:3001',       // Alternative local development
     'http://localhost:8080',       // Alternative local development
     'https://localhost:3000',      // HTTPS local development
     'https://localhost:3001',      // HTTPS alternative local development
-  ],
+  ];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   optionsSuccessStatus: 200
 };
