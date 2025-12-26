@@ -62,7 +62,22 @@ app.use((_req, _res, next) => {
 
 // Middleware
 app.use(helmet());
-app.use(cors());
+
+// Enable CORS for specific origins
+const corsOptions = {
+  origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : [
+    'https://muzikax.vercel.app',  // Production frontend
+    'http://localhost:3000',       // Local development
+    'http://localhost:3001',       // Alternative local development
+    'http://localhost:8080',       // Alternative local development
+    'https://localhost:3000',      // HTTPS local development
+    'https://localhost:3001',      // HTTPS alternative local development
+  ],
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
+
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
