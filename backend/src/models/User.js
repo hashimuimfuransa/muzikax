@@ -10,7 +10,7 @@ var UserSchema = new mongoose_1.Schema({
     email: {
         type: String,
         required: true,
-        unique: true,
+        unique: true, // This creates the unique index
         lowercase: true,
         trim: true
     },
@@ -88,6 +88,5 @@ var UserSchema = new mongoose_1.Schema({
 }, {
     timestamps: true
 });
-// Index for email
-UserSchema.index({ email: 1 });
+// Email already has unique: true which creates the index automatically
 module.exports = mongoose_1.default.model('User', UserSchema);
