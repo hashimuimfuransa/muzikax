@@ -40,12 +40,16 @@ console.log('APP FILE LOADED');
 // Load env vars
 dotenv.config();
 
-// Update geoip-lite database
-try {
-  geoip.reloadDataSync();
-  console.log('GeoIP database updated successfully');
-} catch (error) {
-  console.error('Failed to update GeoIP database:', error);
+// Update geoip-lite database only in non-serverless environments
+if (process.env.NODE_ENV !== 'production' || process.env.VERCEL_ENV !== 'production') {
+  try {
+    geoip.reloadDataSync();
+    console.log('GeoIP database updated successfully');
+  } catch (error) {
+    console.error('Failed to update GeoIP database:', error);
+  }
+} else {
+  console.log('Skipping GeoIP database update in production environment');
 }
 
 // Create app first without connecting to database immediately
@@ -80,10 +84,10 @@ const corsOptions = {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      callback(null, false); // Don't throw error, just deny the request
     }
   },
   credentials: true,
