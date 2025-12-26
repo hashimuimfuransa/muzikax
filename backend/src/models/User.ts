@@ -120,5 +120,9 @@ const UserSchema: Schema = new Schema({
 UserSchema.index({ email: 1 });
 // Index for googleId
 UserSchema.index({ googleId: 1 });
+// Indexes for frequently accessed fields
+UserSchema.index({ role: 1 });
+UserSchema.index({ creatorType: 1 });
+UserSchema.index({ createdAt: -1 });
 
 export default mongoose.model<IUser>('User', UserSchema);

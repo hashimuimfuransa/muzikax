@@ -1,6 +1,7 @@
 const express = require('express');
-const { register, login, refreshToken, getUserProfile } = require('../controllers/authController');
+const { register, login, refreshToken, getUserProfile, updateUserProfile } = require('../controllers/authController');
 const { googleLogin } = require('../controllers/googleAuthController');
+const { protect } = require('../utils/jwt');
 
 console.log('AUTH ROUTES FILE LOADED');
 
@@ -26,7 +27,11 @@ router.post('/logout', (req, res) => {
 });
 
 // Get user profile route
-router.get('/me', jwt_1.protect, authController_1.getUserProfile);
+router.get('/me', protect, getUserProfile);
+
+// Profile routes
+router.route('/profile')
+  .put(protect, updateUserProfile);
 
 // Refresh token route
 router.post('/refresh-token', refreshToken);

@@ -132,6 +132,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               
               if (!retryResponse.ok) {
                 console.error('Failed to fetch user profile after token refresh');
+                setIsLoading(false);
                 return false;
               }
               
@@ -152,11 +153,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               
               setUser(completeUser);
               localStorage.setItem('user', JSON.stringify(completeUser));
+              setIsLoading(false);
               return true;
             }
           }
         }
         console.error('Failed to fetch user profile:', response.status);
+        setIsLoading(false);
         return false;
       }
       
@@ -177,10 +180,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       setUser(completeUser);
       localStorage.setItem('user', JSON.stringify(completeUser));
+      setIsLoading(false);
       
       return true;
     } catch (error) {
       console.error('Error fetching user profile:', error);
+      setIsLoading(false);
       return false;
     }
   }

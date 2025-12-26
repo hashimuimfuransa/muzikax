@@ -121,7 +121,7 @@ exports.refreshToken = refreshToken;
 // Get user profile
 const getUserProfile = async (req, res) => {
     try {
-        const user = await User_1.findById(req.user._id);
+        const user = await User_1.findById(req.user._id).select('-favorites -playlists -recentlyPlayed -following -password');
         if (!user) {
             res.status(404).json({ message: 'User not found' });
             return;
@@ -134,8 +134,10 @@ const getUserProfile = async (req, res) => {
             creatorType: user.creatorType,
             avatar: user.avatar,
             bio: user.bio,
+            genres: user.genres,
             followersCount: user.followersCount,
             socials: user.socials,
+            whatsappContact: user.whatsappContact,
             createdAt: user.createdAt
         });
     }
@@ -147,7 +149,7 @@ exports.getUserProfile = getUserProfile;
 // Update user profile
 const updateUserProfile = async (req, res) => {
     try {
-        const user = await User_1.findById(req.user._id);
+        const user = await User_1.findById(req.user._id).select('+password');
         if (!user) {
             res.status(404).json({ message: 'User not found' });
             return;
