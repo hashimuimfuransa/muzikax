@@ -4,7 +4,6 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const geoip = require('geoip-lite');
-const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const trackRoutes = require('./routes/trackRoutes');
 const userRoutes = require('./routes/userRoutes');
@@ -17,9 +16,7 @@ const commentRoutes = require('./routes/commentRoutes'); // Add comment routes
 const eventRoutes = require('./routes/eventRoutes'); // Add event routes
 const { protect } = require('./utils/jwt');
 const { updateOwnProfile } = require('./controllers/profileController');
-console.log('About to import public routes...');
 const publicRoutes = require('./routes/publicRoutes');
-console.log('Public routes imported successfully');
 
 // Import the new feature routes
 const favoriteRoutes = require('./routes/features/favoriteRoutes');
@@ -33,36 +30,21 @@ const whatsappRoutes = require('./routes/whatsappRoutes');
 
 // Import search routes
 const searchRoutes = require('./routes/searchRoutes');
-console.log('ROUTES IMPORTED');
-
-console.log('APP FILE LOADED');
 
 // Load env vars
 dotenv.config();
 
-// Update geoip-lite database only in non-serverless environments
-if (process.env.NODE_ENV !== 'production' || process.env.VERCEL_ENV !== 'production') {
-  try {
-    geoip.reloadDataSync();
-    console.log('GeoIP database updated successfully');
-  } catch (error) {
-    console.error('Failed to update GeoIP database:', error);
-  }
-} else {
-  console.log('Skipping GeoIP database update in production environment');
+// Update geoip-lite database
+try {
+  geoip.reloadDataSync();
+  console.log('GeoIP database updated successfully');
+} catch (error) {
+  console.error('Failed to update GeoIP database:', error);
 }
 
-// Create app first without connecting to database immediately
 const app = express();
 
-console.log('APP CREATED');
 
-// Add request logging middleware
-app.use((_req, _res, next) => {
-  console.log(`APP MIDDLEWARE - Incoming request: ${_req.method} ${_req.originalUrl}`);
-  console.log('Headers:', _req.headers);
-  next();
-});
 
 // Middleware
 app.use(helmet());
@@ -99,17 +81,10 @@ app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Log routes registration
-console.log('Registering routes...');
-
 // Routes
 app.use('/api/auth', authRoutes);
-console.log('Auth routes registered');
 app.use('/api/tracks', trackRoutes);
-console.log('Tracks routes registered');
-console.log('Registering user routes...');
 app.use('/api/users', userRoutes);
-console.log('Users routes registered');
 
 // Register post routes early to avoid conflicts
 app.use('/api/posts', postRoutes);
