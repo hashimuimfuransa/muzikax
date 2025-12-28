@@ -959,37 +959,7 @@ Would you like to open WhatsApp to contact the creator?`;
                     <span>{(currentTrack.type === 'beat' || (currentTrack.title && currentTrack.title.toLowerCase().includes('beat'))) ? 'WhatsApp' : 'Download'}</span>
                   </button>
                   
-                  {currentTrack.creatorId && (
-                    <Link 
-                      href={`/artists/${(typeof currentTrack.creatorId === 'object' && currentTrack.creatorId !== null) 
-                        ? (currentTrack.creatorId as any)._id 
-                        : currentTrack.creatorId}`}
-                      className={`
-                        group flex flex-col items-center gap-1
-                        text-sm
-                        text-gray-400
-                        hover:text-white
-                        transition-all
-                      `}
-                      title="View Artist Profile"
-                    >
-                      <div
-                        className="
-                          w-10 h-10 sm:w-14 sm:h-14 md:w-12 md:h-12 rounded-full
-                          bg-white/10 backdrop-blur-md
-                          flex items-center justify-center
-                          group-hover:bg-white/20
-                          transition-all
-                          touch-manipulation
-                        "
-                      >
-                        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                        </svg>
-                      </div>
-                      <span>Artist</span>
-                    </Link>
-                  )}
+
                 </div>
                 
                 {/* Navigation Buttons to Favorites and Playlists */}
