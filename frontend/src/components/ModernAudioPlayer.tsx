@@ -292,7 +292,7 @@ const ModernAudioPlayer = () => {
               <button
                 onClick={togglePlayPause}
                 className="
-                  w-10 h-10 rounded-full 
+                  w-8 h-8 sm:w-10 sm:h-10 rounded-full 
                   bg-white/10 hover:bg-white/20 
                   flex items-center justify-center
                   transition-all
@@ -300,13 +300,13 @@ const ModernAudioPlayer = () => {
               >
                 {isPlaying ? (
                   /* Pause Icon */
-                  <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
                     <rect x="6" y="5" width="4" height="14" rx="1" />
                     <rect x="14" y="5" width="4" height="14" rx="1" />
                   </svg>
                 ) : (
                   /* Play Icon */
-                  <svg className="w-5 h-5 text-white ml-[1px]" viewBox="0 0 24 24" fill="currentColor">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white ml-[1px]" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M8 5v14l11-7z" />
                   </svg>
                 )}
@@ -316,14 +316,14 @@ const ModernAudioPlayer = () => {
               <button
                 onClick={shufflePlaylist}
                 className="
-                  w-8 h-8 rounded-full
+                  w-6 h-6 sm:w-8 sm:h-8 rounded-full
                   bg-white/5 hover:bg-white/15
                   flex items-center justify-center
                   transition
                 "
                 title="Shuffle playlist"
               >
-                <svg className="w-4 h-4 text-gray-300" fill="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3 h-3 sm:w-4 sm:h-4 text-gray-300" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z" />
                 </svg>
               </button>
@@ -331,14 +331,14 @@ const ModernAudioPlayer = () => {
               {/* Expand Button */}              <button
                 onClick={goToFullPlayer}
                 className="
-                  w-9 h-9 rounded-full
+                  w-7 h-7 sm:w-9 sm:h-9 rounded-full
                   bg-white/5 hover:bg-white/15
                   flex items-center justify-center
                   transition
                 "
                 title="Open full player"
               >
-                <svg className="w-5 h-5 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M12 5v14" />
                   <path d="M5 12l7-7 7 7" />
                 </svg>
@@ -364,7 +364,7 @@ const ModernAudioPlayer = () => {
               <button
                 onClick={toggleLoop}
                 className={`
-                  w-8 h-8 rounded-full
+                  w-6 h-6 sm:w-8 sm:h-8 rounded-full
                   flex items-center justify-center
                   ${isLooping ? 'text-[#FF4D67]' : 'text-gray-400'} hover:text-white
                   hover:bg-white/10
@@ -372,7 +372,7 @@ const ModernAudioPlayer = () => {
                 `}
                 title="Loop track/playlist"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <svg className="w-3 h-3 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
               </button>
