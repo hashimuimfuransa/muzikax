@@ -65,6 +65,8 @@ interface AudioPlayerContextType {
   removeFromFavorites: (trackId: string) => void;
   setCurrentPlaylist: (tracks: Track[]) => void;
   shufflePlaylist: () => void; // Add shufflePlaylist function
+  toggleLoop: () => void;
+  isLooping: boolean;
   currentTrackIndex: number;
   audioRef: React.RefObject<HTMLAudioElement | null>;
   addComment: (comment: Omit<Comment, 'id' | 'timestamp'>) => void;
@@ -103,6 +105,7 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [volume, setVolume] = useState(1);
   const [playbackRate, setPlaybackRate] = useState(1);
+  const [isLooping, setIsLooping] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const hasIncrementedPlayCount = useRef<Set<string>>(new Set());
   const router = useRouter();
@@ -664,12 +667,21 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     console.log('Playback context type in onended:', currentPlaybackContext.current.type);
     console.log('Playback context data in onended:', currentPlaybackContext.current.data);
     console.log('Full context object in onended:', JSON.stringify(currentPlaybackContext.current));
+    console.log('Is looping:', isLooping);
     setIsPlaying(false);
     
     // Check if the player has been explicitly stopped
     // If currentTrack is null, it means the player was explicitly stopped
     if (currentTrackRef.current === null) {
       console.log('Player has been explicitly stopped, not playing next track');
+      return;
+    }
+    
+    // Check if loop is enabled
+    if (isLooping) {
+      console.log('Loop is enabled, replaying current track');
+      // If loop is enabled, replay the current track
+      playTrack(currentTrackRef.current, playlistRef.current);
       return;
     }
     
@@ -1023,6 +1035,12 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
       } 
     }));
   };
+  
+  // Add toggleLoop function
+  const toggleLoop = () => {
+    setIsLooping(prev => !prev);
+    console.log('Loop toggled, isLooping:', !isLooping);
+  };
   const addComment = async (comment: Omit<Comment, 'id' | 'timestamp'>) => {
     if (!currentTrack?.id) {
       console.error('Cannot add comment: No current track');
@@ -1202,6 +1220,8 @@ Would you like to copy the WhatsApp number to your clipboard?`;
         removeFromFavorites,
         setCurrentPlaylist,
         shufflePlaylist, // Export shufflePlaylist function
+        toggleLoop,
+        isLooping,
         currentTrackIndex,
         audioRef,
         addComment,

@@ -44,6 +44,8 @@ const FullPagePlayer = () => {
     shareTrack,
     downloadTrack, // Add downloadTrack from context
     shufflePlaylist, // Add shufflePlaylist from context
+    toggleLoop,
+    isLooping,
     frequencyData  } = useAudioPlayer();
   
   const router = useRouter();
@@ -668,7 +670,7 @@ const FullPagePlayer = () => {
                     "
                   >
                     <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M6 5v14l8-7-8-7zm9 0h2v14h-2z" />
+                      <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
                     </svg>
                   </button>                  {/* Play / Pause */}
                   <button
@@ -714,7 +716,7 @@ const FullPagePlayer = () => {
                     "
                   >
                     <svg className="w-7 h-7 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M18 5v14l-8-7 8-7zm-9 0H7v14h2z" />
+                      <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z" />
                     </svg>
                   </button>
                   </div>
@@ -855,8 +857,36 @@ const FullPagePlayer = () => {
                     </div>
                     <span>Shuffle</span>
                   </button>
+                                    
+                  {/* Loop Button */}
+                  <button
+                    onClick={toggleLoop}
+                    className={`
+                      group flex flex-col items-center gap-1
+                      text-sm
+                      ${isLooping ? 'text-[#FF4D67]' : 'text-gray-400'}
+                      hover:text-white
+                      transition-all
+                    `}
+                    title="Loop track/playlist"
+                  >
+                    <div
+                      className="
+                        w-12 h-12 rounded-full
+                        bg-white/10 backdrop-blur-md
+                        flex items-center justify-center
+                        group-hover:bg-white/20
+                        transition-all
+                      "
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                    </div>
+                    <span>Loop</span>
+                  </button>
+                                     
                   
-
                   
                   {/* Download Button */}
                   <button
