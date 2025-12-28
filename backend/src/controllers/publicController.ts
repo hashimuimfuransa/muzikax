@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import User from '../models/User';
 import Track from '../models/Track';
+import mongoose from 'mongoose';
 
 /**
  * Get public creators (accessible to all users)
@@ -34,8 +35,21 @@ export const getPublicCreatorProfile = async (req: Request, res: Response): Prom
     const creatorId = req.params['id'];
     console.log('Fetching creator profile for ID:', creatorId);
     
-    // Add a timeout to the query
-    const creator = await User.findById(creatorId).select('-password').maxTimeMS(5000);
+    let creator;
+    
+    if (!creatorId) {
+      res.status(400).json({ message: 'Creator ID is required' });
+      return;
+    }
+    
+    // Check if the ID is a valid ObjectId format
+    if (mongoose.Types.ObjectId.isValid(creatorId)) {
+      // If it's a valid ObjectId, search by ID
+      creator = await User.findById(creatorId).select('-password').maxTimeMS(5000);
+    } else {
+      // If it's not a valid ObjectId, search by name
+      creator = await User.findOne({ name: creatorId }).select('-password').maxTimeMS(5000);
+    }
     
     // Check if user exists and has creator role
     if (!creator || creator.role !== 'creator') {
@@ -61,8 +75,21 @@ export const getPublicCreatorStats = async (req: Request, res: Response): Promis
     const creatorId = req.params['id'];
     console.log('Fetching creator stats for ID:', creatorId);
     
-    // Find user with role 'creator' by ID
-    const creator = await User.findById(creatorId).select('-password').maxTimeMS(5000);
+    if (!creatorId) {
+      res.status(400).json({ message: 'Creator ID is required' });
+      return;
+    }
+    
+    let creator;
+    
+    // Check if the ID is a valid ObjectId format
+    if (mongoose.Types.ObjectId.isValid(creatorId)) {
+      // If it's a valid ObjectId, search by ID
+      creator = await User.findById(creatorId).select('-password').maxTimeMS(5000);
+    } else {
+      // If it's not a valid ObjectId, search by name
+      creator = await User.findOne({ name: creatorId }).select('-password').maxTimeMS(5000);
+    }
     
     // Check if user exists and has creator role
     if (!creator || creator.role !== 'creator') {
@@ -73,7 +100,7 @@ export const getPublicCreatorStats = async (req: Request, res: Response): Promis
     
     // Get creator's tracks
     console.log('Fetching tracks for creator ID:', creatorId);
-    const tracks = await Track.find({ creatorId: creatorId as any }).maxTimeMS(5000);
+    const tracks = await Track.find({ creatorId: creator._id }).maxTimeMS(5000);
     console.log('Found', tracks.length, 'tracks for creator ID:', creatorId);
     
     // Calculate total plays

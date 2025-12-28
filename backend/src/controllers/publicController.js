@@ -36,8 +36,24 @@ const getPublicCreatorProfile = async (req, res) => {
     try {
         const creatorId = req.params['id'];
         console.log('Fetching creator profile for ID:', creatorId);
-        // Add a timeout to the query
-        const creator = await User_1.findById(creatorId).select('-password').maxTimeMS(5000);
+        
+        if (!creatorId) {
+            res.status(400).json({ message: 'Creator ID is required' });
+            return;
+        }
+        
+        let creator;
+        
+        // Check if the ID is a valid ObjectId format
+        const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(creatorId);
+        if (isValidObjectId) {
+            // If it's a valid ObjectId, search by ID
+            creator = await User_1.findById(creatorId).select('-password').maxTimeMS(5000);
+        } else {
+            // If it's not a valid ObjectId, search by name
+            creator = await User_1.findOne({ name: creatorId }).select('-password').maxTimeMS(5000);
+        }
+        
         // Check if user exists and has creator role
         if (!creator || creator.role !== 'creator') {
             console.log('Creator not found or not a creator for ID:', creatorId);
@@ -61,8 +77,24 @@ const getPublicCreatorStats = async (req, res) => {
     try {
         const creatorId = req.params['id'];
         console.log('Fetching creator stats for ID:', creatorId);
-        // Find user with role 'creator' by ID
-        const creator = await User_1.findById(creatorId).select('-password').maxTimeMS(5000);
+        
+        if (!creatorId) {
+            res.status(400).json({ message: 'Creator ID is required' });
+            return;
+        }
+        
+        let creator;
+        
+        // Check if the ID is a valid ObjectId format
+        const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(creatorId);
+        if (isValidObjectId) {
+            // If it's a valid ObjectId, search by ID
+            creator = await User_1.findById(creatorId).select('-password').maxTimeMS(5000);
+        } else {
+            // If it's not a valid ObjectId, search by name
+            creator = await User_1.findOne({ name: creatorId }).select('-password').maxTimeMS(5000);
+        }
+        
         // Check if user exists and has creator role
         if (!creator || creator.role !== 'creator') {
             console.log('Creator not found or not a creator for ID:', creatorId);
@@ -71,7 +103,7 @@ const getPublicCreatorStats = async (req, res) => {
         }
         // Get creator's tracks
         console.log('Fetching tracks for creator ID:', creatorId);
-        const tracks = await Track_1.find({ creatorId: creatorId }).maxTimeMS(5000);
+        const tracks = await Track_1.find({ creatorId: creator._id }).maxTimeMS(5000);
         console.log('Found', tracks.length, 'tracks for creator ID:', creatorId);
         // Calculate total plays
         const totalPlays = tracks.reduce((sum, track) => sum + track.plays, 0);

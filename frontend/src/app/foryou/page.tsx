@@ -1,6 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { fetchRecommendedTracks } from '@/services/recommendationService';
+import { ITrack } from '@/types';
+import { useAudioPlayer } from '@/contexts/AudioPlayerContext';
 
 interface Track {
   id: string
@@ -12,13 +15,57 @@ interface Track {
   coverImage: string
   duration?: string
   category?: string
+  audioUrl?: string
 }
 
 export default function ForYouPage() {
+  const { playTrack } = useAudioPlayer();
   const [sortBy, setSortBy] = useState<'popular' | 'recent' | 'alphabetical'>('popular')
+  const [filterBy, setFilterBy] = useState<'music' | 'beats' | 'mixes' | 'all'>('music'); // Default to music
+  const [tracks, setTracks] = useState<Track[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
   
-  // Mock data for tracks with real image URLs
-  const tracks: Track[] = [
+  // Helper function to convert duration string to seconds
+  const convertDurationToSeconds = (duration: string): number => {
+    const [minutes, seconds] = duration.split(':').map(Number);
+    return minutes * 60 + seconds;
+  };
+  
+  useEffect(() => {
+    const fetchTracks = async () => {
+      try {
+        setLoading(true);
+        const recommendedTracks = await fetchRecommendedTracks(undefined, 12);
+        
+        // Map the ITrack objects to our Track interface format
+        const mappedTracks: Track[] = recommendedTracks.map(track => ({
+          id: track._id,
+          title: track.title,
+          artist: (track as any).creatorId?.name || (track as any).creatorId,
+          album: track.description,
+          plays: track.plays,
+          likes: track.likes,
+          coverImage: track.coverURL,
+          audioUrl: track.audioURL,
+          duration: undefined, // Duration might not be available in ITrack
+          category: track.type
+        }));
+        
+        setTracks(mappedTracks);
+      } catch (error) {
+        console.error('Error fetching recommended tracks:', error);
+        // Fallback to mock data if API call fails
+        setTracks(mockTracks);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchTracks();
+  }, []);
+  
+  // Mock data for tracks with real image URLs - will be replaced with API call
+  const mockTracks: Track[] = [
     {
       id: '1',
       title: 'Blinding Lights',
@@ -149,8 +196,16 @@ export default function ForYouPage() {
     }
   ]
 
-  // Sort tracks based on selected option
-  const sortedTracks = [...tracks].sort((a, b) => {
+  // Filter and sort tracks based on selected options
+  const filteredTracks = tracks.filter(track => {
+    if (filterBy === 'all') return true;
+    if (filterBy === 'music') return track.category === 'song';
+    if (filterBy === 'beats') return track.category === 'beat';
+    if (filterBy === 'mixes') return track.category === 'mix';
+    return true;
+  });
+  
+  const sortedTracks = [...filteredTracks].sort((a, b) => {
     if (sortBy === 'popular') {
       return b.plays - a.plays
     } else if (sortBy === 'recent') {
@@ -169,6 +224,37 @@ export default function ForYouPage() {
             <p className="text-gray-400">Personalized recommendations based on your listening habits</p>
           </div>
           
+          <div className="flex flex-wrap gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-gray-400 text-sm">Filter:</span>
+            <div className="flex bg-gray-800 rounded-lg p-1">
+              <button 
+                onClick={() => setFilterBy('music')}
+                className={`px-3 py-1 rounded-md text-sm transition-colors ${filterBy === 'music' ? 'bg-[#FF4D67] text-white' : 'text-gray-300 hover:text-white'}`}
+              >
+                Music
+              </button>
+              <button 
+                onClick={() => setFilterBy('beats')}
+                className={`px-3 py-1 rounded-md text-sm transition-colors ${filterBy === 'beats' ? 'bg-[#FF4D67] text-white' : 'text-gray-300 hover:text-white'}`}
+              >
+                Beats
+              </button>
+              <button 
+                onClick={() => setFilterBy('mixes')}
+                className={`px-3 py-1 rounded-md text-sm transition-colors ${filterBy === 'mixes' ? 'bg-[#FF4D67] text-white' : 'text-gray-300 hover:text-white'}`}
+              >
+                Mixes
+              </button>
+              <button 
+                onClick={() => setFilterBy('all')}
+                className={`px-3 py-1 rounded-md text-sm transition-colors ${filterBy === 'all' ? 'bg-[#FF4D67] text-white' : 'text-gray-300 hover:text-white'}`}
+              >
+                All
+              </button>
+            </div>
+          </div>
+          
           <div className="flex items-center gap-2">
             <span className="text-gray-400 text-sm">Sort by:</span>
             <select 
@@ -182,50 +268,80 @@ export default function ForYouPage() {
             </select>
           </div>
         </div>
+        </div>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {sortedTracks.map((track) => (
-            <div key={track.id} className="group card-bg rounded-xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10">
-              <div className="relative">
-                <img 
-                  src={track.coverImage} 
-                  alt={track.title} 
-                  className="w-full aspect-square object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <button className="w-12 h-12 sm:w-14 sm:h-14 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
-                    <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
-                    </svg>
-                  </button>
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#FF4D67]"></div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {sortedTracks.map((track) => (
+              <div key={track.id} className="group card-bg rounded-xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10">
+                <div className="relative">
+                  <img 
+                    src={track.coverImage} 
+                    alt={track.title} 
+                    className="w-full aspect-square object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (track.audioUrl) {
+                          // Convert our Track to the format expected by AudioPlayerContext
+                          const audioPlayerTrack = {
+                            id: track.id,
+                            title: track.title,
+                            artist: track.artist,
+                            coverImage: track.coverImage,
+                            audioUrl: track.audioUrl,
+                            duration: track.duration ? convertDurationToSeconds(track.duration) : undefined,
+                            creatorId: track.artist, // Using artist as creatorId
+                            albumId: track.album ? track.album : undefined,
+                            plays: track.plays,
+                            likes: track.likes,
+                            type: ((track.category === 'song' || track.category === 'beat' || track.category === 'mix') ? track.category : 'song') as 'song' | 'beat' | 'mix',
+                            creatorWhatsapp: undefined
+                          };
+                          playTrack(audioPlayerTrack);
+                        }
+                      }}
+                      className="w-12 h-12 sm:w-14 sm:h-14 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300"
+                    >
+                      <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
+                      </svg>
+                    </button>
+                  </div>
                 </div>
-              </div>
-              
-              <div className="p-4">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-bold text-white text-base truncate">{track.title}</h3>
-                  {track.category && (
-                    <span className="ml-2 px-2 py-1 bg-gray-800 text-gray-300 text-xs rounded-full capitalize">
-                      {track.category}
-                    </span>
-                  )}
-                </div>
-                <p className="text-gray-400 text-sm truncate">{track.artist}</p>
-                {track.album && <p className="text-gray-500 text-xs mt-1 truncate">{track.album}</p>}
                 
-                <div className="flex justify-between items-center mt-3">
-                  <span className="text-gray-500 text-xs">{track.plays.toLocaleString()} plays</span>
-                  <div className="flex items-center gap-1">
-                    <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                      <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd"></path>
-                    </svg>
-                    <span className="text-gray-500 text-xs">{track.likes}</span>
+                <div className="p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-bold text-white text-base truncate">{track.title}</h3>
+                    {track.category && (
+                      <span className="ml-2 px-2 py-1 bg-gray-800 text-gray-300 text-xs rounded-full capitalize">
+                        {track.category}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-gray-400 text-sm truncate">{track.artist}</p>
+                  {track.album && <p className="text-gray-500 text-xs mt-1 truncate">{track.album}</p>}
+                  
+                  <div className="flex justify-between items-center mt-3">
+                    <span className="text-gray-500 text-xs">{track.plays.toLocaleString()} plays</span>
+                    <div className="flex items-center gap-1">
+                      <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd"></path>
+                      </svg>
+                      <span className="text-gray-500 text-xs">{track.likes}</span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )

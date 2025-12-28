@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getTrendingTracks = exports.incrementPlayCount = exports.deleteTrack = exports.updateTrack = exports.getTracksByAuthUser = exports.getTracksByCreator = exports.getTracksByCreatorSimple = exports.getTrackById = exports.getAllTracks = exports.uploadTrack = void 0;
 const Track_1 = require("../models/Track");
 const ListenerGeography_1 = require("../models/ListenerGeography");
+const User_1 = require("../models/User");
 const geoip = require('geoip-lite');
 // import User from '../models/User'; // Not used in this controller
 // Upload track
@@ -78,7 +79,31 @@ exports.getTrackById = getTrackById;
 // Get all tracks by creator (without pagination)
 const getTracksByCreatorSimple = async (req, res) => {
     try {
-        const tracks = await Track_1.find({ creatorId: req.params['creatorId'] })
+        const creatorId = req.params['creatorId'];
+        
+        if (!creatorId) {
+            res.status(400).json({ message: 'Creator ID is required' });
+            return;
+        }
+        
+        let actualCreatorId;
+        
+        // Check if the ID is a valid ObjectId format
+        const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(creatorId);
+        if (isValidObjectId) {
+            // If it's a valid ObjectId, use it directly
+            actualCreatorId = creatorId;
+        } else {
+            // If it's not a valid ObjectId, search for the user by name to get their ObjectId
+            const user = await User_1.findOne({ name: creatorId });
+            if (!user) {
+                res.status(404).json({ message: 'Creator not found' });
+                return;
+            }
+            actualCreatorId = user._id;
+        }
+        
+        const tracks = await Track_1.find({ creatorId: actualCreatorId })
             .sort({ createdAt: -1 })
             .populate('creatorId', 'name avatar');
         res.json(tracks);
@@ -91,12 +116,36 @@ exports.getTracksByCreatorSimple = getTracksByCreatorSimple;
 // Get tracks by creator
 const getTracksByCreator = async (req, res) => {
     try {
+        const creatorId = req.params['creatorId'];
+        
+        if (!creatorId) {
+            res.status(400).json({ message: 'Creator ID is required' });
+            return;
+        }
+        
+        let actualCreatorId;
+        
+        // Check if the ID is a valid ObjectId format
+        const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(creatorId);
+        if (isValidObjectId) {
+            // If it's a valid ObjectId, use it directly
+            actualCreatorId = creatorId;
+        } else {
+            // If it's not a valid ObjectId, search for the user by name to get their ObjectId
+            const user = await User_1.findOne({ name: creatorId });
+            if (!user) {
+                res.status(404).json({ message: 'Creator not found' });
+                return;
+            }
+            actualCreatorId = user._id;
+        }
+        
         // Check if pagination parameters are provided
         const pageParam = req.query['page'];
         const limitParam = req.query['limit'];
         // If no pagination parameters, return all tracks
         if (pageParam === undefined && limitParam === undefined) {
-            const tracks = await Track_1.find({ creatorId: req.params['creatorId'] })
+            const tracks = await Track_1.find({ creatorId: actualCreatorId })
                 .sort({ createdAt: -1 })
                 .populate('creatorId', 'name avatar');
             res.json(tracks);
@@ -106,12 +155,12 @@ const getTracksByCreator = async (req, res) => {
         const page = parseInt(pageParam) || 1;
         const limit = parseInt(limitParam) || 10;
         const skip = (page - 1) * limit;
-        const tracks = await Track_1.find({ creatorId: req.params['creatorId'] })
+        const tracks = await Track_1.find({ creatorId: actualCreatorId })
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit)
             .populate('creatorId', 'name avatar');
-        const total = await Track_1.countDocuments({ creatorId: req.params['creatorId'] });
+        const total = await Track_1.countDocuments({ creatorId: actualCreatorId });
         res.json({
             tracks,
             page,
