@@ -6,8 +6,9 @@ import Link from 'next/link'
 import { Suspense } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { followCreator } from '@/services/trackService'
+import { useAudioPlayer } from '@/contexts/AudioPlayerContext'
 
-interface Track {
+interface SearchTrack {
   id: string
   title: string
   artist: string
@@ -17,6 +18,21 @@ interface Track {
   coverImage: string
   duration?: string
   audioURL: string
+}
+
+interface PlayerTrack {
+  id: string;
+  title: string;
+  artist: string;
+  coverImage: string;
+  audioUrl: string;
+  duration?: number; // in seconds
+  creatorId?: string; // Add creator ID for linking to artist profile
+  albumId?: string; // Add album ID for album playback logic
+  plays?: number; // Add plays property to track play counts
+  likes?: number; // Add likes property to track like counts
+  type?: 'song' | 'beat' | 'mix'; // Add type field to distinguish beats
+  creatorWhatsapp?: string; // Add creator's WhatsApp contact for beats
 }
 
 interface Creator {
@@ -43,13 +59,14 @@ function SearchResultsContent() {
   const [searchQuery, setSearchQuery] = useState(query)
   const [activeTab, setActiveTab] = useState<'tracks' | 'artists' | 'albums'>('tracks')
   const [selectedGenre, setSelectedGenre] = useState<string | null>(null)
-  const [tracks, setTracks] = useState<Track[]>([])
+  const [tracks, setTracks] = useState<SearchTrack[]>([])
   const [artists, setArtists] = useState<Creator[]>([])
   const [albums, setAlbums] = useState<Album[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [following, setFollowing] = useState<Record<string, boolean>>({})
   const { isAuthenticated } = useAuth()
+  const { playTrack } = useAudioPlayer()
   
   // Genre list for filtering
   const genres = [
@@ -348,7 +365,27 @@ function SearchResultsContent() {
                             className="w-16 h-16 rounded-lg object-cover"
                           />
                           <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button className="w-8 h-8 rounded-full gradient-primary flex items-center justify-center text-white">
+                            <button 
+                              onClick={() => {
+                                // Format the track to match the PlayerTrack interface in AudioPlayerContext
+                                const formattedTrack: PlayerTrack = {
+                                  id: track.id,
+                                  title: track.title,
+                                  artist: track.artist,
+                                  coverImage: track.coverImage,
+                                  audioUrl: track.audioURL, // Use the audioURL from the track
+                                  duration: undefined, // Duration is optional
+                                  creatorId: undefined, // Creator ID is optional for search results
+                                  albumId: undefined, // Album ID is optional
+                                  plays: track.plays,
+                                  likes: track.likes,
+                                  type: 'song', // Default to song for search results
+                                  creatorWhatsapp: undefined // WhatsApp is optional
+                                };
+                                playTrack(formattedTrack);
+                              }}
+                              className="w-8 h-8 rounded-full gradient-primary flex items-center justify-center text-white"
+                            >
                               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
                               </svg>
