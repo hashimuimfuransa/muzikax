@@ -498,3 +498,35 @@ export const deleteTrack = async (trackId: string): Promise<boolean> => {
     throw error;
   }
 };
+
+/**
+ * Get followed creators for a user
+ */
+export const getFollowedCreators = async (): Promise<any[]> => {
+  try {
+    const accessToken = localStorage.getItem('accessToken');
+    
+    if (!accessToken) {
+      throw new Error('No access token found');
+    }
+
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/following`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`
+      }
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to get followed creators');
+    }
+
+    const data = await response.json();
+    return data.creators || [];
+  } catch (error) {
+    console.error('Error getting followed creators:', error);
+    throw error;
+  }
+};

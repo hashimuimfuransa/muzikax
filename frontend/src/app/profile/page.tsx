@@ -9,9 +9,13 @@ import { getAlbumsByCreator, deleteAlbum } from '../../services/albumService'
 import { deleteTrack } from '../../services/trackService'
 import { ITrack } from '../../types'
 import { useAudioPlayer } from '../../contexts/AudioPlayerContext'
+import { getFollowedCreators } from '../../services/trackService'
 // Import UploadCare components
 import { FileUploaderRegular } from "@uploadcare/react-uploader";
 import "@uploadcare/react-uploader/core.css";
+
+// Define the possible active tab types
+type ActiveTab = 'profile' | 'favorites' | 'analytics' | 'tracks' | 'albums' | 'whatsapp' | 'following';
 
 interface CreatorAnalytics {
   totalTracks: number
@@ -49,7 +53,7 @@ interface Album {
 }
 
 export default function Profile() {
-  const [activeTab, setActiveTab] = useState<'profile' | 'favorites' | 'analytics' | 'tracks' | 'albums' | 'whatsapp'>('profile')
+  const [activeTab, setActiveTab] = useState<ActiveTab>('profile')
   const [analytics, setAnalytics] = useState<CreatorAnalytics | null>(null)
   const [tracks, setTracks] = useState<ITrack[]>([])
   const [albums, setAlbums] = useState<ProfileAlbum[]>([])
@@ -66,6 +70,8 @@ export default function Profile() {
   const [searchQuery, setSearchQuery] = useState('')
   const [bio, setBio] = useState('')
   const [genres, setGenres] = useState<string[]>([])
+  const [followedCreators, setFollowedCreators] = useState<any[]>([])
+  const [loadingFollowed, setLoadingFollowed] = useState(false)
   const [newGenre, setNewGenre] = useState('')
   const [whatsappContact, setWhatsappContact] = useState('') // Add WhatsApp contact state
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null) // Add avatar URL state
@@ -116,7 +122,24 @@ export default function Profile() {
         fetchAlbums()
       }
     }
+    
+    // Fetch followed creators
+    fetchFollowedCreators();
   }, [isAuthenticated, user])
+  
+  const fetchFollowedCreators = async () => {
+    if (!isAuthenticated || !user) return;
+    
+    setLoadingFollowed(true);
+    try {
+      const creators = await getFollowedCreators();
+      setFollowedCreators(creators);
+    } catch (error) {
+      console.error('Failed to fetch followed creators:', error);
+    } finally {
+      setLoadingFollowed(false);
+    }
+  }
 
   // Add a separate effect to update WhatsApp contact when user changes
   useEffect(() => {
@@ -394,8 +417,8 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black py-6 sm:py-8 md:py-12 overflow-x-hidden">
-      <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-96 h-96 bg-[#FF4D67]/10 rounded-full blur-3xl -z-10"></div>
-      <div className="absolute -bottom-40 left-1/2 -translate-x-1/2 w-96 h-96 bg-[#FFCB2B]/10 rounded-full blur-3xl -z-10"></div>
+      <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-1/2 max-w-96 h-1/2 max-h-96 sm:w-96 sm:h-96 bg-[#FF4D67]/10 rounded-full blur-3xl -z-10"></div>
+      <div className="absolute -bottom-40 left-1/2 -translate-x-1/2 w-1/2 max-w-96 h-1/2 max-h-96 sm:w-96 sm:h-96 bg-[#FFCB2B]/10 rounded-full blur-3xl -z-10"></div>
       
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
@@ -564,6 +587,16 @@ export default function Profile() {
             >
               Favorites
             </Link>
+            <button
+              className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors whitespace-nowrap ${
+                activeTab === 'following'
+                  ? 'text-[#FF4D67] border-b-2 border-[#FF4D67]'
+                  : 'text-gray-500 hover:text-gray-300'
+              }`}
+              onClick={() => setActiveTab('following')}
+            >
+              Following
+            </button>
             {user?.role === 'creator' && (
               <>
                 <button
@@ -1242,6 +1275,68 @@ export default function Profile() {
               </div>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* Following Tab */}
+      {activeTab === 'following' && (
+        <div className="card-bg rounded-2xl p-5 sm:p-6 border border-gray-700/50">
+          <h3 className="text-lg sm:text-xl font-bold text-white mb-5">Following</h3>
+          
+          {loadingFollowed ? (
+            <div className="flex justify-center items-center h-40">
+              <div className="text-white text-sm">Loading followed creators...</div>
+            </div>
+          ) : followedCreators && followedCreators.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {followedCreators.map((creator) => (
+                <div 
+                  key={creator._id} 
+                  className="card-bg rounded-xl p-4 border border-gray-700/30 hover:border-[#FF4D67]/50 transition-colors cursor-pointer"
+                  onClick={() => router.push(`/artists/${creator._id}`)}
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center overflow-hidden">
+                      {creator.avatar ? (
+                        <img 
+                          src={creator.avatar} 
+                          alt={creator.name} 
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-white font-bold text-xs">
+                          {creator.name.charAt(0)}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-white truncate">{creator.name}</h4>
+                      <p className="text-gray-400 text-xs truncate capitalize">{creator.creatorType}</p>
+                    </div>
+                  </div>
+                  <div className="flex justify-between text-xs text-gray-400">
+                    <span>{creator.followersCount || 0} followers</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                </svg>
+              </div>
+              <h4 className="text-white font-medium mb-2">Not following anyone yet</h4>
+              <p className="text-gray-400 text-sm mb-4">Start following creators to see them here</p>
+              <button 
+                onClick={() => router.push('/explore')}
+                className="px-4 py-2 bg-[#FF4D67] text-white rounded-lg hover:bg-[#FF4D67]/80 transition-colors text-sm font-medium"
+              >
+                Explore Creators
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

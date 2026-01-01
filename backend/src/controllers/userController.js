@@ -88,6 +88,9 @@ const updateUser = async (req, res) => {
             user.password = await bcryptjs_1.hash(password, salt);
         }
         const updatedUser = await user.save();
+        // Calculate following count from the following array
+        const followingCount = updatedUser.following ? updatedUser.following.length : 0;
+        
         res.json({
             _id: updatedUser._id,
             name: updatedUser.name,
@@ -98,6 +101,7 @@ const updateUser = async (req, res) => {
             bio: updatedUser.bio,
             genres: updatedUser.genres,
             followersCount: updatedUser.followersCount,
+            followingCount: followingCount, // Add following count
             socials: updatedUser.socials,
             createdAt: updatedUser.createdAt
         });
@@ -299,9 +303,13 @@ const followCreator = async (req, res) => {
         // Save both documents
         await Promise.all([user.save(), creator.save()]);
         
+        // Calculate updated following count
+        const updatedFollowingCount = user.following ? user.following.length : 0;
+        
         res.json({
             message: 'Successfully followed creator',
-            followersCount: creator.followersCount
+            followersCount: creator.followersCount,
+            followingCount: updatedFollowingCount
         });
     }
     catch (error) {
@@ -367,9 +375,13 @@ const unfollowCreator = async (req, res) => {
         // Save both documents
         await Promise.all([user.save(), creator.save()]);
         
+        // Calculate updated following count
+        const updatedFollowingCount = user.following ? user.following.length : 0;
+        
         res.json({
             message: 'Successfully unfollowed creator',
-            followersCount: creator.followersCount
+            followersCount: creator.followersCount,
+            followingCount: updatedFollowingCount
         });
     }
     catch (error) {
@@ -419,6 +431,36 @@ const checkFollowStatus = async (req, res) => {
 };
 exports.checkFollowStatus = checkFollowStatus;
 
+// Get followed creators for a user
+const getFollowedCreators = async (req, res) => {
+    try {
+        // Check if user is authenticated
+        if (!req.user) {
+            res.status(401).json({ message: 'Not authorized, no user found' });
+            return;
+        }
+
+        const userId = req.user._id;
+
+        // Find the user and populate the following field
+        const user = await User_1.findById(userId).populate('following', 'name avatar bio followersCount creatorType');
+
+        if (!user) {
+            res.status(404).json({ message: 'User not found' });
+            return;
+        }
+
+        res.json({ 
+            creators: user.following,
+            count: user.following.length
+        });
+    } catch (error) {
+        console.error('Error in getFollowedCreators:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+exports.getFollowedCreators = getFollowedCreators;
+
 // Update user's own profile
 const updateOwnProfile = async (req, res) => {
     try {
@@ -465,6 +507,9 @@ const updateOwnProfile = async (req, res) => {
             user.password = await bcryptjs_1.hash(password, salt);
         }
         const updatedUser = await user.save();
+        // Calculate following count from the following array
+        const followingCount = updatedUser.following ? updatedUser.following.length : 0;
+        
         res.json({
             _id: updatedUser._id,
             name: updatedUser.name,
@@ -475,6 +520,7 @@ const updateOwnProfile = async (req, res) => {
             bio: updatedUser.bio,
             genres: updatedUser.genres,
             followersCount: updatedUser.followersCount,
+            followingCount: followingCount, // Add following count
             socials: updatedUser.socials,
             createdAt: updatedUser.createdAt
         });

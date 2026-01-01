@@ -31,6 +31,9 @@ const whatsappRoutes = require('./routes/whatsappRoutes');
 // Import search routes
 const searchRoutes = require('./routes/searchRoutes');
 
+// Import following routes
+const followingRoutes = require('./routes/followingRoutes');
+
 // Load env vars
 dotenv.config();
 
@@ -175,6 +178,15 @@ try {
   console.log('Search routes registered successfully');
 } catch (error) {
   console.error('Error registering search routes:', error);
+}
+
+// Register following routes
+console.log('Attempting to register following routes...');
+try {
+  app.use('/api/following', followingRoutes);
+  console.log('Following routes registered successfully');
+} catch (error) {
+  console.error('Error registering following routes:', error);
 }
 
 // Directly implement profile update route in app.js to avoid 404 issues

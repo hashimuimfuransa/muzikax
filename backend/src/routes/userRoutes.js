@@ -108,9 +108,5 @@ router.route('/follow/:id')
 router.route('/unfollow/:id')
     .delete(jwt_1.protect, userController_1.unfollowCreator);
 
-// User route for checking follow status
-router.route('/following/:id')
-    .get(jwt_1.protect, userController_1.checkFollowStatus);
-
 module.exports = router;
 //# sourceMappingURL=userRoutes.js.map

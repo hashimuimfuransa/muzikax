@@ -121,11 +121,15 @@ exports.refreshToken = refreshToken;
 // Get user profile
 const getUserProfile = async (req, res) => {
     try {
-        const user = await User_1.findById(req.user._id).select('-favorites -playlists -recentlyPlayed -following -password');
+        // Get user without sensitive fields
+        const user = await User_1.findById(req.user._id).select('-favorites -playlists -recentlyPlayed -password');
         if (!user) {
             res.status(404).json({ message: 'User not found' });
             return;
         }
+        // Calculate following count from the following array
+        const followingCount = user.following ? user.following.length : 0;
+        
         res.json({
             _id: user._id,
             name: user.name,
@@ -136,6 +140,7 @@ const getUserProfile = async (req, res) => {
             bio: user.bio,
             genres: user.genres,
             followersCount: user.followersCount,
+            followingCount: followingCount, // Add following count
             socials: user.socials,
             whatsappContact: user.whatsappContact,
             createdAt: user.createdAt
