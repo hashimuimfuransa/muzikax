@@ -74,6 +74,7 @@ export default function Footer() {
               ))}
             </div>
           </div>
+        </div>
 
           {/* Product Links */}
           <div>
