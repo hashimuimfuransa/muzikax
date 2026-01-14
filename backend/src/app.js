@@ -57,6 +57,7 @@ const allowedOrigins = process.env.CORS_ORIGIN ?
   process.env.CORS_ORIGIN.split(',').map(origin => origin.trim()) : 
   [
     'https://muzikax.vercel.app',  // Production frontend
+    'https://www.muzikax.com/',    // Production domain
     'http://localhost:3000',       // Local development
     'http://localhost:3001',       // Alternative local development
     'http://localhost:8080',       // Alternative local development
