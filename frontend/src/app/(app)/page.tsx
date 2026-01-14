@@ -2046,8 +2046,7 @@ export default function Home() {
         {/* Additional content to ensure enough height for testing sticky behavior */}
         <div className="h-96 md:h-[500px]"></div>
 
-        {/* Footer Section */}
-        <footer className="w-full bg-gray-900/50 border-t border-gray-800 py-8 md:py-12 mt-auto">
+        {/* Removed duplicate footer - using global Footer component instead */}
           <div className="container mx-auto px-4 md:px-8">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
               <div className="col-span-1 md:col-span-2">
@@ -2202,8 +2201,10 @@ export default function Home() {
               </p>
             </div>
           </div>
-        </footer>
+        
       </main>
+      {/* Spacer to push footer down */}
+      <div className="flex-grow"></div>
     </div>
   );
 }

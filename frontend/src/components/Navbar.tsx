@@ -122,6 +122,35 @@ export default function Navbar() {
               <Link href="/explore" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">
                 Explore
               </Link>
+              <div className="relative group hidden lg:block">
+                <button className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base flex items-center">
+                  More
+                  <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                  </svg>
+                </button>
+                <div className="absolute left-0 mt-2 w-48 bg-gray-800 rounded-lg shadow-lg py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
+                  <Link href="/about" className="block px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-700">
+                    About Us
+                  </Link>
+                  <Link href="/faq" className="block px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-700">
+                    FAQ
+                  </Link>
+                  <Link href="/contact" className="block px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-700">
+                    Contact
+                  </Link>
+                  <div className="border-t border-gray-700 my-1"></div>
+                  <Link href="/terms" className="block px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-700">
+                    Terms of Use
+                  </Link>
+                  <Link href="/privacy" className="block px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-700">
+                    Privacy Policy
+                  </Link>
+                  <Link href="/copyright" className="block px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-700">
+                    Copyright
+                  </Link>
+                </div>
+              </div>
               
               {/* Search Bar */}
               <form onSubmit={handleSearch} className="relative">
@@ -264,6 +293,30 @@ export default function Navbar() {
           <Link href="/explore" className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800">
             Explore
           </Link>
+          <div className="px-3 py-2">
+            <div className="text-xs uppercase tracking-wide text-gray-500 mb-2">Information</div>
+            <Link href="/about" className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800">
+              About Us
+            </Link>
+            <Link href="/faq" className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800">
+              FAQ
+            </Link>
+            <Link href="/contact" className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800">
+              Contact
+            </Link>
+          </div>
+          <div className="px-3 py-2">
+            <div className="text-xs uppercase tracking-wide text-gray-500 mb-2">Legal</div>
+            <Link href="/terms" className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800">
+              Terms of Use
+            </Link>
+            <Link href="/privacy" className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800">
+              Privacy Policy
+            </Link>
+            <Link href="/copyright" className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800">
+              Copyright
+            </Link>
+          </div>
           {/* Upload button for all users with proper navigation */}
           <button 
             onClick={() => {

@@ -847,6 +847,54 @@ export default function Profile() {
                   </button>
                 </div>
               </form>
+              
+              {/* Legal & Informational Pages */}
+              <div className="mt-8 pt-6 border-t border-gray-700">
+                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                  <svg className="w-5 h-5 text-[#FF4D67]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                  </svg>
+                  Legal & Information
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <Link href="/about" className="flex items-center justify-between p-3 bg-gray-800/30 hover:bg-gray-700/50 rounded-lg border border-gray-700 transition-colors group">
+                    <span className="text-gray-300 group-hover:text-white">About Us</span>
+                    <svg className="w-4 h-4 text-gray-500 group-hover:text-[#FF4D67]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                  </Link>
+                  <Link href="/contact" className="flex items-center justify-between p-3 bg-gray-800/30 hover:bg-gray-700/50 rounded-lg border border-gray-700 transition-colors group">
+                    <span className="text-gray-300 group-hover:text-white">Contact Us</span>
+                    <svg className="w-4 h-4 text-gray-500 group-hover:text-[#FF4D67]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                  </Link>
+                  <Link href="/faq" className="flex items-center justify-between p-3 bg-gray-800/30 hover:bg-gray-700/50 rounded-lg border border-gray-700 transition-colors group">
+                    <span className="text-gray-300 group-hover:text-white">FAQ</span>
+                    <svg className="w-4 h-4 text-gray-500 group-hover:text-[#FF4D67]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                  </Link>
+                  <Link href="/terms" className="flex items-center justify-between p-3 bg-gray-800/30 hover:bg-gray-700/50 rounded-lg border border-gray-700 transition-colors group">
+                    <span className="text-gray-300 group-hover:text-white">Terms of Use</span>
+                    <svg className="w-4 h-4 text-gray-500 group-hover:text-[#FF4D67]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                  </Link>
+                  <Link href="/privacy" className="flex items-center justify-between p-3 bg-gray-800/30 hover:bg-gray-700/50 rounded-lg border border-gray-700 transition-colors group">
+                    <span className="text-gray-300 group-hover:text-white">Privacy Policy</span>
+                    <svg className="w-4 h-4 text-gray-500 group-hover:text-[#FF4D67]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                  </Link>
+                  <Link href="/copyright" className="flex items-center justify-between p-3 bg-gray-800/30 hover:bg-gray-700/50 rounded-lg border border-gray-700 transition-colors group">
+                    <span className="text-gray-300 group-hover:text-white">Copyright Policy</span>
+                    <svg className="w-4 h-4 text-gray-500 group-hover:text-[#FF4D67]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                  </Link>
+                </div>
+              </div>
             </div>
           )}
 

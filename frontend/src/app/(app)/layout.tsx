@@ -7,6 +7,7 @@ import { AudioPlayerProvider } from "../../contexts/AudioPlayerContext";
 import ModernAudioPlayer from "../../components/ModernAudioPlayer";
 import PWAInstallPrompt from "../../components/PWAInstallPrompt";
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import Footer from "../../components/Footer";
 
 export const metadata: Metadata = {
   title: "MuzikaX - Rwanda's Digital Music Ecosystem",
@@ -44,12 +45,13 @@ export default function AppLayout({
         <meta name="theme-color" content="#000000" />
         <link rel="manifest" href="/manifest.json" />
       </head>
-      <body className="pb-24 md:pb-0">
+      <body className="pb-24 md:pb-0 flex flex-col min-h-screen">
         <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"}>
           <AuthProvider>
             <AudioPlayerProvider>
               <Navbar />
               {children}
+              <Footer />
               <ModernAudioPlayer />
               <MobileNavbar />
               <PWAInstallPrompt />
