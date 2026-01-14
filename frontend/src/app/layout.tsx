@@ -9,8 +9,57 @@ import PWAInstallPrompt from "../components/PWAInstallPrompt";
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
 export const metadata: Metadata = {
-  title: "MuzikaX - Rwanda's Digital Music Ecosystem",
-  description: "Connecting Rwandan music creators with fans worldwide",
+  title: {
+    template: '%s | MuzikaX - Rwanda\'s Digital Music Ecosystem',
+    default: "MuzikaX - Rwanda's Digital Music Ecosystem",
+  },
+  description: "Connecting Rwandan music creators with fans worldwide. Discover, stream, and share the best of Rwandan music on MuzikaX.",
+  keywords: ["Rwandan music", "African music", "Afrobeats", "Music streaming", "Rwandan artists", "Music platform", "Digital music"],
+  authors: [{ name: "MuzikaX Team" }],
+  creator: "MuzikaX Team",
+  publisher: "MuzikaX",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://www.muzikax.com/",
+    siteName: "MuzikaX",
+    title: "MuzikaX - Rwanda's Digital Music Ecosystem",
+    description: "Connecting Rwandan music creators with fans worldwide",
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "MuzikaX - Rwanda's Digital Music Ecosystem",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "MuzikaX - Rwanda's Digital Music Ecosystem",
+    description: "Connecting Rwandan music creators with fans worldwide",
+    images: ["/og-image.jpg"],
+    creator: "@muzikax",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  alternates: {
+    canonical: "https://www.muzikax.com/",
+  },
   icons: {
     icon: [
       { url: '/favicon.ico' },

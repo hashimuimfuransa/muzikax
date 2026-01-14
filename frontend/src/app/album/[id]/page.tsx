@@ -1,11 +1,8 @@
-'use client'
-
-import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { useAuth } from '../../../contexts/AuthContext'
-import { useAudioPlayer } from '../../../contexts/AudioPlayerContext'
-import { getAlbumById } from '../../../services/albumService'
+import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import Link from 'next/link';
+import { getAlbumById } from '../../../services/albumService';
+import Script from 'next/script';
 
 interface Creator {
   _id: string;
@@ -46,166 +43,124 @@ interface Album {
   createdAt: string;
 }
 
-export default function AlbumDetailPage() {
-  const [album, setAlbum] = useState<Album | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const { id } = useParams()
-  const { isAuthenticated } = useAuth()
-  const { currentTrack, isPlaying, playTrack, setCurrentPlaylist } = useAudioPlayer()
-  const router = useRouter()
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  const albumId = params.id;
+  
+  try {
+    const album: any = await getAlbumById(albumId);
+    
+    return {
+      title: `${album.title} by ${album.artist} | MuzikaX - Rwanda's Digital Music Ecosystem`,
+      description: album.description || `Listen to ${album.title} by ${album.artist} on MuzikaX - Rwanda's premier music platform.`,
+      keywords: [
+        album.title,
+        album.artist,
+        album.genre || '',
+        'Rwandan music',
+        'Afrobeats',
+        'African music',
+        'Music album',
+        'Music streaming'
+      ].filter(Boolean),
+      openGraph: {
+        title: `${album.title} by ${album.artist}`,
+        description: album.description || `Listen to ${album.title} by ${album.artist}`,
+        type: 'music.album',
+        url: `https://www.muzikax.com/album/${album._id}`,
+        images: [
+          {
+            url: album.coverURL || album.coverImage || '/default-cover.jpg',
+            width: 1200,
+            height: 630,
+            alt: `${album.title} album cover`,
+          },
+        ],
+        siteName: 'MuzikaX',
+        locale: 'en_US',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: `${album.title} by ${album.artist}`,
+        description: album.description || `Listen to ${album.title} by ${album.artist}`,
+        images: [album.coverURL || album.coverImage || '/default-cover.jpg'],
+      },
+      alternates: {
+        canonical: `https://www.muzikax.com/album/${album._id}`,
+      },
+      robots: {
+        index: true,
+        follow: true,
+        googleBot: {
+          index: true,
+          follow: true,
+          'max-video-preview': -1,
+          'max-image-preview': 'large',
+          'max-snippet': -1,
+        },
+      },
+    };
+  } catch (error) {
+    console.error('Error fetching album for metadata:', error);
+    return {
+      title: 'Album Not Found | MuzikaX',
+      description: 'The requested album could not be found.',
+    };
+  }
+}
 
-  // Fetch album details
-  useEffect(() => {
-    const fetchAlbum = async () => {
-      if (!id) return
-      
-      try {
-        setLoading(true)
-        const albumData: any = await getAlbumById(id as string)
-        console.log('Raw album data:', JSON.stringify(albumData, null, 2))
-        
-        // Transform the album data to match our interface
-        const transformedAlbum: Album = {
-          _id: albumData._id || '',
-          id: albumData._id || albumData.id || (id as string),
-          title: albumData.title,
-          artist: (albumData.creatorId && typeof albumData.creatorId === "object" && albumData.creatorId !== null) 
-            ? albumData.creatorId.name 
-            : "Unknown Artist",
-          coverImage: (albumData.coverURL || albumData.coverImage) || "",
-          coverURL: albumData.coverURL,
-          year: (albumData.releaseDate || albumData.createdAt) ? new Date(albumData.releaseDate || albumData.createdAt).getFullYear() : new Date().getFullYear(),
-          tracks: (Array.isArray(albumData.tracks) ? albumData.tracks : []).map((track: any) => {
-            console.log('Raw track data:', JSON.stringify(track, null, 2));
-            const artist = (track.creatorId && typeof track.creatorId === "object" && track.creatorId !== null) 
-              ? (track.creatorId.name || "Unknown Artist")
-              : (typeof track.creatorId === "string") 
-              ? track.creatorId 
-              : "Unknown Artist";
-            console.log('Processed artist:', artist);
-            return {
-              _id: track._id || '',
-              id: track._id || track.id || '',
-              title: track.title,
-              artist: artist,
-              coverImage: (track.coverURL || track.coverImage) || "",
-              coverURL: track.coverURL,
-              duration: "3:45", // Placeholder
-              audioUrl: track.audioURL,
-              audioURL: track.audioURL,
-              plays: track.plays || 0,
-              likes: track.likes || 0,
-              creatorId: track.creatorId || '',
-              type: track.type || 'song', // Include track type for WhatsApp functionality
-              creatorWhatsapp: (track.creatorId && typeof track.creatorId === 'object' && track.creatorId !== null) 
-                ? track.creatorId.whatsappContact 
-                : undefined // Include creator's WhatsApp contact
-            };
-          }),
-          description: albumData.description,
-          genre: albumData.genre,
-          creatorId: albumData.creatorId || '',
-          releaseDate: albumData.releaseDate,
-          createdAt: albumData.createdAt
-        }
-        
-        setAlbum(transformedAlbum)
-        // Convert tracks to the format expected by the audio player
-        const playerTracks = transformedAlbum.tracks.map(track => ({
-          id: track._id || track.id,
+export default async function AlbumDetailPage({ params }: { params: { id: string } }) {
+  const albumId = params.id;
+  
+  let album: Album;
+  
+  try {
+    const albumData: any = await getAlbumById(albumId);
+    
+    // Transform the album data to match our interface
+    album = {
+      _id: albumData._id || '',
+      id: albumData._id || albumData.id || albumId,
+      title: albumData.title,
+      artist: (albumData.creatorId && typeof albumData.creatorId === "object" && albumData.creatorId !== null) 
+        ? albumData.creatorId.name 
+        : "Unknown Artist",
+      coverImage: (albumData.coverURL || albumData.coverImage) || "",
+      coverURL: albumData.coverURL,
+      year: (albumData.releaseDate || albumData.createdAt) ? new Date(albumData.releaseDate || albumData.createdAt).getFullYear() : new Date().getFullYear(),
+      tracks: (Array.isArray(albumData.tracks) ? albumData.tracks : []).map((track: any) => {
+        const artist = (track.creatorId && typeof track.creatorId === "object" && track.creatorId !== null) 
+          ? (track.creatorId.name || "Unknown Artist")
+          : (typeof track.creatorId === "string") 
+          ? track.creatorId 
+          : "Unknown Artist";
+        return {
+          _id: track._id || '',
+          id: track._id || track.id || '',
           title: track.title,
-          artist: track.artist,
-          coverImage: track.coverImage,
-          audioUrl: track.audioUrl,
-          creatorId: typeof track.creatorId === 'object' ? track.creatorId._id : track.creatorId,
-          type: track.type, // Include track type for WhatsApp functionality
-          creatorWhatsapp: track.creatorWhatsapp // Include creator's WhatsApp contact
-        }))
-        setCurrentPlaylist(playerTracks)
-      } catch (err: any) {
-        console.error('Error fetching album:', err)
-        setError(err.message || 'Failed to load album')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchAlbum()
-  }, [id])
-
-  const handlePlayAlbum = () => {
-    if (album && album.tracks.length > 0) {
-      const firstTrack = album.tracks[0]
-      playTrack({
-        id: firstTrack._id || firstTrack.id,
-        title: firstTrack.title,
-        artist: firstTrack.artist,
-        coverImage: firstTrack.coverImage,
-        audioUrl: firstTrack.audioUrl,
-        plays: firstTrack.plays || 0,
-        likes: firstTrack.likes || 0,
-        creatorId: typeof firstTrack.creatorId === 'object' ? firstTrack.creatorId._id : firstTrack.creatorId,
-        type: firstTrack.type, // Include track type for WhatsApp functionality
-        creatorWhatsapp: firstTrack.creatorWhatsapp // Include creator's WhatsApp contact
-      })
-    }
-  }
-
-  const handlePlayTrack = (track: AlbumTrack) => {
-    playTrack({
-      id: track._id || track.id,
-      title: track.title,
-      artist: track.artist,
-      coverImage: track.coverImage,
-      audioUrl: track.audioUrl,
-      plays: track.plays || 0,
-      likes: track.likes || 0,
-      creatorId: typeof track.creatorId === 'object' ? track.creatorId._id : track.creatorId,
-      type: track.type, // Include track type for WhatsApp functionality
-      creatorWhatsapp: track.creatorWhatsapp // Include creator's WhatsApp contact
-    })
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black flex items-center justify-center">
-        <div className="text-white">Loading album...</div>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black flex items-center justify-center">
-        <div className="text-white text-center">
-          <h2 className="text-xl mb-4">Error loading album</h2>
-          <p className="text-gray-400 mb-6">{error}</p>
-          <button 
-            onClick={() => router.back()}
-            className="px-4 py-2 bg-[#FF4D67] text-white rounded-lg hover:bg-[#FF4D67]/80 transition-colors"
-          >
-            Go Back
-          </button>
-        </div>
-      </div>
-    )
-  }
-
-  if (!album) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black flex items-center justify-center">
-        <div className="text-white text-center">
-          <h2 className="text-xl mb-4">Album not found</h2>
-          <button 
-            onClick={() => router.push('/albums')}
-            className="px-4 py-2 bg-[#FF4D67] text-white rounded-lg hover:bg-[#FF4D67]/80 transition-colors"
-          >
-            Browse Albums
-          </button>
-        </div>
-      </div>
-    )
+          artist: artist,
+          coverImage: (track.coverURL || track.coverImage) || "",
+          coverURL: track.coverURL,
+          duration: track.duration || "3:45", // Placeholder
+          audioUrl: track.audioURL,
+          audioURL: track.audioURL,
+          plays: track.plays || 0,
+          likes: track.likes || 0,
+          creatorId: track.creatorId || '',
+          type: track.type || 'song', // Include track type for WhatsApp functionality
+          creatorWhatsapp: (track.creatorId && typeof track.creatorId === 'object' && track.creatorId !== null) 
+            ? track.creatorId.whatsappContact 
+            : undefined // Include creator's WhatsApp contact
+        };
+      }),
+      description: albumData.description,
+      genre: albumData.genre,
+      creatorId: albumData.creatorId || '',
+      releaseDate: albumData.releaseDate,
+      createdAt: albumData.createdAt
+    };
+  } catch (error) {
+    console.error('Error fetching album:', error);
+    notFound();
   }
 
   return (
@@ -216,15 +171,15 @@ export default function AlbumDetailPage() {
       <div className="container mx-auto px-4 sm:px-8">
         <div className="max-w-7xl mx-auto">
           {/* Back Button */}
-          <button 
-            onClick={() => router.back()}
+          <a 
+            href="/albums"
             className="flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
             </svg>
             Back
-          </button>
+          </a>
 
           {/* Album Header */}
           <div className="flex flex-col md:flex-row gap-8 mb-12">
@@ -266,7 +221,6 @@ export default function AlbumDetailPage() {
                 
                 <div className="flex gap-4">
                   <button 
-                    onClick={handlePlayAlbum}
                     className="px-8 py-3 gradient-primary rounded-full text-white font-medium hover:opacity-90 transition-opacity flex items-center gap-2"
                   >
                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -294,10 +248,7 @@ export default function AlbumDetailPage() {
               {album.tracks.map((track, index) => (
                 <div 
                   key={track._id || track.id}
-                  className={`flex items-center gap-4 p-3 rounded-lg hover:bg-gray-800/50 transition-colors cursor-pointer ${
-                    currentTrack?.id === (track._id || track.id) ? 'bg-gray-800/50' : ''
-                  }`}
-                  onClick={() => handlePlayTrack(track)}
+                  className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-800/50 transition-colors cursor-pointer"
                 >
                   {/* Track Cover Image */}
                   <div className="w-12 h-12 flex-shrink-0">
@@ -317,22 +268,14 @@ export default function AlbumDetailPage() {
                   </div>
                   
                   <div className="w-8 text-center text-gray-500">
-                    {currentTrack?.id === (track._id || track.id) && isPlaying ? (
-                      <div className="flex justify-center">
-                        <div className="w-1 h-3 bg-[#FF4D67] mx-0.5 animate-pulse"></div>
-                        <div className="w-1 h-3 bg-[#FF4D67] mx-0.5 animate-pulse delay-75"></div>
-                        <div className="w-1 h-3 bg-[#FF4D67] mx-0.5 animate-pulse delay-150"></div>
-                      </div>
-                    ) : (
-                      <span className="text-sm">{index + 1}</span>
-                    )}
+                    <span className="text-sm">{index + 1}</span>
                   </div>
                   
                   <div className="flex-1 min-w-0">
                     <h3 className="font-medium text-white truncate">{track.title}</h3>
                     <p className="text-sm text-gray-400 truncate">
                       {typeof track.creatorId === 'object' && track.creatorId !== null 
-                        ? track.creatorId.name 
+                        ? (track.creatorId as any).name 
                         : typeof track.creatorId === 'string' 
                         ? track.creatorId 
                         : 'Unknown Artist'}
@@ -360,6 +303,40 @@ export default function AlbumDetailPage() {
           </div>
         </div>
       </div>
+      
+      {/* JSON-LD Structured Data for SEO */}
+      <Script
+        id="album-structured-data"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'MusicAlbum',
+            name: album.title,
+            description: album.description || `Listen to ${album.title} by ${album.artist}`,
+            image: album.coverURL || album.coverImage || '/default-cover.jpg',
+            url: `https://www.muzikax.com/album/${album._id}`,
+            datePublished: album.releaseDate,
+            genre: album.genre,
+            byArtist: {
+              '@type': 'MusicGroup',
+              name: album.artist,
+            },
+            track: album.tracks.map(track => ({
+              '@type': 'MusicRecording',
+              name: track.title,
+              url: `https://www.muzikax.com/tracks/${track._id}`,
+              duration: track.duration ? `PT${track.duration}` : undefined,
+            })),
+            offers: {
+              '@type': 'Offer',
+              availability: 'https://schema.org/InStock',
+              price: '0',
+              priceCurrency: 'USD',
+            },
+          }),
+        }}
+      />
     </div>
-  )
+  );
 }
