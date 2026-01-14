@@ -8,6 +8,7 @@ import ModernAudioPlayer from "../../components/ModernAudioPlayer";
 import PWAInstallPrompt from "../../components/PWAInstallPrompt";
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import Footer from "../../components/Footer";
+import FloatingComponents from "../../components/FloatingComponents";
 
 export const metadata: Metadata = {
   title: "MuzikaX - Rwanda's Digital Music Ecosystem",
@@ -45,7 +46,7 @@ export default function AppLayout({
         <meta name="theme-color" content="#000000" />
         <link rel="manifest" href="/manifest.json" />
       </head>
-      <body className="pb-24 md:pb-0 flex flex-col min-h-screen">
+      <body className="pb-24 md:pb-0 flex flex-col min-h-screen overflow-visible">
         <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"}>
           <AuthProvider>
             <AudioPlayerProvider>
@@ -58,6 +59,7 @@ export default function AppLayout({
             </AudioPlayerProvider>
           </AuthProvider>
         </GoogleOAuthProvider>
+        <FloatingComponents />
       </body>
     </html>
   );

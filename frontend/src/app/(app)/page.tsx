@@ -2052,9 +2052,6 @@ export default function Home() {
       </main>
       {/* Spacer to push footer down */}
       <div className="flex-grow"></div>
-      
-      {/* Floating Contact and AI Assistant Buttons */}
-      <FloatingButtons />
     </div>
   );
 }
