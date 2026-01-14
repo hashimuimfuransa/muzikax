@@ -427,8 +427,11 @@ const FullPagePlayer = () => {
 
   // Removed music visualization effect as requested
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white relative overflow-hidden pb-28 md:pb-0">      {/* Simple gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-r from-[#FF4D67]/20 via-[#FFCB2B]/20 to-[#8B5CF6]/20 z-0"></div>      
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-indigo-900 text-white relative overflow-hidden pb-28 md:pb-0">
+      {/* Modern animated gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-r from-[#FF4D67]/30 via-[#8B5CF6]/20 to-[#FFCB2B]/30 animate-pulse z-0"></div>
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[#FF4D67]/20 via-transparent to-[#8B5CF6]/20 z-0"></div>
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-[#FFCB2B]/20 via-transparent to-[#FF4D67]/20 z-0"></div>      
       {/* Content Container */}
       <div className="relative z-10">
         {/* Toast Notification */}
@@ -544,28 +547,28 @@ const FullPagePlayer = () => {
         )}
         
         {/* Header */}
-        <div className="flex justify-between items-center p-3 border-b border-gray-800 gap-2 flex-wrap">
+        <div className="flex justify-between items-center p-4 sm:p-6 border-b border-white/10 gap-2 flex-wrap backdrop-blur-sm bg-black/20">
           <button 
             onClick={minimizeAndGoBack}
-            className="flex items-center text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-800 min-w-[40px] min-h-[40px] touch-manipulation"
+            className="flex items-center text-gray-300 hover:text-white transition-all duration-300 p-3 rounded-xl hover:bg-white/10 min-w-[44px] min-h-[44px] touch-manipulation"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
             </svg>
           </button>
           
-          <h1 className="text-lg font-bold px-1 whitespace-nowrap">Now Playing</h1>
+          <h1 className="text-xl sm:text-2xl font-bold px-2 bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] whitespace-nowrap">Now Playing</h1>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             
 
             
             <button 
               onClick={closePlayer}
-              className="w-12 h-12 sm:w-10 sm:h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-700 transition-all duration-200 min-w-[40px] min-h-[40px] touch-manipulation"
+              className="w-12 h-12 sm:w-11 sm:h-11 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center text-gray-300 hover:text-white hover:bg-white/20 transition-all duration-300 min-w-[44px] min-h-[44px] touch-manipulation shadow-lg"
               title="Close player"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
               </svg>
             </button>
@@ -578,39 +581,40 @@ const FullPagePlayer = () => {
             <div className="md:col-span-2">
               <div className="flex flex-col items-center">
                 {/* Album Art */}
-                <div className="relative mb-8">
+                <div className="relative mb-8 group">
+                  <div className="absolute -inset-4 bg-gradient-to-r from-[#FF4D67] via-[#8B5CF6] to-[#FFCB2B] rounded-3xl blur-xl opacity-30 group-hover:opacity-50 transition-opacity duration-500 animate-pulse"></div>
                   <img 
                     src={currentTrack.coverImage} 
                     alt={currentTrack.title} 
-                    className="w-48 h-48 sm:w-64 sm:h-64 md:w-80 md:h-80 rounded-2xl object-cover shadow-2xl"
+                    className="relative w-52 h-52 sm:w-72 sm:h-72 md:w-80 md:h-80 rounded-3xl object-cover shadow-2xl border-4 border-white/10"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent rounded-2xl"></div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent rounded-3xl"></div>
                 </div>
                 
                 {/* Track Info */}
-                <div className="text-center mb-4 sm:mb-8 w-full">
-                  <h2 className="text-2xl sm:text-3xl font-bold text-white truncate">{currentTrack.title}</h2>
+                <div className="text-center mb-6 sm:mb-8 w-full px-4">
+                  <h2 className="text-3xl sm:text-4xl font-bold text-white mb-2 drop-shadow-lg">{currentTrack.title}</h2>
                   <Link 
                     href={`/artists/${(typeof currentTrack.creatorId === 'object' && currentTrack.creatorId !== null) 
                       ? (currentTrack.creatorId as any)._id 
                       : currentTrack.creatorId}`}
-                    className="text-[#FF4D67] hover:text-[#ff3350] mt-2 inline-block"
+                    className="text-xl sm:text-2xl bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] hover:from-[#ff3350] hover:to-[#ffd64d] mt-2 inline-block font-semibold"
                   >
                     {currentTrack.artist}
                   </Link>
                   {/* Play Count and Likes */}
-                  <div className="flex justify-center gap-4 sm:gap-6 mt-3 text-gray-300">
-                    <div className="flex items-center">
-                      <svg className="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 24 24">
+                  <div className="flex justify-center gap-6 sm:gap-8 mt-4 text-gray-200">
+                    <div className="flex items-center bg-white/10 backdrop-blur-sm px-4 py-2 rounded-xl">
+                      <svg className="w-5 h-5 mr-2 text-[#FF4D67]" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                       </svg>
-                      <span>{currentTrack.plays || 0} plays</span>
+                      <span className="font-medium">{currentTrack.plays || 0} plays</span>
                     </div>
-                    <div className="flex items-center">
-                      <svg className="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 24 24">
+                    <div className="flex items-center bg-white/10 backdrop-blur-sm px-4 py-2 rounded-xl">
+                      <svg className="w-5 h-5 mr-2 text-[#FFCB2B]" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                       </svg>
-                      <span>{currentTrack.likes || 0} likes</span>
+                      <span className="font-medium">{currentTrack.likes || 0} likes</span>
                     </div>
                   </div>
                 </div>                
