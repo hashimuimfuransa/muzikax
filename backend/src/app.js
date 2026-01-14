@@ -56,13 +56,14 @@ app.use(helmet());
 const allowedOrigins = process.env.CORS_ORIGIN ? 
   process.env.CORS_ORIGIN.split(',').map(origin => origin.trim()) : 
   [
-    'https://muzikax.vercel.app',  // Production frontend
-    'https://www.muzikax.com/',    // Production domain
-    'http://localhost:3000',       // Local development
-    'http://localhost:3001',       // Alternative local development
-    'http://localhost:8080',       // Alternative local development
-    'https://localhost:3000',      // HTTPS local development
-    'https://localhost:3001',      // HTTPS alternative local development
+    'https://muzikax.vercel.app',     // Production frontend
+    'https://www.muzikax.com',        // Production domain (without trailing slash)
+    'https://www.muzikax.com/',       // Production domain (with trailing slash)
+    'http://localhost:3000',          // Local development
+    'http://localhost:3001',          // Alternative local development
+    'http://localhost:8080',          // Alternative local development
+    'https://localhost:3000',         // HTTPS local development
+    'https://localhost:3001',         // HTTPS alternative local development
   ];
 
 const corsOptions = {
@@ -70,14 +71,27 @@ const corsOptions = {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
-    if (allowedOrigins.includes(origin)) {
+    // Check if origin matches any allowed origins (handle both with and without trailing slashes)
+    const isAllowed = allowedOrigins.some(allowedOrigin => {
+      // Normalize both origins by removing trailing slashes for comparison
+      const normalizedOrigin = origin.replace(/\/+$/, '');
+      const normalizedAllowed = allowedOrigin.replace(/\/+$/, '');
+      return normalizedOrigin === normalizedAllowed;
+    });
+    
+    if (isAllowed) {
       callback(null, true);
     } else {
+      console.log(`CORS blocked request from origin: ${origin}`);
+      console.log(`Allowed origins:`, allowedOrigins);
       callback(null, false); // Don't throw error, just deny the request
     }
   },
   credentials: true,
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200,
+  exposedHeaders: ['Authorization'],
+  methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 };
 app.use(cors(corsOptions));
 
@@ -225,6 +239,16 @@ if (authRouter && authRouter.stack) {
 app.get('/health', (_req, res) => {
   console.log('HEALTH CHECK ROUTE HIT');
   res.status(200).json({ message: 'OK', timestamp: new Date().toISOString() });
+});
+
+// CORS test route - simple endpoint to test if server is reachable
+app.get('/api/test-cors', (_req, res) => {
+  console.log('CORS TEST ROUTE HIT');
+  res.status(200).json({ 
+    message: 'CORS test successful', 
+    timestamp: new Date().toISOString(),
+    corsWorking: true
+  });
 });
 
 // Simple test route

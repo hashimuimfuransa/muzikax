@@ -602,8 +602,8 @@ export default function Home() {
             ))}
           </div>
 
-          <div className="w-full px-4 md:px-8 relative z-10">
-            <div className="max-w-3xl mx-auto text-center">
+          <div className="container mx-auto px-4 md:px-4 relative z-10">
+            <div className="max-w-4xl mx-auto text-center">
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] mb-4 sm:mb-6 animate-fade-in">
                 {heroSlides[currentSlide].title}
               </h1>
