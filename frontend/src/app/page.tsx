@@ -8,6 +8,8 @@ import { useTrendingTracks, usePopularCreators } from "../hooks/useTracks";
 import { useAudioPlayer } from "../contexts/AudioPlayerContext";
 import { getAlbumById } from "../services/albumService";
 import { followCreator, unfollowCreator, checkFollowStatus } from "../services/trackService";
+import HorizontalScrollSection from "../components/HorizontalScrollSection";
+import TrackCard from "../components/TrackCard";
 
 interface Track {
   id: string;
@@ -292,6 +294,37 @@ export default function Home() {
 
   // For You section - use trending tracks for now
   const forYouTracks: Track[] = trendingTracks.slice(0, 4);
+
+  // Utility function to shuffle an array
+  const shuffleArray = (array: any[]) => {
+    const newArray = [...array];
+    for (let i = newArray.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+    }
+    return newArray;
+  };
+
+  // Made for You section - for now use shuffled trending tracks, but in the future this could be personalized
+  const madeForYouTracks: Track[] = shuffleArray([...trendingTracks]).slice(0, 10);
+
+  // Popular Songs section - use tracks with highest play counts
+  const popularSongs: Track[] = [...trendingTracks].sort((a, b) => (b.plays || 0) - (a.plays || 0)).slice(0, 10);
+
+  // New Releases section - for now use most recent tracks, in the future this could come from a dedicated endpoint
+  const newReleases: Track[] = [...trendingTracks].reverse().slice(0, 10);
+
+  // Rising Tracks - tracks with increasing engagement
+  const risingTracks: Track[] = [...trendingTracks].sort((a, b) => (b.likes || 0) - (a.likes || 0)).slice(0, 10);
+
+  // Based on Your Listening - personalized recommendations
+  const basedOnListening: Track[] = shuffleArray([...trendingTracks]).slice(0, 10);
+
+  // Continue Listening - tracks user has recently played
+  const continueListening: Track[] = [...trendingTracks].slice(0, 10);
+
+  // Similar to Liked Songs - tracks similar to user's favorites
+  const similarToLiked: Track[] = [...trendingTracks].sort((a, b) => (b.likes || 0) - (a.likes || 0)).slice(0, 10);
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black w-full relative overflow-visible">
@@ -827,6 +860,111 @@ export default function Home() {
             ))}
           </div>
         </section>
+
+        {/* Made for You Section */}
+        <HorizontalScrollSection title="Made for You" viewAllLink="/foryou">
+          {madeForYouTracks.map((track) => {
+            // Find the full track object to get additional properties
+            const fullTrack = trendingTracksData.find(t => t._id === track.id);
+            return (
+              <TrackCard 
+                key={track.id} 
+                track={track} 
+                fullTrackData={fullTrack}
+              />
+            );
+          })}
+        </HorizontalScrollSection>
+
+        {/* Popular Songs Section */}
+        <HorizontalScrollSection title="Popular Songs" viewAllLink="/tracks?sortBy=popularity">
+          {popularSongs.map((track) => {
+            // Find the full track object to get additional properties
+            const fullTrack = trendingTracksData.find(t => t._id === track.id);
+            return (
+              <TrackCard 
+                key={track.id} 
+                track={track} 
+                fullTrackData={fullTrack}
+              />
+            );
+          })}
+        </HorizontalScrollSection>
+
+        {/* New Releases Section */}
+        <HorizontalScrollSection title="New Releases" viewAllLink="/tracks?sortBy=newest">
+          {newReleases.map((track) => {
+            // Find the full track object to get additional properties
+            const fullTrack = trendingTracksData.find(t => t._id === track.id);
+            return (
+              <TrackCard 
+                key={track.id} 
+                track={track} 
+                fullTrackData={fullTrack}
+              />
+            );
+          })}
+        </HorizontalScrollSection>
+
+        {/* Rising Tracks Section */}
+        <HorizontalScrollSection title="Rising Tracks" viewAllLink="/tracks?sortBy=engagement">
+          {risingTracks.map((track) => {
+            // Find the full track object to get additional properties
+            const fullTrack = trendingTracksData.find(t => t._id === track.id);
+            return (
+              <TrackCard 
+                key={track.id} 
+                track={track} 
+                fullTrackData={fullTrack}
+              />
+            );
+          })}
+        </HorizontalScrollSection>
+
+        {/* Based on Your Listening Section */}
+        <HorizontalScrollSection title="Based on Your Listening" viewAllLink="/foryou">
+          {basedOnListening.map((track) => {
+            // Find the full track object to get additional properties
+            const fullTrack = trendingTracksData.find(t => t._id === track.id);
+            return (
+              <TrackCard 
+                key={track.id} 
+                track={track} 
+                fullTrackData={fullTrack}
+              />
+            );
+          })}
+        </HorizontalScrollSection>
+
+        {/* Continue Listening Section */}
+        <HorizontalScrollSection title="Continue Listening" viewAllLink="/recently-played">
+          {continueListening.map((track) => {
+            // Find the full track object to get additional properties
+            const fullTrack = trendingTracksData.find(t => t._id === track.id);
+            return (
+              <TrackCard 
+                key={track.id} 
+                track={track} 
+                fullTrackData={fullTrack}
+              />
+            );
+          })}
+        </HorizontalScrollSection>
+
+        {/* Similar to Liked Songs Section */}
+        <HorizontalScrollSection title="Similar to Liked Songs" viewAllLink="/favorites">
+          {similarToLiked.map((track) => {
+            // Find the full track object to get additional properties
+            const fullTrack = trendingTracksData.find(t => t._id === track.id);
+            return (
+              <TrackCard 
+                key={track.id} 
+                track={track} 
+                fullTrackData={fullTrack}
+              />
+            );
+          })}
+        </HorizontalScrollSection>
 
         {/* Popular Artists Section */}
         <section className="w-full px-4 md:px-8 py-8 sm:py-10">
