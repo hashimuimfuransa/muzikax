@@ -9,10 +9,10 @@ import ConditionalNavbar from "../components/ConditionalNavbar";
 
 export const metadata: Metadata = {
   title: {
-    template: '%s | MuzikaX - Rwanda\'s Digital Music Ecosystem',
-    default: "MuzikaX - Rwanda's Digital Music Ecosystem",
+    template: '%s | MuzikaX - Rwanda & African Artists Music Platform',
+    default: "MuzikaX - Rwanda & African Artists Music Platform",
   },
-  description: "Connecting Rwandan music creators with fans worldwide. Discover, stream, and share the best of Rwandan music on MuzikaX. Free music streaming platform.",
+  description: "Connecting Rwandan and African music creators with fans worldwide. Discover, stream, and share the best of Rwandan and African music on MuzikaX. Free music streaming platform.",
   keywords: ["Rwandan music", "African music", "Afrobeats", "Music streaming", "Rwandan artists", "Music platform", "Digital music", "Free music", "Online radio", "Music discovery"],
   authors: [{ name: "MuzikaX Team" }],
   creator: "MuzikaX Team",
@@ -30,8 +30,8 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "https://www.muzikax.com/",
     siteName: "MuzikaX",
-    title: "MuzikaX - Rwanda's Digital Music Ecosystem",
-    description: "Connecting Rwandan music creators with fans worldwide",
+    title: "MuzikaX - Rwanda & African Artists Music Platform",
+    description: "Connecting Rwandan and African music creators with fans worldwide",
     images: [
       {
         url: "/og-image.jpg",
@@ -43,8 +43,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "MuzikaX - Rwanda's Digital Music Ecosystem",
-    description: "Connecting Rwandan music creators with fans worldwide",
+    title: "MuzikaX - Rwanda & African Artists Music Platform",
+    description: "Connecting Rwandan and African music creators with fans worldwide",
     images: ["/og-image.jpg"],
     creator: "@muzikax",
   },
