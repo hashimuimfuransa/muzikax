@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../contexts/AuthContext'
@@ -10,6 +10,45 @@ export default function Navbar() {
   const { isAuthenticated, userRole, logout } = useAuth()
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('') // Add search state
+  const [showCategories, setShowCategories] = useState(false);
+  const categoriesRef = useRef<HTMLDivElement>(null);
+
+  // App-like categories similar to Spotify/Apple Music
+  const categories = [
+    { id: 'home', name: 'Home', icon: '🏠' },
+    { id: 'beats', name: 'Beats', icon: '🎵' },
+    { id: 'mixes', name: 'Mixes', icon: '🎧' },
+    { id: 'afrobeat', name: 'Afrobeat', icon: '🌍' },
+    { id: 'hiphop', name: 'Hip Hop', icon: '🎤' },
+    { id: 'rnb', name: 'R&B', icon: '🎷' },
+    { id: 'afropop', name: 'Afropop', icon: '🎸' },
+    { id: 'gospel', name: 'Gospel', icon: '⛪' },
+    { id: 'dancehall', name: 'Dancehall', icon: '💃' },
+    { id: 'reggae', name: 'Reggae', icon: '🇯🇲' },
+    { id: 'pop', name: 'Pop', icon: '✨' },
+    { id: 'rock', name: 'Rock', icon: '🎸' },
+    { id: 'electronic', name: 'Electronic', icon: '⚡' },
+    { id: 'house', name: 'House', icon: '🏠' },
+    { id: 'jazz', name: 'Jazz', icon: '🎹' },
+    { id: 'soul', name: 'Soul', icon: '❤️' },
+  ];
+
+  // Handle category selection
+  const handleCategorySelect = (categoryId: string) => {
+    // Navigate to appropriate pages
+    switch(categoryId) {
+      case 'home':
+        router.push('/');
+        break;
+      case 'beats':
+      case 'mixes':
+        router.push(`/explore?type=${categoryId}`);
+        break;
+      default:
+        // For genre categories, go to explore with filter
+        router.push(`/explore?genre=${categoryId}`);
+    }
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -19,8 +58,51 @@ export default function Navbar() {
     }
   }
 
+  // Auto-hide categories when scrolling
+  useEffect(() => {
+    const handleScroll = () => {
+      if (showCategories && categoriesRef.current) {
+        const rect = categoriesRef.current.getBoundingClientRect();
+        if (rect.bottom < 0 || rect.top > window.innerHeight) {
+          setShowCategories(false);
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [showCategories]);
+
   return (
     <nav className="bg-gray-900/80 backdrop-blur-lg border-b border-gray-800 sticky top-0 z-40">
+      {/* Categories Bar - Slides up/down on mobile */}
+      <div 
+        ref={categoriesRef}
+        className={`bg-gray-900/95 backdrop-blur-lg border-b border-gray-800 transition-all duration-300 overflow-hidden ${
+          showCategories ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'
+        } md:hidden`}
+      >
+        <div className="px-4 py-3">
+          <div className="flex space-x-3 overflow-x-auto scrollbar-hide pb-2">
+            {categories.map((category) => (
+              <button
+                key={category.id}
+                onClick={() => {
+                  handleCategorySelect(category.id);
+                  setShowCategories(false); // Close categories after selection
+                }}
+                className={`flex flex-col items-center px-3 py-2 rounded-xl transition-all duration-200 whitespace-nowrap flex-shrink-0 ${
+                  'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50 hover:text-white'
+                }`}
+              >
+                <span className="text-lg mb-1">{category.icon}</span>
+                <span className="text-xs font-medium">{category.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+      
       <div className="max-w-7xl mx-auto px-1 sm:px-2 lg:px-3">
         <div className="flex items-center justify-between h-16 w-full">
           {/* Logo */}
@@ -117,8 +199,24 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* Mobile menu button */}
+          {/* Mobile Controls */}
           <div className="md:hidden flex items-center space-x-1">
+            {/* Category toggle button for mobile */}
+            <button
+              onClick={() => setShowCategories(!showCategories)}
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white focus:outline-none"
+            >
+              <svg 
+                className={`h-6 w-6 transition-transform duration-300 ${showCategories ? 'rotate-180' : ''}`}
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            
             {/* Search icon for mobile */}
             <button
               onClick={() => router.push('/search')}
@@ -129,6 +227,7 @@ export default function Navbar() {
               </svg>
             </button>
             
+            {/* Menu button for mobile */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white focus:outline-none"
