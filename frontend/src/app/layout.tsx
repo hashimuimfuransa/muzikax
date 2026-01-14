@@ -12,8 +12,8 @@ export const metadata: Metadata = {
     template: '%s | MuzikaX - Rwanda\'s Digital Music Ecosystem',
     default: "MuzikaX - Rwanda's Digital Music Ecosystem",
   },
-  description: "Connecting Rwandan music creators with fans worldwide. Discover, stream, and share the best of Rwandan music on MuzikaX.",
-  keywords: ["Rwandan music", "African music", "Afrobeats", "Music streaming", "Rwandan artists", "Music platform", "Digital music"],
+  description: "Connecting Rwandan music creators with fans worldwide. Discover, stream, and share the best of Rwandan music on MuzikaX. Free music streaming platform.",
+  keywords: ["Rwandan music", "African music", "Afrobeats", "Music streaming", "Rwandan artists", "Music platform", "Digital music", "Free music", "Online radio", "Music discovery"],
   authors: [{ name: "MuzikaX Team" }],
   creator: "MuzikaX Team",
   publisher: "MuzikaX",
@@ -22,6 +22,9 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
+  // AdSense optimization metadata
+  category: "music",
+  classification: "entertainment",
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -91,6 +94,12 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="MuzikaX" />
         <meta name="theme-color" content="#000000" />
         <link rel="manifest" href="/manifest.json" />
+        {/* AdSense Verification Code */}
+        <script 
+          async 
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5073101063025875"
+          crossOrigin="anonymous">
+        </script>
       </head>
       <body className="pb-24 md:pb-0">
         <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"}>

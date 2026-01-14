@@ -1,0 +1,5 @@
+# AdSense ads.txt file for MuzikaX
+# Publisher ID: ca-pub-5073101063025875
+# Last updated: 2026-01-14
+
+google.com, pub-5073101063025875, DIRECT, f08c47fec0942fa0

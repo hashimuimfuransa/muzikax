@@ -236,10 +236,22 @@ export default function ContactPage() {
               </div>
 
               <div className="mt-8 pt-6 border-t border-gray-700">
-                <h3 className="font-semibold text-white mb-4">Office Location</h3>
-                <div className="text-gray-300">
-                  <p>Kigali, Rwanda</p>
-                  <p className="mt-2 text-sm text-gray-400">Available Monday-Friday, 9:00 AM - 5:00 PM CAT</p>
+                <h3 className="font-semibold text-white mb-4">Contact Information</h3>
+                <div className="text-gray-300 space-y-3">
+                  <div>
+                    <p className="font-medium text-white">Phone:</p>
+                    <a href="tel:+250793828834" className="text-[#FF4D67] hover:underline">
+                      +250 793 828 834
+                    </a>
+                  </div>
+                  <div>
+                    <p className="font-medium text-white">Office Location:</p>
+                    <p>Kigali, Rwanda</p>
+                  </div>
+                  <div>
+                    <p className="font-medium text-white">Hours:</p>
+                    <p className="text-sm text-gray-400">Monday-Friday, 9:00 AM - 5:00 PM CAT</p>
+                  </div>
                 </div>
               </div>
             </div>
