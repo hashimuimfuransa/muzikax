@@ -100,7 +100,7 @@ export default function AlbumsPage() {
 
           {/* Albums Grid */}
           {loading ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
               {Array.from({ length: 12 }).map((_, index) => (
                 <div key={index} className="group card-bg rounded-xl overflow-hidden transition-all duration-300">
                   <div className="relative">
@@ -120,7 +120,7 @@ export default function AlbumsPage() {
               ))}
             </div>
           ) : sortedAlbums.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
               {sortedAlbums.map((album) => (
                 <div 
                   key={album.id} 

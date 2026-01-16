@@ -92,7 +92,7 @@ export default function TrackCard({
   const isFavorite = favorites.some(fav => fav.id === track.id);
 
   return (
-    <div className="flex-shrink-0 w-48 sm:w-52 group card-bg rounded-xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10">
+    <div className="flex-shrink-0 w-48 sm:w-52 md:w-52 lg:w-56 group card-bg rounded-xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10">
       <div className="relative">
         {track.coverImage && track.coverImage.trim() !== '' ? (
           <img

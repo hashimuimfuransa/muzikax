@@ -797,7 +797,7 @@ export default function Home() {
             </a>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {popularCreators.map((creator) => (
               <div
                 key={creator.id}
@@ -876,7 +876,7 @@ export default function Home() {
             </a>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {albumsLoading ? (
               // Loading skeleton
               Array.from({ length: 6 }).map((_, index) => (
@@ -1019,7 +1019,7 @@ export default function Home() {
             </a>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {trendingTracks
               .filter((track) => track.category === "beat")
               .slice(0, 6)
@@ -1161,7 +1161,7 @@ export default function Home() {
             </a>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {trendingTracks
               .filter((track) => track.category === "mix")
               .slice(0, 6)

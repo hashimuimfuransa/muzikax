@@ -13,4 +13,9 @@ export interface ITrack {
   comments: string[];
   createdAt: string;
   updatedAt: string;
+  location?: string; // Added for location-based recommendations
+  duration?: string; // Added for track duration
+  albumId?: string; // Added for album context
+  albumTitle?: string; // Added for album context
+  creatorWhatsapp?: string; // Added for creator contact
 }

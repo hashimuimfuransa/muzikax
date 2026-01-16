@@ -46,6 +46,12 @@ const FullPagePlayer = () => {
     shufflePlaylist, // Add shufflePlaylist from context
     toggleLoop,
     isLooping,
+    queue, // Add queue from context
+    addToQueue, // Add addToQueue from context
+    removeFromQueue, // Add removeFromQueue from context
+    clearQueue, // Add clearQueue from context
+    playFromQueue, // Add playFromQueue from context
+    moveQueueItem, // Add moveQueueItem from context
     frequencyData  } = useAudioPlayer();
   
   const router = useRouter();
@@ -966,8 +972,18 @@ Would you like to open WhatsApp to contact the creator?`;
 
                 </div>
                 
-                {/* Navigation Buttons to Favorites and Playlists */}
-                <div className="flex justify-center space-x-3 sm:space-x-4 mt-4">
+                {/* Album Indicator and Navigation Buttons */}
+                <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mt-4">
+                  {/* Album Indicator */}
+                  {(window as any).audioPlayerContext?.current?.type === 'album' && (
+                    <div className="px-3 py-2 bg-[#FF4D67]/20 rounded-lg text-sm flex items-center">
+                      <svg className="w-4 h-4 mr-1 text-[#FF4D67]" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
+                      </svg>
+                      <span>Album Mode</span>
+                    </div>
+                  )}
+                  
                   <button 
                     onClick={() => router.push('/favorites')}
                     className="px-3 py-2 sm:px-4 sm:py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm transition-colors touch-manipulation"
@@ -980,6 +996,64 @@ Would you like to open WhatsApp to contact the creator?`;
                   >
                     View Playlists
                   </button>
+                </div>
+                
+                {/* Queue Section */}
+                <div className="mt-6 bg-gray-800/50 rounded-xl p-4">
+                  <div className="flex justify-between items-center mb-3">
+                    <h3 className="font-bold text-lg">Up Next</h3>
+                    <button 
+                      onClick={() => {
+                        // Clear the queue
+                        clearQueue();
+                        setToast({message: 'Queue cleared!', type: 'success'});
+                      }}
+                      className="text-sm text-gray-400 hover:text-white"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                  
+                  {queue && queue.length > 0 ? (
+                    <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
+                      {queue.map((queuedTrack, index) => (
+                        <div 
+                          key={`${queuedTrack.id}-${index}`} 
+                          className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-700/50 cursor-pointer transition-colors group"
+                          onClick={() => {
+                            // Play this track from the queue
+                            playFromQueue(queuedTrack.id);
+                            setToast({message: `Playing ${queuedTrack.title}`, type: 'success'});
+                          }}
+                        >
+                          <span className="text-gray-500 text-sm w-5">{index + 1}</span>
+                          <img 
+                            src={queuedTrack.coverImage} 
+                            alt={queuedTrack.title} 
+                            className="w-10 h-10 rounded object-cover"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{queuedTrack.title}</p>
+                            <p className="text-xs text-gray-400 truncate">{queuedTrack.artist}</p>
+                          </div>
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeFromQueue(queuedTrack.id);
+                              setToast({message: 'Removed from queue', type: 'success'});
+                            }}
+                            className="text-gray-500 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-400 text-center py-4 text-sm">Queue is empty</p>
+                  )}
                 </div>
               </div>
             </div>

@@ -46,6 +46,7 @@ interface AudioPlayerContextType {
   comments: Comment[];
   volume: number;
   playbackRate: number;
+  queue: Track[]; // Queue for upcoming tracks
   playTrack: (track: Track, contextPlaylist?: Track[], albumContext?: { albumId: string, tracks: Track[] }) => void;
   playNextTrack: () => Promise<void>;
   playPreviousTrack: () => void;
@@ -69,6 +70,12 @@ interface AudioPlayerContextType {
   isLooping: boolean;
   currentTrackIndex: number;
   audioRef: React.RefObject<HTMLAudioElement | null>;
+  // Queue management functions
+  addToQueue: (track: Track) => void;
+  removeFromQueue: (trackId: string) => void;
+  clearQueue: () => void;
+  moveQueueItem: (fromIndex: number, toIndex: number) => void;
+  playFromQueue: (trackId: string) => void;
   addComment: (comment: Omit<Comment, 'id' | 'timestamp'>) => void;
   removeComment: (commentId: string) => void;
   loadComments: (trackId: string) => void;
@@ -106,12 +113,15 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
   const [volume, setVolume] = useState(1);
   const [playbackRate, setPlaybackRate] = useState(1);
   const [isLooping, setIsLooping] = useState(false);
+  const [queue, setQueue] = useState<Track[]>([]); // Queue for upcoming tracks
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const hasIncrementedPlayCount = useRef<Set<string>>(new Set());
   const router = useRouter();
   const currentPlaybackContext = useRef<{ 
     type: 'playlist' | 'album' | 'single'; 
-    data?: any 
+    data?: any;
+    albumId?: string; // Store album ID when in album context
+    albumComplete?: boolean; // Flag to indicate if album has been completed
   }>({ type: 'single' });
   
   // Audio visualization refs
@@ -287,7 +297,9 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
       console.log('Setting album context');
       currentPlaybackContext.current = { 
         type: 'album', 
-        data: albumContext 
+        data: albumContext,
+        albumId: albumContext.albumId,
+        albumComplete: false // Reset album completion flag
       };
       // Set the playlist to the album tracks
       setPlaylist(albumContext.tracks);
@@ -436,6 +448,7 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     const contextType = currentPlaybackContext.current.type;
     console.log('Direct context type value:', contextType);
     console.log('Is context type equal to "single":', contextType === 'single');
+    console.log('Is context type equal to "album":', contextType === 'album');
     console.log('Is context type equal to "playlist":', contextType === 'playlist');
     console.log('Playlist length:', playlistRef.current.length);
     
@@ -443,13 +456,91 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     console.log('Context object keys:', Object.keys(currentPlaybackContext.current));
     console.log('Context object JSON:', JSON.stringify(currentPlaybackContext.current));
     
-    // Check if we're in a playlist context
-    if (currentPlaybackContext.current.type === 'single') {
+    // Check if we're in an album context
+    if (currentPlaybackContext.current.type === 'album') {
+      console.log('Album context, ensuring tracks play within album until completion');
+      
+      // Check if we have more tracks in the album
+      if (currentTrackIndexRef.current + 1 < playlistRef.current.length) {
+        // Play the next track in the album
+        const nextIndex = currentTrackIndexRef.current + 1;
+        console.log('Playing next track in album at index:', nextIndex);
+        
+        // Play the next track without expanding the player
+        explicitlyPlayedRef.current = false; // Mark as auto-played
+        playTrackAtIndex(nextIndex);
+        return;
+      } else {
+        // We've reached the end of the album
+        console.log('Reached end of album, marking album as complete');
+        
+        // Update the context to indicate album is complete
+        currentPlaybackContext.current.albumComplete = true;
+        
+        // If user wants to continue after album completion, play recommendations
+        // Otherwise, stop playback
+        try {
+          if (currentTrackRef.current) {
+            const recommendedTracks = await fetchRecommendedTracks(currentTrackRef.current.id, 10);
+            if (recommendedTracks && recommendedTracks.length > 0) {
+              console.log('Got', recommendedTracks.length, 'recommended tracks after album completion');
+              
+              // Convert recommended tracks to our Track interface
+              const newTracks: Track[] = recommendedTracks.map(nextTrack => ({
+                id: nextTrack._id,
+                title: nextTrack.title,
+                artist: (typeof nextTrack.creatorId === 'object' && nextTrack.creatorId !== null) 
+                  ? (nextTrack.creatorId as any).name 
+                  : nextTrack.creatorId || 'Unknown Artist',
+                coverImage: nextTrack.coverURL || '',
+                audioUrl: nextTrack.audioURL || '',
+                duration: 0, // Duration is not available in ITrack interface
+                creatorId: (typeof nextTrack.creatorId === 'object' && nextTrack.creatorId !== null) 
+                  ? (nextTrack.creatorId as any)._id 
+                  : nextTrack.creatorId,
+                likes: nextTrack.likes,
+                type: nextTrack.type, // Include track type
+                creatorWhatsapp: (typeof nextTrack.creatorId === 'object' && nextTrack.creatorId !== null) 
+                  ? (nextTrack.creatorId as any).whatsappContact 
+                  : undefined // Include creator's WhatsApp contact
+              }));
+              
+              // Update the playlist to include recommended tracks
+              const updatedPlaylist = [...playlistRef.current, ...newTracks];
+              setPlaylist(updatedPlaylist);
+              playlistRef.current = updatedPlaylist;
+              
+              // Play the first recommended track
+              const nextIndex = playlistRef.current.length; // Start after the album tracks
+              const nextTrack = updatedPlaylist[nextIndex];
+              
+              // Change context to playlist since we're now playing non-album tracks
+              currentPlaybackContext.current.type = 'playlist';
+              
+              // Play the next track without expanding the player
+              explicitlyPlayedRef.current = false; // Mark as auto-played
+              playTrackAtIndex(nextIndex);
+              return;
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching recommendations after album:', error);
+        }
+        
+        // If no recommendations or error, stop playback
+        console.log('No recommendations available, stopping playback after album completion');
+        stopTrack();
+        return;
+      }
+    }
+    
+    // Check if we're in a single track context
+    if (contextType === 'single') {
       console.log('Single track context, fetching recommendations');
       // For single track, fetch recommendations and play the next recommended track
       try {
         if (currentTrackRef.current) {
-          const recommendedTracks = await fetchRecommendedTracks(currentTrackRef.current.id, 1);
+          const recommendedTracks = await fetchRecommendedTracks(currentTrackRef.current.id, 10);
           if (recommendedTracks && recommendedTracks.length > 0) {
             const nextTrack = recommendedTracks[0];
             // Convert the recommended track to our Track interface
@@ -545,7 +636,7 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
       try {
         if (currentTrackRef.current) {
           // Fetch more recommended tracks
-          const recommendedTracks = await fetchRecommendedTracks(currentTrackRef.current.id, 5); // Fetch 5 more tracks
+          const recommendedTracks = await fetchRecommendedTracks(currentTrackRef.current.id, 10); // Fetch 10 more tracks for better variety
           if (recommendedTracks && recommendedTracks.length > 0) {
             console.log('Got', recommendedTracks.length, 'new recommended tracks');
             
@@ -980,6 +1071,45 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     setPlaylist(tracks);
   };
 
+  // Queue management functions
+  const addToQueue = (track: Track) => {
+    setQueue(prev => {
+      // Check if track is already in queue
+      const exists = prev.some(t => t.id === track.id);
+      if (!exists) {
+        return [...prev, track];
+      }
+      return prev;
+    });
+  };
+
+  const removeFromQueue = (trackId: string) => {
+    setQueue(prev => prev.filter(track => track.id !== trackId));
+  };
+
+  const clearQueue = () => {
+    setQueue([]);
+  };
+
+  const moveQueueItem = (fromIndex: number, toIndex: number) => {
+    setQueue(prev => {
+      const newQueue = [...prev];
+      const [movedItem] = newQueue.splice(fromIndex, 1);
+      newQueue.splice(toIndex, 0, movedItem);
+      return newQueue;
+    });
+  };
+
+  const playFromQueue = (trackId: string) => {
+    const trackIndex = queue.findIndex(track => track.id === trackId);
+    if (trackIndex !== -1) {
+      const track = queue[trackIndex];
+      // Remove the track from the queue and play it
+      setQueue(prev => prev.filter((_, idx) => idx !== trackIndex));
+      playTrack(track, queue);
+    }
+  };
+
   // Add shufflePlaylist function
   const shufflePlaylist = () => {
     if (playlist.length <= 1) {
@@ -1196,6 +1326,7 @@ Would you like to copy the WhatsApp number to your clipboard?`;
         currentTrack,
         isPlaying,
         isMinimized,
+        queue,
         playTrack,
         playNextTrack,
         playPreviousTrack,
@@ -1224,6 +1355,11 @@ Would you like to copy the WhatsApp number to your clipboard?`;
         isLooping,
         currentTrackIndex,
         audioRef,
+        addToQueue,
+        removeFromQueue,
+        clearQueue,
+        moveQueueItem,
+        playFromQueue,
         addComment,
         removeComment,
         loadComments,
