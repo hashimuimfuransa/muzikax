@@ -71,6 +71,16 @@ body {
     scrollbar-width: none;
   }
   
+  /* Additional scrollbar hiding for sidebar */
+  .sidebar-scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .sidebar-scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
   .animate-fade-in {
     animation: fadeIn 0.5s ease-in-out;
   }

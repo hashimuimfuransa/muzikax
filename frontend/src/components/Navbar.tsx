@@ -83,7 +83,7 @@ export default function Navbar() {
         } md:hidden`}
       >
         <div className="px-4 py-3">
-          <div className="flex space-x-3 overflow-x-auto scrollbar-hide pb-2">
+          <div className="flex space-x-3 overflow-x-auto scrollbar-hide pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
             {categories.map((category) => (
               <button
                 key={category.id}

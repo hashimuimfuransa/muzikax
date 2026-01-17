@@ -11,7 +11,7 @@ import Footer from "../../components/Footer";
 import FloatingComponents from "../../components/FloatingComponents";
 
 export const metadata: Metadata = {
-  title: "MuzikaX - Rwanda's Digital Music Ecosystem",
+  title: "MuzikaX - Rwanda's and Africa's Digital Music Ecosystem",
   description: "Connecting Rwandan music creators with fans worldwide",
   icons: {
     icon: [
@@ -46,7 +46,7 @@ export default function AppLayout({
         <meta name="theme-color" content="#000000" />
         <link rel="manifest" href="/manifest.json" />
       </head>
-      <body className="pb-24 md:pb-0 flex flex-col min-h-screen overflow-visible">
+      <body className="pb-24 md:pb-0 flex flex-col min-h-screen overflow-hidden">
         <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"}>
           <AuthProvider>
             <AudioPlayerProvider>

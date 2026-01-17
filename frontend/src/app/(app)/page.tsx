@@ -307,7 +307,7 @@ export default function Home() {
 
       {/* Main Content */}
       {/* Sidebar - Hidden on mobile, fixed when scrolling */}
-      <aside className="hidden md:block md:w-64 bg-gray-900/50 border-r border-gray-800 p-6 overflow-y-auto fixed top-0 left-0 h-screen flex-shrink-0 z-30">
+      <aside className="hidden md:block md:w-64 bg-gray-900/50 border-r border-gray-800 p-6 overflow-y-auto scrollbar-hide sidebar-scrollbar-hide fixed top-0 left-0 h-screen flex-shrink-0 z-30" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         <div className="mb-8">
           <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B]">
             MUZIKAX
@@ -782,6 +782,39 @@ export default function Home() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
                       </svg>
                     </button>
+                    {/* Download button for beats */}
+                    {trendingTracksData.find(t => t._id === track.id)?.type === 'beat' && (
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Find the full track object
+                          const fullTrack = trendingTracksData.find(t => t._id === track.id);
+                          if (fullTrack) {
+                            // Create a temporary link element
+                            const link = document.createElement('a');
+                            link.href = fullTrack.audioURL;
+                            link.download = `${fullTrack.title.replace(/\s+/g, '_')}.mp3`; // Suggest a filename
+                            
+                            // Trigger the download
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                          }
+                        }}
+                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-purple-600 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 hover:scale-110"
+                        title="Download beat"
+                      >
+                        <svg
+                          className="w-4 h-4 sm:w-5 sm:h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                        </svg>
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -1077,7 +1110,7 @@ export default function Home() {
                         </svg>
                       </div>
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                       <button
                         onClick={() => {
                           // Find the full track object to get the audioURL
@@ -1144,6 +1177,35 @@ export default function Home() {
                           </svg>
                         )}
                       </button>
+                      {/* Download button for beats */}
+                      {track.type === 'beat' && (
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // Create a temporary link element
+                            const link = document.createElement('a');
+                            link.href = track.audioURL;
+                            link.download = `${track.title.replace(/\s+/g, '_')}.mp3`; // Suggest a filename
+                            
+                            // Trigger the download
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                          }}
+                          className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-purple-600 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 hover:scale-110"
+                          title="Download beat"
+                        >
+                          <svg
+                            className="w-4 h-4 sm:w-5 sm:h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                          </svg>
+                        </button>
+                      )}
                     </div>
                   </div>
 
@@ -1333,7 +1395,7 @@ export default function Home() {
         {/* Music Lists */}
         <section className="w-full px-4 md:px-8 py-8 sm:py-10 pb-8">
           {/* Tabs */}
-          <div className="flex overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide mb-6">
+          <div className="flex overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide mb-6" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
             <div className="flex border-b border-gray-800 min-w-max">
               <button
                 className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors whitespace-nowrap ${

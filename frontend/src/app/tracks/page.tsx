@@ -170,7 +170,7 @@ export default function TracksPage() {
         </div>
         
         {/* Tabs */}
-        <div className="flex overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide mb-6">
+        <div className="flex overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide mb-6" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           <div className="flex border-b border-gray-800 min-w-max">
             <button
               className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors whitespace-nowrap ${

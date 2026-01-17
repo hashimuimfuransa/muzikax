@@ -566,7 +566,7 @@ export default function Profile() {
           </div>
 
           {/* Navigation Tabs */}
-          <div className="flex overflow-x-auto border-b border-gray-800 mb-6 scrollbar-hide">
+          <div className="flex overflow-x-auto border-b border-gray-800 mb-6 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
             <button
               className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors whitespace-nowrap ${
                 activeTab === 'profile'
