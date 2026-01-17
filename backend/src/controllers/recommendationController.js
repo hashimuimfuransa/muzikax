@@ -143,6 +143,12 @@ const getGeneralRecommendations = (req, res) => __awaiter(void 0, void 0, void 0
         if (excludeTrackId) {
             query._id = { $ne: excludeTrackId };
         }
+        
+        // Exclude specific track types if requested
+        const excludeType = req.query['excludeType'];
+        if (excludeType) {
+            query.type = { $ne: excludeType };
+        }
 
         console.log('Query:', query);
 

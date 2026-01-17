@@ -21,6 +21,8 @@ interface Track {
   coverImage: string;
   duration?: string;
   category?: string;
+  type?: 'song' | 'beat' | 'mix';
+  paymentType?: 'free' | 'paid';
   creatorId?: string;
 }
 
@@ -215,6 +217,8 @@ export default function Home() {
     coverImage: track.coverURL || "", // Preserve empty values so we can show fallback in UI
     duration: "",
     category: track.type,
+    type: track.type, // Add type field for beat identification
+    paymentType: track.paymentType, // Add payment type for beat pricing
     creatorId: typeof track.creatorId === 'object' && track.creatorId !== null ? (track.creatorId as any)._id : track.creatorId
   }));
 
@@ -327,7 +331,7 @@ export default function Home() {
   const similarToLiked: Track[] = [...trendingTracks].sort((a, b) => (b.likes || 0) - (a.likes || 0)).slice(0, 10);
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black w-full relative overflow-visible">
+    <div className="flex flex-col md:flex-row min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black relative overflow-hidden">
       {/* Loading overlay for initial data fetch */}
       {trendingLoading && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
@@ -342,7 +346,7 @@ export default function Home() {
 
       {/* Main Content */}
       {/* Sidebar - Hidden on mobile, fixed when scrolling */}
-      <aside className="hidden md:block md:w-64 bg-gray-900/50 border-r border-gray-800 p-6 overflow-y-auto fixed top-0 left-0 h-screen flex-shrink-0 z-30">
+      <aside className="hidden md:block w-64 bg-gray-900/50 border-r border-gray-800 p-6 overflow-y-auto fixed top-0 left-0 h-screen flex-shrink-0 z-30">
         <div className="mb-8">
           <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B]">
             MUZIKAX
@@ -580,10 +584,10 @@ export default function Home() {
         </div>
       </aside>
 
-      {/* Main Content Area - This takes remaining space, offset for fixed sidebar */}
-      <main className="flex-1 flex flex-col w-full min-h-screen md:ml-64">
+      {/* Main Content Area - This takes remaining space */}
+      <main className="flex-1 flex flex-col min-h-screen ml-0 md:ml-64 overflow-y-auto">
         {/* Enhanced Hero Section with Image Slider */}
-        <section className="relative py-8 md:py-12 lg:py-16 overflow-hidden w-full">
+        <section className="relative py-8 md:py-12 lg:py-16 overflow-hidden">
           <div className="absolute inset-0">
             {heroSlides.map((slide, index) => (
               <div
@@ -602,7 +606,7 @@ export default function Home() {
             ))}
           </div>
 
-          <div className="container mx-auto px-4 md:px-4 relative z-10">
+          <div className="container mx-auto px-4 relative z-10">
             <div className="max-w-4xl mx-auto text-center">
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] mb-4 sm:mb-6 animate-fade-in">
                 {heroSlides[currentSlide].title}
@@ -610,7 +614,7 @@ export default function Home() {
               <p className="text-lg sm:text-xl md:text-2xl text-gray-200 mb-6 sm:mb-8 animate-fade-in-delay">
                 {heroSlides[currentSlide].subtitle}
               </p>
-              <div className="flex flex-wrap gap-3 sm:gap-4 justify-center animate-fade-in-delay-2">
+              <div className="flex flex-wrap gap-3 sm:gap-4 md:gap-6 justify-center animate-fade-in-delay-2">
                 <button
                   className="px-5 py-2.5 sm:px-6 sm:py-3 btn-primary font-medium rounded-lg transition-all hover:scale-105 text-sm sm:text-base"
                   onClick={() => {
@@ -705,7 +709,7 @@ export default function Home() {
         </section>
 
         {/* For You Section */}
-        <section className="w-full px-4 md:px-8 py-8 sm:py-10">
+        <section className="px-4 md:px-6 py-8 sm:py-10">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl sm:text-2xl font-bold text-white">
               For You
@@ -718,7 +722,7 @@ export default function Home() {
             </a>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
             {forYouTracks.map((track) => (
               <div
                 key={track.id}
@@ -839,12 +843,29 @@ export default function Home() {
                 </div>
 
                 <div className="p-3">
-                  <h3 className="font-bold text-white text-sm sm:text-base mb-1 truncate">
-                    {track.title}
-                  </h3>
+                  <div className="flex items-start justify-between mb-1">
+                    <h3 className="font-bold text-white text-sm sm:text-base truncate flex-1">
+                      {track.title}
+                    </h3>
+                    {/* Beat indicator badge */}
+                    {track.type === 'beat' && (
+                      <span className="ml-2 px-2 py-0.5 bg-purple-600 text-white text-xs rounded-full whitespace-nowrap">
+                        BEAT
+                      </span>
+                    )}
+                  </div>
                   <p className="text-gray-400 text-xs sm:text-sm truncate">
                     {track.artist}
                   </p>
+                  
+                  {/* Payment type indicator for beats */}
+                  {track.type === 'beat' && (
+                    <div className="mt-2">
+                      <span className={`inline-block px-2 py-1 text-xs rounded-full ${track.paymentType === 'paid' ? 'bg-green-600 text-white' : 'bg-blue-600 text-white'}`}>
+                        {track.paymentType === 'paid' ? 'PAID BEAT' : 'FREE BEAT'}
+                      </span>
+                    </div>
+                  )}
                   
                   <div className="flex justify-between text-xs text-gray-500 mt-2">
                     <span>{track.plays?.toLocaleString() || '0'} plays</span>
@@ -967,7 +988,7 @@ export default function Home() {
         </HorizontalScrollSection>
 
         {/* Popular Artists Section */}
-        <section className="w-full px-4 md:px-8 py-8 sm:py-10">
+        <section className="px-4 md:px-6 py-8 sm:py-10">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl sm:text-2xl font-bold text-white">
               Popular Artists
@@ -980,7 +1001,7 @@ export default function Home() {
             </a>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
             {popularCreators.map((creator) => (
               <div
                 key={creator.id}
@@ -1073,7 +1094,7 @@ export default function Home() {
           </div>
         </section>
         {/* Popular Albums Section */}
-        <section className="w-full px-4 md:px-8 py-8 sm:py-10">
+        <section className="px-4 md:px-6 py-8 sm:py-10">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl sm:text-2xl font-bold text-white">
               Popular Albums
@@ -1086,7 +1107,7 @@ export default function Home() {
             </a>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
             {albumsLoading ? (
               // Loading skeleton
               Array.from({ length: 6 }).map((_, index) => (
@@ -1216,7 +1237,7 @@ export default function Home() {
         </section>
 
         {/* Popular Beats Section */}
-        <section className="w-full px-4 md:px-8 py-8 sm:py-10">
+        <section className="px-4 md:px-6 py-8 sm:py-10">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl sm:text-2xl font-bold text-white">
               Popular Beats
@@ -1229,10 +1250,10 @@ export default function Home() {
             </a>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
             {trendingTracks
-              .filter((track) => track.category === "beat")
-              .slice(0, 6)
+              .filter((track) => track.category?.toLowerCase().includes("beat"))
+              .slice(0, 10)
               .map((track) => (
                 <div
                   key={track.id}
@@ -1358,7 +1379,7 @@ export default function Home() {
         </section>
 
         {/* Popular Mixes Section */}
-        <section className="w-full px-4 md:px-8 py-8 sm:py-10">
+        <section className="px-4 md:px-6 py-8 sm:py-10">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl sm:text-2xl font-bold text-white">
               Popular Mixes
@@ -1371,7 +1392,7 @@ export default function Home() {
             </a>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
             {trendingTracks
               .filter((track) => track.category === "mix")
               .slice(0, 6)
@@ -1500,7 +1521,7 @@ export default function Home() {
         </section>
 
         {/* Music Lists */}
-        <section className="w-full px-4 md:px-8 py-8 sm:py-10 pb-8">
+        <section className="px-4 md:px-6 py-8 sm:py-10 pb-8">
           {/* Tabs */}
           <div className="flex overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide mb-6">
             <div className="flex border-b border-gray-800 min-w-max">
@@ -1579,7 +1600,7 @@ export default function Home() {
 
           {/* Trending Tracks */}
           {activeTab === "trending" && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-6">
               {trendingTracks.map((track) => (
                 <div
                   key={track.id}
@@ -1731,7 +1752,7 @@ export default function Home() {
 
           {/* New Releases */}
           {activeTab === "new" && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-6">
               {newTracks.map((track) => (
                 <div
                   key={track.id}
@@ -1883,14 +1904,14 @@ export default function Home() {
 
           {/* Popular Creators */}
           {activeTab === "popular" && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-6">
               {popularCreators.map((creator) => (
                 <div
                   key={creator.id}
                   className="group card-bg rounded-2xl p-4 sm:p-6 transition-all duration-300 hover:border-[#FFCB2B]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FFCB2B]/10 cursor-pointer"
                   onClick={() => router.push(`/artists/${creator.id}`)}
                 >
-                  <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-5">
+                  <div className="flex items-center gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-5">
                     <div className="relative">
                       {creator.avatar && creator.avatar.trim() !== '' ? (
                         <img
@@ -1974,7 +1995,7 @@ export default function Home() {
 
           {/* Beats */}
           {activeTab === "beats" && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-6">
               {trendingTracks
                 .filter((track) => track.category === "beat")
                 .map((track) => (
@@ -2090,9 +2111,17 @@ export default function Home() {
                     </div>
 
                     <div className="p-4 sm:p-5">
-                      <h3 className="font-bold text-white text-lg mb-1 truncate">
-                        {track.title}
-                      </h3>
+                      <div className="flex items-start justify-between mb-1">
+                        <h3 className="font-bold text-white text-lg truncate flex-1">
+                          {track.title}
+                        </h3>
+                        {/* Beat indicator badge */}
+                        {track.type === 'beat' && (
+                          <span className="ml-2 px-2 py-0.5 bg-purple-600 text-white text-xs rounded-full whitespace-nowrap">
+                            BEAT
+                          </span>
+                        )}
+                      </div>
                       <p className="text-gray-400 text-sm sm:text-base mb-1 truncate">
                         {track.artist}
                       </p>
@@ -2101,8 +2130,17 @@ export default function Home() {
                           {track.album}
                         </p>
                       )}
+                      
+                      {/* Payment type indicator for beats */}
+                      {track.type === 'beat' && (
+                        <div className="mt-2">
+                          <span className={`inline-block px-2 py-1 text-xs rounded-full ${track.paymentType === 'paid' ? 'bg-green-600 text-white' : 'bg-blue-600 text-white'}`}>
+                            {track.paymentType === 'paid' ? 'PAID BEAT' : 'FREE BEAT'}
+                          </span>
+                        </div>
+                      )}
 
-                      <div className="flex justify-between text-xs sm:text-sm text-gray-500">
+                      <div className="flex justify-between text-xs sm:text-sm text-gray-500 mt-2">
                         <span>{track.plays?.toLocaleString() || '0'} plays</span>
                         <div className="flex items-center gap-1">
                           <svg
@@ -2128,7 +2166,7 @@ export default function Home() {
 
           {/* Mixes */}
           {activeTab === "mixes" && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-6">
               {trendingTracks
                 .filter((track) => track.category === "mix")
                 .map((track) => (
@@ -2285,7 +2323,7 @@ export default function Home() {
         <div className="h-96 md:h-[500px]"></div>
 
         {/* Removed duplicate footer - using global Footer component instead */}
-          <div className="container mx-auto px-4 md:px-8">
+          <div className="container mx-auto px-4">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
               <div className="col-span-1 md:col-span-2">
                 <div className="mb-4 flex items-center">

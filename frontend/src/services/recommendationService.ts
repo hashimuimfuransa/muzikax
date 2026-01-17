@@ -184,6 +184,8 @@ export const fetchRecommendedTracks = async (currentTrackId?: string, limit: num
     // Update the limit in params to ensure we get more than 5 tracks
     const fallbackParams = new URLSearchParams(params);
     fallbackParams.set('limit', limit.toString());
+    // Exclude beats from general recommendations
+    fallbackParams.set('excludeType', 'beat');
     
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/api/recommendations/general?${fallbackParams.toString()}`

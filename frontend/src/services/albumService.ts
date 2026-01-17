@@ -30,6 +30,7 @@ interface Track {
   coverURL: string;
   genre: string;
   type: 'song' | 'beat' | 'mix';
+  paymentType?: 'free' | 'paid';
   plays: number;
   likes: number;
   comments: string[];

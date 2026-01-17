@@ -164,6 +164,29 @@ export default function Home() {
   // Fetch real trending tracks
   const { tracks: trendingTracksData, loading: trendingLoading, refresh: refreshTrendingTracks } =
     useTrendingTracks(10);
+  
+  // Fetch beats specifically for the beats section
+  const [beatsData, setBeatsData] = useState<any[]>([]);
+  const [beatsLoading, setBeatsLoading] = useState(true);
+  
+  useEffect(() => {
+    const fetchBeats = async () => {
+      try {
+        setBeatsLoading(true);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tracks?type=beat&limit=6`);
+        if (response.ok) {
+          const data = await response.json();
+          setBeatsData(data.tracks || data);
+        }
+      } catch (error) {
+        console.error('Error fetching beats:', error);
+      } finally {
+        setBeatsLoading(false);
+      }
+    };
+    
+    fetchBeats();
+  }, []);
 
   // Fetch real popular creators
   const { creators: popularCreatorsData, loading: creatorsLoading } =
@@ -196,8 +219,10 @@ export default function Home() {
     };
   }, [refreshTrendingTracks]);
 
-  // Transform tracks data to match existing interface
-  const trendingTracks: Track[] = trendingTracksData.map((track) => ({
+  // Transform tracks data to match existing interface (excluding beats)
+  const trendingTracks: Track[] = trendingTracksData
+    .filter((track) => track.type !== 'beat') // Exclude beats from trending sections
+    .map((track) => ({
     id: track._id,
     title: track.title,
     artist:
@@ -1020,10 +1045,20 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {trendingTracks
-              .filter((track) => track.category === "beat")
-              .slice(0, 6)
-              .map((track) => (
+            {beatsLoading ? (
+              // Loading skeleton
+              Array.from({ length: 6 }).map((_, index) => (
+                <div key={index} className="group card-bg rounded-xl overflow-hidden animate-pulse">
+                  <div className="w-full aspect-square bg-gray-700"></div>
+                  <div className="p-3">
+                    <div className="h-4 bg-gray-700 rounded mb-2"></div>
+                    <div className="h-3 bg-gray-700 rounded w-3/4"></div>
+                  </div>
+                </div>
+              ))
+            ) : beatsData.length > 0 ? (
+              // Actual beats data
+              beatsData.slice(0, 6).map((track: any) => (
                 <div
                   key={track.id}
                   className="group card-bg rounded-xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10"
@@ -1143,7 +1178,13 @@ export default function Home() {
                     </div>
                   </div>
                 </div>
-              ))}
+              ))
+            ) : (
+              // No beats available
+              <div className="col-span-full text-center py-8">
+                <p className="text-gray-400">No beats available at the moment.</p>
+              </div>
+            )}
           </div>
         </section>
 
@@ -1738,8 +1779,7 @@ export default function Home() {
           {/* Beats */}
           {activeTab === "beats" && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-              {trendingTracks
-                .filter((track) => track.category === "beat")
+              {beatsData
                 .map((track) => (
                   <div
                     key={track.id}

@@ -9,6 +9,7 @@ export interface ITrack extends Document {
   coverURL: string;
   genre: string;
   type: 'song' | 'beat' | 'mix';
+  paymentType?: 'free' | 'paid'; // For beats: whether the beat is free or paid
   plays: number;
   likes: number;
   comments: mongoose.Types.ObjectId[];
@@ -53,6 +54,12 @@ const TrackSchema: Schema = new Schema({
     type: String,
     enum: ['song', 'beat', 'mix'],
     required: true
+  },
+  paymentType: {
+    type: String,
+    enum: ['free', 'paid'],
+    default: 'free', // Default to free for all tracks
+    required: false
   },
   plays: {
     type: Number,

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
 import PlaylistSelectionModal from './PlaylistSelectionModal';
+import BeatPlayer from './BeatPlayer';
 
 const ModernAudioPlayer = () => {
   const {
@@ -123,6 +124,15 @@ const ModernAudioPlayer = () => {
   // No longer redirect to full player page automatically
   // The player will stay minimized and visible on all pages
   // Users can click the expand button to go to the full player page
+
+  // Check if current track is a beat
+  const isBeat = currentTrack?.type === 'beat' || 
+                 (currentTrack?.title && currentTrack.title.toLowerCase().includes('beat'));
+
+  // Render BeatPlayer for beats, regular player for other tracks
+  if (isBeat) {
+    return <BeatPlayer />;
+  }
 
   // Don't render if there's no current track
   if (!currentTrack) return null;

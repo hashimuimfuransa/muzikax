@@ -122,6 +122,9 @@ export default function Navbar() {
               <Link href="/explore" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">
                 Explore
               </Link>
+              <Link href="/beats" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">
+                Beats
+              </Link>
               <div className="relative group hidden lg:block">
                 <button className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base flex items-center">
                   More

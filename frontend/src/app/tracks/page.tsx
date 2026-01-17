@@ -12,6 +12,7 @@ interface Track {
   likes: number
   coverImage: string
   duration?: string
+  type?: 'song' | 'beat' | 'mix';
 }
 
 export default function TracksPage() {
@@ -102,8 +103,10 @@ export default function TracksPage() {
     };
   }, [refreshTrendingTracks]);
   
-  // Transform real tracks data to match existing interface
-  const trendingTracks: Track[] = trendingTracksData.map(track => ({
+  // Transform real tracks data to match existing interface (excluding beats)
+  const trendingTracks: Track[] = trendingTracksData
+    .filter(track => track.type !== 'beat') // Exclude beats from tracks page
+    .map(track => ({
     id: track._id,
     title: track.title,
     artist: typeof track.creatorId === 'object' && track.creatorId !== null ? (track.creatorId as any).name : 'Unknown Artist',
@@ -111,7 +114,8 @@ export default function TracksPage() {
     plays: track.plays,
     likes: track.likes,
     coverImage: track.coverURL || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-    duration: ''
+    duration: '',
+    type: track.type // Include type for beat detection
   }));
 
   // For now, use trending tracks for new tracks as well
@@ -206,6 +210,14 @@ export default function TracksPage() {
             {sortedTracks.map((track) => (
               <div key={track.id} className="group card-bg rounded-xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10">
                 <div className="relative">
+                  {/* Beat indicator (should not appear since we filter them out) */}
+                  {track.type === 'beat' && (
+                    <div className="absolute top-2 left-2 z-10">
+                      <span className="px-2 py-1 bg-purple-600 text-white text-xs font-bold rounded-full">
+                        BEAT
+                      </span>
+                    </div>
+                  )}
                   <img 
                     src={track.coverImage} 
                     alt={track.title} 

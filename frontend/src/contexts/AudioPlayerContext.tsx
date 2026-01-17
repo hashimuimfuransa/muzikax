@@ -19,6 +19,7 @@ interface Track {
   plays?: number; // Add plays property to track play counts
   likes?: number; // Add likes property to track like counts
   type?: 'song' | 'beat' | 'mix'; // Add type field to distinguish beats
+  paymentType?: 'free' | 'paid'; // Add payment type for beats
   creatorWhatsapp?: string; // Add creator's WhatsApp contact for beats
 }
 interface Playlist {
@@ -1272,38 +1273,39 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
                   (currentTrack.title && currentTrack.title.toLowerCase().includes('beat'));
     
     if (isBeat) {
-      // For beats, we need to ensure we have the creator's WhatsApp number
-      let creatorWhatsapp = currentTrack.creatorWhatsapp;
-      
-      // If we don't have the WhatsApp number, fetch it directly
-      if (!creatorWhatsapp && currentTrack.creatorId) {
-        const { fetchCreatorWhatsapp } = await import('@/services/trackService');
-        const whatsappResult = await fetchCreatorWhatsapp(currentTrack.creatorId);
-        if (whatsappResult) {
-          creatorWhatsapp = whatsappResult;
+      // For beats, check if it's free or paid
+      if (currentTrack.paymentType === 'paid') {
+        // For paid beats, we need to ensure we have the creator's WhatsApp number
+        let creatorWhatsapp = currentTrack.creatorWhatsapp;
+        
+        // If we don't have the WhatsApp number, fetch it directly
+        if (!creatorWhatsapp && currentTrack.creatorId) {
+          const { fetchCreatorWhatsapp } = await import('@/services/trackService');
+          const whatsappResult = await fetchCreatorWhatsapp(currentTrack.creatorId);
+          if (whatsappResult) {
+            creatorWhatsapp = whatsappResult;
+          }
         }
-      }
-      
-      if (creatorWhatsapp) {
-        // Show alert with WhatsApp contact and option to copy
-        const message = `This is a beat that requires contacting the creator via WhatsApp to obtain.
-
-Creator's WhatsApp: ${creatorWhatsapp}
-
-Would you like to copy the WhatsApp number to your clipboard?`;
-        if (confirm(message)) {
-          navigator.clipboard.writeText(creatorWhatsapp)
-            .then(() => {
-              alert('WhatsApp number copied to clipboard!');
-            })
-            .catch(err => {
-              console.error('Failed to copy WhatsApp number: ', err);
-              alert('Failed to copy WhatsApp number. Please try again.');
-            });
+        
+        if (creatorWhatsapp) {
+          // Open WhatsApp with pre-filled message
+          const message = `Hi, I'm interested in your beat "${currentTrack.title}" that I found on MuzikaX.`;
+          window.open(`https://wa.me/${creatorWhatsapp}?text=${encodeURIComponent(message)}`, '_blank');
+        } else {
+          // No WhatsApp contact available
+          alert('This is a paid beat that requires contacting the creator via WhatsApp to obtain. Unfortunately, the creator has not provided their WhatsApp contact information.');
         }
       } else {
-        // No WhatsApp contact available
-        alert('This is a beat that requires contacting the creator via WhatsApp to obtain. Unfortunately, the creator has not provided their WhatsApp contact information.');
+        // Free beat - allow download
+        // Create a temporary link element
+        const link = document.createElement('a');
+        link.href = currentTrack.audioUrl;
+        link.download = `${currentTrack.title.replace(/\s+/g, '_')}.mp3`; // Suggest a filename
+        
+        // Trigger the download
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
       }
       return;
     }

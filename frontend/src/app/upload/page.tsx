@@ -13,6 +13,7 @@ export default function Upload() {
   const [description, setDescription] = useState('')
   const [genre, setGenre] = useState('afrobeat')
   const [type, setType] = useState<'song' | 'beat' | 'mix'>('song') // Add track type state
+  const [paymentType, setPaymentType] = useState<'free' | 'paid'>('free') // Add payment type state for beats
   const [visibility, setVisibility] = useState('public')
   const [file, setFile] = useState<File | null>(null)
   const [coverImage, setCoverImage] = useState<string | null>(null) // State for cover image
@@ -251,7 +252,7 @@ export default function Upload() {
       return;
     }
     
-    console.log('Uploading:', { title, description, genre, type, visibility, audioUrl, coverUrl: finalCoverUrl })
+    console.log('Uploading:', { title, description, genre, type, paymentType, visibility, audioUrl, coverUrl: finalCoverUrl })
     
     // Get access token from localStorage
     let accessToken = localStorage.getItem('accessToken');
@@ -274,6 +275,7 @@ export default function Upload() {
         description,
         genre,
         type,
+        paymentType,
         audioURL: audioUrl,
         coverURL: finalCoverUrl || ''
       })
@@ -389,6 +391,7 @@ export default function Upload() {
           description: track.description,
           genre: track.genre,
           type: track.type,
+          paymentType: paymentType,
           audioURL: track.audioUrl,
           coverURL: finalCoverUrl || ''
         })
@@ -412,6 +415,7 @@ export default function Upload() {
               description: track.description,
               genre: track.genre,
               type: track.type,
+              paymentType: paymentType,
               audioURL: track.audioUrl,
               coverURL: finalCoverUrl || ''
             })
@@ -717,6 +721,29 @@ export default function Upload() {
                           <option value="mix">Mix</option>
                         </select>
                       </div>
+
+                      {/* Payment type field for beats */}
+                      {type === 'beat' && (
+                        <div>
+                          <label htmlFor="paymentType" className="block text-sm font-medium text-gray-300 mb-2">
+                            Payment Type
+                          </label>
+                          <select
+                            id="paymentType"
+                            value={paymentType}
+                            onChange={(e) => setPaymentType(e.target.value as 'free' | 'paid')}
+                            className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm sm:text-base"
+                          >
+                            <option value="free">Free</option>
+                            <option value="paid">Paid</option>
+                          </select>
+                          <p className="mt-1 text-xs text-gray-500">
+                            {paymentType === 'paid' 
+                              ? 'Users will contact you via WhatsApp to obtain this beat' 
+                              : 'Users can download this beat for free'}
+                          </p>
+                        </div>
+                      )}
 
                       <div>
                         <label htmlFor="visibility" className="block text-sm font-medium text-gray-300 mb-2">

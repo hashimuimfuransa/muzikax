@@ -7,7 +7,7 @@ import geoip from 'geoip-lite';
 // Upload track
 export const uploadTrack = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { title, description, genre, type, audioURL, coverURL } = req.body;
+    const { title, description, genre, type, paymentType, audioURL, coverURL } = req.body;
     const user = (req as any).user;
 
     // Validate required fields
@@ -23,6 +23,7 @@ export const uploadTrack = async (req: Request, res: Response): Promise<void> =>
       description: description || '',
       genre: genre || 'afrobeat',
       type: type || 'song',
+      paymentType: paymentType || 'free', // Default to free if not specified
       audioURL,
       coverURL: coverURL || ''
     });
@@ -178,7 +179,7 @@ export const getTracksByAuthUser = async (req: Request, res: Response): Promise<
 // Update track
 export const updateTrack = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { title, genre, coverURL, description } = req.body;
+    const { title, genre, coverURL, description, paymentType } = req.body;
 
     const track = await Track.findById(req.params['id']);
 
@@ -190,8 +191,8 @@ export const updateTrack = async (req: Request, res: Response): Promise<void> =>
     // Check if user is the creator
     // Handle both cases: when creatorId is populated (object) or not (ObjectId)
     const trackOwnerId = track.creatorId && typeof track.creatorId === 'object' && '_id' in track.creatorId ? 
-      track.creatorId._id.toString() : 
-      track.creatorId.toString();
+      (track.creatorId._id as any).toString() : 
+      (track.creatorId as any).toString();
       
     if (trackOwnerId !== (req as any).user._id.toString()) {
       res.status(401).json({ 
@@ -207,6 +208,7 @@ export const updateTrack = async (req: Request, res: Response): Promise<void> =>
     if (genre !== undefined) track.genre = genre;
     if (coverURL !== undefined) track.coverURL = coverURL;
     if (description !== undefined) track.description = description;
+    if (paymentType !== undefined) track.paymentType = paymentType;
 
     const updatedTrack = await track.save();
 
@@ -229,8 +231,8 @@ export const deleteTrack = async (req: Request, res: Response): Promise<void> =>
     // Check if user is the creator or admin
     // Handle both cases: when creatorId is populated (object) or not (ObjectId)
     const trackOwnerId = track.creatorId && typeof track.creatorId === 'object' && '_id' in track.creatorId ? 
-      track.creatorId._id.toString() : 
-      track.creatorId.toString();
+      (track.creatorId._id as any).toString() : 
+      (track.creatorId as any).toString();
       
     if (
       trackOwnerId !== (req as any).user._id.toString() &&
