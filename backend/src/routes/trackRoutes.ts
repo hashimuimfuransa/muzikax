@@ -9,7 +9,8 @@ import {
   updateTrack,
   deleteTrack,
   incrementPlayCount,
-  getTrendingTracks
+  getTrendingTracks,
+  getTracksByType
 } from '../controllers/trackController';
 import { protect, creator } from '../utils/jwt';
 
@@ -18,6 +19,7 @@ const router = express.Router();
 // Public routes
 router.route('/').get(getAllTracks);
 router.route('/trending').get(getTrendingTracks);
+router.route('/type').get(getTracksByType);
 router.route('/:id').get(getTrackById);
 router.route('/creator/:creatorId/simple').get(getTracksByCreatorSimple);
 router.route('/creator/:creatorId').get(getTracksByCreator);

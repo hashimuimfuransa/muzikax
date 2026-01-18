@@ -299,6 +299,36 @@ export const incrementPlayCount = async (req: Request, res: Response): Promise<v
   }
 };
 
+// Get tracks by type
+export const getTracksByType = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const type = req.query['type'] as string;
+    const limit = parseInt(req.query['limit'] as string) || 10;
+
+    if (!type) {
+      res.status(400).json({ message: 'Type parameter is required' });
+      return;
+    }
+
+    // Handle the case where 'beat' should return both 'beat' and 'beta' types
+    let query = {};
+    if (type.toLowerCase() === 'beat') {
+      query = { type: { $in: ['beat', 'beta'] } };
+    } else {
+      query = { type: type.toLowerCase() }; // Exact match
+    }
+
+    const tracks = await Track.find(query)
+      .sort({ plays: -1, createdAt: -1 })
+      .limit(limit)
+      .populate('creatorId', 'name avatar whatsappContact');
+
+    res.json(tracks);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // Get trending tracks
 export const getTrendingTracks = async (req: Request, res: Response): Promise<void> => {
   try {

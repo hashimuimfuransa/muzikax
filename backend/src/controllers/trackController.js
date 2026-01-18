@@ -354,13 +354,12 @@ const getTracksByType = async (req, res) => {
             return;
         }
         
-        // Allow fetching specific types like 'beat', 'beta', 'song', 'mix'
-        // Also handle the case where 'beat' should return both 'beat' and 'beta' types
-        let query = { type: type.toLowerCase() };
+        // Handle the case where 'beat' should return both 'beat' and 'beta' types
+        let query = {};
         if (type.toLowerCase() === 'beat') {
             query = { type: { $in: ['beat', 'beta'] } };
         } else {
-            query = { type: type.toLowerCase() };
+            query = { type: type.toLowerCase() }; // Exact match
         }
         
         const tracks = await Track_1.find(query)
