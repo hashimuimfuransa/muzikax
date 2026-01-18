@@ -188,6 +188,22 @@ const FullPagePlayer = () => {
     };
   }, []);
 
+  // Listen for general toast notifications from other pages
+  useEffect(() => {
+    const handlePlayerToast = (event: CustomEvent) => {
+      const { message, type } = event.detail;
+      setToast({ message, type });
+    };
+
+    // Add event listener
+    window.addEventListener('playerToast', handlePlayerToast as EventListener);
+    
+    // Clean up event listener
+    return () => {
+      window.removeEventListener('playerToast', handlePlayerToast as EventListener);
+    };
+  }, []);
+
   // Fetch creator profile and tracks when currentTrack changes
   useEffect(() => {
     const fetchCreatorData = async () => {

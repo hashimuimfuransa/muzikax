@@ -62,7 +62,7 @@ export default function Home() {
   >("trending");
   const [currentSlide, setCurrentSlide] = useState(0);
   const { isAuthenticated, userRole } = useAuth();
-  const { currentTrack, isPlaying, playTrack, setCurrentPlaylist, favorites, favoritesLoading, addToFavorites, removeFromFavorites } =
+  const { currentTrack, isPlaying, playTrack, setCurrentPlaylist, favorites, favoritesLoading, addToFavorites, removeFromFavorites, addToQueue } =
     useAudioPlayer();
   const router = useRouter();
 
@@ -206,6 +206,26 @@ export default function Home() {
       window.removeEventListener('trackUpdated', handleTrackUpdate as EventListener);
     };
   }, [refreshTrendingTracks]);
+
+  // Listen for toast notifications
+  useEffect(() => {
+    const handleShowToast = (event: CustomEvent) => {
+      const { message, type } = event.detail;
+      // Dispatch a custom event that the player page can listen to
+      const playerToastEvent = new CustomEvent('playerToast', {
+        detail: { message, type }
+      });
+      window.dispatchEvent(playerToastEvent);
+    };
+
+    // Add event listener
+    window.addEventListener('showToast', handleShowToast as EventListener);
+
+    // Clean up event listener
+    return () => {
+      window.removeEventListener('showToast', handleShowToast as EventListener);
+    };
+  }, []);
 
   // Transform tracks data to match existing interface
   const trendingTracks: Track[] = trendingTracksData.map((track) => ({
@@ -841,6 +861,53 @@ export default function Home() {
                         xmlns="http://www.w3.org/2000/svg"
                       >
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                      </svg>
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Add to queue functionality
+                        const fullTrack = trendingTracksData.find(t => t._id === track.id);
+                        if (fullTrack && fullTrack.audioURL) {
+                          addToQueue({
+                            id: track.id,
+                            title: track.title,
+                            artist: track.artist,
+                            coverImage: track.coverImage,
+                            audioUrl: fullTrack.audioURL,
+                            duration: fullTrack.duration ? (fullTrack.duration.includes(':') ? 
+                              (() => {
+                                const [mins, secs] = fullTrack.duration.split(':').map(Number);
+                                return mins * 60 + secs;
+                              })() : Number(fullTrack.duration)
+                            ) : undefined,
+                            creatorId: typeof fullTrack.creatorId === 'object' && fullTrack.creatorId !== null ? (fullTrack.creatorId as any)._id : fullTrack.creatorId,
+                            type: fullTrack.type,
+                            creatorWhatsapp: (typeof fullTrack.creatorId === 'object' && fullTrack.creatorId !== null 
+                              ? (fullTrack.creatorId as any).whatsappContact 
+                              : undefined)
+                          });
+                          // Show toast notification
+                          const toastEvent = new CustomEvent('showToast', {
+                            detail: {
+                              message: `Added ${track.title} to queue!`,
+                              type: 'success'
+                            }
+                          });
+                          window.dispatchEvent(toastEvent);
+                        }
+                      }}
+                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 hover:scale-110"
+                      title={`Add ${track.title} to queue`}
+                    >
+                      <svg 
+                        className="w-4 h-4 sm:w-5 sm:h-5"
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24" 
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                       </svg>
                     </button>
                   </div>

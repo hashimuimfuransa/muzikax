@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { fetchRecommendedTracks } from '@/services/recommendationService';
 import { ITrack } from '@/types';
 import { useAudioPlayer } from '@/contexts/AudioPlayerContext';
+import AddToQueueButton from '@/components/AddToQueueButton';
 
 interface Track {
   id: string
@@ -289,7 +290,7 @@ export default function ForYouPage() {
                     alt={track.title} 
                     className="w-full aspect-square object-cover"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                     <button 
                       onClick={(e) => {
                         e.stopPropagation();
@@ -318,6 +319,22 @@ export default function ForYouPage() {
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
                       </svg>
                     </button>
+                    <AddToQueueButton 
+                      track={{
+                        id: track.id,
+                        title: track.title,
+                        artist: track.artist || 'Unknown Artist',
+                        coverImage: track.coverImage || '',
+                        audioUrl: track.audioUrl || '',
+                        duration: track.duration ? convertDurationToSeconds(track.duration) : undefined,
+                        creatorId: track.artist || '',
+                        type: ((track.category === 'song' || track.category === 'beat' || track.category === 'mix') ? track.category : 'song') as 'song' | 'beat' | 'mix',
+                        creatorWhatsapp: undefined
+                      }}
+                      size="md"
+                      variant="secondary"
+                      className="opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 delay-75"
+                    />
                   </div>
                 </div>
                 

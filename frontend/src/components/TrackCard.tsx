@@ -1,4 +1,5 @@
  import { useAudioPlayer } from '../contexts/AudioPlayerContext';
+ import AddToQueueButton from './AddToQueueButton';
 
 interface Track {
   id: string;
@@ -21,13 +22,15 @@ interface TrackCardProps {
   fullTrackData?: any; // Full track data with audioUrl and other properties
   showPlayButton?: boolean;
   showLikeButton?: boolean;
+  showAddToQueueButton?: boolean;
 }
 
 export default function TrackCard({ 
   track, 
   fullTrackData, 
   showPlayButton = true, 
-  showLikeButton = true 
+  showLikeButton = true,
+  showAddToQueueButton = true
 }: TrackCardProps) {
   const { currentTrack, isPlaying, playTrack, setCurrentPlaylist, favorites, addToFavorites, removeFromFavorites } = useAudioPlayer();
 
@@ -160,6 +163,29 @@ export default function TrackCard({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
                 </svg>
               </button>
+            )}
+            {showAddToQueueButton && (
+              <AddToQueueButton
+                track={{
+                  id: track.id,
+                  title: track.title,
+                  artist: track.artist,
+                  coverImage: track.coverImage || '',
+                  audioUrl: track.audioUrl || '',
+                  duration: track.duration ? (track.duration.includes(':') ? 
+                    (() => {
+                      const [mins, secs] = track.duration.split(':').map(Number);
+                      return mins * 60 + secs;
+                    })() : Number(track.duration)
+                  ) : undefined,
+                  creatorId: track.creatorId,
+                  type: track.type,
+                  creatorWhatsapp: track.creatorWhatsapp
+                }}
+                size="sm"
+                variant="secondary"
+                className="opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 delay-75"
+              />
             )}
           </div>
         )}

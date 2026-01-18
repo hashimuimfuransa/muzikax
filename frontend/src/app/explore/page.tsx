@@ -65,10 +65,19 @@ function ExploreContent() {
   const router = useRouter()
   const { tracks: trendingTracksData, loading: trendingLoading, refresh: refreshTrendingTracks } = useTrendingTracks(20)
   const { creators: popularCreatorsData, loading: creatorsLoading, refresh: refreshCreators } = usePopularCreators(20)
-  const { currentTrack, isPlaying, playTrack, setCurrentPlaylist, favorites, favoritesLoading, addToFavorites, removeFromFavorites } = useAudioPlayer()
+  const { currentTrack, isPlaying, playTrack, setCurrentPlaylist, favorites, favoritesLoading, addToFavorites, removeFromFavorites, addToQueue } = useAudioPlayer()
 
   // State for tracking which tracks are favorited
   const [favoriteStatus, setFavoriteStatus] = useState<Record<string, boolean>>({});
+
+  // Define categories array
+  const categories = [
+    { id: 'afrobeat', name: 'Afrobeat' },
+    { id: 'hiphop', name: 'Hip Hop' },
+    { id: 'rnb', name: 'R&B' },
+    { id: 'pop', name: 'Pop' },
+    { id: 'traditional', name: 'Traditional' }
+  ];
 
   // Update favorite status when favorites change or when favorites are loaded
   useEffect(() => {
@@ -102,9 +111,16 @@ function ExploreContent() {
 
   // Toggle favorite status for a track
   const toggleFavorite = (trackId: string, track: any) => {
-    if (favoriteStatus[trackId]) {
+    const isCurrentlyFavorite = favoriteStatus[trackId];
+    
+    if (isCurrentlyFavorite) {
       // Remove from favorites
       removeFromFavorites(trackId);
+      // Optimistically update UI
+      setFavoriteStatus(prev => ({
+        ...prev,
+        [trackId]: false
+      }));
     } else {
       // Add to favorites
       addToFavorites({
@@ -119,7 +135,21 @@ function ExploreContent() {
           ? (track.creatorId as any)._id 
           : track.creatorId
       });
+      // Optimistically update UI
+      setFavoriteStatus(prev => ({
+        ...prev,
+        [trackId]: true
+      }));
     }
+    
+    // Dispatch event to notify other components
+    const event = new CustomEvent('trackUpdated', {
+      detail: {
+        trackId: trackId,
+        isFavorite: !isCurrentlyFavorite
+      }
+    });
+    window.dispatchEvent(event);
   };
 
   // Listen for track updates (when favorites are added/removed)
@@ -148,6 +178,26 @@ function ExploreContent() {
       window.removeEventListener('trackUpdated', handleTrackUpdate as EventListener);
     };
   }, [refreshTrendingTracks]);
+
+  // Listen for toast notifications and forward them to player
+  useEffect(() => {
+    const handleShowToast = (event: CustomEvent) => {
+      const { message, type } = event.detail;
+      // Dispatch a custom event that the player page can listen to
+      const playerToastEvent = new CustomEvent('playerToast', {
+        detail: { message, type }
+      });
+      window.dispatchEvent(playerToastEvent);
+    };
+
+    // Add event listener
+    window.addEventListener('showToast', handleShowToast as EventListener);
+
+    // Clean up event listener
+    return () => {
+      window.removeEventListener('showToast', handleShowToast as EventListener);
+    };
+  }, []);
   
   // Get category from URL params
   const categoryParam = searchParams.get('category')
@@ -161,7 +211,7 @@ function ExploreContent() {
   // Transform real tracks data to match existing interface
   const allTracks: Track[] = trendingTracksData.map(track => ({
     _id: track._id,
-    id: track._id || 'unknown',
+    id: track._id, // Use the same ID for consistency
     title: track.title,
     artist: typeof track.creatorId === 'object' && track.creatorId !== null ? (track.creatorId as any).name : 'Unknown Artist',
     plays: track.plays,
@@ -388,7 +438,7 @@ function ExploreContent() {
                           )}
                         </button>
                       </div>
-                      <div className="absolute top-3 right-3 sm:top-4 sm:right-4">
+                      <div className="absolute top-3 right-3 sm:top-4 sm:right-4 flex flex-col gap-2">
                         <button 
                           onClick={(e) => {
                             e.stopPropagation();
@@ -409,6 +459,74 @@ function ExploreContent() {
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4 4 0 000 6.364L12 20.364l7.682-7.682a4 4 0 00-6.364-6.364L12 7.636l-1.318-1.318a4 4 0 000-5.656z"></path>
+                          </svg>
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // Add to queue functionality
+                            const fullTrack = trendingTracksData.find(t => t._id === track._id);
+                            if (fullTrack && fullTrack.audioURL) {
+                              try {
+                                addToQueue({
+                                  id: track._id || track.id || 'unknown', // Use _id or fallback to id
+                                  title: track.title,
+                                  artist: track.artist,
+                                  coverImage: track.coverImage || track.coverURL || '/placeholder-track.png',
+                                  audioUrl: fullTrack.audioURL,
+                                  duration: fullTrack.duration ? (fullTrack.duration.includes(':') ? 
+                                    (() => {
+                                      const [mins, secs] = fullTrack.duration.split(':').map(Number);
+                                      return mins * 60 + secs;
+                                    })() : Number(fullTrack.duration)
+                                  ) : undefined,
+                                  creatorId: typeof fullTrack.creatorId === 'object' && fullTrack.creatorId !== null ? (fullTrack.creatorId as any)._id : fullTrack.creatorId,
+                                  type: fullTrack.type,
+                                  creatorWhatsapp: (typeof fullTrack.creatorId === 'object' && fullTrack.creatorId !== null 
+                                    ? (fullTrack.creatorId as any).whatsappContact 
+                                    : undefined)
+                                });
+                                // Show toast notification
+                                const toastEvent = new CustomEvent('showToast', {
+                                  detail: {
+                                    message: `Added ${track.title} to queue!`,
+                                    type: 'success'
+                                  }
+                                });
+                                window.dispatchEvent(toastEvent);
+                              } catch (error) {
+                                console.error('Error adding to queue:', error);
+                                // Show error notification
+                                const toastEvent = new CustomEvent('showToast', {
+                                  detail: {
+                                    message: `Failed to add ${track.title} to queue`,
+                                    type: 'error'
+                                  }
+                                });
+                                window.dispatchEvent(toastEvent);
+                              }
+                            } else {
+                              // Show error if track not found or no audio
+                              const toastEvent = new CustomEvent('showToast', {
+                                detail: {
+                                  message: `Cannot add ${track.title} to queue - audio not available`,
+                                  type: 'error'
+                                }
+                              });
+                              window.dispatchEvent(toastEvent);
+                            }
+                          }}
+                          className="p-2 sm:p-2.5 rounded-full bg-black/40 backdrop-blur-md text-white opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 hover:bg-black/60 shadow-md"
+                          title={`Add ${track.title} to queue`}
+                        >
+                          <svg 
+                            className="w-5 h-5 sm:w-6 sm:h-6"
+                            fill="none" 
+                            stroke="currentColor" 
+                            viewBox="0 0 24 24" 
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                           </svg>
                         </button>
                       </div>

@@ -20,7 +20,7 @@ export default function TracksPage() {
   const [sortBy, setSortBy] = useState<'popular' | 'recent' | 'alphabetical'>('popular')
   const { tracks: trendingTracksData, loading: trendingLoading, refresh: refreshTrendingTracks } = useTrendingTracks(20)
   const { creators: popularCreatorsData, loading: creatorsLoading } = usePopularCreators(10)
-  const { currentTrack, isPlaying, playTrack, setCurrentPlaylist, favorites, favoritesLoading, addToFavorites, removeFromFavorites } = useAudioPlayer()
+  const { currentTrack, isPlaying, playTrack, setCurrentPlaylist, favorites, favoritesLoading, addToFavorites, removeFromFavorites, addToQueue } = useAudioPlayer()
   // State for tracking which tracks are favorited
   const [favoriteStatus, setFavoriteStatus] = useState<Record<string, boolean>>({});
 
@@ -281,28 +281,77 @@ export default function TracksPage() {
                   
                   <div className="flex justify-between items-center mt-3">
                     <span className="text-gray-500 text-xs">{track.plays.toLocaleString()} plays</span>
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Find the full track object
-                        const fullTrack = trendingTracksData.find(t => t._id === track.id);
-                        if (fullTrack) {
-                          toggleFavorite(track.id, fullTrack);
-                        }
-                      }}
-                      className="flex items-center gap-1 hover:scale-105 transition-transform duration-200"
-                    >
-                      <svg 
-                        className={`w-4 h-4 transition-all duration-200 ${favoriteStatus[track.id] ? 'text-red-500 fill-current scale-110' : 'text-red-500 stroke-current'}`}
-                        fill={favoriteStatus[track.id] ? "currentColor" : "none"}
-                        stroke="currentColor"
-                        viewBox="0 0 24 24" 
-                        xmlns="http://www.w3.org/2000/svg"
+                    <div className="flex items-center gap-2">
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Find the full track object
+                          const fullTrack = trendingTracksData.find(t => t._id === track.id);
+                          if (fullTrack) {
+                            toggleFavorite(track.id, fullTrack);
+                          }
+                        }}
+                        className="flex items-center gap-1 hover:scale-105 transition-transform duration-200"
                       >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                      </svg>
-                      <span className="text-gray-500 text-xs">{track.likes}</span>
-                    </button>
+                        <svg 
+                          className={`w-4 h-4 transition-all duration-200 ${favoriteStatus[track.id] ? 'text-red-500 fill-current scale-110' : 'text-red-500 stroke-current'}`}
+                          fill={favoriteStatus[track.id] ? "currentColor" : "none"}
+                          stroke="currentColor"
+                          viewBox="0 0 24 24" 
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                        </svg>
+                        <span className="text-gray-500 text-xs">{track.likes}</span>
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Add to queue functionality
+                          const fullTrack = trendingTracksData.find(t => t._id === track.id);
+                          if (fullTrack && fullTrack.audioURL) {
+                            addToQueue({
+                              id: track.id,
+                              title: track.title,
+                              artist: track.artist,
+                              coverImage: track.coverImage,
+                              audioUrl: fullTrack.audioURL,
+                              duration: fullTrack.duration ? (fullTrack.duration.includes(':') ? 
+                                (() => {
+                                  const [mins, secs] = fullTrack.duration.split(':').map(Number);
+                                  return mins * 60 + secs;
+                                })() : Number(fullTrack.duration)
+                              ) : undefined,
+                              creatorId: typeof fullTrack.creatorId === 'object' && fullTrack.creatorId !== null ? (fullTrack.creatorId as any)._id : fullTrack.creatorId,
+                              type: fullTrack.type,
+                              creatorWhatsapp: (typeof fullTrack.creatorId === 'object' && fullTrack.creatorId !== null 
+                                ? (fullTrack.creatorId as any).whatsappContact 
+                                : undefined)
+                            });
+                            // Show toast notification
+                            const toastEvent = new CustomEvent('showToast', {
+                              detail: {
+                                message: `Added ${track.title} to queue!`,
+                                type: 'success'
+                              }
+                            });
+                            window.dispatchEvent(toastEvent);
+                          }
+                        }}
+                        className="flex items-center gap-1 hover:scale-105 transition-transform duration-200 text-gray-500 hover:text-white"
+                        title={`Add ${track.title} to queue`}
+                      >
+                        <svg 
+                          className="w-4 h-4"
+                          fill="none" 
+                          stroke="currentColor" 
+                          viewBox="0 0 24 24" 
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
