@@ -78,6 +78,7 @@ interface AudioPlayerContextType {
   clearQueue: () => void;
   moveQueueItem: (fromIndex: number, toIndex: number) => void;
   playFromQueue: (trackId: string) => void;
+  addRecommendationsToQueue: (limit?: number) => Promise<number>;
   addComment: (comment: Omit<Comment, 'id' | 'timestamp'>) => void;
   removeComment: (commentId: string) => void;
   loadComments: (trackId: string) => void;
@@ -455,11 +456,28 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     console.log('Playback context:', currentPlaybackContext.current);
     console.log('Playback context type:', currentPlaybackContext.current.type);
     console.log('Playback context data:', currentPlaybackContext.current.data);
+    console.log('Queue:', queue);
     
     // Check if the player has been explicitly stopped
     // If currentTrack is null, it means the player was explicitly stopped
     if (currentTrackRef.current === null) {
       console.log('Player has been explicitly stopped, not playing next track');
+      return;
+    }
+    
+    // First, check if there are tracks in the queue and play the first one
+    if (queue.length > 0) {
+      console.log('Queue has tracks, playing first track in queue');
+      
+      // Play the first track in the queue
+      const nextTrack = queue[0];
+      
+      // Remove the track from the queue
+      setQueue(prev => prev.slice(1));
+      
+      // Play the track without expanding the player
+      explicitlyPlayedRef.current = false; // Mark as auto-played
+      playTrack(nextTrack, queue);
       return;
     }
     
@@ -1102,6 +1120,49 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
+  // Add recommendations to queue
+  const addRecommendationsToQueue = async (limit: number = 10) => {
+    try {
+      // Fetch recommendations based on the current track
+      const recommendedTracks = await fetchRecommendedTracks(currentTrackRef.current?.id, limit);
+      
+      if (recommendedTracks && recommendedTracks.length > 0) {
+        // Convert recommended tracks to our Track interface
+        const tracksToAdd: Track[] = recommendedTracks.map(nextTrack => ({
+          id: nextTrack._id,
+          title: nextTrack.title,
+          artist: (typeof nextTrack.creatorId === 'object' && nextTrack.creatorId !== null) 
+            ? (nextTrack.creatorId as any).name 
+            : nextTrack.creatorId || 'Unknown Artist',
+          coverImage: nextTrack.coverURL || '',
+          audioUrl: nextTrack.audioURL || '',
+          duration: 0, // Duration is not available in ITrack interface
+          creatorId: (typeof nextTrack.creatorId === 'object' && nextTrack.creatorId !== null) 
+            ? (nextTrack.creatorId as any)._id 
+            : nextTrack.creatorId,
+          likes: nextTrack.likes,
+          type: nextTrack.type, // Include track type
+          creatorWhatsapp: (typeof nextTrack.creatorId === 'object' && nextTrack.creatorId !== null) 
+            ? (nextTrack.creatorId as any).whatsappContact 
+            : undefined // Include creator's WhatsApp contact
+        }));
+        
+        // Add the recommended tracks to the queue
+        setQueue(prev => {
+          // Filter out tracks that are already in the queue
+          const newTracks = tracksToAdd.filter(track => !prev.some(t => t.id === track.id));
+          return [...prev, ...newTracks];
+        });
+        
+        return tracksToAdd.length;
+      }
+    } catch (error) {
+      console.error('Error adding recommendations to queue:', error);
+    }
+    
+    return 0;
+  };
+
   const removeFromQueue = (trackId: string) => {
     setQueue(prev => prev.filter(track => track.id !== trackId));
   };
@@ -1380,6 +1441,7 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
         clearQueue,
         moveQueueItem,
         playFromQueue,
+        addRecommendationsToQueue,
         addComment,
         removeComment,
         loadComments,

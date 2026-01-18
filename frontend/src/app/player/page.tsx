@@ -52,6 +52,7 @@ const FullPagePlayer = () => {
     clearQueue, // Add clearQueue from context
     playFromQueue, // Add playFromQueue from context
     moveQueueItem, // Add moveQueueItem from context
+    addRecommendationsToQueue, // Add addRecommendationsToQueue from context
     frequencyData  } = useAudioPlayer();
   
   const router = useRouter();
@@ -1076,16 +1077,32 @@ Would you like to open WhatsApp to contact the creator?`;
                 <div className="mt-6 bg-gray-800/50 rounded-xl p-4">
                   <div className="flex justify-between items-center mb-3">
                     <h3 className="font-bold text-lg">Up Next</h3>
-                    <button 
-                      onClick={() => {
-                        // Clear the queue
-                        clearQueue();
-                        setToast({message: 'Queue cleared!', type: 'success'});
-                      }}
-                      className="text-sm text-gray-400 hover:text-white"
-                    >
-                      Clear
-                    </button>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={async () => {
+                          // Add recommendations to queue
+                          const addedCount = await addRecommendationsToQueue(10);
+                          if (addedCount > 0) {
+                            setToast({message: `Added ${addedCount} recommendations to queue!`, type: 'success'});
+                          } else {
+                            setToast({message: 'No recommendations available', type: 'error'});
+                          }
+                        }}
+                        className="text-sm text-gray-400 hover:text-white bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded"
+                      >
+                        Add Recs
+                      </button>
+                      <button 
+                        onClick={() => {
+                          // Clear the queue
+                          clearQueue();
+                          setToast({message: 'Queue cleared!', type: 'success'});
+                        }}
+                        className="text-sm text-gray-400 hover:text-white"
+                      >
+                        Clear
+                      </button>
+                    </div>
                   </div>
                   
                   {queue && queue.length > 0 ? (
@@ -1093,14 +1110,33 @@ Would you like to open WhatsApp to contact the creator?`;
                       {queue.map((queuedTrack, index) => (
                         <div 
                           key={`${queuedTrack.id}-${index}`} 
-                          className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-700/50 cursor-pointer transition-colors group"
+                          draggable="true"
+                          onDragStart={(e) => {
+                            e.dataTransfer.setData('index', index.toString());
+                          }}
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                          }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            const draggedIndex = parseInt(e.dataTransfer.getData('index'));
+                            if (draggedIndex !== index) {
+                              moveQueueItem(draggedIndex, index);
+                            }
+                          }}
+                          className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-700/50 cursor-pointer transition-colors group bg-gray-700/30"
                           onClick={() => {
                             // Play this track from the queue
                             playFromQueue(queuedTrack.id);
                             setToast({message: `Playing ${queuedTrack.title}`, type: 'success'});
                           }}
                         >
-                          <span className="text-gray-500 text-sm w-5">{index + 1}</span>
+                          <div className="flex items-center gap-1">
+                            <span className="text-gray-500 text-sm w-5">{index + 1}</span>
+                            <svg className="w-4 h-4 text-gray-400 cursor-move" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
+                            </svg>
+                          </div>
                           <img 
                             src={queuedTrack.coverImage} 
                             alt={queuedTrack.title} 
@@ -1126,7 +1162,23 @@ Would you like to open WhatsApp to contact the creator?`;
                       ))}
                     </div>
                   ) : (
-                    <p className="text-gray-400 text-center py-4 text-sm">Queue is empty</p>
+                    <div>
+                      <p className="text-gray-400 text-center py-4 text-sm">Queue is empty</p>
+                      <button 
+                        onClick={async () => {
+                          // Add recommendations to queue
+                          const addedCount = await addRecommendationsToQueue(10);
+                          if (addedCount > 0) {
+                            setToast({message: `Added ${addedCount} recommendations to queue!`, type: 'success'});
+                          } else {
+                            setToast({message: 'No recommendations available', type: 'error'});
+                          }
+                        }}
+                        className="w-full mt-2 py-2 bg-[#FF4D67] hover:bg-[#ff3350] rounded-lg text-white font-medium transition-colors"
+                      >
+                        Add Recommendations
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
