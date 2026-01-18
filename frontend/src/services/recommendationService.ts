@@ -106,7 +106,7 @@ const getUserLocation = async (): Promise<string | null> => {
  * Fetch ML-powered recommended tracks based on user preferences and listening history
  * This implements an advanced ML recommendation algorithm with genre, location, and behavior factors
  */
-export const fetchRecommendedTracks = async (currentTrackId?: string, limit: number = 10): Promise<ITrack[]> => {
+export const fetchRecommendedTracks = async (currentTrackId?: string, limit: number = 10, sortBy: 'popular' | 'recent' | 'views' = 'recent'): Promise<ITrack[]> => {
   try {
     // Get user location for location-based recommendations
     const userLocation = await getUserLocation();
@@ -114,6 +114,7 @@ export const fetchRecommendedTracks = async (currentTrackId?: string, limit: num
     // Build query parameters for ML API
     const params = new URLSearchParams();
     params.append('limit', limit.toString());
+    params.append('sortBy', sortBy); // Use the specified sort option
     
     if (currentTrackId) {
       params.append('currentTrackId', currentTrackId);
@@ -135,8 +136,8 @@ export const fetchRecommendedTracks = async (currentTrackId?: string, limit: num
       }
     }
 
-    // Build ML API URL with user context
-    let mlApiUrl = `${process.env.NEXT_PUBLIC_ML_API_URL || 'http://localhost:5001'}/api/ml-recommendations/personalized?${params.toString()}`;
+    // Build ML API URL - now goes through Node.js backend which handles Python integration with fallback
+    let mlApiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/recommendations/ml-recommendations/personalized?${params.toString()}`;
     if (userId) {
       mlApiUrl += `&userId=${userId}`;
     }
@@ -152,6 +153,14 @@ export const fetchRecommendedTracks = async (currentTrackId?: string, limit: num
         const mlData = await mlResponse.json();
         console.log('ML recommendations received:', mlData.count, 'tracks');
         return mlData.tracks || [];
+      } else if (mlResponse.status === 503) {
+        // Python ML service unavailable, use fallback
+        const errorData = await mlResponse.json();
+        if (errorData.fallback) {
+          console.log('Python ML service unavailable, falling back to traditional recommendations');
+        } else {
+          console.warn('ML API failed, falling back to traditional recommendations:', mlResponse.status);
+        }
       } else {
         console.warn('ML API failed, falling back to traditional recommendations:', mlResponse.status);
       }
@@ -166,6 +175,7 @@ export const fetchRecommendedTracks = async (currentTrackId?: string, limit: num
         // Update the limit in params to ensure we get more than 5 tracks
         const personalizedParams = new URLSearchParams(params);
         personalizedParams.set('limit', limit.toString());
+        personalizedParams.set('sortBy', sortBy); // Use the specified sort option
         
         const response = await makeAuthenticatedRequest(
           `${process.env.NEXT_PUBLIC_API_URL}/api/recommendations/personalized?${personalizedParams.toString()}`
@@ -184,6 +194,7 @@ export const fetchRecommendedTracks = async (currentTrackId?: string, limit: num
     // Update the limit in params to ensure we get more than 5 tracks
     const fallbackParams = new URLSearchParams(params);
     fallbackParams.set('limit', limit.toString());
+    fallbackParams.set('sortBy', sortBy); // Use the specified sort option
     // Exclude beats from general recommendations
     fallbackParams.set('excludeType', 'beat');
     
@@ -206,10 +217,10 @@ export const fetchRecommendedTracks = async (currentTrackId?: string, limit: num
 /**
  * Get recommendations based on a specific track (similar tracks)
  */
-export const fetchSimilarTracks = async (trackId: string, limit: number = 10): Promise<ITrack[]> => {
+export const fetchSimilarTracks = async (trackId: string, limit: number = 10, sortBy: 'popular' | 'recent' | 'views' = 'recent'): Promise<ITrack[]> => {
   try {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/recommendations/similar/${trackId}?limit=${limit}`
+      `${process.env.NEXT_PUBLIC_API_URL}/api/recommendations/similar/${trackId}?limit=${limit}&sortBy=${sortBy}`
     );
     
     if (!response.ok) {

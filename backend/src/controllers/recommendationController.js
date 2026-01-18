@@ -102,6 +102,18 @@ const getPersonalizedRecommendations = (req, res) => __awaiter(void 0, void 0, v
 
         console.log('Query:', query);
 
+        // Get sort option from query parameters
+        const sortBy = req.query.sortBy || 'popular'; // Default to popular
+        let sortOption = { plays: -1 }; // Default sort by popularity
+        
+        if (sortBy === 'recent') {
+            sortOption = { createdAt: -1 }; // Sort by newest first
+        } else if (sortBy === 'views') {
+            sortOption = { plays: -1 }; // Sort by most viewed
+        } else if (sortBy === 'new_and_popular') {
+            sortOption = { createdAt: -1, plays: -1 }; // Sort by newest first, then by most viewed
+        }
+
         // Get recommended tracks
         const recommendedTracks = yield Track.find(query)
             .populate({
@@ -109,7 +121,7 @@ const getPersonalizedRecommendations = (req, res) => __awaiter(void 0, void 0, v
                 model: 'User',
                 select: 'name'
             })
-            .sort({ plays: -1 }) // Sort by popularity
+            .sort(sortOption) // Sort based on selected option
             .limit(limit * 2) // Get more tracks to filter and shuffle
             .lean();        console.log('Found tracks:', recommendedTracks.length);
 
@@ -150,7 +162,20 @@ const getGeneralRecommendations = (req, res) => __awaiter(void 0, void 0, void 0
             query.type = { $ne: excludeType };
         }
 
+        // Get sort option from query parameters
+        const sortBy = req.query.sortBy || 'popular'; // Default to popular
+        let sortOption = { plays: -1 }; // Default sort by popularity
+        
+        if (sortBy === 'recent') {
+            sortOption = { createdAt: -1 }; // Sort by newest first
+        } else if (sortBy === 'views') {
+            sortOption = { plays: -1 }; // Sort by most viewed
+        } else if (sortBy === 'new_and_popular') {
+            sortOption = { createdAt: -1, plays: -1 }; // Sort by newest first, then by most viewed
+        }
+
         console.log('Query:', query);
+        console.log('Sort by:', sortBy);
 
         const tracks = yield Track.find(query)
             .populate({
@@ -158,7 +183,7 @@ const getGeneralRecommendations = (req, res) => __awaiter(void 0, void 0, void 0
                 model: 'User',
                 select: 'name'
             })
-            .sort({ plays: -1 }) // Sort by popularity
+            .sort(sortOption) // Sort based on selected option
             .limit(limit)
             .lean();
 
@@ -220,7 +245,20 @@ const getSimilarTracks = (req, res) => __awaiter(void 0, void 0, void 0, functio
             query.$or = orConditions;
         }
 
+        // Get sort option from query parameters
+        const sortBy = req.query.sortBy || 'popular'; // Default to popular
+        let sortOption = { plays: -1 }; // Default sort by popularity
+        
+        if (sortBy === 'recent') {
+            sortOption = { createdAt: -1 }; // Sort by newest first
+        } else if (sortBy === 'views') {
+            sortOption = { plays: -1 }; // Sort by most viewed
+        } else if (sortBy === 'new_and_popular') {
+            sortOption = { createdAt: -1, plays: -1 }; // Sort by newest first, then by most viewed
+        }
+
         console.log('Query:', query);
+        console.log('Sort by:', sortBy);
 
         // Find similar tracks
         const similarTracks = yield Track.find(query)
@@ -229,7 +267,7 @@ const getSimilarTracks = (req, res) => __awaiter(void 0, void 0, void 0, functio
                 model: 'User',
                 select: 'name'
             })
-            .sort({ plays: -1 }) // Sort by popularity
+            .sort(sortOption) // Sort based on selected option
             .limit(limit * 2) // Get more tracks to shuffle
             .lean();
 

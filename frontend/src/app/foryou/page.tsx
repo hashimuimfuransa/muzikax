@@ -20,7 +20,7 @@ interface Track {
 
 export default function ForYouPage() {
   const { playTrack } = useAudioPlayer();
-  const [sortBy, setSortBy] = useState<'popular' | 'recent' | 'alphabetical'>('popular')
+  const [sortBy, setSortBy] = useState<'popular' | 'recent' | 'alphabetical' | 'new_and_popular'>('new_and_popular')
   const [filterBy, setFilterBy] = useState<'music' | 'beats' | 'mixes' | 'all'>('music'); // Default to music
   const [tracks, setTracks] = useState<Track[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -35,7 +35,8 @@ export default function ForYouPage() {
     const fetchTracks = async () => {
       try {
         setLoading(true);
-        const recommendedTracks = await fetchRecommendedTracks(undefined, 12);
+        // Fetch tracks sorted by recent first (newest tracks)
+        const recommendedTracks = await fetchRecommendedTracks(undefined, 12, 'recent');
         
         // Map the ITrack objects to our Track interface format
         const mappedTracks: Track[] = recommendedTracks.map(track => ({
@@ -210,6 +211,9 @@ export default function ForYouPage() {
       return b.plays - a.plays
     } else if (sortBy === 'recent') {
       return parseInt(b.id) - parseInt(a.id)
+    } else if (sortBy === 'new_and_popular') {
+      // Backend handles this sorting, but if needed locally, prioritize recency then plays
+      return parseInt(b.id) - parseInt(a.id) || b.plays - a.plays;
     } else {
       return a.title.localeCompare(b.title)
     }
@@ -262,6 +266,7 @@ export default function ForYouPage() {
               onChange={(e) => setSortBy(e.target.value as any)}
               className="bg-gray-800 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
             >
+              <option value="new_and_popular">New & Popular</option>
               <option value="popular">Most Popular</option>
               <option value="recent">Most Recent</option>
               <option value="alphabetical">Alphabetical</option>
