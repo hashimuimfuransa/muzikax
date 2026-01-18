@@ -6,6 +6,7 @@ import { fetchCommentsForTrack, addCommentToTrack, incrementTrackPlayCount } fro
 import { getUserFavorites, getUserPlaylists, addTrackToFavorites, removeTrackFromFavorites, addTrackToPlaylist as addTrackToPlaylistService, createPlaylist as createPlaylistService } from '../services/userService';
 import { addRecentlyPlayed } from '../services/recentlyPlayedService';
 import { fetchRecommendedTracks } from '../services/recommendationService';
+import { reportInvalidTrack } from '../services/trackCleanupService';
 
 interface Track {
   id: string;
@@ -376,8 +377,25 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
       setDuration(audio.duration || 0);
     };
     
-    audio.onerror = (error) => {
+    audio.onerror = async (error) => {
       console.error('Audio error occurred:', error);
+      
+      // Report invalid track to backend for cleanup
+      if (currentTrackRef.current) {
+        console.log(`Reporting invalid track ${currentTrackRef.current.id} for cleanup`);
+        try {
+          const cleanupResult = await reportInvalidTrack(currentTrackRef.current.id);
+          if (cleanupResult.success && cleanupResult.removed) {
+            console.log(`Successfully removed invalid track: ${cleanupResult.trackTitle}`);
+          } else if (cleanupResult.success) {
+            console.log(`Track ${cleanupResult.trackTitle} validated as valid`);
+          } else {
+            console.error('Failed to process track cleanup:', cleanupResult.message);
+          }
+        } catch (cleanupError) {
+          console.error('Error during track cleanup:', cleanupError);
+        }
+      }
     };
     
     // Set the current track and index immediately

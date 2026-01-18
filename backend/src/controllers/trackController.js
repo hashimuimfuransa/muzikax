@@ -8,6 +8,7 @@ const Track_1 = require("../models/Track");
 const ListenerGeography_1 = require("../models/ListenerGeography");
 const User_1 = require("../models/User");
 const geoip = require('geoip-lite');
+const { handlePlaybackError } = require("../../cleanup_invalid_tracks");
 // import User from '../models/User'; // Not used in this controller
 // Upload track
 const uploadTrack = async (req, res) => {
@@ -374,5 +375,48 @@ const getTracksByType = async (req, res) => {
     }
 };
 exports.getTracksByType = getTracksByType;
+
+// Handle playback error and remove invalid tracks
+const handleInvalidTrack = async (req, res) => {
+    try {
+        const { id: trackId } = req.params;
+        
+        if (!trackId) {
+            res.status(400).json({ message: 'Track ID is required' });
+            return;
+        }
+        
+        console.log(`Processing invalid track report for track ID: ${trackId}`);
+        
+        // Use the cleanup utility to handle the invalid track
+        const result = await handlePlaybackError(trackId);
+        
+        if (result.success) {
+            res.json({
+                message: 'Invalid track removed from database',
+                trackTitle: result.trackTitle,
+                removed: true
+            });
+        } else if (result.error) {
+            res.status(500).json({
+                message: 'Error processing invalid track',
+                error: result.error
+            });
+        } else {
+            res.json({
+                message: result.message || 'Track validation completed',
+                trackTitle: result.trackTitle,
+                removed: false
+            });
+        }
+    } catch (error) {
+        console.error('Error in handleInvalidTrack:', error);
+        res.status(500).json({ 
+            message: 'Internal server error',
+            error: error.message 
+        });
+    }
+};
+exports.handleInvalidTrack = handleInvalidTrack;
 
 //# sourceMappingURL=trackController.js.map

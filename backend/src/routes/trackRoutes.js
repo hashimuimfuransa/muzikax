@@ -10,7 +10,8 @@ const {
   deleteTrack,
   incrementPlayCount,
   getTrendingTracks,
-  getTracksByType
+  getTracksByType,
+  handleInvalidTrack
 } = require('../controllers/trackController');
 const { protect, creator } = require('../utils/jwt');
 
@@ -23,6 +24,9 @@ router.route('/type').get(getTracksByType);
 router.route('/:id').get(getTrackById);
 router.route('/creator/:creatorId/simple').get(getTracksByCreatorSimple);
 router.route('/creator/:creatorId').get(getTracksByCreator);
+
+// Invalid track handling (public endpoint for frontend to report invalid tracks)
+router.route('/:id/invalid').post(handleInvalidTrack);
 
 // Protected routes
 router.route('/upload').post(protect, creator, uploadTrack);
