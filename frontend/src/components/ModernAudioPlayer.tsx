@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
 import PlaylistSelectionModal from './PlaylistSelectionModal';
-import BeatPlayer from './BeatPlayer';
 
 const ModernAudioPlayer = () => {
   const {
@@ -128,11 +127,6 @@ const ModernAudioPlayer = () => {
   // Check if current track is a beat
   const isBeat = currentTrack?.type === 'beat' || 
                  (currentTrack?.title && currentTrack.title.toLowerCase().includes('beat'));
-
-  // Render BeatPlayer for beats, regular player for other tracks
-  if (isBeat) {
-    return <BeatPlayer />;
-  }
 
   // Don't render if there's no current track
   if (!currentTrack) return null;
@@ -260,11 +254,13 @@ const ModernAudioPlayer = () => {
       
       {/* Minimized Player */}
       {isMinimized && (
-        <div className="fixed bottom-4 right-4 w-[340px] rounded-2xl 
-        bg-black/70 backdrop-blur-xl border border-white/10 
-        shadow-[0_10px_40px_rgba(0,0,0,0.6)] z-50 animate-[fadeInUp_0.3s_ease-out]">
-          {/* Simple gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-r from-[#FF4D67]/20 via-[#FFCB2B]/20 to-[#8B5CF6]/20 rounded-2xl"></div>
+        <div className={`fixed bottom-4 right-4 w-[${isBeat ? '380px' : '340px'}] rounded-2xl 
+        ${isBeat ? 'bg-gradient-to-br from-gray-900 to-black backdrop-blur-xl border border-[#FF4D67]/30 shadow-2xl shadow-[#FF4D67]/20' : 'bg-black/70 backdrop-blur-xl border border-white/10 shadow-[0_10px_40px_rgba(0,0,0,0.6)]'} 
+        z-50 animate-[fadeInUp_0.3s_ease-out]`}>
+          {/* Beat-specific styling */}
+          {isBeat && (
+            <div className="absolute inset-0 bg-gradient-to-r from-[#FF4D67]/20 via-[#FFCB2B]/20 to-[#8B5CF6]/20 rounded-2xl"></div>
+          )}
           
           {/* Player Content */}
           <div className="relative z-10 flex items-center p-3">
@@ -274,15 +270,38 @@ const ModernAudioPlayer = () => {
                 alt={currentTrack.title}
                 className={`w-12 h-12 rounded-xl object-cover transition-transform duration-300 ${
                   isPlaying ? 'scale-105' : ''
-                }`}
+                } ${isBeat ? 'rounded-lg' : ''}`}
               />
-              {/* Optional glow effect */}
-              <div className="absolute -inset-1 bg-gradient-to-r from-pink-500 to-purple-500 blur opacity-30 rounded-xl"></div>
+              {/* Beat-specific glow effect */}
+              {isBeat && (
+                <div className="absolute -inset-1 bg-[#FF4D67] rounded-lg blur opacity-30 animate-pulse"></div>
+              )}
+              {/* Regular glow effect for non-beats */}
+              {!isBeat && (
+                <div className="absolute -inset-1 bg-gradient-to-r from-pink-500 to-purple-500 blur opacity-30 rounded-xl"></div>
+              )}
             </div>
             
             <div className="ml-3 flex-1 min-w-0">
-              <h4 className="text-white font-medium text-sm truncate">{currentTrack.title}</h4>
-              <p className="text-gray-400 text-xs truncate">{currentTrack.artist}</p>
+              {isBeat ? (
+                <>
+                  <h4 className="text-white font-bold text-sm truncate max-w-[120px]">{currentTrack.title}</h4>
+                  <p className="text-[#FFCB2B] text-xs truncate">{currentTrack.artist}</p>
+                  <div className="flex items-center gap-1 mt-1">
+                    <span className="text-[#FF4D67] text-xs font-medium">BEAT</span>
+                    {currentTrack.paymentType === 'paid' ? (
+                      <span className="text-green-400 text-xs">• PAID</span>
+                    ) : (
+                      <span className="text-blue-400 text-xs">• FREE</span>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <h4 className="text-white font-medium text-sm truncate">{currentTrack.title}</h4>
+                  <p className="text-gray-400 text-xs truncate">{currentTrack.artist}</p>
+                </>
+              )}
               
               {/* Mini Progress Bar */}
               <div
@@ -423,59 +442,106 @@ const ModernAudioPlayer = () => {
                 />
               </div>
               
-              {/* WhatsApp Button for Beats or Download Button for other tracks */}
-              {(currentTrack.type === 'beat' || (currentTrack.title && currentTrack.title.toLowerCase().includes('beat'))) ? (
-                <button 
-                  onClick={async () => {
-                    // For beats, we need to ensure we have the creator's WhatsApp number
-                    let creatorWhatsapp = currentTrack.creatorWhatsapp;
-                    
-                    // If we don't have the WhatsApp number, fetch it directly
-                    if (!creatorWhatsapp && currentTrack.creatorId) {
-                      const { fetchCreatorWhatsapp } = await import('@/services/trackService');
-                      const whatsappResult = await fetchCreatorWhatsapp(currentTrack.creatorId);
-                      if (whatsappResult) {
-                        creatorWhatsapp = whatsappResult;
+              {/* Beat-specific action buttons or regular buttons */}
+              {isBeat ? (
+                <>
+                  {/* Favorite/Save button for beats */}
+                  <button
+                    onClick={toggleFavorite}
+                    className={`
+                      w-8 h-8 rounded-full
+                      flex items-center justify-center
+                      transition-colors ${
+                        isFavorite 
+                          ? 'text-red-400 bg-red-500/20 border border-red-500/30' 
+                          : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                      }`}
+                    title={isFavorite ? "Remove from favorites" : "Save beat"}
+                  >
+                    <svg 
+                      className="w-4 h-4" 
+                      fill={isFavorite ? "currentColor" : "none"}
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                    </svg>
+                  </button>
+                  
+                  {/* WhatsApp button for beats */}
+                  <button 
+                    onClick={async () => {
+                      // For beats, we need to ensure we have the creator's WhatsApp number
+                      let creatorWhatsapp = currentTrack.creatorWhatsapp;
+                      
+                      // If we don't have the WhatsApp number, fetch it directly
+                      if (!creatorWhatsapp && currentTrack.creatorId) {
+                        const { fetchCreatorWhatsapp } = await import('@/services/trackService');
+                        const whatsappResult = await fetchCreatorWhatsapp(currentTrack.creatorId);
+                        if (whatsappResult) {
+                          creatorWhatsapp = whatsappResult;
+                        }
                       }
-                    }
-                    
-                    if (creatorWhatsapp) {
-                      // Open WhatsApp with pre-filled message
-                      const message = `Hi, I'm interested in your beat "${currentTrack.title}" that I found on MuzikaX.`;
-                      window.open(`https://wa.me/${creatorWhatsapp}?text=${encodeURIComponent(message)}`, '_blank');
-                    } else {
-                      alert('Unfortunately, the creator has not provided their WhatsApp contact information.');
-                    }
-                  }}
-                  className="
-                    w-8 h-8 rounded-full
-                    flex items-center justify-center
-                    text-gray-400 hover:text-white
-                    hover:bg-white/10
-                    transition
-                  "
-                  title="Contact creator via WhatsApp"
-                >
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"></path>
-                  </svg>
-                </button>
+                      
+                      if (creatorWhatsapp) {
+                        // Open WhatsApp with pre-filled message
+                        const message = `Hi, I'm interested in your beat "${currentTrack.title}" that I found on MuzikaX.`;
+                        window.open(`https://wa.me/${creatorWhatsapp}?text=${encodeURIComponent(message)}`, '_blank');
+                      } else {
+                        alert('Unfortunately, the creator has not provided their WhatsApp contact information.');
+                      }
+                    }}
+                    className={`
+                      w-8 h-8 rounded-full
+                      flex items-center justify-center
+                      ${currentTrack.paymentType === 'paid'
+                        ? 'text-green-400 bg-green-500/20 border border-green-500/30 hover:bg-green-500/30'
+                        : 'text-blue-400 bg-blue-500/20 border border-blue-500/30 hover:bg-blue-500/30'}
+                      transition-colors
+                    `}
+                    title="Contact creator via WhatsApp"
+                  >
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"></path>
+                    </svg>
+                  </button>
+                </>
               ) : (
-                <button 
-                  onClick={downloadTrack}
-                  className="
-                    w-8 h-8 rounded-full
-                    flex items-center justify-center
-                    text-gray-400 hover:text-white
-                    hover:bg-white/10
-                    transition
-                  "
-                  title="Download track"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                  </svg>
-                </button>
+                <>
+                  {/* Download button for non-beats */}
+                  <button 
+                    onClick={downloadTrack}
+                    className="
+                      w-8 h-8 rounded-full
+                      flex items-center justify-center
+                      text-gray-400 hover:text-white
+                      hover:bg-white/10
+                      transition
+                    "
+                    title="Download track"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                    </svg>
+                  </button>
+                  
+                  {/* Share button for non-beats */}
+                  <button 
+                    onClick={() => setIsShareModalOpen(true)}
+                    className="
+                      w-8 h-8 rounded-full
+                      flex items-center justify-center
+                      text-gray-400 hover:text-white
+                      hover:bg-white/10
+                      transition
+                    "
+                    title="Share track"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
+                    </svg>
+                  </button>
+                </>
               )}
               
               {/* Close Button */}

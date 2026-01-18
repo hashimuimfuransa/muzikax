@@ -581,33 +581,51 @@ const FullPagePlayer = () => {
           </div>
         </div>
         
-        <div className="container mx-auto px-4 py-4 sm:py-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-8">
+        <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-4 md:py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6 lg:gap-8">
             {/* Main Player Section */}
-            <div className="md:col-span-2">
+            <div className="lg:col-span-2">
               <div className="flex flex-col items-center">
                 {/* Album Art */}
-                <div className="relative mb-8 group">
-                  <div className="absolute -inset-4 bg-gradient-to-r from-[#FF4D67] via-[#8B5CF6] to-[#FFCB2B] rounded-3xl blur-xl opacity-30 group-hover:opacity-50 transition-opacity duration-500 animate-pulse"></div>
+                <div className="relative mb-6 sm:mb-8 group">
+                  <div className="absolute -inset-2 sm:-inset-3 md:-inset-4 bg-gradient-to-r from-[#FF4D67] via-[#8B5CF6] to-[#FFCB2B] rounded-3xl blur-xl opacity-30 group-hover:opacity-50 transition-opacity duration-500 animate-pulse"></div>
                   <img 
                     src={currentTrack.coverImage} 
                     alt={currentTrack.title} 
-                    className="relative w-52 h-52 sm:w-72 sm:h-72 md:w-80 md:h-80 rounded-3xl object-cover shadow-2xl border-4 border-white/10"
+                    className="relative w-40 h-40 sm:w-52 sm:h-52 md:w-72 md:h-72 lg:w-80 lg:h-80 rounded-3xl object-cover shadow-2xl border-2 sm:border-4 border-white/10"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent rounded-3xl"></div>
                 </div>
                 
                 {/* Track Info */}
                 <div className="text-center mb-6 sm:mb-8 w-full px-4">
-                  <h2 className="text-3xl sm:text-4xl font-bold text-white mb-2 drop-shadow-lg">{currentTrack.title}</h2>
+                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2 drop-shadow-lg">{currentTrack.title}</h2>
                   <Link 
                     href={`/artists/${(typeof currentTrack.creatorId === 'object' && currentTrack.creatorId !== null) 
                       ? (currentTrack.creatorId as any)._id 
                       : currentTrack.creatorId}`}
-                    className="text-xl sm:text-2xl bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] hover:from-[#ff3350] hover:to-[#ffd64d] mt-2 inline-block font-semibold"
+                    className="text-lg sm:text-xl md:text-2xl bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] hover:from-[#ff3350] hover:to-[#ffd64d] mt-2 inline-block font-semibold"
                   >
                     {currentTrack.artist}
                   </Link>
+                  
+                  {/* Beat-specific indicator */}
+                  {(currentTrack.type === 'beat' || (currentTrack.title && currentTrack.title.toLowerCase().includes('beat'))) && (
+                    <div className="mt-3 flex flex-wrap justify-center gap-2">
+                      <span className="px-3 py-1 bg-purple-600 text-white text-sm font-bold rounded-full">
+                        BEAT
+                      </span>
+                      {currentTrack.paymentType === 'paid' ? (
+                        <span className="px-3 py-1 bg-green-600 text-white text-sm font-bold rounded-full">
+                          PAID BEAT
+                        </span>
+                      ) : (
+                        <span className="px-3 py-1 bg-blue-600 text-white text-sm font-bold rounded-full">
+                          FREE BEAT
+                        </span>
+                      )}
+                    </div>
+                  )}
                   {/* Play Count and Likes */}
                   <div className="flex justify-center gap-6 sm:gap-8 mt-4 text-gray-200">
                     <div className="flex items-center bg-white/10 backdrop-blur-sm px-4 py-2 rounded-xl">
@@ -664,71 +682,78 @@ const FullPagePlayer = () => {
                   </div>
                   
                   {/* Main Controls - Center */}
-                  <div className="flex justify-center items-center gap-4 sm:gap-6">
-                    {/* Previous */}                  <button
-                    onClick={playPreviousTrack}
-                    className="
-                      w-10 h-10 sm:w-12 sm:h-12 rounded-full
-                      bg-white/10 backdrop-blur-md
-                      flex items-center justify-center
-                      text-white
-                      shadow-md
-                      hover:bg-white/20
-                      hover:scale-110
-                      active:scale-95
-                      transition-all duration-300
-                    "
-                  >
-                    <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
-                    </svg>
-                  </button>                  {/* Play / Pause */}
-                  <button
-                    onClick={togglePlayPause}
-                    className="
-                      w-20 h-20 sm:w-24 sm:h-24 md:w-20 md:h-20 rounded-full
-                      bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B]
-                      flex items-center justify-center
-                      text-white
-                      shadow-[0_0_40px_rgba(255,77,103,0.6)]
-                      hover:shadow-[0_0_60px_rgba(255,77,103,0.9)]
-                      hover:scale-105
-                      active:scale-95
-                      transition-all duration-300
-                      touch-manipulation
-                    "
-                  >
-                    {isPlaying ? (
-                      <svg className="w-8 h-8 sm:w-10 sm:h-10 md:w-9 md:h-9" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M6 5h4v14H6zm8 0h4v14h-4z" />
+                  <div className="flex justify-center items-center gap-3 sm:gap-4 md:gap-6">
+                    {/* Previous */}
+                    <button
+                      onClick={playPreviousTrack}
+                      className="
+                        w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 rounded-full
+                        bg-white/10 backdrop-blur-md
+                        flex items-center justify-center
+                        text-white
+                        shadow-md
+                        hover:bg-white/20
+                        hover:scale-110
+                        active:scale-95
+                        transition-all duration-300
+                        touch-manipulation
+                        min-w-[44px] min-h-[44px]
+                      "
+                    >
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 lg:w-7 lg:h-7" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
                       </svg>
-                    ) : (
-                      <svg className="w-8 h-8 sm:w-10 sm:h-10 md:w-9 md:h-9 ml-1" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M8 5v14l11-7z" />
-                      </svg>
-                    )}
-                  </button>
+                    </button>
+                    
+                    {/* Play / Pause */}
+                    <button
+                      onClick={togglePlayPause}
+                      className="
+                        w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-28 lg:h-28 rounded-full
+                        bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B]
+                        flex items-center justify-center
+                        text-white
+                        shadow-[0_0_40px_rgba(255,77,103,0.6)]
+                        hover:shadow-[0_0_60px_rgba(255,77,103,0.9)]
+                        hover:scale-105
+                        active:scale-95
+                        transition-all duration-300
+                        touch-manipulation
+                        min-w-[64px] min-h-[64px]
+                      "
+                    >
+                      {isPlaying ? (
+                        <svg className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M6 5h4v14H6zm8 0h4v14h-4z" />
+                        </svg>
+                      ) : (
+                        <svg className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 ml-1" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M8 5v14l11-7z" />
+                        </svg>
+                      )}
+                    </button>
 
-                  {/* Next */}
-                  <button
-                    onClick={() => playNextTrack()}
-                    className="
-                      w-10 h-10 sm:w-14 sm:h-14 md:w-12 md:h-12 rounded-full
-                      bg-white/10 backdrop-blur-md
-                      flex items-center justify-center
-                      text-white
-                      shadow-md
-                      hover:bg-white/20
-                      hover:scale-110
-                      active:scale-95
-                      transition-all duration-300
-                      touch-manipulation
-                    "
-                  >
-                    <svg className="w-5 h-5 sm:w-7 sm:h-7 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z" />
-                    </svg>
-                  </button>
+                    {/* Next */}
+                    <button
+                      onClick={() => playNextTrack()}
+                      className="
+                        w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 rounded-full
+                        bg-white/10 backdrop-blur-md
+                        flex items-center justify-center
+                        text-white
+                        shadow-md
+                        hover:bg-white/20
+                        hover:scale-110
+                        active:scale-95
+                        transition-all duration-300
+                        touch-manipulation
+                        min-w-[44px] min-h-[44px]
+                      "
+                    >
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 lg:w-7 lg:h-7" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z" />
+                      </svg>
+                    </button>
                   </div>
                   
                   {/* Volume Control - Right */}
@@ -749,7 +774,7 @@ const FullPagePlayer = () => {
                 </div>
                 
                 {/* Action Buttons */}
-                <div className="flex justify-center gap-3 sm:gap-6">
+                <div className="flex flex-wrap justify-center gap-2 sm:gap-3 md:gap-4 lg:gap-6 max-w-full px-2">
                   <button
                     onClick={() => {
                       if (!isAuthenticated) {
@@ -765,41 +790,43 @@ const FullPagePlayer = () => {
                     }}
                     className={`
                       group flex flex-col items-center gap-1
-                      text-sm
+                      text-xs sm:text-sm
                       ${isFavorite ? 'text-[#FF4D67]' : 'text-gray-400'}
                       hover:text-white
                       transition-all
+                      min-w-[60px]
                     `}
                   >
                     <div
                       className="
-                        w-12 h-12 rounded-full
+                        w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full
                         bg-white/10 backdrop-blur-md
                         flex items-center justify-center
                         group-hover:bg-white/20
                         transition-all
                       "
                     >
-                      <svg className="w-5 h-5 sm:w-6 sm:h-6" fill={isFavorite ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill={isFavorite ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
                       </svg>
                     </div>
-                    <span>Like</span>
+                    <span className="truncate">Like</span>
                   </button>
 
                   <button
                     onClick={handleAddToPlaylist}
                     className={`
                       group flex flex-col items-center gap-1
-                      text-sm
+                      text-xs sm:text-sm
                       text-gray-400
                       hover:text-white
                       transition-all
+                      min-w-[60px]
                     `}
                   >
                     <div
                       className="
-                        w-10 h-10 sm:w-14 sm:h-14 md:w-12 md:h-12 rounded-full
+                        w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full
                         bg-white/10 backdrop-blur-md
                         flex items-center justify-center
                         group-hover:bg-white/20
@@ -807,37 +834,38 @@ const FullPagePlayer = () => {
                         touch-manipulation
                       "
                     >
-                      <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                         <path fillRule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V5zm11 1H6v8l4-2 4 2V6z" clipRule="evenodd"></path>
                       </svg>
                     </div>
-                    <span>Playlist</span>
+                    <span className="truncate">Playlist</span>
                   </button>
 
                   <button
                     onClick={() => setIsShareModalOpen(true)}
                     className={`
                       group flex flex-col items-center gap-1
-                      text-sm
+                      text-xs sm:text-sm
                       text-gray-400
                       hover:text-white
                       transition-all
+                      min-w-[60px]
                     `}
                   >
                     <div
                       className="
-                        w-10 h-10 sm:w-12 sm:h-12 rounded-full
+                        w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full
                         bg-white/10 backdrop-blur-md
                         flex items-center justify-center
                         group-hover:bg-white/20
                         transition-all
                       "
                     >
-                      <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
                       </svg>
                     </div>
-                    <span>Share</span>
+                    <span className="truncate">Share</span>
                   </button>
                   
                   {/* Shuffle Button */}
@@ -845,27 +873,28 @@ const FullPagePlayer = () => {
                     onClick={shufflePlaylist}
                     className={`
                       group flex flex-col items-center gap-1
-                      text-sm
+                      text-xs sm:text-sm
                       text-gray-400
                       hover:text-white
                       transition-all
+                      min-w-[60px]
                     `}
                     title="Shuffle playlist"
                   >
                     <div
                       className="
-                        w-10 h-10 sm:w-12 sm:h-12 rounded-full
+                        w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full
                         bg-white/10 backdrop-blur-md
                         flex items-center justify-center
                         group-hover:bg-white/20
                         transition-all
                       "
                     >
-                      <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z" />
                       </svg>
                     </div>
-                    <span>Shuffle</span>
+                    <span className="truncate">Shuffle</span>
                   </button>
                                     
                   {/* Loop Button */}
@@ -873,101 +902,146 @@ const FullPagePlayer = () => {
                     onClick={toggleLoop}
                     className={`
                       group flex flex-col items-center gap-1
-                      text-sm
+                      text-xs sm:text-sm
                       ${isLooping ? 'text-[#FF4D67]' : 'text-gray-400'}
                       hover:text-white
                       transition-all
+                      min-w-[60px]
                     `}
                     title="Loop track/playlist"
                   >
                     <div
                       className="
-                        w-10 h-10 sm:w-12 sm:h-12 rounded-full
+                        w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full
                         bg-white/10 backdrop-blur-md
                         flex items-center justify-center
                         group-hover:bg-white/20
                         transition-all
                       "
                     >
-                      <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                       </svg>
                     </div>
-                    <span>Loop</span>
+                    <span className="truncate">Loop</span>
                   </button>
                                      
                   
                   
-                  {/* Download Button */}
-                  <button
-                    onClick={async () => {
-                      // Simple logic to detect if track is a beat
-                      const isBeat = currentTrack.type === 'beat' || 
-                                    (currentTrack.title && currentTrack.title.toLowerCase().includes('beat'));                      
-                      if (isBeat) {
-                        // For beats, we need to ensure we have the creator's WhatsApp number
-                        let creatorWhatsapp = currentTrack.creatorWhatsapp;
-                        
-                        // If we don't have the WhatsApp number, fetch it directly
-                        if (!creatorWhatsapp && currentTrack.creatorId) {
-                          const { fetchCreatorWhatsapp } = await import('@/services/trackService');
-                          const whatsappResult = await fetchCreatorWhatsapp(currentTrack.creatorId);
-                          if (whatsappResult) {
-                            creatorWhatsapp = whatsappResult;
+                  {/* Beat-specific Action Button */}
+                  {(currentTrack.type === 'beat' || (currentTrack.title && currentTrack.title.toLowerCase().includes('beat'))) ? (
+                    // For beats, show either WhatsApp button (for paid) or download button (for free)
+                    currentTrack.paymentType === 'paid' ? (
+                      // WhatsApp button for paid beats
+                      <button
+                        onClick={async () => {
+                          // For paid beats, we need to ensure we have the creator's WhatsApp number
+                          let creatorWhatsapp = currentTrack.creatorWhatsapp;
+                          
+                          // If we don't have the WhatsApp number, fetch it directly
+                          if (!creatorWhatsapp && currentTrack.creatorId) {
+                            const { fetchCreatorWhatsapp } = await import('@/services/trackService');
+                            const whatsappResult = await fetchCreatorWhatsapp(currentTrack.creatorId);
+                            if (whatsappResult) {
+                              creatorWhatsapp = whatsappResult;
+                            }
                           }
-                        }
-                        
-                        if (creatorWhatsapp) {
-                          // Show confirmation dialog with option to open WhatsApp
-                          const message = `This is a beat that requires contacting the creator via WhatsApp to obtain.
+                          
+                          if (creatorWhatsapp) {
+                            // Show confirmation dialog with option to open WhatsApp
+                            const message = `This is a paid beat that requires contacting the creator via WhatsApp to obtain.
 
 Creator's WhatsApp: ${creatorWhatsapp}
 
 Would you like to open WhatsApp to contact the creator?`;
-                          if (confirm(message)) {
-                            const whatsappMessage = `Hi, I'm interested in your beat "${currentTrack.title}" that I found on MuzikaX.`;
-                            window.open(`https://wa.me/${creatorWhatsapp}?text=${encodeURIComponent(whatsappMessage)}`, '_blank');
+                            if (confirm(message)) {
+                              const whatsappMessage = `Hi, I'm interested in your beat "${currentTrack.title}" that I found on MuzikaX.`;
+                              window.open(`https://wa.me/${creatorWhatsapp}?text=${encodeURIComponent(whatsappMessage)}`, '_blank');
+                            }
+                          } else {
+                            // No WhatsApp contact available
+                            alert('This is a paid beat that requires contacting the creator via WhatsApp to obtain. Unfortunately, the creator has not provided their WhatsApp contact information.');
                           }
-                        } else {
-                          // No WhatsApp contact available
-                          alert('This is a beat that requires contacting the creator via WhatsApp to obtain. Unfortunately, the creator has not provided their WhatsApp contact information.');
-                        }
-                      } else {
-                        // For non-beat tracks, proceed with normal download
-                        downloadTrack();
-                      }
-                    }}
-                    className={`
-                      group flex flex-col items-center gap-1
-                      text-sm
-                      text-gray-400
-                      hover:text-white
-                      transition-all
-                    `}
-                  >
-                    <div
-                      className="
-                        w-10 h-10 sm:w-12 sm:h-12 rounded-full
-                        bg-white/10 backdrop-blur-md
-                        flex items-center justify-center
-                        group-hover:bg-white/20
+                        }}
+                        className={`
+                          group flex flex-col items-center gap-1
+                          text-sm
+                          text-green-400
+                          hover:text-white
+                          transition-all
+                        `}
+                      >
+                        <div
+                          className="
+                            w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full
+                            bg-green-500/20 border border-green-500/30 hover:bg-green-500/30
+                            flex items-center justify-center
+                            transition-all
+                          "
+                        >
+                          <svg className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"></path>
+                          </svg>
+                        </div>
+                        <span className="font-medium">WhatsApp</span>
+                        <span className="text-xs opacity-75">Paid Beat</span>
+                      </button>
+                    ) : (
+                      // Direct download button for free beats
+                      <button
+                        onClick={downloadTrack}
+                        className={`
+                          group flex flex-col items-center gap-1
+                          text-sm
+                          text-blue-400
+                          hover:text-white
+                          transition-all
+                        `}
+                      >
+                        <div
+                          className="
+                            w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full
+                            bg-blue-500/20 border border-blue-500/30 hover:bg-blue-500/30
+                            flex items-center justify-center
+                            transition-all
+                          "
+                        >
+                          <svg className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                          </svg>
+                        </div>
+                        <span className="font-medium">Download</span>
+                        <span className="text-xs opacity-75">Free Beat</span>
+                      </button>
+                    )
+                  ) : (
+                    // Regular download button for non-beats
+                    <button
+                      onClick={downloadTrack}
+                      className={`
+                        group flex flex-col items-center gap-1
+                        text-sm
+                        text-gray-400
+                        hover:text-white
                         transition-all
-                      "
+                      `}
                     >
-                      {(currentTrack.type === 'beat' || (currentTrack.title && currentTrack.title.toLowerCase().includes('beat'))) ? (
-                        // WhatsApp icon for beats
-                        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"></path>
-                        </svg>
-                      ) : (
-                        // Download icon for non-beats
-                        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <div
+                        className="
+                          w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full
+                          bg-white/10 backdrop-blur-md
+                          flex items-center justify-center
+                          group-hover:bg-white/20
+                          transition-all
+                        "
+                      >
+                        <svg className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                         </svg>
-                      )}
-                    </div>
-                    <span>{(currentTrack.type === 'beat' || (currentTrack.title && currentTrack.title.toLowerCase().includes('beat'))) ? 'WhatsApp' : 'Download'}</span>
-                  </button>
+                      </div>
+                      <span className="font-medium">Download</span>
+                    </button>
+                  )}
                   
 
                 </div>
@@ -1059,9 +1133,9 @@ Would you like to open WhatsApp to contact the creator?`;
             </div>
             
             {/* Comments and Creator Section */}
-            <div className="md:col-span-1 space-y-4 sm:space-y-6">
+            <div className="lg:col-span-1 space-y-3 sm:space-y-4 md:space-y-6">
               {/* Uploaded By Section */}
-              <div className="bg-gray-800/50 rounded-xl p-4 sm:p-6">
+              <div className="bg-gray-800/50 rounded-xl p-3 sm:p-4 md:p-6">
                 <h3 className="text-xl font-bold mb-4">Uploaded By</h3>
                 
                 {loadingCreator ? (
@@ -1148,7 +1222,7 @@ Would you like to open WhatsApp to contact the creator?`;
               </div>
               
               {/* Comments Section */}
-              <div className="bg-gray-800/50 rounded-xl p-6">
+              <div className="bg-gray-800/50 rounded-xl p-3 sm:p-4 md:p-6">
                 <h3 className="text-xl font-bold mb-4">Comments</h3>
                 
                 {/* Add Comment Form */}
