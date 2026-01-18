@@ -78,6 +78,7 @@ interface AudioPlayerContextType {
   clearQueue: () => void;
   moveQueueItem: (fromIndex: number, toIndex: number) => void;
   playFromQueue: (trackId: string) => void;
+  addAlbumToQueue: (albumTracks: Track[]) => void;
   addRecommendationsToQueue: (limit?: number) => Promise<number>;
   addComment: (comment: Omit<Comment, 'id' | 'timestamp'>) => void;
   removeComment: (commentId: string) => void;
@@ -313,6 +314,15 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
       setCurrentTrackIndex(index >= 0 ? index : 0);
       // Update ref synchronously
       currentTrackIndexRef.current = index >= 0 ? index : 0;
+      
+      // Add remaining album tracks to queue (excluding the current track)
+      const remainingAlbumTracks = albumContext.tracks
+        .filter((t, i) => i > index) // Only tracks after the current one
+        .filter(t => !queue.some(qt => qt.id === t.id)); // Avoid duplicates in queue
+      if (remainingAlbumTracks.length > 0) {
+        setQueue(prev => [...prev, ...remainingAlbumTracks]);
+        console.log(`Added ${remainingAlbumTracks.length} remaining album tracks to queue`);
+      }
     } else if (contextPlaylist && contextPlaylist.length > 0) {
       console.log('Setting playlist context with tracks:', contextPlaylist);
       currentPlaybackContext.current = { 
@@ -1190,6 +1200,23 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // Function to add all tracks from an album to the queue
+  const addAlbumToQueue = (albumTracks: Track[]) => {
+    // Filter out tracks that are already in the queue to avoid duplicates
+    const newTracks = albumTracks.filter(track => 
+      !queue.some(queueTrack => queueTrack.id === track.id)
+    );
+    
+    if (newTracks.length > 0) {
+      setQueue(prev => [...prev, ...newTracks]);
+      // Dispatch a toast notification
+      const toastEvent = new CustomEvent('showToast', {
+        detail: { message: `Added ${newTracks.length} tracks to queue`, type: 'success' }
+      });
+      window.dispatchEvent(toastEvent);
+    }
+  };
+
   // Add shufflePlaylist function
   const shufflePlaylist = () => {
     if (playlist.length <= 1) {
@@ -1441,6 +1468,7 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
         clearQueue,
         moveQueueItem,
         playFromQueue,
+        addAlbumToQueue, // Export addAlbumToQueue function
         addRecommendationsToQueue,
         addComment,
         removeComment,

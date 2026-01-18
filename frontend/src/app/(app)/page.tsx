@@ -959,7 +959,7 @@ export default function Home() {
                           // Set the playlist and play the first track
                           if (tracks.length > 0) {
                             setCurrentPlaylist(tracks);
-                            playTrack(tracks[0]);
+                            playTrack(tracks[0], tracks, { albumId: album.id, tracks });
                           }
                         } catch (error) {
                           console.error('Error playing album:', error);
