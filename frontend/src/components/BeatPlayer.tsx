@@ -87,8 +87,8 @@ const BeatPlayer = ({ className = '' }: BeatPlayerProps) => {
       {/* Beat-specific header */}
       <div className="px-4 py-3 border-b border-gray-800/50">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="relative">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <div className="relative flex-shrink-0">
               <div className="absolute -inset-1 bg-[#FF4D67] rounded-lg blur opacity-30 animate-pulse"></div>
               <img
                 src={currentTrack.coverImage}
@@ -98,15 +98,15 @@ const BeatPlayer = ({ className = '' }: BeatPlayerProps) => {
                 }`}
               />
             </div>
-            <div>
-              <h4 className="text-white font-bold text-sm truncate max-w-[120px]">{currentTrack.title}</h4>
-              <p className="text-[#FFCB2B] text-xs truncate">{currentTrack.artist}</p>
+            <div className="min-w-0 flex-1">
+              <h4 className="text-white font-bold text-sm truncate max-w-[160px]">{currentTrack.title}</h4>
+              <p className="text-[#FFCB2B] text-xs truncate max-w-[140px]">{currentTrack.artist}</p>
               <div className="flex items-center gap-1 mt-1">
-                <span className="text-[#FF4D67] text-xs font-medium">BEAT</span>
+                <span className="text-[#FF4D67] text-xs font-medium whitespace-nowrap">BEAT</span>
                 {currentTrack.paymentType === 'paid' ? (
-                  <span className="text-green-400 text-xs">• PAID</span>
+                  <span className="text-green-400 text-xs whitespace-nowrap">• PAID</span>
                 ) : (
-                  <span className="text-blue-400 text-xs">• FREE</span>
+                  <span className="text-blue-400 text-xs whitespace-nowrap">• FREE</span>
                 )}
               </div>
             </div>

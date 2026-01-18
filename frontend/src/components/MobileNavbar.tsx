@@ -65,23 +65,23 @@ export default function MobileNavbar() {
         <div className="bg-gray-900 border-t border-gray-700">
           <Link 
             href="/player" 
-            className="flex items-center p-2 space-x-3 active:scale-95 transition-transform duration-200"
+            className="flex items-center p-2 gap-2 active:scale-95 transition-transform duration-200 min-h-[52px]"
           >
             <img 
               src={currentTrack.coverImage} 
               alt={currentTrack.title} 
-              className="w-10 h-10 rounded object-cover border border-gray-700"
+              className="w-10 h-10 rounded object-cover border border-gray-700 flex-shrink-0"
             />
-            <div className="flex-1 min-w-0">
-              <p className="text-white text-sm font-medium truncate">{currentTrack.title}</p>
-              <p className="text-gray-300 text-xs truncate">{currentTrack.artist}</p>
+            <div className="flex-1 min-w-0 overflow-hidden">
+              <p className="text-white text-sm font-medium truncate leading-tight">{currentTrack.title}</p>
+              <p className="text-gray-300 text-xs truncate leading-tight mt-0.5">{currentTrack.artist}</p>
             </div>
             <button 
               onClick={(e) => {
                 e.preventDefault();
                 togglePlayPause();
               }}
-              className="w-8 h-8 rounded-full bg-[#FF4D67] flex items-center justify-center active:scale-95 transition-transform duration-200 shadow-lg"
+              className="w-8 h-8 rounded-full bg-[#FF4D67] flex items-center justify-center active:scale-95 transition-transform duration-200 shadow-lg flex-shrink-0"
             >
               {isPlaying ? (
                 <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
