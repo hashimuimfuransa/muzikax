@@ -227,6 +227,22 @@ export const fetchTracksByCreator = async (creatorId: string, page: number = 1, 
 /**
  * Fetch popular creators (users with role 'creator')
  */
+export const fetchTracksByType = async (type: string, limit: number = 10): Promise<ITrack[]> => {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tracks/type?type=${type}&limit=${limit}`);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch tracks by type: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching tracks by type:', error);
+    throw error;
+  }
+};
+
 export const fetchPopularCreators = async (limit: number = 10): Promise<any[]> => {
   try {
     // Use the new public creators endpoint that doesn't require any authentication

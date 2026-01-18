@@ -304,7 +304,10 @@ export const getTrendingTracks = async (req: Request, res: Response): Promise<vo
   try {
     const limit = parseInt(req.query['limit'] as string) || 10;
 
-    const tracks = await Track.find()
+    // Filter out beat and beta type tracks from trending (case-insensitive)
+    const tracks = await Track.find({
+      type: { $nin: ['beat', 'BEAT', 'Beat', 'beta', 'BETA', 'Beta'] }  // Case-insensitive exclusion of types
+    })
       .sort({ plays: -1, createdAt: -1 })
       .limit(limit)
       .populate('creatorId', 'name avatar whatsappContact');

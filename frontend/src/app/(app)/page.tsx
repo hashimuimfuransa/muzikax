@@ -53,7 +53,7 @@ const generateAvatar = (name: string) => {
 // Albums are now fetched directly from the API, so we don't need this function anymore
 export default function Home() {
   const [activeTab, setActiveTab] = useState<
-    "trending" | "new" | "popular" | "beats" | "mixes"
+    "trending" | "new" | "popular" | "mixes"
   >("trending");
   const [currentSlide, setCurrentSlide] = useState(0);
   const { isAuthenticated, userRole } = useAuth();
@@ -165,28 +165,10 @@ export default function Home() {
   const { tracks: trendingTracksData, loading: trendingLoading, refresh: refreshTrendingTracks } =
     useTrendingTracks(10);
   
-  // Fetch beats specifically for the beats section
-  const [beatsData, setBeatsData] = useState<any[]>([]);
-  const [beatsLoading, setBeatsLoading] = useState(true);
+
+
   
-  useEffect(() => {
-    const fetchBeats = async () => {
-      try {
-        setBeatsLoading(true);
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tracks?type=beat&limit=6`);
-        if (response.ok) {
-          const data = await response.json();
-          setBeatsData(data.tracks || data);
-        }
-      } catch (error) {
-        console.error('Error fetching beats:', error);
-      } finally {
-        setBeatsLoading(false);
-      }
-    };
-    
-    fetchBeats();
-  }, []);
+
 
   // Fetch real popular creators
   const { creators: popularCreatorsData, loading: creatorsLoading } =
@@ -219,9 +201,8 @@ export default function Home() {
     };
   }, [refreshTrendingTracks]);
 
-  // Transform tracks data to match existing interface (excluding beats)
+  // Transform tracks data to match existing interface
   const trendingTracks: Track[] = trendingTracksData
-    .filter((track) => track.type !== 'beat') // Exclude beats from trending sections
     .map((track) => ({
     id: track._id,
     title: track.title,
@@ -782,39 +763,7 @@ export default function Home() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
                       </svg>
                     </button>
-                    {/* Download button for beats */}
-                    {trendingTracksData.find(t => t._id === track.id)?.type === 'beat' && (
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          // Find the full track object
-                          const fullTrack = trendingTracksData.find(t => t._id === track.id);
-                          if (fullTrack) {
-                            // Create a temporary link element
-                            const link = document.createElement('a');
-                            link.href = fullTrack.audioURL;
-                            link.download = `${fullTrack.title.replace(/\s+/g, '_')}.mp3`; // Suggest a filename
-                            
-                            // Trigger the download
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
-                          }
-                        }}
-                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-purple-600 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 hover:scale-110"
-                        title="Download beat"
-                      >
-                        <svg
-                          className="w-4 h-4 sm:w-5 sm:h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                        </svg>
-                      </button>
-                    )}
+
                   </div>
                 </div>
 
@@ -1064,192 +1013,6 @@ export default function Home() {
         </section>
 
         {/* Popular Beats Section */}
-        <section className="w-full px-4 md:px-8 py-8 sm:py-10">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl sm:text-2xl font-bold text-white">
-              Popular Beats
-            </h2>
-            <a
-              href="/tracks?category=beats"
-              className="text-[#FF4D67] hover:text-[#FFCB2B] text-sm sm:text-base transition-colors"
-            >
-              View All
-            </a>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {beatsLoading ? (
-              // Loading skeleton
-              Array.from({ length: 6 }).map((_, index) => (
-                <div key={index} className="group card-bg rounded-xl overflow-hidden animate-pulse">
-                  <div className="w-full aspect-square bg-gray-700"></div>
-                  <div className="p-3">
-                    <div className="h-4 bg-gray-700 rounded mb-2"></div>
-                    <div className="h-3 bg-gray-700 rounded w-3/4"></div>
-                  </div>
-                </div>
-              ))
-            ) : beatsData.length > 0 ? (
-              // Actual beats data
-              beatsData.slice(0, 6).map((track: any) => (
-                <div
-                  key={track.id}
-                  className="group card-bg rounded-xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10"
-                >
-                  <div className="relative">
-                    {track.coverImage && track.coverImage.trim() !== '' ? (
-                      <img
-                        src={track.coverImage}
-                        alt={track.title}
-                        className="w-full aspect-square object-cover"
-                      />
-                    ) : (
-                      <div className="w-full aspect-square bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center">
-                        <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
-                        </svg>
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                      <button
-                        onClick={() => {
-                          // Find the full track object to get the audioURL
-                          const fullTrack = trendingTracksData.find(
-                            (t) => t._id === track.id,
-                          );
-                          if (fullTrack && fullTrack.audioURL) {
-                            playTrack({
-                              id: track.id,
-                              title: track.title,
-                              artist: track.artist,
-                              coverImage: track.coverImage,
-                              audioUrl: fullTrack.audioURL,
-                              creatorId: typeof fullTrack.creatorId === 'object' && fullTrack.creatorId !== null ? (fullTrack.creatorId as any)._id : fullTrack.creatorId
-                            });
-
-                            // Set the current playlist to all trending tracks
-                            const playlistTracks = trendingTracksData
-                              .filter((t) => t.audioURL) // Only tracks with audio
-                              .map((t) => ({
-                                id: t._id,
-                                title: t.title,
-                                artist:
-                                  typeof t.creatorId === "object" &&
-                                  t.creatorId !== null
-                                    ? (t.creatorId as any).name
-                                    : "Unknown Artist",
-                                coverImage:
-                                  t.coverURL ||
-                                  "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
-                                audioUrl: t.audioURL,
-                                creatorId: typeof t.creatorId === 'object' && t.creatorId !== null ? (t.creatorId as any)._id : t.creatorId
-                              }));
-                            setCurrentPlaylist(playlistTracks);
-                          }
-                        }}
-                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300"
-                      >
-                        {currentTrack?.id === track.id && isPlaying ? (
-                          <svg
-                            className="w-4 h-4 sm:w-5 sm:h-5"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z"
-                              clipRule="evenodd"
-                            ></path>
-                          </svg>
-                        ) : (
-                          <svg
-                            className="w-4 h-4 sm:w-5 sm:h-5"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
-                              clipRule="evenodd"
-                            ></path>
-                          </svg>
-                        )}
-                      </button>
-                      {/* Download button for beats */}
-                      {track.type === 'beat' && (
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            // Create a temporary link element
-                            const link = document.createElement('a');
-                            link.href = track.audioURL;
-                            link.download = `${track.title.replace(/\s+/g, '_')}.mp3`; // Suggest a filename
-                            
-                            // Trigger the download
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
-                          }}
-                          className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-purple-600 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 hover:scale-110"
-                          title="Download beat"
-                        >
-                          <svg
-                            className="w-4 h-4 sm:w-5 sm:h-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                          </svg>
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="p-3">
-                    <h3 className="font-bold text-white text-sm sm:text-base mb-1 truncate">
-                      {track.title}
-                    </h3>
-                    <p className="text-gray-400 text-xs sm:text-sm truncate">
-                      {track.artist}
-                    </p>
-                    <div className="flex justify-between items-center mt-2">
-                      <span className="text-gray-500 text-xs">
-                        {track.duration}
-                      </span>
-                      <div className="flex items-center gap-1">
-                        <svg
-                          className="w-3 h-3 sm:w-4 sm:h-4 text-[#FF4D67]"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
-                            clipRule="evenodd"
-                          ></path>
-                        </svg>
-                        <span className="text-gray-500 text-xs">
-                          {track.likes}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))
-            ) : (
-              // No beats available
-              <div className="col-span-full text-center py-8">
-                <p className="text-gray-400">No beats available at the moment.</p>
-              </div>
-            )}
-          </div>
-        </section>
-
         {/* Popular Mixes Section */}
         <section className="w-full px-4 md:px-8 py-8 sm:py-10">
           <div className="flex items-center justify-between mb-6">
@@ -1427,16 +1190,7 @@ export default function Home() {
               >
                 Popular Creators
               </button>
-              <button
-                className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors whitespace-nowrap ${
-                  activeTab === "beats"
-                    ? "text-[#FF4D67] border-b-2 border-[#FF4D67]"
-                    : "text-gray-500 hover:text-gray-300"
-                }`}
-                onClick={() => setActiveTab("beats")}
-              >
-                Beats
-              </button>
+
               <button
                 className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors whitespace-nowrap ${
                   activeTab === "mixes"
@@ -1447,6 +1201,7 @@ export default function Home() {
               >
                 Mixes
               </button>
+
               <a
                 href="/tracks"
                 className="py-3 px-4 sm:px-6 font-medium text-sm sm:text-base text-[#FF4D67] hover:text-[#FFCB2B] transition-colors whitespace-nowrap flex items-center"
@@ -1838,158 +1593,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* Beats */}
-          {activeTab === "beats" && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-              {beatsData
-                .map((track) => (
-                  <div
-                    key={track.id}
-                    className="group card-bg rounded-2xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10"
-                  >
-                    <div className="relative">
-                      {track.coverImage && track.coverImage.trim() !== '' ? (
-                        <img
-                          src={track.coverImage}
-                          alt={track.title}
-                          className="w-full h-40 sm:h-48 object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-40 sm:h-48 bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center">
-                          <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
-                          </svg>
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <button
-                          onClick={() => {
-                            // Find the full track object to get the audioURL
-                            const fullTrack = trendingTracksData.find(
-                              (t) => t._id === track.id,
-                            );
-                            if (fullTrack && fullTrack.audioURL) {
-                              playTrack({
-                                id: track.id,
-                                title: track.title,
-                                artist: track.artist,
-                                coverImage: track.coverImage,
-                                audioUrl: fullTrack.audioURL,
-                                creatorId: typeof fullTrack.creatorId === 'object' && fullTrack.creatorId !== null ? (fullTrack.creatorId as any)._id : fullTrack.creatorId
-                              });
 
-                              // Set the current playlist to all trending tracks
-                              const playlistTracks = trendingTracksData
-                                .filter((t) => t.audioURL) // Only tracks with audio
-                                .map((t) => ({
-                                  id: t._id,
-                                  title: t.title,
-                                  artist:
-                                    typeof t.creatorId === "object" &&
-                                    t.creatorId !== null
-                                      ? (t.creatorId as any).name
-                                      : "Unknown Artist",
-                                  coverImage:
-                                    t.coverURL ||
-                                    "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
-                                  audioUrl: t.audioURL,
-                                  creatorId: typeof t.creatorId === 'object' && t.creatorId !== null ? (t.creatorId as any)._id : t.creatorId
-                                }));
-                              setCurrentPlaylist(playlistTracks);
-                            }
-                          }}
-                          className="w-12 h-12 sm:w-14 sm:h-14 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300"
-                        >
-                          {currentTrack?.id === track.id && isPlaying ? (
-                            <svg
-                              className="w-5 h-5 sm:w-6 sm:h-6"
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z"
-                                clipRule="evenodd"
-                              ></path>
-                            </svg>
-                          ) : (
-                            <svg
-                              className="w-5 h-5 sm:w-6 sm:h-6"
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
-                                clipRule="evenodd"
-                              ></path>
-                            </svg>
-                          )}
-                        </button>
-                      </div>
-                      <div className="absolute top-2 right-2 sm:top-3 sm:right-3">
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            // Find the full track object
-                            const fullTrack = trendingTracksData.find(t => t._id === track.id);
-                            if (fullTrack) {
-                              toggleFavorite(track.id, fullTrack);
-                            }
-                          }}
-                          className="p-1.5 sm:p-2 rounded-full bg-black/30 backdrop-blur-sm text-white opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110"
-                        >
-                          <svg 
-                            className={`w-4 h-4 sm:w-5 sm:h-5 transition-all duration-200 ${favoriteStatus[track.id] ? 'text-red-500 fill-current scale-110' : 'stroke-current'}`}
-                            fill={favoriteStatus[track.id] ? "currentColor" : "none"}
-                            stroke="currentColor"
-                            viewBox="0 0 24 24" 
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="p-4 sm:p-5">
-                      <h3 className="font-bold text-white text-lg mb-1 truncate">
-                        {track.title}
-                      </h3>
-                      <p className="text-gray-400 text-sm sm:text-base mb-1 truncate">
-                        {track.artist}
-                      </p>
-                      {track.album && (
-                        <p className="text-gray-500 text-xs sm:text-sm mb-3 truncate">
-                          {track.album}
-                        </p>
-                      )}
-
-                      <div className="flex justify-between text-xs sm:text-sm text-gray-500">
-                        <span>{track.plays?.toLocaleString() || '0'} plays</span>
-                        <div className="flex items-center gap-1">
-                          <svg
-                            className="w-3 h-3 sm:w-4 sm:h-4"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
-                              clipRule="evenodd"
-                            ></path>
-                          </svg>
-                          <span>{track.likes || 0}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-            </div>
-          )}
 
           {/* Mixes */}
           {activeTab === "mixes" && (

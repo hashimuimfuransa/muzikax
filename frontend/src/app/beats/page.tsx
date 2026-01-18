@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useTrendingTracks } from '../../hooks/useTracks'
+import { useTracksByType } from '../../hooks/useTracks'
 import { useAudioPlayer } from '../../contexts/AudioPlayerContext'
 import { ITrack } from '@/types'
 
@@ -22,14 +22,13 @@ interface Track {
 }
 
 export default function BeatsPage() {
-  const { tracks: trendingTracksData, loading: trendingLoading, refresh: refreshTrendingTracks } = useTrendingTracks(50)
+  const { tracks: beatTracks, loading: beatsLoading, refresh: refreshBeats } = useTracksByType('beat', 50)
   const { favorites, favoritesLoading, addToFavorites, removeFromFavorites, playTrack, setCurrentPlaylist } = useAudioPlayer()
 
   // State for tracking which tracks are favorited
   const [favoriteStatus, setFavoriteStatus] = useState<Record<string, boolean>>({})
   
-  // Filter only beat tracks
-  const beatTracks = trendingTracksData.filter((track: ITrack) => track.type === 'beat');
+  const refreshTrendingTracks = refreshBeats; // Alias for compatibility with existing code
 
   // Update favorite status when favorites change or when favorites are loaded
   useEffect(() => {
@@ -116,7 +115,7 @@ export default function BeatsPage() {
   }, [refreshTrendingTracks])
 
   // Loading state
-  if (trendingLoading) {
+  if (beatsLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black flex items-center justify-center">
         <div className="text-white">Loading beats...</div>
@@ -311,8 +310,7 @@ export default function BeatsPage() {
                           });
                           
                           // Set the current playlist to beat tracks
-                          const playlistTracks = trendingTracksData
-                            .filter((t: ITrack) => t.type === 'beat' && t.audioURL)
+                          const playlistTracks = beatTracks
                             .map((t: ITrack) => ({
                               id: t._id,
                               title: t.title,

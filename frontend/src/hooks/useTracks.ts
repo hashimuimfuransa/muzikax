@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ITrack } from '../types';
-import { fetchAllTracks, fetchTrendingTracks, fetchPopularCreators } from '../services/trackService';
+import { fetchAllTracks, fetchTrendingTracks, fetchPopularCreators, fetchTracksByType } from '../services/trackService';
 
 interface UseTracksResult {
   tracks: ITrack[];
@@ -92,4 +92,30 @@ export const usePopularCreators = (limit: number = 10): UseCreatorsResult => {
   }, [limit]);
 
   return { creators, loading, error, refresh: fetchCreators };
+};
+
+export const useTracksByType = (type: string, limit: number = 10): UseTracksResult => {
+  const [tracks, setTracks] = useState<ITrack[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchTracks = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await fetchTracksByType(type, limit);
+      setTracks(data);
+    } catch (err: any) {
+      setError(err.message || `Failed to fetch ${type} tracks`);
+      console.error(`Error fetching ${type} tracks:`, err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTracks();
+  }, [type, limit]);
+
+  return { tracks, loading, error, refresh: fetchTracks };
 };

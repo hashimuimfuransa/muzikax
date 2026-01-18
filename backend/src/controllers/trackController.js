@@ -326,17 +326,54 @@ const incrementPlayCount = async (req, res) => {
 exports.incrementPlayCount = incrementPlayCount;
 // Get trending tracks
 const getTrendingTracks = async (req, res) => {
+        try {
+            const limit = parseInt(req.query['limit']) || 10;
+            // Filter out beat and beta type tracks from trending (case-insensitive)
+            const tracks = await Track_1.find({
+                type: { $nin: ['beat', 'BEAT', 'Beat', 'beta', 'BETA', 'Beta'] }  // Case-insensitive exclusion of types
+            })
+                .sort({ plays: -1, createdAt: -1 })
+                .limit(limit)
+                .populate('creatorId', 'name avatar');
+            res.json(tracks);
+        }
+    catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+exports.getTrendingTracks = getTrendingTracks;
+
+// Get tracks by type (for specific type sections like beats)
+const getTracksByType = async (req, res) => {
     try {
-        const limit = parseInt(req.query['limit']) || 10;
-        const tracks = await Track_1.find()
+        const type = req.query.type;
+        const limit = parseInt(req.query.limit) || 10;
+        
+        if (!type) {
+            res.status(400).json({ message: 'Type parameter is required' });
+            return;
+        }
+        
+        // Allow fetching specific types like 'beat', 'beta', 'song', 'mix'
+        // Also handle the case where 'beat' should return both 'beat' and 'beta' types
+        let query = { type: type.toLowerCase() };
+        if (type.toLowerCase() === 'beat') {
+            query = { type: { $in: ['beat', 'beta'] } };
+        } else {
+            query = { type: type.toLowerCase() };
+        }
+        
+        const tracks = await Track_1.find(query)
             .sort({ plays: -1, createdAt: -1 })
             .limit(limit)
-            .populate('creatorId', 'name avatar');
+            .populate('creatorId', 'name avatar whatsappContact');
+            
         res.json(tracks);
     }
     catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
-exports.getTrendingTracks = getTrendingTracks;
+exports.getTracksByType = getTracksByType;
+
 //# sourceMappingURL=trackController.js.map
