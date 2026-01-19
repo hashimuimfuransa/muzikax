@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../contexts/AuthContext';
 import PlaylistSelectionModal from '../../components/PlaylistSelectionModal';
+import ReportTrackModal from '../../components/ReportTrackModal';
 import { fetchCreatorProfile, fetchTracksByCreatorPublic } from '../../services/trackService';
 
 // Define comment interface with replies
@@ -64,6 +65,7 @@ const FullPagePlayer = () => {
   const [comment, setComment] = useState('');
   const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false); // Added state for modal
   const [isShareModalOpen, setIsShareModalOpen] = useState(false); // Added state for share modal
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false); // Added state for report modal
   
   // Added state for creator profile and tracks
   const [creator, setCreator] = useState<any>(null);
@@ -1060,7 +1062,35 @@ Would you like to open WhatsApp to contact the creator?`;
                     </button>
                   )}
                   
-
+                  {/* Report Button */}
+                  <button
+                    onClick={() => setIsReportModalOpen(true)}
+                    className={`
+                      group flex flex-col items-center gap-1
+                      text-xs sm:text-sm
+                      text-gray-400
+                      hover:text-white
+                      transition-all
+                      min-w-[60px]
+                    `}
+                    title="Report this track"
+                  >
+                    <div
+                      className="
+                        w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full
+                        bg-white/10 backdrop-blur-md
+                        flex items-center justify-center
+                        group-hover:bg-white/20
+                        transition-all
+                        touch-manipulation
+                      "
+                    >
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                    </div>
+                    <span className="truncate">Report</span>
+                  </button>
                 </div>
                 
                 {/* Album Indicator and Navigation Buttons */}
@@ -1199,6 +1229,13 @@ Would you like to open WhatsApp to contact the creator?`;
                 </div>
               </div>
             </div>
+            
+            {/* Report Track Modal */}
+            <ReportTrackModal 
+              isOpen={isReportModalOpen} 
+              onClose={() => setIsReportModalOpen(false)} 
+              trackId={currentTrack.id}
+            />
             
             {/* Comments and Creator Section */}
             <div className="lg:col-span-1 space-y-3 sm:space-y-4 md:space-y-6">

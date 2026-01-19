@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
 import PlaylistSelectionModal from './PlaylistSelectionModal';
+import ReportTrackModal from './ReportTrackModal';
 
 const ModernAudioPlayer = () => {
   const {
@@ -42,6 +43,7 @@ const ModernAudioPlayer = () => {
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
   const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
   
   // Check if current track is in favorites
   useEffect(() => {
