@@ -56,6 +56,18 @@ interface MostPlayedTrack {
   likes: number
 }
 
+interface CountryStat {
+  country: string;
+  playCount: number;
+  uniqueListeners: number;
+  percentage: number;
+}
+
+interface GeographicData {
+  countryStats: CountryStat[];
+  totalPlays: number;
+}
+
 export default function AnalyticsPage() {
   const [timeRange, setTimeRange] = useState('30d')
   const [userGrowth, setUserGrowth] = useState<UserGrowthData[]>([])
@@ -71,6 +83,7 @@ export default function AnalyticsPage() {
   const [totalAdmins, setTotalAdmins] = useState(0);
   const [totalTracks, setTotalTracks] = useState(0);
   const [totalPlays, setTotalPlays] = useState(0);
+  const [geographicData, setGeographicData] = useState<GeographicData | null>(null);
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const router = useRouter()
@@ -100,7 +113,7 @@ export default function AnalyticsPage() {
       setLoading(true)
       
       // Fetch all analytics data
-      const [platformStatsResponse, userStatsResponse, contentStatsResponse, analyticsResponse] = await Promise.all([
+      const [platformStatsResponse, userStatsResponse, contentStatsResponse, analyticsResponse, geographicResponse] = await Promise.all([
         fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/platform-stats`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
@@ -120,10 +133,15 @@ export default function AnalyticsPage() {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
           }
+        }),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/geographic-distribution`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          }
         })
       ]);
       
-      if (!platformStatsResponse.ok || !userStatsResponse.ok || !contentStatsResponse.ok || !analyticsResponse.ok) {
+      if (!platformStatsResponse.ok || !userStatsResponse.ok || !contentStatsResponse.ok || !analyticsResponse.ok || !geographicResponse.ok) {
         throw new Error('Failed to fetch analytics data')
       }
       
@@ -131,6 +149,7 @@ export default function AnalyticsPage() {
       const userStats = await userStatsResponse.json();
       const contentStatsData = await contentStatsResponse.json();
       const analyticsData = await analyticsResponse.json();
+      const geographicDataRes = await geographicResponse.json();
       
       setUserGrowth(platformStats.userGrowth);
       setTopCreators(platformStats.topCreators);
@@ -145,6 +164,7 @@ export default function AnalyticsPage() {
       setTotalAdmins(analyticsData.totalAdmins);
       setTotalTracks(analyticsData.totalTracks);
       setTotalPlays(analyticsData.totalPlays);
+      setGeographicData(geographicDataRes);
       
       setLoading(false)
     } catch (err) {
@@ -510,6 +530,93 @@ export default function AnalyticsPage() {
                 </ResponsiveContainer>
               )}
             </div>
+          </div>
+
+          {/* Geographic Distribution */}
+          <div className="card-bg rounded-2xl p-4 sm:p-6">
+            <h2 className="text-lg sm:text-xl font-bold text-white mb-4 sm:mb-6">Geographic Distribution of Listeners</h2>
+            
+            {loading ? (
+              <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF4D67]"></div>
+              </div>
+            ) : error ? (
+              <div className="text-red-500 text-center py-8">{error}</div>
+            ) : geographicData ? (
+              <div className="overflow-x-auto">
+                <ResponsiveContainer width="100%" height={400}>
+                  <BarChart
+                    data={geographicData.countryStats}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#444" />
+                    <XAxis 
+                      dataKey="country" 
+                      angle={-45}
+                      textAnchor="end"
+                      height={60}
+                      tick={{ fill: '#9CA3AF', fontSize: 12 }}
+                    />
+                    <YAxis 
+                      tick={{ fill: '#9CA3AF', fontSize: 12 }}
+                      tickFormatter={(value) => value >= 1000 ? `${(value / 1000).toFixed(1)}k` : value}
+                    />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', borderRadius: '0.5rem' }}
+                      itemStyle={{ color: 'white' }}
+                      formatter={(value, name) => {
+                        if (name === 'playCount') {
+                          return [value, 'Plays'];
+                        } else if (name === 'uniqueListeners') {
+                          return [value, 'Unique Listeners'];
+                        } else if (name === 'percentage') {
+                          return [`${value}%`, 'Percentage'];
+                        }
+                        return [value, name];
+                      }}
+                      labelFormatter={(value) => `Country: ${value}`}
+                    />
+                    <Legend />
+                    <Bar dataKey="playCount" name="Play Count" fill="#FF4D67" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="uniqueListeners" name="Unique Listeners" fill="#6366F1" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+                
+                {/* Additional geographic metrics table */}
+                <div className="mt-6 overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="text-left text-gray-500 text-xs sm:text-sm border-b border-gray-800">
+                        <th className="pb-3 font-normal">Country</th>
+                        <th className="pb-3 font-normal">Plays</th>
+                        <th className="pb-3 font-normal">Unique Listeners</th>
+                        <th className="pb-3 font-normal">Percentage</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-800">
+                      {geographicData.countryStats.map((stat, index) => (
+                        <tr key={index} className="hover:bg-gray-800/30 transition-colors">
+                          <td className="py-3 sm:py-4">
+                            <div className="font-medium text-white text-sm sm:text-base">{stat.country}</div>
+                          </td>
+                          <td className="py-3 sm:py-4 text-gray-400 text-sm">
+                            {stat.playCount.toLocaleString()}
+                          </td>
+                          <td className="py-3 sm:py-4 text-gray-400 text-sm">
+                            {stat.uniqueListeners.toLocaleString()}
+                          </td>
+                          <td className="py-3 sm:py-4 text-gray-400 text-sm">
+                            {stat.percentage}%
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : (
+              <div className="text-gray-500 text-center py-8">No geographic data available</div>
+            )}
           </div>
         </div>
       </main>

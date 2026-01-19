@@ -7,7 +7,8 @@ const {
   getContentStats,
   getUserById,
   updateUserRole,
-  deleteUser
+  deleteUser,
+  getGeographicDistribution
 } = require('../controllers/adminController');
 const { protect, admin } = require('../utils/jwt');
 
@@ -80,6 +81,13 @@ router.route('/users/:id')
   .delete((req, res) => {
     console.log(`DELETE /api/admin/users/${req.params.id} route hit`);
     deleteUser(req, res);
+  });
+
+// Get geographic distribution of listeners
+router.route('/geographic-distribution')
+  .get((req, res) => {
+    console.log('GET /api/admin/geographic-distribution route hit');
+    getGeographicDistribution(req, res);
   });
 
 console.log('Admin routes registered successfully');

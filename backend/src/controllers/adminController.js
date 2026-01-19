@@ -399,4 +399,58 @@ const deleteUser = async (req, res) => {
     }
 };
 exports.deleteUser = deleteUser;
+
+// Get geographic distribution of listeners
+const getGeographicDistribution = async (_req, res) => {
+    try {
+        // Import ListenerGeography model
+        const ListenerGeography = require('../models/ListenerGeography');
+        
+        // Get top countries by play count
+        const countryStats = await ListenerGeography.aggregate([
+            {
+                $group: {
+                    _id: "$country",
+                    playCount: { $sum: 1 },
+                    uniqueListeners: { $addToSet: "$ipAddress" }
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    playCount: 1,
+                    uniqueListeners: { $size: "$uniqueListeners" }
+                }
+            },
+            {
+                $sort: { playCount: -1 }
+            },
+            {
+                $limit: 10
+            }
+        ]);
+        
+        // Get total play count by country for percentage calculation
+        const totalPlays = countryStats.reduce((sum, stat) => sum + stat.playCount, 0);
+        
+        // Format the data to include percentages
+        const formattedCountryStats = countryStats.map(stat => ({
+            country: stat._id,
+            playCount: stat.playCount,
+            uniqueListeners: stat.uniqueListeners,
+            percentage: totalPlays > 0 ? parseFloat(((stat.playCount / totalPlays) * 100).toFixed(2)) : 0
+        }));
+        
+        res.json({
+            countryStats: formattedCountryStats,
+            totalPlays
+        });
+    }
+    catch (error) {
+        console.error('Error in getGeographicDistribution:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+exports.getGeographicDistribution = getGeographicDistribution;
+
 //# sourceMappingURL=adminController.js.map
