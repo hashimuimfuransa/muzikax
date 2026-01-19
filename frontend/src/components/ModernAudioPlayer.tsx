@@ -254,21 +254,28 @@ const ModernAudioPlayer = () => {
       
       {/* Minimized Player */}
       {isMinimized && (
-        <div className={`fixed bottom-4 right-4 w-[${isBeat ? '380px' : '340px'}] rounded-2xl 
-        ${isBeat ? 'bg-gradient-to-br from-gray-900 to-black backdrop-blur-xl border border-[#FF4D67]/30 shadow-2xl shadow-[#FF4D67]/20' : 'bg-black/70 backdrop-blur-xl border border-white/10 shadow-[0_10px_40px_rgba(0,0,0,0.6)]'} 
-        z-50 animate-[fadeInUp_0.3s_ease-out]`}>
+        <div className={`
+          fixed bottom-20 sm:bottom-6 right-2 sm:right-6 
+          left-2 sm:left-auto
+          w-[calc(100vw-1rem)] sm:w-[${isBeat ? '380px' : '340px'}] 
+          max-w-[380px]
+          rounded-2xl 
+          ${isBeat ? 'bg-gradient-to-br from-gray-900 to-black backdrop-blur-xl border border-[#FF4D67]/30 shadow-2xl shadow-[#FF4D67]/20' : 'bg-black/70 backdrop-blur-xl border border-white/10 shadow-[0_10px_40px_rgba(0,0,0,0.6)]'} 
+          z-40 animate-[fadeInUp_0.3s_ease-out]
+          sm:z-50
+        `}>
           {/* Beat-specific styling */}
           {isBeat && (
             <div className="absolute inset-0 bg-gradient-to-r from-[#FF4D67]/20 via-[#FFCB2B]/20 to-[#8B5CF6]/20 rounded-2xl"></div>
           )}
           
           {/* Player Content */}
-          <div className="relative z-10 flex items-center p-3">
+          <div className="relative z-10 flex items-center p-2 sm:p-3">
             <div className="relative shrink-0">
               <img
                 src={currentTrack.coverImage}
                 alt={currentTrack.title}
-                className={`w-12 h-12 rounded-xl object-cover transition-transform duration-300 ${
+                className={`w-10 h-10 md:w-12 md:h-12 rounded-xl object-cover transition-transform duration-300 ${
                   isPlaying ? 'scale-105' : ''
                 } ${isBeat ? 'rounded-lg' : ''}`}
               />
@@ -282,24 +289,24 @@ const ModernAudioPlayer = () => {
               )}
             </div>
             
-            <div className="ml-3 flex-1 min-w-0 overflow-hidden">
+            <div className="ml-2 sm:ml-3 flex-1 min-w-0 overflow-hidden">
               {isBeat ? (
                 <>
-                  <h4 className="text-white font-bold text-sm truncate max-w-[160px]">{currentTrack.title}</h4>
-                  <p className="text-[#FFCB2B] text-xs truncate max-w-[140px]">{currentTrack.artist}</p>
-                  <div className="flex items-center gap-1 mt-1 flex-nowrap">
-                    <span className="text-[#FF4D67] text-xs font-medium whitespace-nowrap">BEAT</span>
-                    {currentTrack.paymentType === 'paid' ? (
-                      <span className="text-green-400 text-xs whitespace-nowrap">• PAID</span>
+                  <h4 className="text-white font-bold text-sm truncate">{currentTrack.title}</h4>
+                  <p className="text-[#FFCB2B] text-xs truncate">{currentTrack.artist}</p>
+                  <div className="flex items-center gap-1 mt-1 flex-wrap">
+                    <span className="text-[#FF4D67] text-xs font-medium">BEAT</span>
+                    {currentTrack.paymentType === "paid" ? (
+                      <span className="text-green-400 text-xs">• PAID</span>
                     ) : (
-                      <span className="text-blue-400 text-xs whitespace-nowrap">• FREE</span>
+                      <span className="text-blue-400 text-xs">• FREE</span>
                     )}
                   </div>
                 </>
               ) : (
                 <>
-                  <h4 className="text-white font-medium text-sm truncate max-w-[180px]">{currentTrack.title}</h4>
-                  <p className="text-gray-400 text-xs truncate max-w-[160px]">{currentTrack.artist}</p>
+                  <h4 className="text-white font-medium text-sm truncate">{currentTrack.title}</h4>
+                  <p className="text-gray-400 text-xs truncate">{currentTrack.artist}</p>
                 </>
               )}
               
@@ -307,7 +314,7 @@ const ModernAudioPlayer = () => {
               <div
                 ref={progressRef}
                 onClick={handleProgressClick}
-                className="mt-1 h-1 w-full bg-white/10 rounded-full cursor-pointer"
+                className="mt-1 h-1.5 sm:h-1 w-full bg-white/10 rounded-full cursor-pointer touch-manipulation"
               >
                 <div
                   className="h-full bg-gradient-to-r from-[#FF4D67] to-[#8B5CF6] rounded-full transition-all"
@@ -316,7 +323,7 @@ const ModernAudioPlayer = () => {
               </div>
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-0">
               {/* Play / Pause Button */}
               <button
                 onClick={togglePlayPause}
@@ -325,6 +332,9 @@ const ModernAudioPlayer = () => {
                   bg-white/10 hover:bg-white/20 
                   flex items-center justify-center
                   transition-all
+                  min-w-[44px] min-h-[44px]
+                  touch-manipulation
+                  -ml-1
                 "
               >
                 {isPlaying ? (
@@ -345,25 +355,32 @@ const ModernAudioPlayer = () => {
               <button
                 onClick={shufflePlaylist}
                 className="
-                  w-6 h-6 sm:w-8 sm:h-8 rounded-full
+                  w-7 h-7 rounded-full
                   bg-white/5 hover:bg-white/15
                   flex items-center justify-center
                   transition
+                  min-w-[44px] min-h-[44px]
+                  touch-manipulation
+                  -ml-0.5
                 "
                 title="Shuffle playlist"
               >
-                <svg className="w-3 h-3 sm:w-4 sm:h-4 text-gray-300" fill="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3 h-3 text-gray-300" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z" />
                 </svg>
               </button>
               
-              {/* Expand Button */}              <button
+              {/* Expand Button */}
+              <button
                 onClick={goToFullPlayer}
                 className="
-                  w-7 h-7 sm:w-9 sm:h-9 rounded-full
+                  w-8 h-8 sm:w-9 sm:h-9 rounded-full
                   bg-white/5 hover:bg-white/15
                   flex items-center justify-center
                   transition
+                  min-w-[44px] min-h-[44px]
+                  touch-manipulation
+                  -ml-0.5
                 "
                 title="Open full player"
               >
@@ -378,7 +395,7 @@ const ModernAudioPlayer = () => {
                 <select
                   value={playbackRate}
                   onChange={(e) => setPlaybackRate(parseFloat(e.target.value))}
-                  className="bg-black/70 text-white text-xs rounded px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-[#FF4D67]"
+                  className="bg-black/70 text-white text-xs rounded px-1 py-1 sm:px-2 sm:py-1 focus:outline-none focus:ring-1 focus:ring-[#FF4D67] min-w-[50px] appearance-none touch-manipulation"
                 >
                   <option value="0.5">0.5x</option>
                   <option value="0.75">0.75x</option>
@@ -393,34 +410,39 @@ const ModernAudioPlayer = () => {
               <button
                 onClick={toggleLoop}
                 className={`
-                  w-6 h-6 sm:w-8 sm:h-8 rounded-full
+                  w-7 h-7 rounded-full
                   flex items-center justify-center
                   ${isLooping ? 'text-[#FF4D67]' : 'text-gray-400'} hover:text-white
                   hover:bg-white/10
                   transition
+                  min-w-[44px] min-h-[44px]
+                  touch-manipulation
+                  -ml-0.5
                 `}
                 title="Loop track/playlist"
               >
-                <svg className="w-3 h-3 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
               </button>
               
-              {/* Share Button with Hidden Volume */}
+              {/* Volume Control with Hidden Slider */}
               <div className="group relative">
                 <button 
-                  onClick={() => setIsShareModalOpen(true)}
                   className="
-                    w-8 h-8 rounded-full
+                    w-7 h-7 rounded-full
                     flex items-center justify-center
                     text-gray-400 hover:text-white
                     hover:bg-white/10
                     transition
+                    min-w-[44px] min-h-[44px]
+                    touch-manipulation
+                    -ml-0.5
                   "
-                  title="Share track"
+                  title="Adjust volume"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
+                  <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z" clipRule="evenodd"></path>
                   </svg>
                 </button>
                 
@@ -433,78 +455,44 @@ const ModernAudioPlayer = () => {
                   value={volume}
                   onChange={handleVolumeChange}
                   className="
-                    absolute -top-12 right-0
-                    w-28 px-2 py-1
+                    absolute -top-12 sm:-top-12 right-0
+                    w-20 sm:w-28 px-2 py-1
                     bg-black/70 rounded-lg
                     hidden group-hover:block
                     accent-[#FF4D67]
+                    touch-manipulation
                   "
                 />
               </div>
               
-              {/* Beat-specific action buttons or regular buttons */}
-              {isBeat ? (
-                <>
-                  {/* Favorite/Save button for beats */}
-                  <button
-                    onClick={toggleFavorite}
-                    className={`
-                      w-8 h-8 rounded-full
-                      flex items-center justify-center
-                      transition-colors ${
-                        isFavorite 
-                          ? 'text-red-400 bg-red-500/20 border border-red-500/30' 
-                          : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
-                      }`}
-                    title={isFavorite ? "Remove from favorites" : "Save beat"}
-                  >
-                    <svg 
-                      className="w-4 h-4" 
-                      fill={isFavorite ? "currentColor" : "none"}
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                    </svg>
-                  </button>
-                </>
-              ) : (
-                <>
-                  {/* Share button for non-beats */}
-                  <button 
-                    onClick={() => setIsShareModalOpen(true)}
-                    className="
-                      w-8 h-8 rounded-full
-                      flex items-center justify-center
-                      text-gray-400 hover:text-white
-                      hover:bg-white/10
-                      transition
-                    "
-                    title="Share track"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
-                    </svg>
-                  </button>
-                </>
-              )}
-              
-              {/* Close Button */}
-              <button 
-                onClick={closePlayer}
-                className="
-                  w-8 h-8 rounded-full
+              {/* Favorite/Save button for all tracks */}
+              <button
+                onClick={toggleFavorite}
+                className={`
+                  w-7 h-7 rounded-full
                   flex items-center justify-center
-                  text-gray-400 hover:text-white
-                  hover:bg-white/10
-                  transition
-                "
-                title="Close player"
+                  transition-colors ${
+                    isFavorite 
+                      ? 'text-red-400 bg-red-500/20 border border-red-500/30' 
+                      : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                  }
+                  min-w-[44px] min-h-[44px]
+                  touch-manipulation
+                  -ml-0.5
+                `}
+                title={isFavorite ? "Remove from favorites" : "Save track"}
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                <svg 
+                  className="w-3.5 h-3.5" 
+                  fill={isFavorite ? "currentColor" : "none"}
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
                 </svg>
               </button>
+              
+
             </div>
           </div>
         </div>
