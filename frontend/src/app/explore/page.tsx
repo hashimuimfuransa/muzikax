@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { useTrendingTracks, usePopularCreators } from '@/hooks/useTracks'
 import { useAudioPlayer } from '@/contexts/AudioPlayerContext'
 import { Suspense } from 'react'
-import { followCreator } from '@/services/trackService'
+import { followCreator, unfollowCreator, checkFollowStatus } from '@/services/trackService'
 
 interface Track {  
   _id?: string
@@ -70,6 +70,9 @@ function ExploreContent() {
   // State for tracking which tracks are favorited
   const [favoriteStatus, setFavoriteStatus] = useState<Record<string, boolean>>({});
 
+  // State for tracking follow status for creators
+  const [followStatus, setFollowStatus] = useState<Record<string, boolean>>({});
+
   // Define categories array
   const categories = [
     { id: 'afrobeat', name: 'Afrobeat' },
@@ -89,6 +92,30 @@ function ExploreContent() {
       setFavoriteStatus(status);
     }
   }, [favorites, favoritesLoading]);
+
+  // Update follow status for creators when they are loaded
+  useEffect(() => {
+    const loadFollowStatus = async () => {
+      if (popularCreatorsData && popularCreatorsData.length > 0) {
+        const status: Record<string, boolean> = {};
+        
+        // Check follow status for each creator
+        for (const creator of popularCreatorsData) {
+          try {
+            const isFollowing = await checkFollowStatus(creator._id);
+            status[creator._id] = isFollowing;
+          } catch (error) {
+            console.error(`Error checking follow status for creator ${creator._id}:`, error);
+            status[creator._id] = false; // Default to not following
+          }
+        }
+        
+        setFollowStatus(status);
+      }
+    };
+    
+    loadFollowStatus();
+  }, [popularCreatorsData]);
 
   // Listen for favorites loaded event to update favorite status
   useEffect(() => {
@@ -563,7 +590,11 @@ function ExploreContent() {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {filteredCreators.map((creator) => (
-                  <div key={creator.id} className="group card-bg rounded-2xl p-4 sm:p-6 transition-all duration-300 hover:border-[#FFCB2B]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FFCB2B]/10">
+                  <div key={creator.id} className="group card-bg rounded-2xl p-4 sm:p-6 transition-all duration-300 hover:border-[#FFCB2B]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FFCB2B]/10 cursor-pointer"
+                    onClick={() => {
+                      // Navigate to the creator's profile page
+                      router.push(`/artists/${creator.id}`);
+                    }}>
                     <div className="flex items-center gap-4 mb-4">
                       <div className="relative">
                         <img 
@@ -590,21 +621,45 @@ function ExploreContent() {
                     </div>
                     
                     <button 
-                      className="w-full py-3 sm:py-3.5 bg-gradient-to-r from-[#FFCB2B] to-[#FFA726] rounded-lg text-gray-900 font-bold hover:opacity-90 transition-all duration-300 text-sm sm:text-base shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-                      onClick={async () => {
+                      className={`w-full py-3 sm:py-3.5 rounded-lg font-bold hover:opacity-90 transition-all duration-300 text-sm sm:text-base shadow-md hover:shadow-lg transform hover:-translate-y-0.5 ${followStatus[creator.id] ? 'bg-gray-600 text-white' : 'bg-gradient-to-r from-[#FFCB2B] to-[#FFA726] text-gray-900'}`}
+                      onClick={async (e) => {
+                        // Prevent the click from propagating to the parent div (which would navigate to the profile)
+                        e.stopPropagation();
                         try {
-                          // Call the follow creator service
-                          await followCreator(creator.id);
+                          // Determine current follow status based on current state
+                          const currentFollowStatus = followStatus[creator.id];
+                          if (currentFollowStatus) {
+                            // Unfollow the creator
+                            await unfollowCreator(creator.id);
+                            
+                            // Update the follow status
+                            setFollowStatus(prev => ({
+                              ...prev,
+                              [creator.id]: false
+                            }));
+                          } else {
+                            // Follow the creator
+                            await followCreator(creator.id);
+                            
+                            // Update the follow status
+                            setFollowStatus(prev => ({
+                              ...prev,
+                              [creator.id]: true
+                            }));
+                          }
                           
                           // Show success feedback
-                          console.log('Successfully followed creator');
+                          console.log(`Successfully ${currentFollowStatus ? 'unfollowed' : 'followed'} creator`);
+                          
+                          // Refresh creators to update follower counts
+                          refreshCreators();
                         } catch (error) {
-                          console.error('Failed to follow creator:', error);
-                          alert('Failed to follow creator. Please try again.');
+                          console.error(`Failed to ${followStatus[creator.id] ? 'unfollow' : 'follow'} creator:`, error);
+                          alert(`Failed to ${followStatus[creator.id] ? 'unfollow' : 'follow'} creator. Please try again.`);
                         }
                       }}
                     >
-                      Follow
+                      {followStatus[creator.id] ? 'Following' : 'Follow'}
                     </button>
                   </div>
                 ))}
