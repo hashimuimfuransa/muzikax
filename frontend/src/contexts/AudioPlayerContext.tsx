@@ -1346,7 +1346,7 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
   const shareTrack = (platform: string) => {
     if (!currentTrack) return;
     
-    const trackUrl = `${window.location.origin}/track/${currentTrack.id}`;
+    const trackUrl = `${window.location.origin}/tracks/${currentTrack.id}`;
     const text = `Check out "${currentTrack.title}" by ${currentTrack.artist} on MuzikaX`;
     
     switch (platform) {

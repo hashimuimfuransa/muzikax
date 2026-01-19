@@ -27,8 +27,18 @@ interface Track {
 }
 
 // Generate metadata for SEO
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
-  const trackId = params.id;
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const resolvedParams = await params;
+  const trackId = resolvedParams.id;
+  
+  // Validate that we have a proper track ID
+  if (!trackId || trackId === "undefined") {
+    console.error("Invalid track ID for metadata generation:", trackId);
+    return {
+      title: "Track Not Found | MuzikaX",
+      description: "The requested track could not be found."
+    };
+  }
   
   try {
     const fetchedTrack = await fetchTrackById(trackId);
@@ -46,6 +56,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
     };
     
     return {
+      metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'),
       title: `${track.title} by ${track.artist} | MuzikaX - Rwanda's Digital Music Ecosystem`,
       description: track.description || `Listen to ${track.title} by ${track.artist} on MuzikaX - Rwanda's premier music platform.`,
       keywords: [
@@ -61,7 +72,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
         title: `${track.title} by ${track.artist}`,
         description: track.description || `Listen to ${track.title} by ${track.artist}`,
         type: 'music.song',
-        url: `https://www.muzikax.com/tracks/${track._id}`,
+        url: `/tracks/${track._id}`,
         images: [
           {
             url: track.coverURL || track.coverImage || '/default-cover.jpg',
@@ -81,7 +92,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
         images: [track.coverURL || track.coverImage || '/default-cover.jpg'],
       },
       alternates: {
-        canonical: `https://www.muzikax.com/tracks/${track._id}`,
+        canonical: `/tracks/${track._id}`,
       },
       robots: {
         index: true,
@@ -104,8 +115,15 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   }
 }
 
-export default async function TrackDetailPage({ params }: { params: { id: string } }) {
-  const trackId = params.id;
+export default async function TrackDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
+  const trackId = resolvedParams.id;
+  
+  // Validate that we have a proper track ID
+  if (!trackId || trackId === "undefined") {
+    console.error("Invalid track ID:", trackId);
+    notFound();
+  }
   
   let track: Track;
   

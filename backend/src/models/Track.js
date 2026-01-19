@@ -86,6 +86,18 @@ const TrackSchema = new mongoose_1.Schema({
     albumId: {
         type: mongoose_1.Schema.Types.ObjectId,
         ref: 'Album'
+    },
+    releaseDate: {
+        type: Date,
+        required: false
+    },
+    collaborators: [{
+        type: String
+    }],
+    copyrightAccepted: {
+        type: Boolean,
+        required: true,
+        default: false
     }
 }, {
     timestamps: true

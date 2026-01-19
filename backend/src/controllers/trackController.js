@@ -13,13 +13,21 @@ const { handlePlaybackError } = require("../../cleanup_invalid_tracks");
 // Upload track
 const uploadTrack = async (req, res) => {
     try {
-        const { title, description, genre, type, audioURL, coverURL } = req.body;
+        const { title, description, genre, type, audioURL, coverURL, releaseDate, collaborators, copyrightAccepted } = req.body;
         const user = req.user;
+        
         // Validate required fields
         if (!title || !audioURL) {
             res.status(400).json({ message: 'Title and audio URL are required' });
             return;
         }
+        
+        // Validate copyright policy acceptance
+        if (copyrightAccepted !== true) {
+            res.status(400).json({ message: 'Copyright policy must be accepted' });
+            return;
+        }
+        
         const track = await Track_1.create({
             creatorId: user._id,
             creatorType: user.creatorType,
@@ -28,8 +36,12 @@ const uploadTrack = async (req, res) => {
             genre: genre || 'afrobeat',
             type: type || 'song',
             audioURL,
-            coverURL: coverURL || ''
+            coverURL: coverURL || '',
+            releaseDate: releaseDate || new Date(),
+            collaborators: collaborators || [],
+            copyrightAccepted: copyrightAccepted
         });
+        
         res.status(201).json(track);
     }
     catch (error) {
@@ -64,7 +76,16 @@ exports.getAllTracks = getAllTracks;
 // Get track by ID
 const getTrackById = async (req, res) => {
     try {
-        const track = await Track_1.findById(req.params['id'])
+        const trackId = req.params['id'];
+        
+        // Validate that we have a track ID
+        if (!trackId || trackId === 'undefined') {
+            console.error('Invalid track ID received:', trackId);
+            res.status(400).json({ message: 'Invalid track ID' });
+            return;
+        }
+        
+        const track = await Track_1.findById(trackId)
             .populate('creatorId', 'name avatar whatsappContact');
         if (!track) {
             res.status(404).json({ message: 'Track not found' });
@@ -215,7 +236,7 @@ exports.getTracksByAuthUser = getTracksByAuthUser;
 // Update track
 const updateTrack = async (req, res) => {
     try {
-        const { title, genre, coverURL, description } = req.body;
+        const { title, genre, coverURL, description, releaseDate, collaborators, copyrightAccepted } = req.body;
         const track = await Track_1.findById(req.params['id']);
         if (!track) {
             res.status(404).json({ message: 'Track not found' });
@@ -244,6 +265,12 @@ const updateTrack = async (req, res) => {
             track.coverURL = coverURL;
         if (description !== undefined)
             track.description = description;
+        if (releaseDate !== undefined)
+            track.releaseDate = releaseDate;
+        if (collaborators !== undefined)
+            track.collaborators = collaborators;
+        if (copyrightAccepted !== undefined)
+            track.copyrightAccepted = copyrightAccepted;
         const updatedTrack = await track.save();
         res.json(updatedTrack);
     }
@@ -275,7 +302,23 @@ const deleteTrack = async (req, res) => {
             });
             return;
         }
+        // Get the creator ID for notification
+        const creatorId = track.creatorId && typeof track.creatorId === 'object' ? 
+            track.creatorId._id : 
+            track.creatorId;
+        
+        // Get reason from request body or query if admin
+        const reason = req.body?.reason || req.query?.reason || 'No reason provided';
+        
+        // Delete the track
         await track.deleteOne();
+        
+        // If deleted by admin, create a notification for the creator
+        if (req.user.role === 'admin') {
+            const { createTrackDeletionNotification } = require('./notificationController');
+            await createTrackDeletionNotification(track._id, creatorId, req.user._id, reason);
+        }
+        
         res.json({ message: 'Track removed' });
     }
     catch (error) {

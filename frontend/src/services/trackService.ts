@@ -157,7 +157,17 @@ export const fetchTrendingTracks = async (limit: number = 10): Promise<ITrack[]>
  */
 export const fetchTrackById = async (id: string): Promise<ITrack> => {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tracks/${id}`);
+    // Validate the ID before making the request
+    if (!id || id === "undefined") {
+      throw new Error(`Invalid track ID: ${id}`);
+    }
+    
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    const url = `${apiUrl}/api/tracks/${id}`;
+    
+    console.log(`Fetching track with ID: ${id}, URL: ${url}`);
+    
+    const response = await fetch(url);
     
     if (!response.ok) {
       throw new Error(`Failed to fetch track: ${response.status} ${response.statusText}`);

@@ -14,6 +14,9 @@ export interface ITrack extends Document {
   likes: number;
   comments: mongoose.Types.ObjectId[];
   albumId?: mongoose.Types.ObjectId;
+  releaseDate?: Date;
+  collaborators?: string[];
+  copyrightAccepted: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -76,6 +79,18 @@ const TrackSchema: Schema = new Schema({
   albumId: {
     type: Schema.Types.ObjectId,
     ref: 'Album'
+  },
+  releaseDate: {
+    type: Date,
+    required: false
+  },
+  collaborators: [{
+    type: String
+  }],
+  copyrightAccepted: {
+    type: Boolean,
+    required: true,
+    default: false
   }
 }, {
   timestamps: true

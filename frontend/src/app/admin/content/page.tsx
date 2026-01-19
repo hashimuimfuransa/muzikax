@@ -3,12 +3,14 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../../contexts/AuthContext'
+import { useAudioPlayer } from '../../../contexts/AudioPlayerContext'
 import AdminSidebar from '../../../components/AdminSidebar'
 
 interface Track {
   id: string
   title: string
   creatorId: {
+    _id: string,
     name: string
   }
   genre: string
@@ -16,10 +18,13 @@ interface Track {
   plays: number
   likes: number
   createdAt: string
+  audioURL: string
+  coverURL: string
 }
 
 export default function ContentManagementPage() {
   const [tracks, setTracks] = useState<Track[]>([])
+  const { playTrack } = useAudioPlayer()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
@@ -28,6 +33,7 @@ export default function ContentManagementPage() {
   const [typeFilter, setTypeFilter] = useState('all')
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [trackToDelete, setTrackToDelete] = useState<Track | null>(null)
+  const [deletionReason, setDeletionReason] = useState('')
   const router = useRouter()
   const { isAuthenticated, userRole } = useAuth()
   const [authChecked, setAuthChecked] = useState(false)
@@ -74,7 +80,27 @@ export default function ContentManagementPage() {
       }
       
       const data = await response.json()
-      setTracks(data.tracks)
+      // Transform the data to match our interface
+      const transformedTracks = data.tracks.map((track: any) => ({
+        id: track._id || track.id || '',
+        title: track.title || '',
+        genre: track.genre || '',
+        type: track.type || '',
+        plays: track.plays || 0,
+        likes: track.likes || 0,
+        createdAt: track.createdAt || '',
+        audioURL: track.audioURL || track.audioUrl || '',
+        coverURL: track.coverURL || track.coverImage || '',
+        creatorId: {
+          _id: (track.creatorId && typeof track.creatorId === 'object') ? 
+            (track.creatorId._id || track.creatorId.id) : 
+            track.creatorId,
+          name: (track.creatorId && typeof track.creatorId === 'object') ? 
+            track.creatorId.name : 
+            'Unknown'
+        }
+      }));
+      setTracks(transformedTracks)
       setTotalPages(data.pages)
       setLoading(false)
     } catch (err) {
@@ -88,7 +114,10 @@ export default function ContentManagementPage() {
     if (!trackToDelete) return
     
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tracks/${trackToDelete.id}`, {
+      const url = new URL(`${process.env.NEXT_PUBLIC_API_URL}/api/tracks/${trackToDelete.id}`);
+      url.searchParams.append('reason', encodeURIComponent(deletionReason));
+      
+      const response = await fetch(url.toString(), {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
@@ -104,6 +133,7 @@ export default function ContentManagementPage() {
       fetchTracks()
       setShowDeleteModal(false)
       setTrackToDelete(null)
+      setDeletionReason('') // Clear the reason after successful deletion
     } catch (err) {
       console.error('Error deleting track:', err)
       setError('Failed to delete track')
@@ -209,7 +239,7 @@ export default function ContentManagementPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-800">
-                      {tracks.map((track) => (
+                      {tracks.filter(t => t.id).map((track) => (
                         <tr key={track.id} className="hover:bg-gray-800/30 transition-colors">
                           <td className="py-4">
                             <div className="font-medium text-white">{track.title}</div>
@@ -229,14 +259,42 @@ export default function ContentManagementPage() {
                           <td className="py-4">
                             <div className="flex space-x-2">
                               <button
-                                onClick={() => router.push(`/track/${track.id}`)}
-                                className="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm transition-colors"
+                                onClick={() => {
+                                  // Play the track using the audio player
+                                  if (track.id && track.audioURL) {
+                                    playTrack({
+                                      id: track.id,
+                                      title: track.title,
+                                      artist: track.creatorId?.name || 'Unknown',
+                                      coverImage: track.coverURL,
+                                      audioUrl: track.audioURL,
+                                      creatorId: track.creatorId?._id,
+                                      plays: track.plays,
+                                      likes: track.likes,
+                                      type: track.type as 'song' | 'beat' | 'mix'
+                                    });
+                                  }
+                                }}
+                                disabled={!track.id || !track.audioURL}
+                                className={`px-3 py-1 rounded-lg text-sm transition-colors ${track.id && track.audioURL ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-gray-500 text-gray-300 cursor-not-allowed'}`}
+                              >
+                                Play
+                              </button>
+                              <button
+                                onClick={() => {
+                                  if (track.id) {
+                                    router.push(`/tracks/${track.id}`);
+                                  }
+                                }}
+                                disabled={!track.id}
+                                className={`px-3 py-1 rounded-lg text-sm transition-colors ${track.id ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-500 text-gray-300 cursor-not-allowed'}`}
                               >
                                 View
                               </button>
                               <button
                                 onClick={() => openDeleteModal(track)}
-                                className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm transition-colors"
+                                disabled={!track.id}
+                                className={`px-3 py-1 rounded-lg text-sm transition-colors ${track.id ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-gray-500 text-gray-300 cursor-not-allowed'}`}
                               >
                                 Delete
                               </button>
@@ -291,10 +349,23 @@ export default function ContentManagementPage() {
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="card-bg rounded-2xl p-6 max-w-md w-full">
             <h3 className="text-xl font-bold text-white mb-2">Confirm Deletion</h3>
-            <p className="text-gray-400 mb-6">
+            <p className="text-gray-400 mb-4">
               Are you sure you want to delete the track <span className="text-white font-semibold">{trackToDelete.title}</span>? 
               This action cannot be undone and will permanently remove the track from the platform.
             </p>
+            
+            <div className="mb-6">
+              <label htmlFor="deletion-reason" className="block text-sm font-medium text-gray-400 mb-2">
+                Reason for Deletion
+              </label>
+              <textarea
+                id="deletion-reason"
+                value={deletionReason}
+                onChange={(e) => setDeletionReason(e.target.value)}
+                placeholder="Enter reason for deleting this track..."
+                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] min-h-[100px]"
+              />
+            </div>
             
             <div className="flex justify-end space-x-3">
               <button
@@ -306,6 +377,7 @@ export default function ContentManagementPage() {
               <button
                 onClick={handleDeleteTrack}
                 className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+                disabled={!deletionReason.trim()}
               >
                 Delete Track
               </button>

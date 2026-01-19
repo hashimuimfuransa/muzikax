@@ -34,6 +34,9 @@ const searchRoutes = require('./routes/searchRoutes');
 // Import following routes
 const followingRoutes = require('./routes/followingRoutes');
 
+// Import report routes
+const reportRoutes = require('./routes/reportRoutes');
+
 // Load env vars
 dotenv.config();
 
@@ -202,6 +205,15 @@ try {
   console.log('Following routes registered successfully');
 } catch (error) {
   console.error('Error registering following routes:', error);
+}
+
+// Register report routes
+console.log('Attempting to register report routes...');
+try {
+  app.use('/api/reports', reportRoutes);
+  console.log('Report routes registered successfully');
+} catch (error) {
+  console.error('Error registering report routes:', error);
 }
 
 // Directly implement profile update route in app.js to avoid 404 issues

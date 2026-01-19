@@ -15,6 +15,9 @@ export default function Upload() {
   const [type, setType] = useState<'song' | 'beat' | 'mix'>('song') // Add track type state
   const [paymentType, setPaymentType] = useState<'free' | 'paid'>('free') // Add payment type state for beats
   const [visibility, setVisibility] = useState('public')
+  const [releaseDate, setReleaseDate] = useState<string>('') // Release date state
+  const [collaborators, setCollaborators] = useState<string>('') // Collaborators state
+  const [copyrightAccepted, setCopyrightAccepted] = useState<boolean>(false) // Copyright acceptance state
   const [file, setFile] = useState<File | null>(null)
   const [coverImage, setCoverImage] = useState<string | null>(null) // State for cover image
   const [audioUrl, setAudioUrl] = useState<string | null>(null) // State for uploaded audio URL
@@ -33,6 +36,9 @@ export default function Upload() {
     description: string;
     genre: string;
     type: 'song' | 'beat' | 'mix';
+    releaseDate?: string;
+    collaborators?: string[];
+    copyrightAccepted?: boolean;
   }>>([])
   
   const router = useRouter()
@@ -188,7 +194,10 @@ export default function Upload() {
         coverUrl: null,
         description: '',
         genre: 'afrobeat',
-        type: 'song'
+        type: 'song',
+        releaseDate: new Date().toISOString().split('T')[0],
+        collaborators: [],
+        copyrightAccepted: true
       }
     ])
   }
@@ -252,7 +261,7 @@ export default function Upload() {
       return;
     }
     
-    console.log('Uploading:', { title, description, genre, type, paymentType, visibility, audioUrl, coverUrl: finalCoverUrl })
+    console.log('Uploading:', { title, description, genre, type, paymentType, visibility, audioUrl, coverUrl: finalCoverUrl, releaseDate, collaborators, copyrightAccepted })
     
     // Get access token from localStorage
     let accessToken = localStorage.getItem('accessToken');
@@ -277,7 +286,10 @@ export default function Upload() {
         type,
         paymentType,
         audioURL: audioUrl,
-        coverURL: finalCoverUrl || ''
+        coverURL: finalCoverUrl || '',
+        releaseDate: releaseDate || new Date().toISOString(),
+        collaborators: collaborators ? collaborators.split(',').map(c => c.trim()) : [],
+        copyrightAccepted
       })
     });
     
@@ -300,7 +312,10 @@ export default function Upload() {
             genre,
             type,
             audioURL: audioUrl,
-            coverURL: finalCoverUrl || ''
+            coverURL: finalCoverUrl || '',
+            releaseDate: releaseDate || new Date().toISOString(),
+            collaborators: collaborators ? collaborators.split(',').map(c => c.trim()) : [],
+            copyrightAccepted
           })
         });
       } else {
@@ -393,7 +408,10 @@ export default function Upload() {
           type: track.type,
           paymentType: paymentType,
           audioURL: track.audioUrl,
-          coverURL: finalCoverUrl || ''
+          coverURL: finalCoverUrl || '',
+          releaseDate: new Date().toISOString(),
+          collaborators: [],
+          copyrightAccepted: true
         })
       });
       
@@ -417,7 +435,10 @@ export default function Upload() {
               type: track.type,
               paymentType: paymentType,
               audioURL: track.audioUrl,
-              coverURL: finalCoverUrl || ''
+              coverURL: finalCoverUrl || '',
+              releaseDate: new Date().toISOString(),
+              collaborators: [],
+              copyrightAccepted: true
             })
           });
         } else {
@@ -744,8 +765,23 @@ export default function Upload() {
                           </p>
                         </div>
                       )}
+                    </div>
 
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
                       <div>
+                        <label htmlFor="releaseDate" className="block text-sm font-medium text-gray-300 mb-2">
+                          Release Date
+                        </label>
+                        <input
+                          type="date"
+                          id="releaseDate"
+                          value={releaseDate}
+                          onChange={(e) => setReleaseDate(e.target.value)}
+                          className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm sm:text-base"
+                        />
+                      </div>
+
+                      <div className="sm:col-span-2">
                         <label htmlFor="visibility" className="block text-sm font-medium text-gray-300 mb-2">
                           Visibility
                         </label>
@@ -759,6 +795,44 @@ export default function Upload() {
                           <option value="fans">Fans Only</option>
                           <option value="private">Private</option>
                         </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label htmlFor="collaborators" className="block text-sm font-medium text-gray-300 mb-2">
+                        Collaborators (comma separated)
+                      </label>
+                      <input
+                        type="text"
+                        id="collaborators"
+                        value={collaborators}
+                        onChange={(e) => setCollaborators(e.target.value)}
+                        className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm sm:text-base"
+                        placeholder="e.g., Producer: John Doe, Featuring: Jane Smith"
+                      />
+                      <p className="mt-1 text-xs text-gray-500">
+                        Enter collaborators with their roles (optional)
+                      </p>
+                    </div>
+
+                    <div className="flex items-start">
+                      <div className="flex items-center h-5">
+                        <input
+                          id="copyrightAccepted"
+                          type="checkbox"
+                          checked={copyrightAccepted}
+                          onChange={(e) => setCopyrightAccepted(e.target.checked)}
+                          required
+                          className="w-4 h-4 text-[#FF4D67] bg-gray-800 border-gray-700 rounded focus:ring-[#FF4D67] focus:ring-2"
+                        />
+                      </div>
+                      <div className="ml-3 text-sm">
+                        <label htmlFor="copyrightAccepted" className="font-medium text-gray-300">
+                          I accept the copyright policy
+                        </label>
+                        <p className="text-gray-500">
+                          I confirm that this content is my original work and I have the rights to upload it.
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -955,6 +1029,50 @@ export default function Upload() {
                                     <option value="beat">Beat</option>
                                     <option value="mix">Mix</option>
                                   </select>
+                                </div>
+                              </div>
+
+                              <div>
+                                <label className="block text-gray-300 text-xs mb-1">
+                                  Release Date
+                                </label>
+                                <input
+                                  type="date"
+                                  value={track.releaseDate || ''}
+                                  onChange={(e) => updateAlbumTrack(track.id, 'releaseDate', e.target.value)}
+                                  className="w-full px-2 py-1 bg-gray-800/50 border border-gray-700 rounded text-white text-sm"
+                                />
+                              </div>
+
+                              <div>
+                                <label className="block text-gray-300 text-xs mb-1">
+                                  Collaborators
+                                </label>
+                                <input
+                                  type="text"
+                                  value={track.collaborators ? track.collaborators.join(', ') : ''}
+                                  onChange={(e) => {
+                                    const collabArray = e.target.value ? e.target.value.split(',').map(c => c.trim()) : [];
+                                    updateAlbumTrack(track.id, 'collaborators', collabArray);
+                                  }}
+                                  className="w-full px-2 py-1 bg-gray-800/50 border border-gray-700 rounded text-white text-sm"
+                                  placeholder="e.g., Producer: John Doe, Featuring: Jane Smith"
+                                />
+                              </div>
+
+                              <div className="flex items-start">
+                                <div className="flex items-center h-4">
+                                  <input
+                                    type="checkbox"
+                                    checked={track.copyrightAccepted || false}
+                                    onChange={(e) => updateAlbumTrack(track.id, 'copyrightAccepted', e.target.checked)}
+                                    className="w-3 h-3 text-[#FF4D67] bg-gray-800 border-gray-700 rounded focus:ring-[#FF4D67] focus:ring-2"
+                                  />
+                                </div>
+                                <div className="ml-2 text-xs">
+                                  <label className="font-medium text-gray-300">
+                                    I accept the copyright policy
+                                  </label>
                                 </div>
                               </div>
                             </div>
