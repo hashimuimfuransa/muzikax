@@ -303,6 +303,9 @@ export default function Navbar() {
           <Link href="/explore" className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800">
             Explore
           </Link>
+          <Link href="/beats" className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800">
+            Beats
+          </Link>
           <div className="px-3 py-2">
             <div className="text-xs uppercase tracking-wide text-gray-500 mb-2">Information</div>
             <Link href="/about" className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800">

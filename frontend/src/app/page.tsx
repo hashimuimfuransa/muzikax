@@ -953,6 +953,37 @@ export default function Home() {
           </div>
         </section>
 
+        {/* Trending Beats Section */}
+        <HorizontalScrollSection title="Trending Beats" viewAllLink="/beats">
+          {beatTracksData.slice(0, 10).map((track) => {
+            // Transform the track to match the expected interface
+            const transformedTrack = {
+              id: track._id,
+              title: track.title,
+              artist: typeof track.creatorId === "object" && track.creatorId !== null
+                ? (track.creatorId as any).name
+                : "Unknown Artist",
+              album: "",
+              plays: track.plays || 0,
+              likes: track.likes || 0,
+              coverImage: track.coverURL || "",
+              duration: "",
+              category: track.type,
+              type: track.type,
+              paymentType: track.paymentType,
+              creatorId: typeof track.creatorId === 'object' && track.creatorId !== null ? (track.creatorId as any)._id : track.creatorId
+            };
+            
+            return (
+              <TrackCard 
+                key={transformedTrack.id} 
+                track={transformedTrack} 
+                fullTrackData={track}
+              />
+            );
+          })}
+        </HorizontalScrollSection>
+
         {/* Made for You Section */}
         <HorizontalScrollSection title="Made for You" viewAllLink="/foryou">
           {madeForYouTracks.map((track) => {

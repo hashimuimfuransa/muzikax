@@ -238,9 +238,19 @@ export default function TrackCard({
               <button 
                 onClick={(e) => {
                   e.stopPropagation();
-                  // Show download button for free beats
-                  alert('This beat is free to download. The download will start shortly.');
-                  // In a real implementation, you would trigger the download here
+                  // Download free beat immediately
+                  if (fullTrackData && fullTrackData.audioURL) {
+                    // Create temporary link for download
+                    const link = document.createElement('a');
+                    link.href = fullTrackData.audioURL;
+                    link.download = `${track.title}.mp3`;
+                    link.target = '_blank';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                  } else {
+                    alert('Download link not available');
+                  }
                 }}
                 className="w-full py-1.5 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs flex items-center justify-center gap-1"
               >
