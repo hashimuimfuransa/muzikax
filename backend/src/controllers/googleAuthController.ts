@@ -1,29 +1,69 @@
 import { Request, Response } from 'express';
 import User from '../models/User';
 import { generateAccessToken, generateRefreshToken } from '../utils/jwt';
-import { OAuth2Client } from 'google-auth-library';
-
-const client = new OAuth2Client(process.env['GOOGLE_CLIENT_ID']);
 
 // Google login
 export const googleLogin = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { token } = req.body;
+    const { code } = req.body;
 
-    // Verify the token with Google
-    const ticket = await client.verifyIdToken({
-      idToken: token,
-      audience: process.env['GOOGLE_CLIENT_ID'] || ''
-    });
-
-    const payload = (await ticket).getPayload?.();
+    console.log('Received Google authorization code:', code);
     
-    if (!payload) {
-      res.status(400).json({ message: 'Invalid Google token' });
+    // Check if code exists
+    if (!code) {
+      res.status(400).json({ message: 'No Google authorization code provided' });
       return;
     }
 
-    const { sub: googleId, email, name, picture } = payload;
+    // Use environment variables for redirect URI to match Google Console settings
+    const redirectUri = process.env['FRONTEND_URL'] || 'http://localhost:3000';
+
+    // Exchange authorization code for access token
+    const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        client_id: process.env['GOOGLE_CLIENT_ID'] || '',
+        client_secret: process.env['GOOGLE_CLIENT_SECRET'] || '',
+        code: code,
+        grant_type: 'authorization_code',
+        redirect_uri: redirectUri
+      })
+    });
+
+    if (!tokenResponse.ok) {
+      const errorData: any = await tokenResponse.json();
+      console.error('Token exchange failed:', errorData);
+      res.status(400).json({ 
+        message: errorData.error_description || 'Failed to exchange authorization code for tokens',
+        error: errorData.error || 'unauthorized_client'
+      });
+      return;
+    }
+
+    const tokenData: any = await tokenResponse.json();
+    console.log('Token exchange successful:', tokenData);
+
+    // Get user info using the access token
+    const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+      headers: {
+        'Authorization': `Bearer ${tokenData.access_token}`
+      }
+    });
+
+    if (!userInfoResponse.ok) {
+      const errorData: any = await userInfoResponse.json();
+      console.error('User info retrieval failed:', errorData);
+      res.status(400).json({ message: 'Failed to retrieve user information' });
+      return;
+    }
+
+    const userInfo: any = await userInfoResponse.json();
+    console.log('User info retrieved:', userInfo);
+
+    const { id: googleId, email, name, picture } = userInfo;
 
     // Check if user exists
     let user = await User.findOne({ email: email || '' });
@@ -57,6 +97,7 @@ export const googleLogin = async (req: Request, res: Response): Promise<void> =>
       creatorType: user.creatorType,
       avatar: user.avatar,
       followersCount: user.followersCount,
+      whatsappContact: user.whatsappContact || '', // Include WhatsApp contact
       accessToken,
       refreshToken
     });

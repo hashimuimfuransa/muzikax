@@ -37,6 +37,13 @@ const followingRoutes = require('./routes/followingRoutes');
 // Import report routes
 const reportRoutes = require('./routes/reportRoutes');
 
+// Import community feature routes
+const communityPostRoutes = require('./routes/communityPostRoutes');
+const communityCommentRoutes = require('./routes/communityCommentRoutes');
+const circleRoutes = require('./routes/circleRoutes');
+const challengeRoutes = require('./routes/challengeRoutes');
+const liveRoomRoutes = require('./routes/liveRoomRoutes');
+
 // Load env vars
 dotenv.config();
 
@@ -215,6 +222,28 @@ try {
 } catch (error) {
   console.error('Error registering report routes:', error);
 }
+
+// Register community feature routes
+app.use('/api/community/posts', communityPostRoutes);
+console.log('Community post routes registered');
+app.use('/api/community/comments', communityCommentRoutes);
+console.log('Community comment routes registered');
+app.use('/api/community/circles', circleRoutes);
+console.log('Circle routes registered');
+app.use('/api/community/challenges', challengeRoutes);
+console.log('Challenge routes registered');
+app.use('/api/community/liverooms', liveRoomRoutes);
+console.log('Live room routes registered');
+
+// Register chat routes
+const chatRoutes = require('./routes/chatRoutes');
+app.use('/api/community/chats', chatRoutes);
+console.log('Chat routes registered');
+
+// Register public user routes for chat functionality
+const publicUserRoutes = require('./routes/publicUserRoutes');
+app.use('/api/public', publicUserRoutes);
+console.log('Public user routes registered');
 
 // Directly implement profile update route in app.js to avoid 404 issues
 // User route for updating own profile directly in app

@@ -108,5 +108,8 @@ router.route('/follow/:id')
 router.route('/unfollow/:id')
     .delete(jwt_1.protect, userController_1.unfollowCreator);
 
+// Route to get all users except current user
+router.get('/all', jwt_1.protect, userController_1.getAllUsers);
+
 module.exports = router;
 //# sourceMappingURL=userRoutes.js.map

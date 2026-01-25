@@ -1,8 +1,5 @@
 const User = require('../models/User');
 const { generateAccessToken, generateRefreshToken } = require('../utils/jwt');
-const { OAuth2Client } = require('google-auth-library');
-
-const client = new OAuth2Client(process.env['GOOGLE_CLIENT_ID']);
 
 // Google login
 const googleLogin = async (req, res) => {
@@ -16,6 +13,9 @@ const googleLogin = async (req, res) => {
       return res.status(400).json({ message: 'No Google authorization code provided' });
     }
 
+    // Use environment variables for redirect URI to match Google Console settings
+    const redirectUri = process.env.FRONTEND_URL || 'http://localhost:3000';
+
     // Exchange authorization code for access token
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
@@ -27,14 +27,17 @@ const googleLogin = async (req, res) => {
         client_secret: process.env['GOOGLE_CLIENT_SECRET'],
         code: code,
         grant_type: 'authorization_code',
-        redirect_uri: 'http://localhost:3000' // Adjust this to your actual redirect URI
+        redirect_uri: redirectUri
       })
     });
 
     if (!tokenResponse.ok) {
       const errorData = await tokenResponse.json();
       console.error('Token exchange failed:', errorData);
-      return res.status(400).json({ message: 'Failed to exchange authorization code for tokens' });
+      return res.status(400).json({ 
+        message: errorData.error_description || 'Failed to exchange authorization code for tokens',
+        error: errorData.error || 'unauthorized_client'
+      });
     }
 
     const tokenData = await tokenResponse.json();
@@ -90,6 +93,7 @@ const googleLogin = async (req, res) => {
       creatorType: user.creatorType,
       avatar: user.avatar,
       followersCount: user.followersCount,
+      whatsappContact: user.whatsappContact || '', // Include WhatsApp contact
       accessToken,
       refreshToken
     });

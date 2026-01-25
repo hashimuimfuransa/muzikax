@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { AuthProvider } from "../contexts/AuthContext";
 import { AudioPlayerProvider } from "../contexts/AudioPlayerContext";
+import { CommunityProvider } from "../contexts/CommunityContext";
 import ModernAudioPlayer from "../components/ModernAudioPlayer";
 import PWAInstallPrompt from "../components/PWAInstallPrompt";
 import { GoogleOAuthProvider } from '@react-oauth/google';
@@ -105,10 +106,12 @@ export default function RootLayout({
         <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"}>
           <AuthProvider>
             <AudioPlayerProvider>
-              <ConditionalNavbar />
-              {children}
-              <ModernAudioPlayer />
-              <PWAInstallPrompt />
+              <CommunityProvider>
+                <ConditionalNavbar />
+                {children}
+                <ModernAudioPlayer />
+                <PWAInstallPrompt />
+              </CommunityProvider>
             </AudioPlayerProvider>
           </AuthProvider>
         </GoogleOAuthProvider>

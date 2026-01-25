@@ -530,4 +530,31 @@ const updateOwnProfile = async (req, res) => {
     }
 };
 exports.updateOwnProfile = updateOwnProfile;
+
+// Get all users except the current user (authenticated users only)
+const getAllUsers = async (req, res) => {
+    try {
+        // Check if user is authenticated
+        if (!req.user) {
+            res.status(401).json({ message: 'Not authorized, no user found' });
+            return;
+        }
+
+        const currentUserId = req.user._id;
+
+        // Get all users except the current user
+        const users = await User_1.find({ 
+            _id: { $ne: currentUserId } 
+        }).select('-password');
+
+        res.json({
+            users
+        });
+    } catch (error) {
+        console.error('Error in getAllUsers:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.getAllUsers = getAllUsers;
 //# sourceMappingURL=userController.js.map

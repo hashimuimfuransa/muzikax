@@ -31,6 +31,7 @@ export default function Navbar() {
     { id: 'house', name: 'House', icon: '🏠' },
     { id: 'jazz', name: 'Jazz', icon: '🎹' },
     { id: 'soul', name: 'Soul', icon: '❤️' },
+    { id: 'community', name: 'Community', icon: '👥' },
   ];
 
   // Handle category selection
@@ -43,6 +44,9 @@ export default function Navbar() {
       case 'beats':
       case 'mixes':
         router.push(`/explore?type=${categoryId}`);
+        break;
+      case 'community':
+        router.push('/community');
         break;
       default:
         // For genre categories, go to explore with filter
@@ -124,6 +128,9 @@ export default function Navbar() {
               </Link>
               <Link href="/beats" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">
                 Beats
+              </Link>
+              <Link href="/community" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">
+                Community
               </Link>
               <div className="relative group hidden lg:block">
                 <button className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base flex items-center">
