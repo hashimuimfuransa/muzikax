@@ -19,4 +19,8 @@ router.route('/profile')
   .get(protect, getUserProfile)
   .put(protect, updateUserProfile);
 
+// Add the missing /me endpoint
+router.route('/me')
+  .get(protect, getUserProfile);
+
 export default router;

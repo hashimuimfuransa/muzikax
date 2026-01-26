@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import User from '../models/User';
 import { generateAccessToken, generateRefreshToken } from '../utils/jwt';
+import { setOAuthResponseHeaders } from '../utils/oauthUtils';
 
 // Google login
 export const googleLogin = async (req: Request, res: Response): Promise<void> => {
@@ -16,7 +17,7 @@ export const googleLogin = async (req: Request, res: Response): Promise<void> =>
     }
 
     // Use environment variables for redirect URI to match Google Console settings
-    const redirectUri = process.env['FRONTEND_URL'] || 'http://localhost:3000';
+    const redirectUri = process.env['GOOGLE_REDIRECT_URI'] || process.env['FRONTEND_URL'] || 'http://localhost:3000';
 
     // Exchange authorization code for access token
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
@@ -89,7 +90,8 @@ export const googleLogin = async (req: Request, res: Response): Promise<void> =>
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
 
-    res.json({
+    // Prepare user data
+    const userData = {
       _id: user._id,
       name: user.name,
       email: user.email,
@@ -100,7 +102,12 @@ export const googleLogin = async (req: Request, res: Response): Promise<void> =>
       whatsappContact: user.whatsappContact || '', // Include WhatsApp contact
       accessToken,
       refreshToken
-    });
+    };
+
+    // Set appropriate headers to handle OAuth response using utility function
+    setOAuthResponseHeaders(res);
+
+    res.json(userData);
   } catch (error: any) {
     console.error('Google login error:', error);
     res.status(500).json({ message: error.message || 'Google login failed' });

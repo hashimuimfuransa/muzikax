@@ -991,7 +991,7 @@ export default function Home() {
             const fullTrack = trendingTracksData.find(t => t._id === track.id);
             return (
               <TrackCard 
-                key={track.id} 
+                key={`mfy-${track.id}`} 
                 track={track} 
                 fullTrackData={fullTrack}
               />
@@ -1006,7 +1006,7 @@ export default function Home() {
             const fullTrack = trendingTracksData.find(t => t._id === track.id);
             return (
               <TrackCard 
-                key={track.id} 
+                key={`ps-${track.id}`} 
                 track={track} 
                 fullTrackData={fullTrack}
               />
@@ -1021,7 +1021,7 @@ export default function Home() {
             const fullTrack = trendingTracksData.find(t => t._id === track.id);
             return (
               <TrackCard 
-                key={track.id} 
+                key={`nr-${track.id}`} 
                 track={track} 
                 fullTrackData={fullTrack}
               />
@@ -1036,7 +1036,7 @@ export default function Home() {
             const fullTrack = trendingTracksData.find(t => t._id === track.id);
             return (
               <TrackCard 
-                key={track.id} 
+                key={`rt-${track.id}`} 
                 track={track} 
                 fullTrackData={fullTrack}
               />
@@ -1051,7 +1051,7 @@ export default function Home() {
             const fullTrack = trendingTracksData.find(t => t._id === track.id);
             return (
               <TrackCard 
-                key={track.id} 
+                key={`bol-${track.id}`} 
                 track={track} 
                 fullTrackData={fullTrack}
               />
@@ -1066,7 +1066,7 @@ export default function Home() {
             const fullTrack = trendingTracksData.find(t => t._id === track.id);
             return (
               <TrackCard 
-                key={track.id} 
+                key={`cl-${track.id}`} 
                 track={track} 
                 fullTrackData={fullTrack}
               />
@@ -1081,7 +1081,7 @@ export default function Home() {
             const fullTrack = trendingTracksData.find(t => t._id === track.id);
             return (
               <TrackCard 
-                key={track.id} 
+                key={`stl-${track.id}`} 
                 track={track} 
                 fullTrackData={fullTrack}
               />
@@ -1470,7 +1470,7 @@ export default function Home() {
             <div className="grid grid-cols-[repeat(auto-fill,_minmax(250px,_1fr))] gap-4 sm:gap-6 md:gap-6">
               {trendingTracks.map((track) => (
                 <div
-                  key={track.id}
+                  key={`tt-${track.id}`}
                   className="group card-bg rounded-2xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10"
                 >
                   <div className="relative">
@@ -1622,7 +1622,7 @@ export default function Home() {
             <div className="grid grid-cols-[repeat(auto-fill,_minmax(250px,_1fr))] gap-4 sm:gap-6 md:gap-6">
               {newTracks.map((track) => (
                 <div
-                  key={track.id}
+                  key={`nt-${track.id}`}
                   className="group card-bg rounded-2xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10"
                 >
                   <div className="relative">
@@ -1774,7 +1774,7 @@ export default function Home() {
             <div className="grid grid-cols-[repeat(auto-fill,_minmax(250px,_1fr))] gap-4 sm:gap-6 md:gap-6">
               {popularCreators.map((creator) => (
                 <div
-                  key={creator.id}
+                  key={`pc-${creator.id}`}
                   className="group card-bg rounded-2xl p-4 sm:p-6 transition-all duration-300 hover:border-[#FFCB2B]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FFCB2B]/10 cursor-pointer"
                   onClick={() => router.push(`/artists/${creator.id}`)}
                 >
@@ -1904,10 +1904,10 @@ export default function Home() {
                     paymentType: track.paymentType,
                     creatorId: typeof track.creatorId === 'object' && track.creatorId !== null ? (track.creatorId as any)._id : track.creatorId
                   };
-                  
+                                
                   return (
                     <div
-                      key={transformedTrack.id}
+                      key={`bt-${transformedTrack.id}`}
                       className="group card-bg rounded-2xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10"
                     >
                       <div className="relative">
@@ -2071,7 +2071,7 @@ export default function Home() {
                     </div>
                   );
               })
-            )}
+            )
             </div>
           )}
 
@@ -2082,7 +2082,7 @@ export default function Home() {
                 .filter((track) => track.category === "mix")
                 .map((track) => (
                   <div
-                    key={track.id}
+                    key={`mx-${track.id}`}
                     className="group card-bg rounded-2xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10"
                   >
                     <div className="relative">

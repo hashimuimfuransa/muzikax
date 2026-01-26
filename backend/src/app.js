@@ -60,7 +60,28 @@ const app = express();
 
 
 // Middleware
-app.use(helmet());
+// Configure helmet with options that allow OAuth flows
+app.use(helmet({
+  crossOriginOpenerPolicy: {
+    policy: 'same-origin-allow-popups'
+  },
+  crossOriginResourcePolicy: {
+    policy: 'cross-origin'
+  },
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      frameAncestors: ["'self'"],
+      childSrc: ["'self'", "https://accounts.google.com"],
+      scriptSrc: ["'self'", "https://accounts.google.com", "https://apis.google.com"],
+      imgSrc: ["'self'", "data:", "blob:", "https:"],
+      connectSrc: ["'self'", "https://accounts.google.com", "https://www.googleapis.com"]
+    }
+  },
+  crossOriginEmbedderPolicy: {
+    policy: 'unsafe-none'
+  }
+}));
 
 // Enable CORS for specific origins
 const allowedOrigins = process.env.CORS_ORIGIN ? 
