@@ -1886,7 +1886,7 @@ export default function Home() {
                   </div>
                 ))
               ) : (
-                beatTracksData.map((track) => {
+                beatTracksData.map((track: any) => {
                   // Transform the track to match the expected interface
                   const transformedTrack = {
                     id: track._id,
@@ -1941,7 +1941,7 @@ export default function Home() {
                                     ? (track.creatorId as any).whatsappContact 
                                     : undefined) // Include creator's WhatsApp contact
                                 });
-
+              
                                 // Set the current playlist to all beat tracks
                                 const playlistTracks = beatTracksData
                                   .filter((t) => t.audioURL) // Only tracks with audio
@@ -2018,7 +2018,7 @@ export default function Home() {
                           </button>
                         </div>
                       </div>
-
+              
                       <div className="p-4 sm:p-5">
                         <div className="flex items-start justify-between mb-1">
                           <h3 className="font-bold text-white text-lg truncate flex-1">
@@ -2039,7 +2039,7 @@ export default function Home() {
                             {transformedTrack.album}
                           </p>
                         )}
-                        
+                                    
                         {/* Payment type indicator for beats */}
                         {transformedTrack.type === 'beat' && (
                           <div className="mt-2">
@@ -2048,7 +2048,7 @@ export default function Home() {
                             </span>
                           </div>
                         )}
-
+              
                         <div className="flex justify-between text-xs sm:text-sm text-gray-500 mt-2">
                           <span>{transformedTrack.plays?.toLocaleString() || '0'} plays</span>
                           <div className="flex items-center gap-1">
@@ -2069,7 +2069,7 @@ export default function Home() {
                         </div>
                       </div>
                     </div>
-                  );
+                  };
               })
             )
             </div>
