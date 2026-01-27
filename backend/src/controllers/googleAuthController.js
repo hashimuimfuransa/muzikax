@@ -21,7 +21,9 @@ const googleLogin = async (req, res) => {
     }
 
     // Use environment variables for redirect URI to match Google Console settings
-    const redirectUri = process.env.GOOGLE_REDIRECT_URI || process.env.FRONTEND_URL || 'http://localhost:3000';
+    // For production, we should use the production frontend URL
+    const redirectUri = process.env.GOOGLE_REDIRECT_URI || process.env.FRONTEND_URL || 
+                       (process.env.NODE_ENV === 'production' ? 'https://muzikax.com' : 'http://localhost:3000');
     console.log('Using redirect URI:', redirectUri);
 
     // Exchange authorization code for access token

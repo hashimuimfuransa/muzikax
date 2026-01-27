@@ -87,9 +87,10 @@ app.use(helmet({
 const allowedOrigins = process.env.CORS_ORIGIN ? 
   process.env.CORS_ORIGIN.split(',').map(origin => origin.trim()) : 
   [
-    'https://muzikax.vercel.app',     // Production frontend
+    'https://muzikax.com',            // Production frontend
     'https://www.muzikax.com',        // Production domain (without trailing slash)
     'https://www.muzikax.com/',       // Production domain (with trailing slash)
+    'https://muzikax.vercel.app',     // Legacy domain
     'http://localhost:3000',          // Local development
     'http://localhost:3001',          // Alternative local development
     'http://localhost:8080',          // Alternative local development
