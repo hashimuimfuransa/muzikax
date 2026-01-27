@@ -9,6 +9,8 @@ export interface ITrack {
   genre: string;
   type: 'song' | 'beat' | 'mix';
   paymentType?: 'free' | 'paid';
+  price?: number;
+  currency?: string;
   plays: number;
   likes: number;
   comments: string[];

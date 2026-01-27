@@ -14,6 +14,8 @@ interface Track {
   audioUrl?: string;
   type?: 'song' | 'beat' | 'mix';
   paymentType?: 'free' | 'paid';
+  price?: number;
+  currency?: string;
   creatorWhatsapp?: string;
 }
 
@@ -210,9 +212,22 @@ export default function TrackCard({
         {/* Payment type indicator for beats */}
         {track.type === 'beat' && (
           <div className="mt-2">
-            <span className={`inline-block px-2 py-1 text-xs rounded-full ${track.paymentType === 'paid' ? 'bg-green-600 text-white' : 'bg-blue-600 text-white'}`}>
-              {track.paymentType === 'paid' ? 'PAID BEAT' : 'FREE BEAT'}
-            </span>
+            {(() => {
+              // Handle missing or null paymentType by defaulting to 'free'
+              const paymentType = track.paymentType || 'free';
+              return (
+                <>
+                  <span className={`inline-block px-2 py-1 text-xs rounded-full ${paymentType === 'paid' ? 'bg-green-600 text-white' : 'bg-blue-600 text-white'}`}>
+                    {paymentType === 'paid' ? 'PAID BEAT' : 'FREE BEAT'}
+                  </span>
+                  {paymentType === 'paid' && track.price && (
+                    <span className="ml-2 inline-block px-2 py-1 text-xs rounded-full bg-yellow-600 text-white">
+                      {track.price.toLocaleString()} RWF
+                    </span>
+                  )}
+                </>
+              );
+            })()}
           </div>
         )}
         

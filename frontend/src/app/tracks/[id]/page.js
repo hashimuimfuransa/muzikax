@@ -132,8 +132,8 @@ export default async function TrackDetailPage({ params }) {
                         offers: {
                             '@type': 'Offer',
                             availability: 'https://schema.org/InStock',
-                            price: '0',
-                            priceCurrency: 'USD',
+                            price: track.price?.toString() || '0',
+                            priceCurrency: track.currency || 'RWF',
                         },
                     }),
                 } })] }));

@@ -18,6 +18,9 @@ interface Track {
   genre?: string;
   releaseDate?: string;
   description?: string;
+  paymentType?: 'free' | 'paid';
+  price?: number;
+  currency?: string;
   creatorId: {
     _id: string;
     name: string;
@@ -188,6 +191,14 @@ export default async function TrackDetailPage({ params }: { params: Promise<{ id
                   <span>{track.likes?.toLocaleString() || '0'} likes</span>
                   <span>•</span>
                   <span>{track.duration || 'N/A'}</span>
+                  {track.paymentType === 'paid' && track.price && (
+                    <>
+                      <span>•</span>
+                      <span className="text-green-400 font-semibold">
+                        {track.price.toLocaleString()} RWF
+                      </span>
+                    </>
+                  )}
                 </div>
 
                 <div className="flex gap-4">
@@ -259,8 +270,8 @@ export default async function TrackDetailPage({ params }: { params: Promise<{ id
             offers: {
               '@type': 'Offer',
               availability: 'https://schema.org/InStock',
-              price: '0',
-              priceCurrency: 'USD',
+              price: track.price?.toString() || '0',
+              priceCurrency: track.currency || 'RWF',
             },
           }),
         }}

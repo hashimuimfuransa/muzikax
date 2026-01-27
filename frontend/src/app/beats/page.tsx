@@ -477,6 +477,12 @@ export default function BeatsPage() {
                       <span>{track.likes}</span>
                     </div>
                   </div>
+                  
+                  {track.paymentType === 'paid' && track.price && (
+                    <div className="text-sm text-green-400 font-semibold mb-3">
+                      {track.price.toLocaleString()} RWF
+                    </div>
+                  )}
       
                   {/* Beat-specific buttons */}
                   <div className="flex gap-2">

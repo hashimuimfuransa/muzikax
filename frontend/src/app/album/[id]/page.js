@@ -98,8 +98,8 @@ export default function AlbumDetailPage({ params }) {
                         offers: {
                             '@type': 'Offer',
                             availability: 'https://schema.org/InStock',
-                            price: '0',
-                            priceCurrency: 'USD',
+                            price: album.price?.toString() || '0',
+                            priceCurrency: album.currency || 'RWF',
                         },
                     }),
                 } })] }));

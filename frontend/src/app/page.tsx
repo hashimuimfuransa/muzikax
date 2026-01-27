@@ -784,6 +784,9 @@ export default function Home() {
                             likes: fullTrack.likes || 0,
                             creatorId: typeof fullTrack.creatorId === 'object' && fullTrack.creatorId !== null ? (fullTrack.creatorId as any)._id : fullTrack.creatorId,
                             type: fullTrack.type, // Include track type for WhatsApp functionality
+                            paymentType: fullTrack.paymentType, // Include payment type for beat pricing
+                            price: fullTrack.price, // Include price for paid beats
+                            currency: fullTrack.currency, // Include currency for paid beats
                             creatorWhatsapp: (typeof fullTrack.creatorId === 'object' && fullTrack.creatorId !== null 
                               ? (fullTrack.creatorId as any).whatsappContact 
                               : undefined) // Include creator's WhatsApp contact
@@ -805,6 +808,9 @@ export default function Home() {
                               audioUrl: t.audioURL,
                               creatorId: typeof t.creatorId === 'object' && t.creatorId !== null ? (t.creatorId as any)._id : t.creatorId,
                               type: t.type, // Include track type for WhatsApp functionality
+                              paymentType: t.paymentType, // Include payment type for beat pricing
+                              price: t.price, // Include price for paid beats
+                              currency: t.currency, // Include currency for paid beats
                               creatorWhatsapp: (typeof t.creatorId === 'object' && t.creatorId !== null 
                                 ? (t.creatorId as any).whatsappContact 
                                 : undefined) // Include creator's WhatsApp contact
@@ -932,9 +938,15 @@ export default function Home() {
                   {/* Payment type indicator for beats */}
                   {track.type === 'beat' && (
                     <div className="mt-2">
-                      <span className={`inline-block px-2 py-1 text-xs rounded-full ${track.paymentType === 'paid' ? 'bg-green-600 text-white' : 'bg-blue-600 text-white'}`}>
-                        {track.paymentType === 'paid' ? 'PAID BEAT' : 'FREE BEAT'}
-                      </span>
+                      {(() => {
+                        // Handle missing or null paymentType by defaulting to 'free'
+                        const paymentType = track.paymentType || 'free';
+                        return (
+                          <span className={`inline-block px-2 py-1 text-xs rounded-full ${paymentType === 'paid' ? 'bg-green-600 text-white' : 'bg-blue-600 text-white'}`}>
+                            {paymentType === 'paid' ? 'PAID BEAT' : 'FREE BEAT'}
+                          </span>
+                        );
+                      })()}
                     </div>
                   )}
                   
@@ -1001,10 +1013,13 @@ export default function Home() {
                     ? (track.creatorId as any)._id 
                     : track.creatorId,
                   type: track.type as 'song' | 'beat' | 'mix' | undefined,
+                  paymentType: track.paymentType as 'free' | 'paid' | undefined,
+                  price: track.price,
+                  currency: track.currency,
                   creatorWhatsapp: typeof track.creatorId === 'object' && track.creatorId !== null 
                     ? (track.creatorId as any).whatsappContact 
                     : undefined
-                }} 
+                }}
                 fullTrackData={track}
               />
             );
@@ -1180,7 +1195,14 @@ export default function Home() {
                               audioUrl: track.audioURL,
                               creatorId: (track.creatorId && typeof track.creatorId === "object" && track.creatorId !== null) 
                                 ? track.creatorId._id 
-                                : track.creatorId
+                                : track.creatorId,
+                              type: track.type, // Include track type for WhatsApp functionality
+                              paymentType: track.paymentType, // Include payment type for beat pricing
+                              price: track.price, // Include price for paid beats
+                              currency: track.currency, // Include currency for paid beats
+                              creatorWhatsapp: (track.creatorId && typeof track.creatorId === "object" && track.creatorId !== null) 
+                                ? track.creatorId.whatsappContact 
+                                : undefined // Include creator's WhatsApp contact
                             };
                           });
                           
@@ -1293,7 +1315,14 @@ export default function Home() {
                               artist: track.artist,
                               coverImage: track.coverImage,
                               audioUrl: fullTrack.audioURL,
-                              creatorId: typeof fullTrack.creatorId === 'object' && fullTrack.creatorId !== null ? (fullTrack.creatorId as any)._id : fullTrack.creatorId
+                              creatorId: typeof fullTrack.creatorId === 'object' && fullTrack.creatorId !== null ? (fullTrack.creatorId as any)._id : fullTrack.creatorId,
+                              type: fullTrack.type, // Include track type for WhatsApp functionality
+                              paymentType: fullTrack.paymentType, // Include payment type for beat pricing
+                              price: fullTrack.price, // Include price for paid beats
+                              currency: fullTrack.currency, // Include currency for paid beats
+                              creatorWhatsapp: (typeof fullTrack.creatorId === 'object' && fullTrack.creatorId !== null 
+                                ? (fullTrack.creatorId as any).whatsappContact 
+                                : undefined) // Include creator's WhatsApp contact
                             });
 
                             // Set the current playlist to all trending tracks
@@ -1311,7 +1340,14 @@ export default function Home() {
                                   t.coverURL ||
                                   "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
                                 audioUrl: t.audioURL,
-                                creatorId: typeof t.creatorId === 'object' && t.creatorId !== null ? (t.creatorId as any)._id : t.creatorId
+                                creatorId: typeof t.creatorId === 'object' && t.creatorId !== null ? (t.creatorId as any)._id : t.creatorId,
+                                type: t.type, // Include track type for WhatsApp functionality
+                                paymentType: t.paymentType, // Include payment type for beat pricing
+                                price: t.price, // Include price for paid beats
+                                currency: t.currency, // Include currency for paid beats
+                                creatorWhatsapp: (typeof t.creatorId === 'object' && t.creatorId !== null 
+                                  ? (t.creatorId as any).whatsappContact 
+                                  : undefined) // Include creator's WhatsApp contact
                               }));
                             setCurrentPlaylist(playlistTracks);
                           }
@@ -1899,6 +1935,8 @@ export default function Home() {
                     category: track.type,
                     type: track.type,
                     paymentType: track.paymentType,
+                    price: track.price, // Include price for paid beats
+                    currency: track.currency, // Include currency for paid beats
                     creatorId: typeof track.creatorId === 'object' && track.creatorId !== null ? (track.creatorId as any)._id : track.creatorId
                   };
                   
@@ -1934,6 +1972,9 @@ export default function Home() {
                                   audioUrl: track.audioURL,
                                   creatorId: transformedTrack.creatorId,
                                   type: transformedTrack.type, // Include track type for WhatsApp functionality
+                                  paymentType: transformedTrack.paymentType, // Include payment type for beat pricing
+                                  price: transformedTrack.price, // Include price for paid beats
+                                  currency: transformedTrack.currency, // Include currency for paid beats
                                   creatorWhatsapp: (typeof track.creatorId === 'object' && track.creatorId !== null 
                                     ? (track.creatorId as any).whatsappContact 
                                     : undefined) // Include creator's WhatsApp contact
@@ -1956,6 +1997,9 @@ export default function Home() {
                                     audioUrl: t.audioURL,
                                     creatorId: typeof t.creatorId === 'object' && t.creatorId !== null ? (t.creatorId as any)._id : t.creatorId,
                                     type: t.type, // Include track type for WhatsApp functionality
+                                    paymentType: t.paymentType, // Include payment type for beat pricing
+                                    price: t.price, // Include price for paid beats
+                                    currency: t.currency, // Include currency for paid beats
                                     creatorWhatsapp: (typeof t.creatorId === 'object' && t.creatorId !== null 
                                       ? (t.creatorId as any).whatsappContact 
                                       : undefined) // Include creator's WhatsApp contact
@@ -2040,9 +2084,15 @@ export default function Home() {
                         {/* Payment type indicator for beats */}
                         {transformedTrack.type === 'beat' && (
                           <div className="mt-2">
-                            <span className={`inline-block px-2 py-1 text-xs rounded-full ${transformedTrack.paymentType === 'paid' ? 'bg-green-600 text-white' : 'bg-blue-600 text-white'}`}>
-                              {transformedTrack.paymentType === 'paid' ? 'PAID BEAT' : 'FREE BEAT'}
-                            </span>
+                            {(() => {
+                              // Handle missing or null paymentType by defaulting to 'free'
+                              const paymentType = transformedTrack.paymentType || 'free';
+                              return (
+                                <span className={`inline-block px-2 py-1 text-xs rounded-full ${paymentType === 'paid' ? 'bg-green-600 text-white' : 'bg-blue-600 text-white'}`}>
+                                  {paymentType === 'paid' ? 'PAID BEAT' : 'FREE BEAT'}
+                                </span>
+                              );
+                            })()}
                           </div>
                         )}
 

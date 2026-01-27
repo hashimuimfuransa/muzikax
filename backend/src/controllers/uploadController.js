@@ -11,13 +11,16 @@ Object.defineProperty(exports, "protect", { enumerable: true, get: function () {
 // Upload track with cover image
 const uploadTrack = async (req, res) => {
     try {
-        const { title, description, genre, type, audioURL, coverURL, albumId } = req.body;
+        const { title, description, genre, type, paymentType, price, currency, audioURL, coverURL, albumId } = req.body;
         const user = req.user;
         console.log('Upload track request received:', {
             title,
             description,
             genre,
             type,
+            paymentType,
+            price,
+            currency,
             audioURL,
             coverURL,
             albumId,
@@ -50,6 +53,9 @@ const uploadTrack = async (req, res) => {
             description: description || '',
             genre: genre || 'afrobeat',
             type: type || 'song',
+            paymentType: paymentType || 'free',
+            price: price || 0,
+            currency: currency || 'RWF',
             audioURL,
             coverURL: finalCoverURL || ''
         };

@@ -6,46 +6,6 @@ import Link from 'next/link';
 import { getAlbumById } from '../../../services/albumService';
 import Script from 'next/script';
 import AlbumDetailClient from '../../../components/AlbumDetailClient';
-
-interface Creator {
-  _id: string;
-  name: string;
-  avatar?: string;
-}
-
-interface AlbumTrack {
-  _id: string;
-  id: string;
-  title: string;
-  artist: string;
-  coverImage: string;
-  coverURL?: string;
-  duration?: string;
-  audioUrl: string;
-  audioURL: string;
-  plays: number;
-  likes: number;
-  creatorId: string | Creator;
-  type?: 'song' | 'beat' | 'mix'; // Add track type for WhatsApp functionality
-  creatorWhatsapp?: string; // Add creator's WhatsApp contact
-}
-
-interface Album {
-  _id: string;
-  id: string;
-  title: string;
-  artist: string;
-  coverImage: string;
-  coverURL?: string;
-  year: number;
-  tracks: AlbumTrack[];
-  description?: string;
-  genre?: string;
-  creatorId: string | Creator;
-  releaseDate?: string;
-  createdAt: string;
-}
-
 import { useState, useEffect } from 'react';
 
 interface Creator {
@@ -85,6 +45,8 @@ interface Album {
   creatorId: string | Creator;
   releaseDate?: string;
   createdAt: string;
+  price?: number;
+  currency?: string;
 }
 
 export default function AlbumDetailPage({ params }: { params: { id: string } }) {
@@ -279,8 +241,8 @@ export default function AlbumDetailPage({ params }: { params: { id: string } }) 
             offers: {
               '@type': 'Offer',
               availability: 'https://schema.org/InStock',
-              price: '0',
-              priceCurrency: 'USD',
+              price: album.price?.toString() || '0',
+              priceCurrency: album.currency || 'RWF',
             },
           }),
         }}

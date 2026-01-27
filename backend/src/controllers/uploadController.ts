@@ -17,7 +17,7 @@ const checkUserHasWhatsApp = async (userId: string): Promise<boolean> => {
 // Upload track with cover image
 export const uploadTrack = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { title, description, genre, type, audioURL, coverURL, albumId } = req.body;
+    const { title, description, genre, type, paymentType, price, audioURL, coverURL, albumId } = req.body;
     const user = (req as any).user;
 
     console.log('Upload track request received:', { 
@@ -25,6 +25,8 @@ export const uploadTrack = async (req: Request, res: Response): Promise<void> =>
       description, 
       genre, 
       type, 
+      paymentType,
+      price,
       audioURL, 
       coverURL,
       albumId,
@@ -73,6 +75,8 @@ export const uploadTrack = async (req: Request, res: Response): Promise<void> =>
       description: description || '',
       genre: genre || 'afrobeat',
       type: type || 'song',
+      paymentType: paymentType || 'free',
+      price: price || 0,
       audioURL,
       coverURL: finalCoverURL || ''
     };

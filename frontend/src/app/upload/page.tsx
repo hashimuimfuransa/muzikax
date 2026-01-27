@@ -14,6 +14,7 @@ export default function Upload() {
   const [genre, setGenre] = useState('afrobeat')
   const [type, setType] = useState<'song' | 'beat' | 'mix'>('song') // Add track type state
   const [paymentType, setPaymentType] = useState<'free' | 'paid'>('free') // Add payment type state for beats
+  const [price, setPrice] = useState<number>(0) // Add price state for paid beats
   const [visibility, setVisibility] = useState('public')
   const [releaseDate, setReleaseDate] = useState<string>('') // Release date state
   const [collaborators, setCollaborators] = useState<string>('') // Collaborators state
@@ -285,6 +286,7 @@ export default function Upload() {
         genre,
         type,
         paymentType,
+        price,
         audioURL: audioUrl,
         coverURL: finalCoverUrl || '',
         releaseDate: releaseDate || new Date().toISOString(),
@@ -311,6 +313,8 @@ export default function Upload() {
             description,
             genre,
             type,
+            paymentType,
+            price,
             audioURL: audioUrl,
             coverURL: finalCoverUrl || '',
             releaseDate: releaseDate || new Date().toISOString(),
@@ -762,6 +766,28 @@ export default function Upload() {
                             {paymentType === 'paid' 
                               ? 'Users will contact you via WhatsApp to obtain this beat' 
                               : 'Users can download this beat for free'}
+                          </p>
+                        </div>
+                      )}
+                      
+                      {/* Price field for paid beats */}
+                      {type === 'beat' && paymentType === 'paid' && (
+                        <div>
+                          <label htmlFor="price" className="block text-sm font-medium text-gray-300 mb-2">
+                            Price (RWF)
+                          </label>
+                          <input
+                            type="number"
+                            id="price"
+                            min="0"
+                            step="0.01"
+                            value={price}
+                            onChange={(e) => setPrice(parseFloat(e.target.value) || 0)}
+                            className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm sm:text-base"
+                            placeholder="0.00"
+                          />
+                          <p className="mt-1 text-xs text-gray-500">
+                            Set the price for this beat
                           </p>
                         </div>
                       )}

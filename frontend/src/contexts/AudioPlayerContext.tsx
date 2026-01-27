@@ -21,6 +21,8 @@ interface Track {
   likes?: number; // Add likes property to track like counts
   type?: 'song' | 'beat' | 'mix'; // Add type field to distinguish beats
   paymentType?: 'free' | 'paid'; // Add payment type for beats
+  price?: number; // Add price for paid beats
+  currency?: string; // Add currency for paid beats
   creatorWhatsapp?: string; // Add creator's WhatsApp contact for beats
 }
 interface Playlist {
@@ -118,6 +120,7 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
   const [playbackRate, setPlaybackRate] = useState(1);
   const [isLooping, setIsLooping] = useState(false);
   const [queue, setQueue] = useState<Track[]>([]); // Queue for upcoming tracks
+  const [hasReachedTimeLimit, setHasReachedTimeLimit] = useState(false); // Track if paid beat has reached time limit
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const hasIncrementedPlayCount = useRef<Set<string>>(new Set());
   const router = useRouter();
@@ -148,6 +151,18 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     if (currentPlaybackContext.current.type !== 'single' && playlistRef.current.length > 0) {
       originalPlaylistRef.current = [...playlistRef.current];
       console.log('Stored original playlist with', originalPlaylistRef.current.length, 'tracks');
+    }
+  };
+  
+  // Function to display time limit message for paid beats
+  const timeLimitMessage = (track: Track) => {
+    const message = `You've reached the 40-second preview for "${track.title}". To get the full version, please contact the creator via WhatsApp.`;
+    alert(message);
+    
+    // Open WhatsApp with pre-filled message
+    if (track.creatorWhatsapp) {
+      const whatsappMessage = `Hi, I'm interested in the full version of your beat "${track.title}" that I found on MuzikaX. I've listened to the 40-second preview and would like to purchase the full version.`;
+      window.open(`https://wa.me/${track.creatorWhatsapp}?text=${encodeURIComponent(whatsappMessage)}`, '_blank');
     }
   };
   
@@ -266,6 +281,9 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     console.log('Current playback context before setting:', currentPlaybackContext.current);
     console.log('Is cycling:', isCycling);
     
+    // Reset time limit state when playing a new track
+    setHasReachedTimeLimit(false);
+    
     // Validate that we have a valid audio URL
     if (!track.audioUrl || track.audioUrl.trim() === '') {
       console.error('Cannot play track: Invalid audio URL', track);
@@ -381,6 +399,16 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
       if (audio.duration) {
         setProgress(audio.currentTime);
         setDuration(audio.duration);
+        
+        // Check if this is a paid beat and has reached the 40-second limit
+        // Use the track variable instead of currentTrackRef.current since it's updated after this event
+        if (track?.paymentType === 'paid' && audio.currentTime >= 40) {
+          if (!hasReachedTimeLimit) {
+            setHasReachedTimeLimit(true);
+            audio.pause();
+            timeLimitMessage(track);
+          }
+        }
       }
     };
     
@@ -1379,8 +1407,9 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
                   (currentTrack.title && currentTrack.title.toLowerCase().includes('beat'));
     
     if (isBeat) {
-      // For beats, check if it's free or paid
-      if (currentTrack.paymentType === 'paid') {
+      // For beats, check if it's free or paid - handle missing paymentType by defaulting to 'free'
+      const paymentType = currentTrack.paymentType || 'free';
+      if (paymentType === 'paid') {
         // For paid beats, we need to ensure we have the creator's WhatsApp number
         let creatorWhatsapp = currentTrack.creatorWhatsapp;
         

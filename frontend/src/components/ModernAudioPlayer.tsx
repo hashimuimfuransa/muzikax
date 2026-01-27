@@ -298,11 +298,15 @@ const ModernAudioPlayer = () => {
                   <p className="text-[#FFCB2B] text-xs truncate">{currentTrack.artist}</p>
                   <div className="flex items-center gap-1 mt-1 flex-wrap">
                     <span className="text-[#FF4D67] text-xs font-medium">BEAT</span>
-                    {currentTrack.paymentType === "paid" ? (
-                      <span className="text-green-400 text-xs">• PAID</span>
-                    ) : (
-                      <span className="text-blue-400 text-xs">• FREE</span>
-                    )}
+                    {(() => {
+                      // Handle missing or null paymentType by defaulting to 'free'
+                      const paymentType = currentTrack.paymentType || 'free';
+                      return paymentType === "paid" ? (
+                        <span className="text-green-400 text-xs">• PAID</span>
+                      ) : (
+                        <span className="text-blue-400 text-xs">• FREE</span>
+                      );
+                    })()}
                   </div>
                 </>
               ) : (

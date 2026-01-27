@@ -71,6 +71,19 @@ const TrackSchema = new mongoose_1.Schema({
         enum: ['song', 'beat', 'mix'],
         required: true
     },
+    paymentType: {
+        type: String,
+        enum: ['free', 'paid'],
+        default: 'free'
+    },
+    price: {
+        type: Number,
+        default: 0
+    },
+    currency: {
+        type: String,
+        default: 'RWF'
+    },
     plays: {
         type: Number,
         default: 0
