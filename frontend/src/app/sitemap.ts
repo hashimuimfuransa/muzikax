@@ -1,5 +1,22 @@
 import { MetadataRoute } from 'next';
 
+// Helper function to fetch with timeout
+async function fetchWithTimeout(url: string, timeout: number = 10000) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const response = await fetch(url, {
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    throw error;
+  }
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Base URLs for static pages
   const staticPages: MetadataRoute.Sitemap = [
@@ -84,11 +101,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   try {
-    // Fetch dynamic content - tracks
+    // Fetch dynamic content - tracks (limit to recent 50 to avoid timeout)
     let allTracks = [];
     try {
-      // Try to fetch all tracks for the sitemap
-      const trackResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tracks?limit=1000`);
+      // Try to fetch recent tracks for the sitemap
+      const trackResponse = await fetchWithTimeout(`${process.env.NEXT_PUBLIC_API_URL}/api/tracks?limit=50&sort=-createdAt`);
       if (trackResponse.ok) {
         const trackData = await trackResponse.json();
         allTracks = Array.isArray(trackData.tracks) ? trackData.tracks : [];
@@ -99,11 +116,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       allTracks = [];
     }
 
-    // Fetch dynamic content - albums
+    // Fetch dynamic content - albums (limit to recent 50 to avoid timeout)
     let allAlbums = [];
     try {
-      // Try to fetch all albums for the sitemap
-      const albumResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/albums?limit=1000`);
+      // Try to fetch recent albums for the sitemap
+      const albumResponse = await fetchWithTimeout(`${process.env.NEXT_PUBLIC_API_URL}/api/albums?limit=50&sort=-createdAt`);
       if (albumResponse.ok) {
         const albumData = await albumResponse.json();
         allAlbums = Array.isArray(albumData.albums) ? albumData.albums : [];
@@ -114,16 +131,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       allAlbums = [];
     }
 
-    // Create URLs for each track
-    const trackUrls: MetadataRoute.Sitemap = allTracks.map((track: any) => ({
+    // Create URLs for each track (limit to first 50 to avoid timeout)
+    const trackUrls: MetadataRoute.Sitemap = allTracks.slice(0, 50).map((track: any) => ({
       url: `https://www.muzikax.com/tracks/${track._id}`,
       lastModified: track.updatedAt ? new Date(track.updatedAt) : new Date(),
       changeFrequency: 'weekly',
       priority: 0.7,
     }));
 
-    // Create URLs for each album
-    const albumUrls: MetadataRoute.Sitemap = allAlbums.map((album: any) => ({
+    // Create URLs for each album (limit to first 50 to avoid timeout)
+    const albumUrls: MetadataRoute.Sitemap = allAlbums.slice(0, 50).map((album: any) => ({
       url: `https://www.muzikax.com/album/${album._id}`,
       lastModified: album.updatedAt ? new Date(album.updatedAt) : new Date(),
       changeFrequency: 'weekly',
