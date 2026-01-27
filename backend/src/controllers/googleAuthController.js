@@ -7,6 +7,13 @@ const googleLogin = async (req, res) => {
     const { code } = req.body;
     
     console.log('Received Google authorization code:', code);
+    console.log('Environment variables:');
+    console.log('GOOGLE_CLIENT_ID:', process.env.GOOGLE_CLIENT_ID ? '[SET]' : '[NOT SET]');
+    console.log('GOOGLE_CLIENT_SECRET:', process.env.GOOGLE_CLIENT_SECRET ? '[SET]' : '[NOT SET]');
+    console.log('FRONTEND_URL:', process.env.FRONTEND_URL);
+    console.log('GOOGLE_REDIRECT_URI:', process.env.GOOGLE_REDIRECT_URI);
+    console.log('Request origin:', req.get('origin'));
+    console.log('Request headers:', req.headers);
     
     // Check if code exists
     if (!code) {
@@ -14,7 +21,8 @@ const googleLogin = async (req, res) => {
     }
 
     // Use environment variables for redirect URI to match Google Console settings
-    const redirectUri = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const redirectUri = process.env.GOOGLE_REDIRECT_URI || process.env.FRONTEND_URL || 'http://localhost:3000';
+    console.log('Using redirect URI:', redirectUri);
 
     // Exchange authorization code for access token
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
@@ -32,7 +40,16 @@ const googleLogin = async (req, res) => {
     });
 
     if (!tokenResponse.ok) {
-      const errorData = await tokenResponse.json();
+      const errorText = await tokenResponse.text();
+      console.error('Token exchange failed with status:', tokenResponse.status);
+      console.error('Token exchange response text:', errorText);
+      let errorData;
+      try {
+        errorData = JSON.parse(errorText);
+      } catch (parseError) {
+        console.error('Could not parse error response as JSON');
+        errorData = { error: 'unknown_error', error_description: errorText };
+      }
       console.error('Token exchange failed:', errorData);
       return res.status(400).json({ 
         message: errorData.error_description || 'Failed to exchange authorization code for tokens',

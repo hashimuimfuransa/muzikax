@@ -60,9 +60,23 @@ const getAllTracks = async (req, res) => {
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit);
+            
+        // Ensure all tracks have proper paymentType values
+        const tracksWithDefaults = tracks.map(track => {
+            // Convert Mongoose document to plain object to ensure all fields are accessible
+            const trackObj = track.toObject ? track.toObject() : track;
+            
+            // Ensure paymentType defaults to 'free' if not present
+            if (!trackObj.paymentType) {
+                trackObj.paymentType = 'free';
+            }
+            
+            return trackObj;
+        });
+        
         const total = await Track_1.countDocuments();
         res.json({
-            tracks,
+            tracks: tracksWithDefaults,
             page,
             pages: Math.ceil(total / limit),
             total
@@ -91,7 +105,16 @@ const getTrackById = async (req, res) => {
             res.status(404).json({ message: 'Track not found' });
             return;
         }
-        res.json(track);
+        
+        // Convert Mongoose document to plain object to ensure all fields are accessible
+        const trackObj = track.toObject ? track.toObject() : track;
+        
+        // Ensure paymentType defaults to 'free' if not present
+        if (!trackObj.paymentType) {
+            trackObj.paymentType = 'free';
+        }
+        
+        res.json(trackObj);
     }
     catch (error) {
         res.status(500).json({ message: error.message });
@@ -128,7 +151,21 @@ const getTracksByCreatorSimple = async (req, res) => {
         const tracks = await Track_1.find({ creatorId: actualCreatorId })
             .sort({ createdAt: -1 })
             .populate('creatorId', 'name avatar');
-        res.json(tracks);
+            
+        // Ensure all tracks have proper paymentType values
+        const tracksWithDefaults = tracks.map(track => {
+            // Convert Mongoose document to plain object to ensure all fields are accessible
+            const trackObj = track.toObject ? track.toObject() : track;
+            
+            // Ensure paymentType defaults to 'free' if not present
+            if (!trackObj.paymentType) {
+                trackObj.paymentType = 'free';
+            }
+            
+            return trackObj;
+        });
+        
+        res.json(tracksWithDefaults);
     }
     catch (error) {
         res.status(500).json({ message: error.message });
@@ -170,7 +207,21 @@ const getTracksByCreator = async (req, res) => {
             const tracks = await Track_1.find({ creatorId: actualCreatorId })
                 .sort({ createdAt: -1 })
                 .populate('creatorId', 'name avatar');
-            res.json(tracks);
+                
+            // Ensure all tracks have proper paymentType values
+            const tracksWithDefaults = tracks.map(track => {
+                // Convert Mongoose document to plain object to ensure all fields are accessible
+                const trackObj = track.toObject ? track.toObject() : track;
+                
+                // Ensure paymentType defaults to 'free' if not present
+                if (!trackObj.paymentType) {
+                    trackObj.paymentType = 'free';
+                }
+                
+                return trackObj;
+            });
+            
+            res.json(tracksWithDefaults);
             return;
         }
         // Otherwise, use pagination
@@ -182,9 +233,23 @@ const getTracksByCreator = async (req, res) => {
             .skip(skip)
             .limit(limit)
             .populate('creatorId', 'name avatar');
+            
+        // Ensure all tracks have proper paymentType values
+        const tracksWithDefaults = tracks.map(track => {
+            // Convert Mongoose document to plain object to ensure all fields are accessible
+            const trackObj = track.toObject ? track.toObject() : track;
+            
+            // Ensure paymentType defaults to 'free' if not present
+            if (!trackObj.paymentType) {
+                trackObj.paymentType = 'free';
+            }
+            
+            return trackObj;
+        });
+        
         const total = await Track_1.countDocuments({ creatorId: actualCreatorId });
         res.json({
-            tracks,
+            tracks: tracksWithDefaults,
             page,
             pages: Math.ceil(total / limit),
             total
@@ -208,7 +273,21 @@ const getTracksByAuthUser = async (req, res) => {
             const tracks = await Track_1.find({ creatorId })
                 .sort({ createdAt: -1 })
                 .populate('creatorId', 'name avatar');
-            res.json(tracks);
+                
+            // Ensure all tracks have proper paymentType values
+            const tracksWithDefaults = tracks.map(track => {
+                // Convert Mongoose document to plain object to ensure all fields are accessible
+                const trackObj = track.toObject ? track.toObject() : track;
+                
+                // Ensure paymentType defaults to 'free' if not present
+                if (!trackObj.paymentType) {
+                    trackObj.paymentType = 'free';
+                }
+                
+                return trackObj;
+            });
+            
+            res.json(tracksWithDefaults);
             return;
         }
         // Otherwise, use pagination
@@ -220,9 +299,23 @@ const getTracksByAuthUser = async (req, res) => {
             .skip(skip)
             .limit(limit)
             .populate('creatorId', 'name avatar');
+            
+        // Ensure all tracks have proper paymentType values
+        const tracksWithDefaults = tracks.map(track => {
+            // Convert Mongoose document to plain object to ensure all fields are accessible
+            const trackObj = track.toObject ? track.toObject() : track;
+            
+            // Ensure paymentType defaults to 'free' if not present
+            if (!trackObj.paymentType) {
+                trackObj.paymentType = 'free';
+            }
+            
+            return trackObj;
+        });
+        
         const total = await Track_1.countDocuments({ creatorId });
         res.json({
-            tracks,
+            tracks: tracksWithDefaults,
             page,
             pages: Math.ceil(total / limit),
             total
@@ -379,7 +472,21 @@ const getTrendingTracks = async (req, res) => {
                 .sort({ plays: -1, createdAt: -1 })
                 .limit(limit)
                 .populate('creatorId', 'name avatar');
-            res.json(tracks);
+                
+            // Ensure all tracks have proper paymentType values
+            const tracksWithDefaults = tracks.map(track => {
+                // Convert Mongoose document to plain object to ensure all fields are accessible
+                const trackObj = track.toObject ? track.toObject() : track;
+                
+                // Ensure paymentType defaults to 'free' if not present
+                if (!trackObj.paymentType) {
+                    trackObj.paymentType = 'free';
+                }
+                
+                return trackObj;
+            });
+            
+            res.json(tracksWithDefaults);
         }
     catch (error) {
         res.status(500).json({ message: error.message });
@@ -411,7 +518,20 @@ const getTracksByType = async (req, res) => {
             .limit(limit)
             .populate('creatorId', 'name avatar whatsappContact');
             
-        res.json(tracks);
+        // Ensure all tracks have proper paymentType values
+        const tracksWithDefaults = tracks.map(track => {
+            // Convert Mongoose document to plain object to ensure all fields are accessible
+            const trackObj = track.toObject ? track.toObject() : track;
+            
+            // Ensure paymentType defaults to 'free' if not present
+            if (!trackObj.paymentType) {
+                trackObj.paymentType = 'free';
+            }
+            
+            return trackObj;
+        });
+        
+        res.json(tracksWithDefaults);
     }
     catch (error) {
         res.status(500).json({ message: error.message });
