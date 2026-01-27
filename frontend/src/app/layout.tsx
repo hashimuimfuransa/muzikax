@@ -101,6 +101,13 @@ export default function RootLayout({
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5073101063025875"
           crossOrigin="anonymous">
         </script>
+        {/* Monetag Ad Script */}
+        <script 
+          src="https://quge5.com/88/tag.min.js" 
+          data-zone="205954" 
+          async 
+          data-cfasync="false">
+        </script>
       </head>
       <body className="pb-24 md:pb-0">
         <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"}>
