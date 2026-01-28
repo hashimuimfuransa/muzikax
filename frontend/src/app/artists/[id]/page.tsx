@@ -25,6 +25,8 @@ interface Creator {
 }
 
 interface Track {
+  paymentType: any
+  price: any
   _id: string
   title: string
   artist: string

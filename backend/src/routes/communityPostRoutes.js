@@ -10,7 +10,8 @@ const {
   createPoll, 
   voteInPoll,
   getCommunityPostById,
-  sendMessageToArtist
+  sendMessageToArtist,
+  deleteCommunityPost
 } = require('../controllers/communityPostController');
 const { protect } = require('../utils/jwt');
 
@@ -43,5 +44,8 @@ router.post('/:id/vote', protect, voteInPoll);
 
 // Send message to an artist (authenticated users only)
 router.post('/message-artist', protect, sendMessageToArtist);
+
+// Delete a post (authenticated users only, must be post owner)
+router.delete('/:id', protect, deleteCommunityPost);
 
 module.exports = router;

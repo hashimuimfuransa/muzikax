@@ -783,3 +783,37 @@ exports.sendChatMessage = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// Delete a community post (only post owner can delete)
+exports.deleteCommunityPost = async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const userId = req.user._id;
+
+    // Validate the post ID
+    if (!postId || postId === 'undefined') {
+      return res.status(400).json({ message: 'Invalid post ID' });
+    }
+
+    // Find the post
+    const post = await CommunityPost.findById(postId);
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    // Check if the user is the post owner
+    if (post.userId.toString() !== userId.toString()) {
+      return res.status(403).json({ message: 'Unauthorized: You can only delete your own posts' });
+    }
+
+    // Delete the post
+    await CommunityPost.findByIdAndDelete(postId);
+
+    res.status(200).json({
+      message: 'Post deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting community post:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
