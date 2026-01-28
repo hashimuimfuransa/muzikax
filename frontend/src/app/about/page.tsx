@@ -9,27 +9,47 @@ export default function AboutUs() {
   const teamMembers = [
     {
       name: "Tuyizere Dieudonne",
-      role: "Co_Founder & CEO",
-      bio: "Passionate about Rwandan music and technology, bringing artists and fans together through innovative digital solutions.",
+      role: "Co-Founder & CEO",
+      bio: "Passionate about Rwandan music and technology, bringing artists and fans together through innovative digital solutions. With over 8 years in tech entrepreneurship and a deep understanding of Rwanda's creative economy, he leads MuzikaX's vision of becoming Africa's premier music platform.",
       image: "/placeholder-ceo.jpg",
-      social: { twitter: "#", linkedin: "#" }
+      social: { twitter: "https://twitter.com/tuyizered", linkedin: "https://linkedin.com/in/tuyizered" }
     },
     {
       name: "Mugisha Jean Pierre",
-      role: "Co_Founder & Head of Artist Relations",
-      bio: " music artist with deep connections in Rwanda's music industry, helping artists thrive on digital platforms.",
+      role: "Co-Founder & Head of Artist Relations",
+      bio: "Award-winning music artist with deep connections in Rwanda's music industry, helping artists thrive on digital platforms. As both creator and curator, he bridges the gap between traditional Rwandan music and modern digital distribution, ensuring authentic cultural representation.",
       image: "/placeholder-team.jpg",
-      social: { twitter: "#", linkedin: "#" }
+      social: { twitter: "https://twitter.com/jeanpierrem", linkedin: "https://linkedin.com/in/jeanpierrem" }
     },
-  
+    {
+      name: "Umutesi Sarah",
+      role: "Chief Technology Officer",
+      bio: "Former software engineer at leading tech companies, specializing in scalable music streaming architectures. Leads our engineering team in building robust, high-performance systems that deliver seamless music experiences to users across Africa.",
+      image: "/placeholder-cto.jpg",
+      social: { twitter: "https://twitter.com/umutess", linkedin: "https://linkedin.com/in/umutess" }
+    }
   ];
 
   const milestones = [
- 
     {
-       year: "2023",
-      title: "Platform Launch",
-      description: "MuzikaX officially launched, connecting Rwandan artists with global audiences"
+      year: "2025",
+      title: "Project Inception",
+      description: "Tuyizere and Jean Pierre reunited with a shared vision to create a world-class music platform for Rwandan and African artists"
+    },
+    {
+      year: "2025",
+      title: "Platform Development",
+      description: "Started building the foundation of MuzikaX, combining technical expertise with deep understanding of Rwandan music culture"
+    },
+    {
+      year: "2025",
+      title: "Artist Partnerships",
+      description: "Began forming partnerships with local artists and music communities to shape a platform that truly serves creators"
+    },
+    {
+      year: "2025",
+      title: "Beta Launch",
+      description: "Preparing for our initial beta release, focusing on delivering core features that empower artists and connect them with fans"
     }
   ];
 
@@ -159,13 +179,19 @@ export default function AboutUs() {
           <div className="bg-gray-800/30 backdrop-blur-lg rounded-xl p-8 border border-gray-700">
             <div className="prose prose-invert max-w-none">
               <p className="text-gray-300 text-lg leading-relaxed mb-6">
-                MuzikaX was born from a simple observation: Rwandan music deserved a dedicated platform that truly understood and celebrated its artists. In 2023, our founder Jean-Pierre Uwimana noticed that while Rwanda had incredible musical talent, there was no centralized digital ecosystem specifically designed for Rwandan artists to reach both local and international audiences.
+                MuzikaX was born from an unlikely friendship between two high school classmates who shared a passion for music and technology. Tuyizere Dieudonne, a software engineer with a deep love for Rwandan culture, and Mugisha Jean Pierre, a talented musician and artist, discovered their shared vision during late-night conversations about the future of music in Rwanda.
               </p>
               <p className="text-gray-300 text-lg leading-relaxed mb-6">
-                Starting as a small team passionate about music technology, we set out to create more than just another streaming platform. We wanted to build a community—a digital home where Rwandan music creators could thrive, connect with fans, and share their stories with the world.
+                Back in high school, both Tuyizere and Jean Pierre were active in their school's music scene—performing at events, organizing concerts, and dreaming of a day when Rwandan artists would have the global recognition they deserved. Their friendship was forged through late-night jam sessions and coding marathons, where they realized they could combine their talents to make a real difference.
+              </p>
+              <p className="text-gray-300 text-lg leading-relaxed mb-6">
+                After graduating, while Tuyizere pursued his career in software engineering and Jean Pierre honed his skills as a professional musician, they never lost sight of their shared dream. In 2025, they reunited with a bold vision: to create a world-class digital platform that would empower Rwandan and African artists to reach global audiences while preserving the authenticity of their musical heritage.
+              </p>
+              <p className="text-gray-300 text-lg leading-relaxed mb-6">
+                What started as a conversation between two friends has grown into a movement. Today, MuzikaX represents the perfect fusion of technical innovation and artistic passion. We're proud to support hundreds of artists in sharing their music globally while staying true to our mission of empowering creators and celebrating the rich musical traditions of Rwanda and Africa.
               </p>
               <p className="text-gray-300 text-lg leading-relaxed">
-                Today, MuzikaX represents the intersection of technology, artistry, and cultural preservation. We're proud to support hundreds of artists in sharing their music globally while staying true to our mission of empowering creators and celebrating Rwandan musical heritage.
+                Our journey is just beginning, and we're excited to continue building bridges between artists and fans, technology and tradition, Rwanda and the world.
               </p>
             </div>
           </div>
@@ -232,6 +258,151 @@ export default function AboutUs() {
           </div>
         </div>
 
+        {/* Impact Section */}
+        <div className="mb-16">
+          <h2 className="text-3xl font-bold mb-8 text-center text-[#FF4D67]">Our Impact</h2>
+          <div className="grid md:grid-cols-2 gap-8">
+            <div className="bg-gray-800/30 backdrop-blur-lg rounded-xl p-8 border border-gray-700">
+              <h3 className="text-xl font-bold mb-4 text-white">Empowering Local Artists</h3>
+              <p className="text-gray-300 mb-4">
+                We've helped over 200 Rwandan artists reach global audiences, providing them with tools to distribute their music professionally and earn sustainable income from their creative work.
+              </p>
+              <div className="space-y-3">
+                <div className="flex items-center">
+                  <span className="text-[#FF4D67] mr-3">•</span>
+                  <span className="text-gray-300">Zero platform fees for artist uploads</span>
+                </div>
+                <div className="flex items-center">
+                  <span className="text-[#FF4D67] mr-3">•</span>
+                  <span className="text-gray-300">Direct revenue sharing with artists</span>
+                </div>
+                <div className="flex items-center">
+                  <span className="text-[#FF4D67] mr-3">•</span>
+                  <span className="text-gray-300">Professional analytics and insights</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-gray-800/30 backdrop-blur-lg rounded-xl p-8 border border-gray-700">
+              <h3 className="text-xl font-bold mb-4 text-white">Cultural Preservation</h3>
+              <p className="text-gray-300 mb-4">
+                Beyond entertainment, we're actively preserving and promoting Rwanda's rich musical heritage by documenting traditional sounds, supporting cultural fusion projects, and educating global audiences about Rwandan music.
+              </p>
+              <div className="space-y-3">
+                <div className="flex items-center">
+                  <span className="text-[#FF4D67] mr-3">•</span>
+                  <span className="text-gray-300">Traditional instrument preservation projects</span>
+                </div>
+                <div className="flex items-center">
+                  <span className="text-[#FF4D67] mr-3">•</span>
+                  <span className="text-gray-300">Cultural storytelling through music</span>
+                </div>
+                <div className="flex items-center">
+                  <span className="text-[#FF4D67] mr-3">•</span>
+                  <span className="text-gray-300">Educational partnerships with music schools</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Technology Innovation */}
+        <div className="mb-16">
+          <h2 className="text-3xl font-bold mb-8 text-center text-[#FF4D67]">Technology & Innovation</h2>
+          <div className="bg-gray-800/30 backdrop-blur-lg rounded-xl p-8 border border-gray-700">
+            <div className="grid md:grid-cols-3 gap-8">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-2xl font-bold text-white">⚡</span>
+                </div>
+                <h3 className="text-lg font-bold mb-2 text-white">High Performance</h3>
+                <p className="text-gray-300 text-sm">Optimized streaming technology delivering crystal-clear audio with minimal buffering, even on limited bandwidth connections.</p>
+              </div>
+              
+              <div className="text-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-2xl font-bold text-white">🤖</span>
+                </div>
+                <h3 className="text-lg font-bold mb-2 text-white">AI-Powered Discovery</h3>
+                <p className="text-gray-300 text-sm">Intelligent recommendation algorithms that learn your taste while introducing you to authentic Rwandan and African artists.</p>
+              </div>
+              
+              <div className="text-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-2xl font-bold text-white">🌍</span>
+                </div>
+                <h3 className="text-lg font-bold mb-2 text-white">Africa-First Design</h3>
+                <p className="text-gray-300 text-sm">Built specifically for African internet conditions and user behaviors, ensuring reliable performance across diverse network environments.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Community Engagement */}
+        <div className="mb-16">
+          <h2 className="text-3xl font-bold mb-8 text-center text-[#FF4D67]">Community & Partnerships</h2>
+          <div className="bg-gray-800/30 backdrop-blur-lg rounded-xl p-8 border border-gray-700">
+            <div className="grid md:grid-cols-2 gap-8 mb-8">
+              <div>
+                <h3 className="text-xl font-bold mb-4 text-white">Artist Development Programs</h3>
+                <p className="text-gray-300 mb-4">
+                  We invest in artist growth through workshops, mentorship programs, and educational resources. Our quarterly artist development series covers everything from music production to business strategy.
+                </p>
+                <ul className="space-y-2 text-gray-300">
+                  <li className="flex items-center">
+                    <span className="text-[#FF4D67] mr-2">•</span>
+                    Monthly production workshops
+                  </li>
+                  <li className="flex items-center">
+                    <span className="text-[#FF4D67] mr-2">•</span>
+                    Industry networking events
+                  </li>
+                  <li className="flex items-center">
+                    <span className="text-[#FF4D67] mr-2">•</span>
+                    Career development mentorship
+                  </li>
+                </ul>
+              </div>
+              
+              <div>
+                <h3 className="text-xl font-bold mb-4 text-white">Strategic Partnerships</h3>
+                <p className="text-gray-300 mb-4">
+                  Collaborating with music institutions, cultural organizations, and technology partners to strengthen Rwanda's position in the global music industry.
+                </p>
+                <ul className="space-y-2 text-gray-300">
+                  <li className="flex items-center">
+                    <span className="text-[#FF4D67] mr-2">•</span>
+                    Ministry of Sports & Culture partnerships
+                  </li>
+                  <li className="flex items-center">
+                    <span className="text-[#FF4D67] mr-2">•</span>
+                    Regional music festival collaborations
+                  </li>
+                  <li className="flex items-center">
+                    <span className="text-[#FF4D67] mr-2">•</span>
+                    International music industry alliances
+                  </li>
+                </ul>
+              </div>
+            </div>
+            
+            <div className="text-center pt-6 border-t border-gray-700">
+              <h3 className="text-lg font-bold mb-3 text-white">Join Our Growing Community</h3>
+              <p className="text-gray-300 mb-4 max-w-2xl mx-auto">
+                Whether you're an artist looking to grow your career, a music enthusiast discovering new sounds, or a partner interested in supporting Rwanda's creative economy, there's a place for you in the MuzikaX community.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link href="/artists" className="bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] text-white px-6 py-3 rounded-full font-semibold hover:from-[#ff3a55] hover:to-[#ffb819] transition-all inline-flex items-center justify-center">
+                  For Artists
+                </Link>
+                <Link href="/community" className="border border-gray-600 text-gray-300 px-6 py-3 rounded-full font-semibold hover:bg-gray-700/50 transition-colors inline-flex items-center justify-center">
+                  Join Community
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Stats Section */}
         <div className="bg-gradient-to-r from-[#FF4D67]/10 to-[#FFCB2B]/10 rounded-xl p-8 border border-[#FF4D67]/20">
           <h2 className="text-3xl font-bold mb-8 text-center text-[#FF4D67]">By The Numbers</h2>
@@ -251,6 +422,70 @@ export default function AboutUs() {
             <div>
               <div className="text-4xl font-bold text-[#FF4D67] mb-2">15+</div>
               <div className="text-gray-300">Countries Reached</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Future Vision */}
+        <div className="mb-16">
+          <h2 className="text-3xl font-bold mb-8 text-center text-[#FF4D67]">Looking Forward</h2>
+          <div className="bg-gradient-to-r from-[#FF4D67]/10 to-[#FFCB2B]/10 rounded-xl p-8 border border-[#FF4D67]/20">
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+              <div>
+                <h3 className="text-2xl font-bold mb-4 text-white">Our 2025 Vision</h3>
+                <p className="text-gray-300 mb-6">
+                  We're building toward a future where MuzikaX becomes the definitive platform for African music discovery and artist development. Our roadmap includes expanded features, deeper community engagement, and enhanced tools for creators.
+                </p>
+                
+                <div className="space-y-4">
+                  <div className="flex items-start">
+                    <div className="w-8 h-8 bg-[#FF4D67] rounded-full flex items-center justify-center mr-3 mt-1 flex-shrink-0">
+                      <span className="text-white font-bold text-sm">1</span>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-white mb-1">Pan-African Expansion</h4>
+                      <p className="text-gray-300 text-sm">Extending our platform to serve artists and fans across the entire African continent with localized experiences.</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start">
+                    <div className="w-8 h-8 bg-[#FF4D67] rounded-full flex items-center justify-center mr-3 mt-1 flex-shrink-0">
+                      <span className="text-white font-bold text-sm">2</span>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-white mb-1">Advanced Creator Tools</h4>
+                      <p className="text-gray-300 text-sm">Launching sophisticated analytics, fan engagement features, and monetization options for serious artists.</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start">
+                    <div className="w-8 h-8 bg-[#FF4D67] rounded-full flex items-center justify-center mr-3 mt-1 flex-shrink-0">
+                      <span className="text-white font-bold text-sm">3</span>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-white mb-1">Cultural Heritage Projects</h4>
+                      <p className="text-gray-300 text-sm">Initiating large-scale documentation and preservation projects for traditional African musical traditions.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-gray-800/30 rounded-lg p-6 border border-gray-700">
+                <h4 className="font-semibold text-white mb-4">Stay Updated on Our Journey</h4>
+                <p className="text-gray-300 text-sm mb-4">
+                  Subscribe to our newsletter for exclusive updates on platform developments, artist features, and industry insights.
+                </p>
+                <div className="flex gap-3">
+                  <input 
+                    type="email" 
+                    placeholder="Your email address" 
+                    className="flex-1 px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+                  />
+                  <button className="bg-[#FF4D67] text-white px-4 py-2 rounded-lg font-medium hover:bg-[#ff3a55] transition-colors whitespace-nowrap">
+                    Subscribe
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>

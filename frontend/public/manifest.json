@@ -1,11 +1,14 @@
 {
   "name": "MuzikaX - Rwanda's Digital Music Ecosystem",
   "short_name": "MuzikaX",
-  "description": "Connecting Rwandan music creators with fans worldwide",
+  "description": "Discover, stream, and share Rwandan and African music. Access artist resources, industry news, and educational content. Connect with creators from across Africa.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#000000",
+  "background_color": "#000000",
+  "theme_color": "#FF4D67",
+  "categories": ["music", "entertainment", "education"],
+  "lang": "en",
+  "dir": "ltr",
   "icons": [
     {
       "src": "/android-chrome-192x192.png",
