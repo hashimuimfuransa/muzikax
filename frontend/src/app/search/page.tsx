@@ -18,6 +18,8 @@ interface SearchTrack {
   coverImage: string
   duration?: string
   audioURL: string
+  paymentType?: 'free' | 'paid'
+  price?: number
 }
 
 interface PlayerTrack {
@@ -32,6 +34,8 @@ interface PlayerTrack {
   plays?: number; // Add plays property to track play counts
   likes?: number; // Add likes property to track like counts
   type?: 'song' | 'beat' | 'mix'; // Add type field to distinguish beats
+  paymentType?: 'free' | 'paid'; // Add payment type for beat pricing
+  price?: number; // Add price for paid beats
   creatorWhatsapp?: string; // Add creator's WhatsApp contact for beats
 }
 
@@ -380,6 +384,8 @@ function SearchResultsContent() {
                                   plays: track.plays,
                                   likes: track.likes,
                                   type: 'song', // Default to song for search results
+                                  paymentType: track.paymentType, // Include payment type
+                                  price: track.price, // Include price
                                   creatorWhatsapp: undefined // WhatsApp is optional
                                 };
                                 playTrack(formattedTrack);

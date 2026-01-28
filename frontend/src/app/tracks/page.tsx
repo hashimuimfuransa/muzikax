@@ -237,6 +237,8 @@ export default function TracksPage() {
                             audioUrl: fullTrack.audioURL,
                             creatorId: typeof fullTrack.creatorId === 'object' && fullTrack.creatorId !== null ? (fullTrack.creatorId as any)._id : fullTrack.creatorId,
                             type: fullTrack.type, // Include track type for WhatsApp functionality
+                            paymentType: fullTrack.paymentType, // Include payment type
+                            price: fullTrack.price, // Include price
                             creatorWhatsapp: (typeof fullTrack.creatorId === 'object' && fullTrack.creatorId !== null 
                               ? (fullTrack.creatorId as any).whatsappContact 
                               : undefined) // Include creator's WhatsApp contact
@@ -253,6 +255,8 @@ export default function TracksPage() {
                               audioUrl: t.audioURL,
                               creatorId: typeof t.creatorId === 'object' && t.creatorId !== null ? (t.creatorId as any)._id : t.creatorId,
                               type: t.type, // Include track type for WhatsApp functionality
+                              paymentType: t.paymentType, // Include payment type
+                              price: t.price, // Include price
                               creatorWhatsapp: (typeof t.creatorId === 'object' && t.creatorId !== null 
                                 ? (t.creatorId as any).whatsappContact 
                                 : undefined) // Include creator's WhatsApp contact

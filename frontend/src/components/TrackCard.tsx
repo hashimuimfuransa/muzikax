@@ -48,6 +48,8 @@ export default function TrackCard({
           ? (fullTrackData.creatorId as any)._id 
           : fullTrackData.creatorId,
         type: fullTrackData.type,
+        paymentType: fullTrackData.paymentType || track.paymentType, // Include payment type
+        price: fullTrackData.price || track.price, // Include price
         creatorWhatsapp: (typeof fullTrackData.creatorId === 'object' && fullTrackData.creatorId !== null 
           ? (fullTrackData.creatorId as any).whatsappContact 
           : undefined)
@@ -67,6 +69,8 @@ export default function TrackCard({
           ? (t.creatorId as any)._id 
           : t.creatorId,
         type: t.type,
+        paymentType: t.paymentType, // Include payment type
+        price: t.price, // Include price
         creatorWhatsapp: (typeof t.creatorId === 'object' && t.creatorId !== null 
           ? (t.creatorId as any).whatsappContact 
           : undefined)

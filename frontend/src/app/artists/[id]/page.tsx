@@ -194,6 +194,8 @@ export default function ArtistProfilePage() {
       duration: track.duration,
       creatorId: creatorId, // The current artist's ID
       type: track.type || 'song', // Include track type for WhatsApp functionality
+      paymentType: track.paymentType, // Include payment type
+      price: track.price, // Include price
       creatorWhatsapp: track.creatorWhatsapp // Include creator's WhatsApp contact
     };
     
