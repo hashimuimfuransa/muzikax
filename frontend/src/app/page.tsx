@@ -613,7 +613,12 @@ export default function Home() {
       {/* Main Content Area - This takes remaining space */}
       <main className="flex-1 flex flex-col min-h-screen ml-0 md:ml-64 overflow-y-auto">
         {/* Partner Promotion - Recommended Option 2: Rewarded action */}
-        <PartnerPromotion variant="rewarded" />
+        <PartnerPromotion 
+          variant="rewarded" 
+          showAfterVisits={2}
+          autoHideTimeout={45}
+          rewardText="🎵 Watch a quick video to enjoy 30 minutes of uninterrupted music!"
+        />
         {/* Enhanced Hero Section with Image Slider */}
         <section className="relative py-8 md:py-12 lg:py-16 overflow-hidden">
           <div className="absolute inset-0">
