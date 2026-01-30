@@ -15,6 +15,23 @@ const ModernAudioPlayer = () => {
     const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
     const [showReportModal, setShowReportModal] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
+    
+    // Check if device is mobile
+    useEffect(() => {
+        const checkIsMobile = () => {
+            setIsMobile(typeof window !== 'undefined' && window.innerWidth < 768);
+        };
+        
+        // Check on mount
+        checkIsMobile();
+        
+        // Add resize listener
+        if (typeof window !== 'undefined') {
+            window.addEventListener('resize', checkIsMobile);
+            return () => window.removeEventListener('resize', checkIsMobile);
+        }
+    }, []);
     // Check if current track is in favorites
     useEffect(() => {
         if (currentTrack) {
@@ -91,6 +108,11 @@ const ModernAudioPlayer = () => {
     // Don't render if there's no current track
     if (!currentTrack)
         return null;
+    
+    // Don't render minimized player on mobile devices (handled by MobileNavbar)
+    if (isMinimized && isMobile) {
+        return null;
+    }
     // Handle volume change
     const handleVolumeChange = (e) => {
         const newVolume = parseFloat(e.target.value);
