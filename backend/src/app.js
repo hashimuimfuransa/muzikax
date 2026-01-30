@@ -310,7 +310,12 @@ if (authRouter && authRouter.stack) {
 // Health check
 app.get('/health', (_req, res) => {
   console.log('HEALTH CHECK ROUTE HIT');
-  res.status(200).json({ message: 'OK', timestamp: new Date().toISOString() });
+  res.status(200).json({ 
+    message: 'OK', 
+    timestamp: new Date().toISOString(),
+    status: 'healthy',
+    uptime: process.uptime()
+  });
 });
 
 // CORS test route - simple endpoint to test if server is reachable
