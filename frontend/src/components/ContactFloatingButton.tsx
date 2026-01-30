@@ -7,30 +7,9 @@ export default function ContactFloatingButton() {
   const [isVisible, setIsVisible] = useState(true);
   const [showTooltip, setShowTooltip] = useState(false);
 
-  // Handle scroll to hide/show button
+  // Initialize visibility on mount
   useEffect(() => {
-    // Initially set to visible after component mounts
-    setTimeout(() => setIsVisible(true), 100);
-    
-    let lastScrollY = window.scrollY;
-    
-    const handleScroll = () => {
-      if (window.scrollY > lastScrollY && window.scrollY > 300) {
-        // Scrolling down
-        setIsVisible(false);
-        setIsOpen(false);
-      } else if (window.scrollY <= 10) {
-        // At top of page
-        setIsVisible(true);
-      } else if (window.scrollY < lastScrollY) {
-        // Scrolling up
-        setIsVisible(true);
-      }
-      lastScrollY = window.scrollY;
-    };
-    
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    setIsVisible(true);
   }, []);
 
   // Auto-hide tooltip after delay
@@ -47,7 +26,7 @@ export default function ContactFloatingButton() {
   };
 
   return (
-    <div className={`fixed right-6 bottom-[110px] z-[10000] transition-all duration-300 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+    <div className="fixed left-6 top-20 z-[99999] transition-all duration-300 translate-x-0 opacity-100">
       <div className="relative">
         {/* Main Contact Button */}
         <button

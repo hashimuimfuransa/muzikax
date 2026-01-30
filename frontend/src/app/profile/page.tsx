@@ -466,6 +466,55 @@ export default function Profile() {
                 {user?.role === 'creator' ? 'Creator Dashboard' : 'Your Profile'}
               </h1>
               <div className="flex gap-2">
+                {/* Contact Us Button */}
+                <button
+                  onClick={() => {
+                    // Open contact options in a modal
+                    const contactOptions = [
+                      { name: 'WhatsApp', url: 'https://wa.me/250793828834', icon: '💬' },
+                      { name: 'Email', url: 'mailto:support@muzikax.com?subject=Help%20Needed&body=Hello%20MuzikaX%20Team,', icon: '📧' },
+                      { name: 'Call', url: 'tel:+250793828834', icon: '📞' }
+                    ];
+                    
+                    // Create and show contact modal
+                    const modal = document.createElement('div');
+                    modal.className = 'fixed inset-0 bg-black/80 backdrop-blur-sm z-[99999] flex items-center justify-center p-4';
+                    modal.innerHTML = `
+                      <div class="card-bg rounded-2xl p-6 max-w-sm w-full border border-gray-700/50">
+                        <div class="text-center mb-4">
+                          <h3 class="text-xl font-bold text-white mb-2">Contact Us</h3>
+                          <p class="text-gray-400">How would you like to reach us?</p>
+                        </div>
+                        <div class="space-y-3">
+                          ${contactOptions.map(option => `
+                            <button
+                              onclick="window.open('${option.url}', '_blank'); document.querySelector('[data-contact-modal]').remove()"
+                              class="w-full flex items-center justify-center gap-3 bg-white text-gray-800 px-4 py-3 rounded-lg hover:bg-gray-100 transition-colors"
+                            >
+                              <span class="text-lg">${option.icon}</span>
+                              <span class="font-medium">${option.name}</span>
+                            </button>
+                          `).join('')}
+                        </div>
+                        <button
+                          onclick="this.closest('[data-contact-modal]').remove()"
+                          class="w-full mt-4 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                        >
+                          Close
+                        </button>
+                      </div>
+                    `;
+                    modal.setAttribute('data-contact-modal', '');
+                    document.body.appendChild(modal);
+                  }}
+                  className="px-3 py-1.5 sm:px-4 sm:py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-full text-xs sm:text-sm font-medium transition-all hover:opacity-90 hover:scale-105 flex items-center gap-1"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                  </svg>
+                  <span>Contact Us</span>
+                </button>
+                
                 <button
                   onClick={() => router.push('/playlists')}
                   className="px-3 py-1.5 sm:px-4 sm:py-2 bg-transparent border border-[#FFCB2B] text-[#FFCB2B] hover:bg-[#FFCB2B]/10 rounded-full text-xs sm:text-sm font-medium transition-colors flex items-center gap-1"

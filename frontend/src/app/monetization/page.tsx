@@ -190,12 +190,14 @@ export default function Monetization() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black py-8">
-      <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#FF4D67]/10 rounded-full blur-3xl -z-10"></div>
-      <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-[#FFCB2B]/10 rounded-full blur-3xl -z-10"></div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black py-8 overflow-x-hidden relative">
+      <div className="absolute -top-40 -left-20 w-64 h-64 sm:w-96 sm:h-96 bg-[#FF4D67]/10 rounded-full blur-3xl -z-10"></div>
+      <div className="absolute -bottom-40 -right-20 w-64 h-64 sm:w-96 sm:h-96 bg-[#FFCB2B]/10 rounded-full blur-3xl -z-10"></div>
       
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
+          {/* Wrapper to prevent overflow */}
+          <div className="w-full overflow-x-hidden">
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] mb-2">
@@ -218,6 +220,52 @@ export default function Monetization() {
             </div>
           ) : (
             <>
+              {/* How Monetization Works (Beta Phase) - NEW SECTION */}
+              <div className="card-bg rounded-2xl p-4 sm:p-6 mb-6 border border-gray-700/50 bg-gradient-to-br from-gray-800/50 to-gray-900/50">
+                <div className="flex flex-col sm:flex-row items-start gap-4 mb-6">
+                  <div className="w-12 h-12 bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] rounded-full flex items-center justify-center flex-shrink-0">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 className="text-lg sm:text-xl font-bold text-white mb-2">How Monetization Works (Beta Phase) 🔥</h2>
+                    <p className="text-gray-400 text-sm sm:text-base mb-4">
+                      We are currently growing our platform and user base. During this early stage, direct cash payouts are not yet active.
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  <div className="p-4 bg-blue-900/20 rounded-lg border border-blue-700">
+                    <div className="text-blue-400 font-bold mb-2 text-sm sm:text-base">🎯 Our Focus</div>
+                    <ul className="text-gray-300 text-xs sm:text-sm space-y-1">
+                      <li>• Help artists grow their audience</li>
+                      <li>• Track real streams & engagement</li>
+                      <li>• Prepare a fair payment system</li>
+                    </ul>
+                  </div>
+                  
+                  <div className="p-4 bg-purple-900/20 rounded-lg border border-purple-700">
+                    <div className="text-purple-400 font-bold mb-2 text-sm sm:text-base">💡 Why Beta?</div>
+                    <ul className="text-gray-300 text-xs sm:text-sm space-y-1">
+                      <li>• Building sustainable foundation</li>
+                      <li>• Ensuring quality metrics</li>
+                      <li>• Testing payment infrastructure</li>
+                    </ul>
+                  </div>
+                  
+                  <div className="p-4 bg-green-900/20 rounded-lg border border-green-700">
+                    <div className="text-green-400 font-bold mb-2 text-sm sm:text-base">🚀 What's Next</div>
+                    <ul className="text-gray-300 text-xs sm:text-sm space-y-1">
+                      <li>• Live monetization activation</li>
+                      <li>• Real earnings distribution</li>
+                      <li>• Advanced analytics dashboard</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              
               {/* Status Card */}
               <div className="card-bg rounded-2xl p-6 mb-6 border border-gray-700/50">
                 <div className="flex items-center justify-between mb-4">
@@ -311,15 +359,15 @@ export default function Monetization() {
                 {status.status === 'approved' && status.earnings && (
                   <div>
                     {/* Earnings Summary */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                       <div className="p-4 bg-green-900/20 rounded-lg border border-green-700">
-                        <div className="text-2xl font-bold text-green-400">${status.earnings.totalEarnings.toFixed(2)}</div>
-                        <div className="text-gray-400">Total Earnings</div>
+                        <div className="text-xl sm:text-2xl font-bold text-green-400">${status.earnings.totalEarnings.toFixed(2)}</div>
+                        <div className="text-gray-400 text-sm">Total Earnings</div>
                       </div>
                       
                       <div className="p-4 bg-yellow-900/20 rounded-lg border border-yellow-700">
-                        <div className="text-2xl font-bold text-yellow-400">${status.earnings.pendingEarnings.toFixed(2)}</div>
-                        <div className="text-gray-400">Pending Earnings</div>
+                        <div className="text-xl sm:text-2xl font-bold text-yellow-400">${status.earnings.pendingEarnings.toFixed(2)}</div>
+                        <div className="text-gray-400 text-sm">Pending Earnings</div>
                         {status.earnings.pendingEarnings >= 10 && (
                           <button
                             onClick={() => setShowPayoutModal(true)}
@@ -331,13 +379,13 @@ export default function Monetization() {
                       </div>
                       
                       <div className="p-4 bg-blue-900/20 rounded-lg border border-blue-700">
-                        <div className="text-2xl font-bold text-blue-400">${status.earnings.paidEarnings.toFixed(2)}</div>
-                        <div className="text-gray-400">Paid Out</div>
+                        <div className="text-xl sm:text-2xl font-bold text-blue-400">${status.earnings.paidEarnings.toFixed(2)}</div>
+                        <div className="text-gray-400 text-sm">Paid Out</div>
                       </div>
                     </div>
 
                     {/* Earnings Info */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs sm:text-sm">
                       <div>
                         <span className="text-gray-400">Earnings Rate: </span>
                         <span className="text-white">${status.earnings.earningsRate.toFixed(2)} per 1,000 streams</span>
@@ -524,5 +572,6 @@ export default function Monetization() {
         </div>
       )}
     </div>
-  )
+  </div>
+)
 }

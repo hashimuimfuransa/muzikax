@@ -6,6 +6,7 @@ import { AudioPlayerProvider } from "../contexts/AudioPlayerContext";
 import { CommunityProvider } from "../contexts/CommunityContext";
 import ModernAudioPlayer from "../components/ModernAudioPlayer";
 import PWAInstallPrompt from "../components/PWAInstallPrompt";
+import ContactFloatingButton from "../components/ContactFloatingButton";
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import ConditionalNavbar from "../components/ConditionalNavbar";
 
@@ -258,6 +259,7 @@ export default function RootLayout({
                 {children}
                 <ModernAudioPlayer />
                 <PWAInstallPrompt />
+                <ContactFloatingButton />
               </CommunityProvider>
             </AudioPlayerProvider>
           </AuthProvider>
