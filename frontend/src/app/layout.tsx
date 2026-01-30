@@ -127,6 +127,22 @@ export default function RootLayout({
         {/* Ezoic Privacy Scripts - loaded first for compliance */}
         <script data-cfasync="false" src="https://cmp.gatekeeperconsent.com/min.js" />
         <script data-cfasync="false" src="https://the.gatekeeperconsent.com/cmp.min.js" />
+        {/* Direct Link for partner offers */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              // Partner promotion link
+              window.partnerPromotion = {
+                getLink: function(sourceId = 'muzikax') {
+                  return '//djxh1.com/4/10541499?var=' + encodeURIComponent(sourceId);
+                },
+                openLink: function(sourceId = 'muzikax') {
+                  window.open(window.partnerPromotion.getLink(sourceId), '_blank');
+                }
+              };
+            `
+          }}
+        />
         {/* Ezoic Header Script */}
         <script async src="//www.ezojs.com/ezoic/sa.min.js" />
         <script 

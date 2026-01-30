@@ -12,6 +12,7 @@ import HorizontalScrollSection from "../components/HorizontalScrollSection";
 import TrackCard from "../components/TrackCard";
 import ArtistCard from "../components/ArtistCard";
 import RecommendedPlaylists from "../components/RecommendedPlaylists";
+import PartnerPromotion from "../components/PartnerPromotion";
 
 interface Track {
   id: string;
@@ -611,6 +612,8 @@ export default function Home() {
 
       {/* Main Content Area - This takes remaining space */}
       <main className="flex-1 flex flex-col min-h-screen ml-0 md:ml-64 overflow-y-auto">
+        {/* Partner Promotion - Recommended Option 2: Rewarded action */}
+        <PartnerPromotion variant="rewarded" />
         {/* Enhanced Hero Section with Image Slider */}
         <section className="relative py-8 md:py-12 lg:py-16 overflow-hidden">
           <div className="absolute inset-0">
