@@ -12,7 +12,7 @@ const fadeInStyle = `
 `;
 
 // Inject styles
-if (typeof document !== 'undefined') {
+if (typeof window !== 'undefined' && typeof document !== 'undefined') {
   const styleSheet = document.createElement('style');
   styleSheet.textContent = fadeInStyle;
   document.head.appendChild(styleSheet);
@@ -39,6 +39,9 @@ const PartnerPromotion: React.FC<PartnerPromotionProps> = ({
 
   // Track user visits
   useEffect(() => {
+    // Only run in browser environment
+    if (typeof window === 'undefined') return;
+    
     const storedVisits = localStorage.getItem('muzikax_visit_count');
     const storedDismissed = localStorage.getItem('muzikax_promo_dismissed');
     const visits = storedVisits ? parseInt(storedVisits, 10) : 0;
@@ -66,38 +69,46 @@ const PartnerPromotion: React.FC<PartnerPromotionProps> = ({
   }, []);
 
   const handlePromotionClick = () => {
-    if ((window as any).partnerPromotion) {
+    if (typeof window !== 'undefined' && (window as any).partnerPromotion) {
       (window as any).partnerPromotion.openLink('muzikax_promo');
     } else {
       // Fallback if script isn't loaded
-      window.open('//djxh1.com/4/10541499?var=muzikax_fallback', '_blank');
+      if (typeof window !== 'undefined') {
+        window.open('//djxh1.com/4/10541499?var=muzikax_fallback', '_blank');
+      }
     }
     handleClose(); // Close after clicking
   };
 
   const handleRewardClick = () => {
-    if ((window as any).partnerPromotion) {
+    if (typeof window !== 'undefined' && (window as any).partnerPromotion) {
       (window as any).partnerPromotion.openLink('muzikax_rewarded');
     } else {
       // Fallback if script isn't loaded
-      window.open('//djxh1.com/4/10541499?var=muzikax_rewarded_fallback', '_blank');
+      if (typeof window !== 'undefined') {
+        window.open('//djxh1.com/4/10541499?var=muzikax_rewarded_fallback', '_blank');
+      }
     }
     handleClose(); // Close after clicking
   };
 
   const handleClose = () => {
     setIsVisible(false);
-    localStorage.setItem('muzikax_promo_dismissed', 'true');
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('muzikax_promo_dismissed', 'true');
+    }
   };
 
   const handleNeverShowAgain = () => {
     setIsVisible(false);
-    localStorage.setItem('muzikax_promo_dismissed', 'true');
-    localStorage.setItem('muzikax_promo_never_show', 'true');
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('muzikax_promo_dismissed', 'true');
+      localStorage.setItem('muzikax_promo_never_show', 'true');
+    }
   };
 
   // Don't render if dismissed permanently
-  const neverShowAgain = localStorage.getItem('muzikax_promo_never_show') === 'true';
+  const neverShowAgain = typeof window !== 'undefined' && localStorage.getItem('muzikax_promo_never_show') === 'true';
   if (!isVisible || neverShowAgain || isDismissed) {
     return null;
   }
