@@ -13,6 +13,7 @@ import TrackCard from "../components/TrackCard";
 import ArtistCard from "../components/ArtistCard";
 import RecommendedPlaylists from "../components/RecommendedPlaylists";
 import PartnerPromotion from "../components/PartnerPromotion";
+import MixesHorizontalScroll from "../components/MixesHorizontalScroll";
 
 interface Track {
   id: string;
@@ -1230,6 +1231,9 @@ export default function Home() {
           })}
         </HorizontalScrollSection>
 
+        {/* Popular Mixes Section */}
+        <MixesHorizontalScroll title="Popular Mixes" viewAllLink="/mixes" />
+
         {/* Similar to Liked Songs Section */}
         <HorizontalScrollSection title="Similar to Liked Songs" viewAllLink="/favorites">
           {similarToLiked.map((track) => {
@@ -1408,25 +1412,6 @@ export default function Home() {
 
 
 
-        {/* Popular Mixes Section - Horizontal Scroll */}
-        <HorizontalScrollSection title="Popular Mixes" viewAllLink="/tracks?category=mixes">
-          {trendingTracks
-            .filter((track) => track.category === "mix")
-            .slice(0, 6)
-            .map((track) => {
-              // Find the full track object to get additional properties
-              const fullTrack = trendingTracksData.find(t => t._id === track.id);
-              return (
-                <TrackCard 
-                  key={`popular-mixes-${track.id}`} 
-                  track={track} 
-                  fullTrackData={fullTrack}
-                />
-              );
-            })}
-          </HorizontalScrollSection>
-          
-          {/* Music Lists */}
 
         {/* Music Lists */}
         <section className="px-4 md:px-6 py-8 sm:py-10 pb-8">
@@ -1473,16 +1458,7 @@ export default function Home() {
               >
                 Beats
               </button>
-              <button
-                className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors whitespace-nowrap ${
-                  activeTab === "mixes"
-                    ? "text-[#FF4D67] border-b-2 border-[#FF4D67]"
-                    : "text-gray-500 hover:text-gray-300"
-                }`}
-                onClick={() => setActiveTab("mixes")}
-              >
-                Mixes
-              </button>
+          
               <a
                 href="/tracks"
                 className="py-3 px-4 sm:px-6 font-medium text-sm sm:text-base text-[#FF4D67] hover:text-[#FFCB2B] transition-colors whitespace-nowrap flex items-center"
