@@ -18,7 +18,7 @@ export interface ITrack {
   updatedAt: string;
   location?: string; // Added for location-based recommendations
   duration?: string; // Added for track duration
-  albumId?: string; // Added for album context
+  albumId?: string | { _id: string; title: string }; // Added for album context
   albumTitle?: string; // Added for album context
   creatorWhatsapp?: string; // Added for creator contact
 }

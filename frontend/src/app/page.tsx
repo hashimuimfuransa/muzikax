@@ -178,7 +178,9 @@ export default function Home() {
         artist: typeof track.creatorId === "object" && track.creatorId !== null
           ? (track.creatorId as any).name
           : "Unknown Artist",
-        album: track.albumId?.title || "", // Use actual album title if available
+        album: typeof track.albumId === "object" && track.albumId !== null && 'title' in track.albumId
+          ? (track.albumId as { _id: string; title: string }).title 
+          : "", // Use actual album title if available
         plays: track.plays || 0,
         likes: track.likes || 0,
         coverImage: track.coverURL || "",
