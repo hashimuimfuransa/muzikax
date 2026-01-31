@@ -206,19 +206,18 @@ export default function PublicPlaylists() {
         // If no audio URL is available in the playlist track data, we need to fetch it
         if (!audioUrl) {
           try {
+            // Import the track service function
+            const { fetchTrackById } = await import('../../services/trackService');
             // Fetch the complete track data by ID to get the audio URL
-            const trackResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tracks/${track._id}`);
-            if (trackResponse.ok) {
-              const fullTrack = await trackResponse.json();
-              audioUrl = fullTrack.audioURL || fullTrack.audioUrl || fullTrack.url || fullTrack.audio || fullTrack.src || '';
-            }
+            const fullTrack = await fetchTrackById(track._id);
+            audioUrl = fullTrack.audioURL || '';
           } catch (error) {
             console.error('Error fetching full track data:', error);
           }
         }
         
         // Only add to player tracks if we have an audio URL
-        if (audioUrl) {
+        if (audioUrl && audioUrl.trim() !== '') {
           playerTracks.push({
             id: track._id,
             title: track.title || 'Unknown Title',
@@ -287,11 +286,10 @@ export default function PublicPlaylists() {
       if (!audioUrl) {
         try {
           // Fetch the complete track data by ID to get the audio URL
-          const trackResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tracks/${track._id}`);
-          if (trackResponse.ok) {
-            const fullTrack = await trackResponse.json();
-            audioUrl = fullTrack.audioURL || fullTrack.audioUrl || fullTrack.url || fullTrack.audio || fullTrack.src || '';
-          }
+          // Import the track service function
+          const { fetchTrackById } = await import('../../services/trackService');
+          const fullTrack = await fetchTrackById(track._id);
+          audioUrl = fullTrack.audioURL || '';
         } catch (error) {
           console.error('Error fetching full track data:', error);
         }

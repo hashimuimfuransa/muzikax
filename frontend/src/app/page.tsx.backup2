@@ -70,7 +70,7 @@ export default function Home() {
   }
   
   const [activeTab, setActiveTab] = useState<
-    "trending" | "new" | "popular" | "beats" | "mixes"
+    "trending" | "new" | "popular" | "beats"
   >("trending");
   const [currentSlide, setCurrentSlide] = useState(0);
   const { currentTrack, isPlaying, playTrack, setCurrentPlaylist, favorites, favoritesLoading, addToFavorites, removeFromFavorites, addToQueue } =
@@ -172,12 +172,7 @@ export default function Home() {
   // Handle infinite scroll
   useEffect(() => {
     if (trendingTracksData.length > 0 && !trendingLoading) {
-      // Filter out tracks without audio URLs
-      const filteredTracks = trendingTracksData.filter((track: any) => 
-        track.audioURL && track.audioURL.trim() !== ''
-      );
-      
-      const newTracks: Track[] = filteredTracks.map(track => ({
+      const newTracks: Track[] = trendingTracksData.map(track => ({
         id: track._id,
         title: track.title || 'Untitled Track',
         artist: typeof track.creatorId === "object" && track.creatorId !== null
@@ -1409,9 +1404,9 @@ export default function Home() {
 
 
         {/* Popular Mixes Section - Horizontal Scroll */}
-        <HorizontalScrollSection title="Popular Mixes" viewAllLink="/tracks?category=mixes">
+        <HorizontalScrollSection title="Popular Mixes" viewAllLink="/mixes">
           {trendingTracks
-            .filter((track) => track.category === "mix")
+            .filter((track) => track.type === "mix")
             .slice(0, 6)
             .map((track) => {
               // Find the full track object to get additional properties
@@ -1472,16 +1467,6 @@ export default function Home() {
                 onClick={() => setActiveTab("beats")}
               >
                 Beats
-              </button>
-              <button
-                className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors whitespace-nowrap ${
-                  activeTab === "mixes"
-                    ? "text-[#FF4D67] border-b-2 border-[#FF4D67]"
-                    : "text-gray-500 hover:text-gray-300"
-                }`}
-                onClick={() => setActiveTab("mixes")}
-              >
-                Mixes
               </button>
               <a
                 href="/tracks"
@@ -2181,7 +2166,7 @@ export default function Home() {
           )}
 
           {/* Mixes */}
-          {activeTab === "mixes" && (
+          {// activeTab === "mixes" (removed) && (
             <div className="grid grid-cols-[repeat(auto-fill,_minmax(250px,_1fr))] gap-4 sm:gap-6 md:gap-6">
               {trendingTracks
                 .filter((track: Track) => track.category === "mix")

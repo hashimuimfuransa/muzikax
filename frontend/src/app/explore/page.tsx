@@ -237,7 +237,13 @@ function ExploreContent() {
         if (response.ok) {
           const data = await response.json();
           const beatsData = Array.isArray(data) ? data : (data.tracks || []);
-          setBeats(beatsData.map((beat: any) => ({
+          
+          // Filter out tracks without audio URLs
+          const filteredBeatsData = beatsData.filter((beat: any) => 
+            beat.audioURL && beat.audioURL.trim() !== ''
+          );
+          
+          setBeats(filteredBeatsData.map((beat: any) => ({
             _id: beat._id,
             id: beat._id,
             title: beat.title,
@@ -1277,7 +1283,7 @@ function ExploreContent() {
                   </button>
                 </div>
               )}
-            )&rbrace;
+            
           </>
         )}
 

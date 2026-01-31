@@ -116,6 +116,7 @@ export const fetchCreatorWhatsapp = async (creatorId: string): Promise<string | 
 
 /**
  * Fetch all tracks with pagination
+ * Filters out incomplete tracks (those without audio URLs)
  */
 export const fetchAllTracks = async (page: number = 1, limit: number = 10): Promise<PaginatedTracks> => {
   try {
@@ -126,6 +127,14 @@ export const fetchAllTracks = async (page: number = 1, limit: number = 10): Prom
     }
 
     const data = await response.json();
+    
+    // Filter out tracks without audio URLs
+    if (data.tracks && Array.isArray(data.tracks)) {
+      data.tracks = data.tracks.filter((track: any) => 
+        track.audioURL && track.audioURL.trim() !== ''
+      );
+    }
+    
     return data;
   } catch (error) {
     console.error('Error fetching tracks:', error);
@@ -135,6 +144,7 @@ export const fetchAllTracks = async (page: number = 1, limit: number = 10): Prom
 
 /**
  * Fetch trending tracks
+ * Filters out incomplete tracks (those without audio URLs)
  */
 export const fetchTrendingTracks = async (limit: number = 10): Promise<ITrack[]> => {
   try {
@@ -145,7 +155,11 @@ export const fetchTrendingTracks = async (limit: number = 10): Promise<ITrack[]>
     }
 
     const data = await response.json();
-    return data;
+    
+    // Filter out tracks without audio URLs
+    return data.filter((track: any) => 
+      track.audioURL && track.audioURL.trim() !== ''
+    );
   } catch (error) {
     console.error('Error fetching trending tracks:', error);
     throw error;
@@ -183,6 +197,7 @@ export const fetchTrackById = async (id: string): Promise<ITrack> => {
 
 /**
  * Fetch tracks by creator ID (public endpoint)
+ * Filters out incomplete tracks (those without audio URLs)
  */
 export const fetchTracksByCreatorPublic = async (creatorId: string): Promise<any[]> => {
   try {
@@ -193,7 +208,12 @@ export const fetchTracksByCreatorPublic = async (creatorId: string): Promise<any
       throw new Error(`Failed to fetch creator tracks: ${response.status} ${response.statusText}`);
     }
 
-    const tracks = await response.json();
+    let tracks = await response.json();
+    
+    // Filter out tracks without audio URLs
+    tracks = tracks.filter((track: any) => 
+      track.audioURL && track.audioURL.trim() !== ''
+    );
     
     // Map the fields to match the Track interface used in the frontend
     return tracks.map((track: any) => ({
@@ -216,6 +236,7 @@ export const fetchTracksByCreatorPublic = async (creatorId: string): Promise<any
 
 /**
  * Fetch tracks by creator ID
+ * Filters out incomplete tracks (those without audio URLs)
  */
 export const fetchTracksByCreator = async (creatorId: string, page: number = 1, limit: number = 10): Promise<PaginatedTracks> => {
   try {
@@ -227,6 +248,14 @@ export const fetchTracksByCreator = async (creatorId: string, page: number = 1, 
     }
 
     const data = await response.json();
+    
+    // Filter out tracks without audio URLs
+    if (data.tracks && Array.isArray(data.tracks)) {
+      data.tracks = data.tracks.filter((track: any) => 
+        track.audioURL && track.audioURL.trim() !== ''
+      );
+    }
+    
     return data;
   } catch (error) {
     console.error('Error fetching creator tracks:', error);

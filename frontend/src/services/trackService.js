@@ -83,6 +83,7 @@ export const fetchCreatorWhatsapp = async (creatorId) => {
 };
 /**
  * Fetch all tracks with pagination
+ * Filters out incomplete tracks (those without audio URLs)
  */
 export const fetchAllTracks = async (page = 1, limit = 10) => {
     try {
@@ -91,6 +92,14 @@ export const fetchAllTracks = async (page = 1, limit = 10) => {
             throw new Error(`Failed to fetch tracks: ${response.status} ${response.statusText}`);
         }
         const data = await response.json();
+        
+        // Filter out tracks without audio URLs
+        if (data.tracks && Array.isArray(data.tracks)) {
+            data.tracks = data.tracks.filter(track => 
+                track.audioURL && track.audioURL.trim() !== ''
+            );
+        }
+        
         return data;
     }
     catch (error) {
@@ -100,6 +109,7 @@ export const fetchAllTracks = async (page = 1, limit = 10) => {
 };
 /**
  * Fetch trending tracks
+ * Filters out incomplete tracks (those without audio URLs)
  */
 export const fetchTrendingTracks = async (limit = 10) => {
     try {
@@ -108,7 +118,11 @@ export const fetchTrendingTracks = async (limit = 10) => {
             throw new Error(`Failed to fetch trending tracks: ${response.status} ${response.statusText}`);
         }
         const data = await response.json();
-        return data;
+        
+        // Filter out tracks without audio URLs
+        return data.filter(track => 
+            track.audioURL && track.audioURL.trim() !== ''
+        );
     }
     catch (error) {
         console.error('Error fetching trending tracks:', error);
@@ -141,6 +155,7 @@ export const fetchTrackById = async (id) => {
 };
 /**
  * Fetch tracks by creator ID (public endpoint)
+ * Filters out incomplete tracks (those without audio URLs)
  */
 export const fetchTracksByCreatorPublic = async (creatorId) => {
     try {
@@ -149,7 +164,13 @@ export const fetchTracksByCreatorPublic = async (creatorId) => {
         if (!response.ok) {
             throw new Error(`Failed to fetch creator tracks: ${response.status} ${response.statusText}`);
         }
-        const tracks = await response.json();
+        let tracks = await response.json();
+        
+        // Filter out tracks without audio URLs
+        tracks = tracks.filter(track => 
+            track.audioURL && track.audioURL.trim() !== ''
+        );
+        
         // Map the fields to match the Track interface used in the frontend
         return tracks.map((track) => {
             var _a, _b;
@@ -167,6 +188,7 @@ export const fetchTracksByCreatorPublic = async (creatorId) => {
 };
 /**
  * Fetch tracks by creator ID
+ * Filters out incomplete tracks (those without audio URLs)
  */
 export const fetchTracksByCreator = async (creatorId, page = 1, limit = 10) => {
     try {
@@ -176,6 +198,14 @@ export const fetchTracksByCreator = async (creatorId, page = 1, limit = 10) => {
             throw new Error(`Failed to fetch creator tracks: ${response.status} ${response.statusText}`);
         }
         const data = await response.json();
+        
+        // Filter out tracks without audio URLs
+        if (data.tracks && Array.isArray(data.tracks)) {
+            data.tracks = data.tracks.filter(track => 
+                track.audioURL && track.audioURL.trim() !== ''
+            );
+        }
+        
         return data;
     }
     catch (error) {

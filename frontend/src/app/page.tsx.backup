@@ -1270,7 +1270,7 @@ export default function Home() {
               Popular Mixes
             </h2>
             <a
-              href="/tracks?category=mixes"
+              href="/mixes"
               className="text-[#FF4D67] hover:text-[#FFCB2B] text-sm sm:text-base transition-colors"
             >
               View All

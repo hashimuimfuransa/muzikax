@@ -247,7 +247,10 @@ var fetchTrendingTracks = function () {
                     return [4 /*yield*/, response.json()];
                 case 2:
                     data = _a.sent();
-                    return [2 /*return*/, data];
+                    // Filter out tracks without audio URLs
+                    return [2 /*return*/, data.filter(function (track) {
+                            return track.audioURL && track.audioURL.trim() !== '';
+                        })];
                 case 3:
                     error_5 = _a.sent();
                     console.error('Error fetching trending tracks:', error_5);
@@ -311,6 +314,10 @@ var fetchTracksByCreatorPublic = function (creatorId) { return __awaiter(void 0,
                 return [4 /*yield*/, response.json()];
             case 2:
                 tracks = _a.sent();
+                // Filter out tracks without audio URLs
+                tracks = tracks.filter(function (track) {
+                    return track.audioURL && track.audioURL.trim() !== '';
+                });
                 // Map the fields to match the Track interface used in the frontend
                 return [2 /*return*/, tracks.map(function (track) {
                         var _a, _b;
@@ -354,6 +361,12 @@ var fetchTracksByCreator = function (creatorId_1) {
                     return [4 /*yield*/, response.json()];
                 case 2:
                     data = _a.sent();
+                    // Filter out tracks without audio URLs
+                    if (data.tracks && Array.isArray(data.tracks)) {
+                        data.tracks = data.tracks.filter(function (track) {
+                            return track.audioURL && track.audioURL.trim() !== '';
+                        });
+                    }
                     return [2 /*return*/, data];
                 case 3:
                     error_8 = _a.sent();
