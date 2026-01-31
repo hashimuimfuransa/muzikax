@@ -38,14 +38,19 @@ export const uploadTrack = async (req: Request, res: Response): Promise<void> =>
 export const getAllTracks = async (req: Request, res: Response): Promise<void> => {
   try {
     const page = parseInt(req.query['page'] as string) || 1;
-    const limit = parseInt(req.query['limit'] as string) || 10;
+    const limit = parseInt(req.query['limit'] as string) || 0; // 0 means no limit
     const skip = (page - 1) * limit;
 
-    const tracks = await Track.find()
+    const query = Track.find()
       .populate('creatorId', 'name avatar whatsappContact')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
+      .sort({ createdAt: -1 });
+      
+    // Only apply skip and limit if limit > 0
+    if (limit > 0) {
+      query.skip(skip).limit(limit);
+    }
+
+    const tracks = await query;
 
     const total = await Track.countDocuments();
 
@@ -303,7 +308,7 @@ export const incrementPlayCount = async (req: Request, res: Response): Promise<v
 export const getTracksByType = async (req: Request, res: Response): Promise<void> => {
   try {
     const type = req.query['type'] as string;
-    const limit = parseInt(req.query['limit'] as string) || 10;
+    const limit = parseInt(req.query['limit'] as string) || 0; // 0 means no limit
 
     if (!type) {
       res.status(400).json({ message: 'Type parameter is required' });
@@ -317,11 +322,17 @@ export const getTracksByType = async (req: Request, res: Response): Promise<void
     } else {
       query = { type: type.toLowerCase() }; // Exact match
     }
-
-    const tracks = await Track.find(query)
+    
+    const trackQuery = Track.find(query)
       .sort({ plays: -1, createdAt: -1 })
-      .limit(limit)
       .populate('creatorId', 'name avatar whatsappContact');
+      
+    // Only apply limit if limit > 0
+    if (limit > 0) {
+      trackQuery.limit(limit);
+    }
+    
+    const tracks = await trackQuery;
 
     res.json(tracks);
   } catch (error: any) {

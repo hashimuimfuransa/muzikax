@@ -40,7 +40,6 @@ const searchAll = async (req, res) => {
       
       const tracks = await Track.find(trackQuery)
       .populate('creatorId', 'name avatar')
-      .limit(20)
       .sort({ plays: -1, createdAt: -1 });
       
       results.tracks = tracks.map(track => ({
@@ -76,7 +75,6 @@ const searchAll = async (req, res) => {
       
       const artists = await User.find(artistQuery)
       .select('-password')
-      .limit(20)
       .sort({ followersCount: -1, createdAt: -1 });
       
       results.artists = artists.map(artist => ({
@@ -109,7 +107,6 @@ const searchAll = async (req, res) => {
       
       const albums = await Album.find(albumQuery)
       .populate('creatorId', 'name')
-      .limit(20)
       .sort({ createdAt: -1 });
       
       results.albums = albums.map(album => ({
@@ -146,7 +143,6 @@ const searchAll = async (req, res) => {
           select: 'name'
         }
       })
-      .limit(20)
       .sort({ createdAt: -1 });
       
       // Filter by genre if specified (check if any track in playlist matches genre)

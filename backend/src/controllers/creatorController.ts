@@ -105,17 +105,23 @@ export const getCreatorTracks = async (req: Request, res: Response): Promise<voi
 
     // Parse query parameters
     const page = parseInt(req.query['page'] as string) || 1;
-    const limit = parseInt(req.query['limit'] as string) || 10;
+    const limit = parseInt(req.query['limit'] as string) || 0; // 0 means no limit
     const skip = (page - 1) * limit;
     
     console.log('Creator Tracks - Page:', page, 'Limit:', limit, 'Skip:', skip);
 
-    // Get tracks for this creator with populated creator information including WhatsApp contact
-    const tracks = await Track.find({ creatorId })
+    // Build the query
+    const query = Track.find({ creatorId })
       .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
       .populate('creatorId', 'name avatar whatsappContact');
+      
+    // Only apply skip and limit if limit > 0
+    if (limit > 0) {
+      query.skip(skip).limit(limit);
+    }
+    
+    // Get tracks for this creator with populated creator information including WhatsApp contact
+    const tracks = await query;
       
     const total = await Track.countDocuments({ creatorId });
 

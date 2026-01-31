@@ -128,6 +128,7 @@ function SearchResultsContent() {
       if (selectedGenre) {
         params.append('genre', selectedGenre);
       }
+      // Don't add limit to get all results
       
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/search?${params.toString()}`)
       

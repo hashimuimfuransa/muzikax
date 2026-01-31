@@ -53,13 +53,19 @@ exports.uploadTrack = uploadTrack;
 const getAllTracks = async (req, res) => {
     try {
         const page = parseInt(req.query['page']) || 1;
-        const limit = parseInt(req.query['limit']) || 10;
+        const limit = parseInt(req.query['limit']) || 0; // 0 means no limit
         const skip = (page - 1) * limit;
-        const tracks = await Track_1.find()
+        
+        const query = Track_1.find()
             .populate('creatorId', 'name avatar')
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(limit);
+            .sort({ createdAt: -1 });
+            
+        // Only apply skip and limit if limit > 0
+        if (limit > 0) {
+            query.skip(skip).limit(limit);
+        }
+        
+        const tracks = await query;
             
         // Ensure all tracks have proper paymentType values
         const tracksWithDefaults = tracks.map(track => {
@@ -507,7 +513,7 @@ exports.getTrendingTracks = getTrendingTracks;
 const getTracksByType = async (req, res) => {
     try {
         const type = req.query.type;
-        const limit = parseInt(req.query.limit) || 10;
+        const limit = parseInt(req.query.limit) || 0; // 0 means no limit
         
         if (!type) {
             res.status(400).json({ message: 'Type parameter is required' });
@@ -522,10 +528,16 @@ const getTracksByType = async (req, res) => {
             query = { type: type.toLowerCase() }; // Exact match
         }
         
-        const tracks = await Track_1.find(query)
+        const trackQuery = Track_1.find(query)
             .sort({ plays: -1, createdAt: -1 })
-            .limit(limit)
             .populate('creatorId', 'name avatar whatsappContact');
+            
+        // Only apply limit if limit > 0
+        if (limit > 0) {
+            trackQuery.limit(limit);
+        }
+        
+        const tracks = await trackQuery;
             
         // Ensure all tracks have proper paymentType values
         const tracksWithDefaults = tracks.map(track => {
