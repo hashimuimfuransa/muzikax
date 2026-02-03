@@ -1,0 +1,40 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "node build.js",
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "start-ml-api": "python start_ml_api.py",
+    "cleanup-invalid-tracks": "node cleanup_invalid_tracks.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "echo \"Dependencies installed successfully\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^4.19.2",
+    "geoip-lite": "^1.4.10",
+    "google-auth-library": "^10.5.0",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.1.4",
+    "morgan": "^1.10.1",
+    "multer": "^2.0.2",
+    "nodemon": "^3.1.11",
+    "serverless-http": "^3.2.0",
+    "web-push": "^3.6.7"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/geoip-lite": "^1.4.4",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^25.0.3"
+  }
+}

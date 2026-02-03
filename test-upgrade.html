@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Upgrade</title>
+</head>
+<body>
+    <h1>Test Upgrade Endpoint</h1>
+    <button onclick="testUpgrade()">Test Upgrade</button>
+    <div id="result"></div>
+
+    <script>
+        async function testUpgrade() {
+            const resultDiv = document.getElementById('result');
+            
+            try {
+                // First, login
+                const loginResponse = await fetch('http://localhost:5000/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'test@example.com',
+                        password: 'password123'
+                    }),
+                });
+
+                const loginData = await loginResponse.json();
+                console.log('Login response:', loginData);
+
+                if (!loginResponse.ok) {
+                    resultDiv.innerHTML = `<p>Login failed: ${loginData.message}</p>`;
+                    return;
+                }
+
+                // Extract the access token
+                const accessToken = loginData.accessToken;
+                console.log('Access token:', accessToken);
+
+                // Now try to upgrade the user to creator
+                const upgradeResponse = await fetch('http://localhost:5000/api/users/upgrade-to-creator', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify({
+                        creatorType: 'artist'
+                    }),
+                });
+
+                const upgradeData = await upgradeResponse.json();
+                console.log('Upgrade response:', upgradeData);
+
+                if (upgradeResponse.ok) {
+                    resultDiv.innerHTML = '<p>User upgrade successful!</p>';
+                } else {
+                    resultDiv.innerHTML = `<p>User upgrade failed: ${upgradeData.message}</p>`;
+                }
+            } catch (error) {
+                console.error('Test error:', error);
+                resultDiv.innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
