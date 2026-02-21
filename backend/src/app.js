@@ -56,6 +56,12 @@ const notificationRoutes = require('./routes/notificationRoutes');
 // Import push notification routes
 const pushNotificationRoutes = require('./routes/pushNotificationRoutes');
 
+// Import payment routes
+const paymentRoutes = require('./routes/paymentRoutes');
+
+// Import withdrawal routes
+const withdrawalRoutes = require('./routes/withdrawalRoutes');
+
 // Load env vars
 dotenv.config();
 
@@ -291,6 +297,14 @@ console.log('Notification routes registered');
 // Register push notification routes
 app.use('/api/push-notifications', pushNotificationRoutes);
 console.log('Push notification routes registered');
+
+// Register payment routes
+app.use('/api/payments', paymentRoutes);
+console.log('Payment routes registered');
+
+// Register withdrawal routes
+app.use('/api/withdrawals', withdrawalRoutes);
+console.log('Withdrawal routes registered');
 
 // Register public user routes for chat functionality
 const publicUserRoutes = require('./routes/publicUserRoutes');

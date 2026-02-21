@@ -3,6 +3,9 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useEffect } from 'react';
 import { useTracksByType } from '../../hooks/useTracks';
 import { useAudioPlayer } from '../../contexts/AudioPlayerContext';
+import dynamic from 'next/dynamic';
+
+const PesaPalPayment = dynamic(() => import('../../components/PesaPalPayment'), { ssr: false });
 export default function BeatsPage() {
     var _a;
     const { tracks: allBeatTracks, loading: beatsLoading, refresh: refreshBeats } = useTracksByType('beat', 0); // 0 means no limit
@@ -12,6 +15,9 @@ export default function BeatsPage() {
     // Filter states
     const [selectedFilter, setSelectedFilter] = useState('all');
     const [selectedGenre, setSelectedGenre] = useState(null);
+    // Payment modal state
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [selectedBeatForPayment, setSelectedBeatForPayment] = useState(null);
     // Genre list for filtering
     const genres = [
         { id: 'afrobeat', name: 'Afrobeat' },
@@ -221,18 +227,25 @@ export default function BeatsPage() {
                                                 ? track.creatorId.name
                                                 : 'Unknown Artist' }), _jsxs("div", { className: "flex justify-between text-xs sm:text-sm text-gray-500 mb-3", children: [_jsxs("span", { children: [((_a = track.plays) === null || _a === void 0 ? void 0 : _a.toLocaleString()) || '0', " plays"] }), _jsxs("div", { className: "flex items-center gap-1", children: [_jsx("svg", { className: "w-3 h-3 sm:w-4 sm:h-4", fill: "currentColor", viewBox: "0 0 20 20", xmlns: "http://www.w3.org/2000/svg", children: _jsx("path", { fillRule: "evenodd", d: "M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z", clipRule: "evenodd" }) }), _jsx("span", { children: track.likes })] })] }), _jsxs("div", { className: "flex gap-2", children: [track.paymentType === 'paid' ? (_jsxs("button", { onClick: (e) => {
                                                         e.stopPropagation();
-                                                        // Open WhatsApp with pre-filled message
-                                                        const message = `Hi, I'm interested in your beat "${track.title}" that I found on MuzikaX.`;
-                                                        const whatsappNumber = typeof track.creatorId === 'object' && track.creatorId !== null
-                                                            ? track.creatorId.whatsappContact
-                                                            : '';
-                                                        if (whatsappNumber) {
-                                                            window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`, '_blank');
+                                                        setSelectedBeatForPayment(track);
+                                                        setShowPaymentModal(true);
+                                                    }, className: "flex-1 py-1.5 px-3 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs flex items-center justify-center gap-1 transition-colors", children: [_jsx("svg", { className: "w-3 h-3", fill: "currentColor", viewBox: "0 0 24 24", xmlns: "http://www.w3.org/2000/svg", children: _jsx("path", { d: "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z" }) }), "Pay"] })) : (track.paymentType || 'free') === 'free' ? (_jsxs("button", { onClick: (e) => {
+                                                        e.stopPropagation();
+                                                        // Download free beat
+                                                        if (track.audioURL) {
+                                                            // Create temporary link for download
+                                                            const link = document.createElement('a');
+                                                            link.href = track.audioURL;
+                                                            link.download = `${track.title}.mp3`;
+                                                            link.target = '_blank';
+                                                            document.body.appendChild(link);
+                                                            link.click();
+                                                            document.body.removeChild(link);
                                                         }
                                                         else {
-                                                            alert('Creator WhatsApp contact not available');
+                                                            alert('Download link not available');
                                                         }
-                                                    }, className: "flex-1 py-1.5 px-3 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs flex items-center justify-center gap-1 transition-colors", children: [_jsx("svg", { className: "w-3 h-3", fill: "currentColor", viewBox: "0 0 24 24", xmlns: "http://www.w3.org/2000/svg", children: _jsx("path", { d: "M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" }) }), "WhatsApp"] })) : (_jsxs("button", { onClick: (e) => {
+                                                    }, className: "flex-1 py-1.5 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs flex items-center justify-center gap-1 transition-colors", children: [_jsx("svg", { className: "w-3 h-3", fill: "none", stroke: "currentColor", viewBox: "0 0 24 24", xmlns: "http://www.w3.org/2000/svg", children: _jsx("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: "2", d: "M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" }) }), "Download"] })) : null) : (_jsxs("button", { onClick: (e) => {
                                                         e.stopPropagation();
                                                         // Download free beat
                                                         if (track.audioURL) {
@@ -291,5 +304,20 @@ export default function BeatsPage() {
                                                             setCurrentPlaylist(playlistTracks);
                                                         }
                                                     }, className: "p-1.5 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors", children: _jsx("svg", { className: "w-4 h-4", fill: "currentColor", viewBox: "0 0 20 20", xmlns: "http://www.w3.org/2000/svg", children: _jsx("path", { fillRule: "evenodd", d: "M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z", clipRule: "evenodd" }) }) })] })] })] }, track._id));
-                    }) })) })] }));
+                    }) })) })] })), showPaymentModal && selectedBeatForPayment && (_jsx(PesaPalPayment, { trackId: selectedBeatForPayment._id, trackTitle: selectedBeatForPayment.title, price: selectedBeatForPayment.price || 5000, onClose: () => {
+        setShowPaymentModal(false);
+        setSelectedBeatForPayment(null);
+    }, onSuccess: (downloadLink) => {
+        if (downloadLink) {
+            const link = document.createElement('a');
+            link.href = downloadLink;
+            link.download = `${selectedBeatForPayment.title}.mp3`;
+            link.target = '_blank';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        setShowPaymentModal(false);
+        setSelectedBeatForPayment(null);
+    } }))] }));
 }

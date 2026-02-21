@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useTracksByType } from '../../hooks/useTracks'
 import { useAudioPlayer } from '../../contexts/AudioPlayerContext'
 import { ITrack } from '@/types'
+import PesaPalPayment from '@/components/PesaPalPayment'
 
 interface Track {
   id: string
@@ -27,6 +28,14 @@ export default function BeatsPage() {
 
   // State for tracking which tracks are favorited
   const [favoriteStatus, setFavoriteStatus] = useState<Record<string, boolean>>({})
+  
+  // MTN MoMo payment state
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [paymentData, setPaymentData] = useState({
+    trackId: '',
+    trackTitle: '',
+    price: 0
+  })
   
   // Filter states
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'free' | 'paid'>('all')
@@ -163,6 +172,21 @@ export default function BeatsPage() {
     }
   }, [refreshTrendingTracks])
 
+  // Listen for MTN MoMo payment requests
+  useEffect(() => {
+    const handleMomoPayment = (event: CustomEvent) => {
+      const { trackId, trackTitle, price } = event.detail;
+      setPaymentData({ trackId, trackTitle, price });
+      setShowPaymentModal(true);
+    };
+
+    window.addEventListener('openMomoPayment', handleMomoPayment as EventListener);
+    
+    return () => {
+      window.removeEventListener('openMomoPayment', handleMomoPayment as EventListener);
+    };
+  }, []);
+
   // Loading state
   if (beatsLoading) {
     return (
@@ -171,6 +195,20 @@ export default function BeatsPage() {
       </div>
     );
   }
+
+  // Handle successful payment
+  const handlePaymentSuccess = (downloadLink: string) => {
+    // Automatically download the beat
+    if (downloadLink) {
+      const link = document.createElement('a');
+      link.href = downloadLink;
+      link.download = `${paymentData.trackTitle}.mp3`;
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black">
@@ -598,6 +636,17 @@ export default function BeatsPage() {
           </div>
         )}
       </div>
+      
+      {/* MTN MoMo Payment Modal */}
+      {showPaymentModal && (
+        <PesaPalPayment
+          trackId={paymentData.trackId}
+          trackTitle={paymentData.trackTitle}
+          price={paymentData.price}
+          onClose={() => setShowPaymentModal(false)}
+          onSuccess={handlePaymentSuccess}
+        />
+      )}
     </div>
   )
 }

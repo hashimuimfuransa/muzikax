@@ -10,6 +10,7 @@ const {
   deleteTrack,
   incrementPlayCount,
   getTrendingTracks,
+  getMonthlyPopularTracks,
   getTracksByType,
   handleInvalidTrack
 } = require('../controllers/trackController');
@@ -20,6 +21,7 @@ const router = express.Router();
 // Public routes
 router.route('/').get(getAllTracks);
 router.route('/trending').get(getTrendingTracks);
+router.route('/monthly-popular').get(getMonthlyPopularTracks);
 router.route('/type').get(getTracksByType);
 router.route('/:id').get(getTrackById);
 router.route('/creator/:creatorId/simple').get(getTracksByCreatorSimple);

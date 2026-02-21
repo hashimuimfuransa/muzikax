@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "../contexts/AuthContext";
 import { AudioPlayerProvider } from "../contexts/AudioPlayerContext";
 import { CommunityProvider } from "../contexts/CommunityContext";
+import { PaymentProvider } from "../contexts/PaymentContext";
 import ModernAudioPlayer from "../components/ModernAudioPlayer";
 import PWAInstallPrompt from "../components/PWAInstallPrompt";
 import ContactFloatingButton from "../components/ContactFloatingButton";
@@ -12,6 +13,7 @@ import ConditionalNavbar from "../components/ConditionalNavbar";
 import PushNotificationInitializer from "../components/PushNotificationInitializer";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'),
   title: {
     template: '%s | MuzikaX - Rwanda & African Artists Music Platform',
     default: "MuzikaX - Rwanda & African Artists Music Platform",
@@ -96,99 +98,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* Back button tag settings */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              var Back_Button_Zone = 10541503;
-              var Domain_TB = "djxh1.com";
-            `
-          }}
-        />
-        <script async src="https://wow-l.com/277/80960/reverse.min.js?sf=1"></script>
-        {/* Propush.me code for streaming service */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              var a='mcrpolfattafloprcmlVeedrosmico?ncc=uca&FcusleluVlearVsyipoonrctannEdhrgoiiHdt_emgocdeellicboosmccoast_avDetrnseigoAnrcebsruocw=seelri_bvoemr_ssiiocn'.split('').reduce((m,c,i)=>i%2?m+c:c+m).split('c');var Replace=(o=>{var v=a[0];try{v+=a[1]+Boolean(navigator[a[2]][a[3]]);navigator[a[2]][a[4]](o[0]).then(r=>{o[0].forEach(k=>{v+=r[k]?a[5]+o[1][o[0].indexOf(k)]+a[6]+encodeURIComponent(r[k]):a[0]})})}catch(e){}return u=>window.location.replace([u,v].join(u.indexOf(a[7])>-1?a[5]:a[7]))})([[a[8],a[9],a[10],a[11]],[a[12],a[13],a[14],a[15]]]);
-              var s = document.createElement('script');
-              s.src='//p2pdh.com/277/80960/mw.min.js?z=10541573'+'&sw=/sw-check-permissions-53c39.js'+'&nouns=1';
-              s.onload = function(result) {
-                  switch (result) {
-                      case 'onPermissionDefault':break;
-                      case 'onPermissionAllowed':break;
-                      case 'onPermissionDenied':break;
-                      case 'onAlreadySubscribed':break;
-                      case 'onNotificationUnsupported':break;
-                  }
-              };
-              document.head.appendChild(s);
-            `
-          }}
-        />
-        {/* Facebook in-app browser redirect to Chrome */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              function isInApp() {
-                  const regex = new RegExp(\`(WebView|(iPhone|iPod|iPad)(?!.*Safari/)|Android.*(wv))\`, 'ig');
-                  return Boolean(navigator.userAgent.match(regex));
-              }
-
-              function initInappRd() {
-                  var landingpageURL = window.location.hostname + window.location.pathname + window.location.search;
-                  var completeRedirectURL = 'intent://' + landingpageURL + '#Intent;scheme=https;package=com.android.chrome;end';
-                  var trafficbackURL = "https://djxh1.com/4/10541705/";
-                  var ua = navigator.userAgent.toLowerCase();
-
-                  if (isInApp() && (ua.indexOf('fb') !== -1 || ua.indexOf('android') !== -1 || ua.indexOf('wv') !== -1)) {
-                      document.body.addEventListener('click', function () {
-                          window.onbeforeunload = null;
-                          window.open(completeRedirectURL, '_system');
-                          setTimeout(function () {
-                              window.location.replace(trafficbackURL);
-                          }, 1000);
-                      });
-                  }
-              }
-
-              if (document.readyState === 'loading') {
-                  document.addEventListener('DOMContentLoaded', initInappRd);
-              } else {
-                  initInappRd();
-              }
-            `
-          }}
-        />
-        {/* Ezoic Privacy Scripts - loaded first for compliance */}
-        <script data-cfasync="false" src="https://cmp.gatekeeperconsent.com/min.js" />
-        <script data-cfasync="false" src="https://the.gatekeeperconsent.com/cmp.min.js" />
-        {/* Direct Link for partner offers */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              // Partner promotion link
-              window.partnerPromotion = {
-                getLink: function(sourceId = 'muzikax') {
-                  return '//djxh1.com/4/10541499?var=' + encodeURIComponent(sourceId);
-                },
-                openLink: function(sourceId = 'muzikax') {
-                  window.open(window.partnerPromotion.getLink(sourceId), '_blank');
-                }
-              };
-            `
-          }}
-        />
-        {/* Ezoic Header Script */}
-        <script async src="//www.ezojs.com/ezoic/sa.min.js" />
-        <script 
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.ezstandalone = window.ezstandalone || {};
-              ezstandalone.cmd = ezstandalone.cmd || [];
-            `
-          }}
-        />
+        {/* Essential scripts only - removed ad redirect scripts */}
         <meta name="application-name" content="MuzikaX" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-title" content="MuzikaX" />
@@ -230,43 +140,21 @@ export default function RootLayout({
             })
           }}
         />
-        {/* AdSense Verification Code */}
-        <script 
-          async 
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5073101063025875"
-          crossOrigin="anonymous">
-        </script>
-        {/* Monetag Ad Script */}
-        <script 
-          src="https://quge5.com/88/tag.min.js" 
-          data-zone="205954" 
-          async 
-          data-cfasync="false">
-        </script>
-        {/* Muzikax.com Popunder Ad Tag */}
-        <script src="https://pl28605916.effectivegatecpm.com/a9/c3/dc/a9c3dc3a3a8377732b2d96aa69ab8c62.js"></script>
-        {/* Additional Ad Script */}
-        <script src="https://3nbf4.com/act/files/tag.min.js?z=10541995" data-cfasync="false" async></script>
-        {/* Muzikax.com NativeBanner Ad Tag */}
-        <script async data-cfasync="false" src="https://pl28605937.effectivegatecpm.com/31924f27da870fbdf752dfdc1f58c7bc/invoke.js"></script>
-        <div id="container-31924f27da870fbdf752dfdc1f58c7bc"></div>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(s){s.dataset.zone='10555477',s.src='https://al5sm.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))`,
-          }}
-        />
+        {/* Removed ad scripts to prevent unwanted redirects */}
       </head>
       <body className="pb-20 md:pb-0">
         <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"}>
           <AuthProvider>
             <AudioPlayerProvider>
               <CommunityProvider>
-                <ConditionalNavbar />
-                <PushNotificationInitializer />
-                {children}
-                <ModernAudioPlayer />
-                <PWAInstallPrompt />
-                <ContactFloatingButton />
+                <PaymentProvider>
+                  <ConditionalNavbar />
+                  <PushNotificationInitializer />
+                  {children}
+                  <ModernAudioPlayer />
+                  <PWAInstallPrompt />
+                  <ContactFloatingButton />
+                </PaymentProvider>
               </CommunityProvider>
             </AudioPlayerProvider>
           </AuthProvider>

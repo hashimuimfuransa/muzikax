@@ -570,6 +570,25 @@ const incrementPlayCount = async (req, res) => {
             }
         }
 
+        // Track play history for monthly analytics
+        const now = new Date();
+        const PlayHistory = require('../models/PlayHistory');
+        
+        try {
+            await PlayHistory.create({
+                trackId: track._id,
+                userId: req.user ? req.user._id : null,
+                ipAddress: cleanIpAddress || ipAddress,
+                userAgent: req.get('User-Agent'),
+                timestamp: now,
+                year: now.getFullYear(),
+                month: now.getMonth() + 1 // JavaScript months are 0-indexed
+            });
+        } catch (playHistoryError) {
+            console.error('Error recording play history:', playHistoryError);
+            // Don't fail the main play count update if play history fails
+        }
+
         res.json(track);
     }
     catch (error) {
@@ -578,6 +597,89 @@ const incrementPlayCount = async (req, res) => {
     }
 };
 exports.incrementPlayCount = incrementPlayCount;
+
+// Get tracks sorted by monthly plays for current month
+const getMonthlyPopularTracks = async (req, res) => {
+    try {
+        const limit = parseInt(req.query.limit) || 20;
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth() + 1; // JavaScript months are 0-indexed
+        
+        const PlayHistory = require('../models/PlayHistory');
+        
+        // First, get all tracks and their basic info
+        const allTracks = await Track_1.find({
+            type: { $in: ['song', 'beat', 'mix'] }
+        })
+        .populate('creatorId', 'name')
+        .lean();
+        
+        // Get play history for current month
+        const monthlyPlayCounts = await PlayHistory.aggregate([
+            {
+                $match: {
+                    year: currentYear,
+                    month: currentMonth
+                }
+            },
+            {
+                $group: {
+                    _id: "$trackId",
+                    playCount: { $sum: 1 },
+                    uniqueListeners: { $addToSet: "$ipAddress" }
+                }
+            }
+        ]);
+        
+        // Combine track data with monthly play counts
+        const tracksWithScores = allTracks.map(track => {
+            const playData = monthlyPlayCounts.find(item => item._id.toString() === track._id.toString());
+            const monthlyPlays = playData ? playData.playCount : 0;
+            const uniqueListeners = playData ? playData.uniqueListeners.length : 0;
+            
+            // Calculate a score that combines:
+            // 1. Monthly plays (primary factor)
+            // 2. Overall plays (secondary factor)
+            // 3. Recency bonus (newer tracks get a boost)
+            const createdAt = new Date(track.createdAt);
+            const daysOld = (now - createdAt) / (1000 * 60 * 60 * 24);
+            
+            // Recency bonus: newer tracks get higher scores
+            // Tracks from this month get a significant boost
+            let recencyBonus = 0;
+            if (daysOld <= 30) {
+                recencyBonus = 1000; // Strong boost for very new tracks
+            } else if (daysOld <= 90) {
+                recencyBonus = 500;  // Moderate boost for recent tracks
+            } else if (daysOld <= 180) {
+                recencyBonus = 100;  // Small boost for somewhat recent tracks
+            }
+            
+            // Main scoring formula
+            const score = (monthlyPlays * 100) + (track.plays * 0.1) + recencyBonus;
+            
+            return {
+                ...track,
+                monthlyPlays: monthlyPlays,
+                uniqueListeners: uniqueListeners,
+                score: score,
+                daysOld: daysOld
+            };
+        });
+        
+        // Sort by score (highest first) and limit results
+        tracksWithScores.sort((a, b) => b.score - a.score);
+        const topTracks = tracksWithScores.slice(0, limit);
+        
+        res.json(topTracks);
+    } catch (error) {
+        console.error('Error getting monthly popular tracks:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.getMonthlyPopularTracks = getMonthlyPopularTracks;
 // Get trending tracks
 const getTrendingTracks = async (req, res) => {
         try {

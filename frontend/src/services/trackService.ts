@@ -167,6 +167,46 @@ export const fetchTrendingTracks = async (limit: number = 10): Promise<ITrack[]>
 };
 
 /**
+ * Fetch tracks sorted by monthly plays for current month
+ * Filters out incomplete tracks (those without audio URLs)
+ */
+export const fetchMonthlyPopularTracks = async (limit: number = 10): Promise<any[]> => {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tracks/monthly-popular?limit=${limit}`);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch monthly popular tracks: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    
+    // Filter out tracks without audio URLs and map fields to match frontend Track interface
+    return data
+      .filter((track: any) => track.audioURL && track.audioURL.trim() !== '')
+      .map((track: any) => ({
+        id: track._id,
+        title: track.title,
+        artist: track.creatorId?.name || 'Unknown Artist',
+        album: track.albumTitle || '',
+        plays: track.plays || 0,
+        likes: track.likes || 0,
+        coverImage: track.coverURL || '',
+        duration: track.duration || '',
+        category: track.type || 'song',
+        type: track.type || 'song',
+        paymentType: track.paymentType || 'free',
+        creatorId: track.creatorId?._id || track.creatorId || '',
+        monthlyPlays: track.monthlyPlays || 0,
+        score: track.score || 0,
+        daysOld: track.daysOld || 0
+      }));
+  } catch (error) {
+    console.error('Error fetching monthly popular tracks:', error);
+    throw error;
+  }
+};
+
+/**
  * Fetch a single track by ID
  */
 export const fetchTrackById = async (id: string): Promise<ITrack> => {

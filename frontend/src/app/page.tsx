@@ -371,8 +371,42 @@ export default function Home() {
     }
   }, [trendingTracksData]);
 
-  // For You section - use trending tracks for now
-  const forYouTracks: Track[] = trendingTracks.slice(0, 4);
+  // For You section - use monthly popular tracks for current month
+  const [monthlyPopularTracks, setMonthlyPopularTracks] = useState<Track[]>([]);
+  const [monthlyPopularLoading, setMonthlyPopularLoading] = useState(true);
+  
+  // Fetch monthly popular tracks
+  useEffect(() => {
+    const fetchMonthlyPopularTracks = async () => {
+      try {
+        setMonthlyPopularLoading(true);
+        const { fetchMonthlyPopularTracks: fetchMonthly } = await import('@/services/trackService');
+        const tracks = await fetchMonthly(20);
+        
+        // Ensure we have tracks to display
+        if (tracks.length === 0) {
+          // Fallback to trending tracks if no monthly popular tracks
+          console.log('No monthly popular tracks found, using trending tracks as fallback');
+          setMonthlyPopularTracks(trendingTracks.slice(0, 10));
+        } else {
+          setMonthlyPopularTracks(tracks);
+        }
+      } catch (error) {
+        console.error('Error fetching monthly popular tracks:', error);
+        // Fallback to trending tracks if monthly popular fails
+        setMonthlyPopularTracks(trendingTracks.slice(0, 10));
+      } finally {
+        setMonthlyPopularLoading(false);
+      }
+    };
+    
+    if (trendingTracks.length > 0) {
+      fetchMonthlyPopularTracks();
+    }
+  }, [trendingTracks]);
+  
+  // For You section - use monthly popular tracks
+  const forYouTracks: Track[] = monthlyPopularTracks.slice(0, 10);
 
   // Utility function to shuffle an array
   const shuffleArray = (array: any[]) => {
@@ -771,13 +805,13 @@ export default function Home() {
 
       {/* Main Content Area - This takes remaining space */}
       <main className="flex-1 flex flex-col min-h-screen ml-0 md:ml-64 overflow-y-auto">
-        {/* Partner Promotion - Recommended Option 2: Rewarded action */}
-        <PartnerPromotion 
+        {/* Partner Promotion - Disabled to prevent redirects */}
+        {/* <PartnerPromotion 
           variant="rewarded" 
-          showAfterVisits={0}
-          autoHideTimeout={0}
-          rewardText="🎵 Watch a quick video to enjoy 30 minutes of uninterrupted music!"
-        />
+          showAfterVisits={5}
+          autoHideTimeout={30}
+          rewardText="🎵 Support us by watching a quick video!"
+        /> */}
         {/* Enhanced Hero Section with Image Slider */}
         <section className="relative py-8 md:py-12 lg:py-16 overflow-hidden">
           <div className="absolute inset-0">
@@ -900,238 +934,7 @@ export default function Home() {
           </button>
         </section>
 
-        {/* For You Section */}
-        <section className="px-4 md:px-6 py-8 sm:py-10">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl sm:text-2xl font-bold text-white">
-              For You
-            </h2>
-            <a
-              href="/foryou"
-              className="text-[#FF4D67] hover:text-[#FFCB2B] text-sm sm:text-base transition-colors"
-            >
-              View All
-            </a>
-          </div>
 
-          <div className="grid grid-cols-[repeat(auto-fill,_minmax(250px,_1fr))] gap-4 sm:gap-6 md:gap-6">
-            {forYouTracks.map((track) => (
-              <div
-                key={`foryou-${track.id}`}
-                className="group card-bg rounded-xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10"
-              >
-                <div className="relative">
-                  {track.coverImage && track.coverImage.trim() !== '' ? (
-                    <img
-                      src={track.coverImage}
-                      alt={track.title}
-                      className="w-full aspect-square object-cover"
-                    />
-                  ) : (
-                    <div className="w-full aspect-square bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center">
-                      <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
-                      </svg>
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                    <button
-                      onClick={() => {
-                        // Find the full track object to get the audioURL
-                        const fullTrack = trendingTracksData.find(
-                          (t) => t._id === track.id,
-                        );
-                        if (fullTrack && fullTrack.audioURL) {
-                          playTrack({
-                            id: track.id,
-                            title: track.title,
-                            artist: track.artist,
-                            coverImage: track.coverImage,
-                            audioUrl: fullTrack.audioURL,
-                            plays: fullTrack.plays || 0,
-                            likes: fullTrack.likes || 0,
-                            creatorId: typeof fullTrack.creatorId === 'object' && fullTrack.creatorId !== null ? (fullTrack.creatorId as any)._id : fullTrack.creatorId,
-                            type: fullTrack.type, // Include track type for WhatsApp functionality
-                            paymentType: fullTrack.paymentType, // Include payment type for beat pricing
-                            price: fullTrack.price, // Include price for paid beats
-                            currency: fullTrack.currency, // Include currency for paid beats
-                            creatorWhatsapp: (typeof fullTrack.creatorId === 'object' && fullTrack.creatorId !== null 
-                              ? (fullTrack.creatorId as any).whatsappContact 
-                              : undefined) // Include creator's WhatsApp contact
-                          });
-                          // Set the current playlist to all trending tracks
-                          const playlistTracks = trendingTracksData
-                            .filter((t) => t.audioURL) // Only tracks with audio
-                            .map((t) => ({
-                              id: t._id,
-                              title: t.title,
-                              artist:
-                                typeof t.creatorId === "object" &&
-                                t.creatorId !== null
-                                  ? (t.creatorId as any).name
-                                  : "Unknown Artist",
-                              coverImage:
-                                t.coverURL ||
-                                "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
-                              audioUrl: t.audioURL,
-                              creatorId: typeof t.creatorId === 'object' && t.creatorId !== null ? (t.creatorId as any)._id : t.creatorId,
-                              type: t.type, // Include track type for WhatsApp functionality
-                              paymentType: t.paymentType, // Include payment type for beat pricing
-                              price: t.price, // Include price for paid beats
-                              currency: t.currency, // Include currency for paid beats
-                              creatorWhatsapp: (typeof t.creatorId === 'object' && t.creatorId !== null 
-                                ? (t.creatorId as any).whatsappContact 
-                                : undefined) // Include creator's WhatsApp contact
-                            }));
-                          setCurrentPlaylist(playlistTracks);
-                        }
-                      }}
-                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300"
-                    >
-                      {currentTrack?.id === track.id && isPlaying ? (
-                        <svg
-                          className="w-4 h-4 sm:w-5 sm:h-5"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z"
-                            clipRule="evenodd"
-                          ></path>
-                        </svg>
-                      ) : (
-                        <svg
-                          className="w-4 h-4 sm:w-5 sm:h-5"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
-                            clipRule="evenodd"
-                          ></path>
-                        </svg>
-                      )}
-                    </button>
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Find the full track object
-                        const fullTrack = trendingTracksData.find(t => t._id === track.id);
-                        if (fullTrack) {
-                          toggleFavorite(track.id, fullTrack);
-                        }
-                      }}
-                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 hover:scale-110"
-                    >
-                      <svg 
-                        className={`w-4 h-4 sm:w-5 sm:h-5 transition-all duration-200 ${favoriteStatus[track.id] ? 'text-red-500 fill-current scale-110' : 'stroke-current'}`}
-                        fill={favoriteStatus[track.id] ? "currentColor" : "none"}
-                        stroke="currentColor"
-                        viewBox="0 0 24 24" 
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                      </svg>
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Add to queue functionality
-                        const fullTrack = trendingTracksData.find(t => t._id === track.id);
-                        if (fullTrack && fullTrack.audioURL) {
-                          addToQueue({
-                            id: track.id,
-                            title: track.title,
-                            artist: track.artist,
-                            coverImage: track.coverImage,
-                            audioUrl: fullTrack.audioURL,
-                            duration: fullTrack.duration ? (fullTrack.duration.includes(':') ? 
-                              (() => {
-                                const [mins, secs] = fullTrack.duration.split(':').map(Number);
-                                return mins * 60 + secs;
-                              })() : Number(fullTrack.duration)
-                            ) : undefined,
-                            creatorId: typeof fullTrack.creatorId === 'object' && fullTrack.creatorId !== null ? (fullTrack.creatorId as any)._id : fullTrack.creatorId,
-                            type: fullTrack.type,
-                            creatorWhatsapp: (typeof fullTrack.creatorId === 'object' && fullTrack.creatorId !== null 
-                              ? (fullTrack.creatorId as any).whatsappContact 
-                              : undefined)
-                          });
-                          // Show toast notification
-                          const toastEvent = new CustomEvent('showToast', {
-                            detail: {
-                              message: `Added ${track.title} to queue!`,
-                              type: 'success'
-                            }
-                          });
-                          window.dispatchEvent(toastEvent);
-                        }
-                      }}
-                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 hover:scale-110"
-                      title={`Add ${track.title} to queue`}
-                    >
-                      <svg 
-                        className="w-4 h-4 sm:w-5 sm:h-5"
-                        fill="none" 
-                        stroke="currentColor" 
-                        viewBox="0 0 24 24" 
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-
-                <div className="p-3">
-                  <div className="flex items-start justify-between mb-1">
-                    <h3 className="font-bold text-white text-sm sm:text-base truncate flex-1">
-                      {track.title}
-                    </h3>
-                    {/* Beat indicator badge */}
-                    {track.type === 'beat' && (
-                      <span className="ml-2 px-2 py-0.5 bg-purple-600 text-white text-xs rounded-full whitespace-nowrap">
-                        BEAT
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-gray-400 text-xs sm:text-sm truncate">
-                    {track.artist}
-                  </p>
-                  
-                  {/* Payment type indicator for beats */}
-                  {track.type === 'beat' && (
-                    <div className="mt-2">
-                      {(() => {
-                        // Handle missing or null paymentType by defaulting to 'free'
-                        const paymentType = track.paymentType || 'free';
-                        return (
-                          <span className={`inline-block px-2 py-1 text-xs rounded-full ${paymentType === 'paid' ? 'bg-green-600 text-white' : 'bg-blue-600 text-white'}`}>
-                            {paymentType === 'paid' ? 'PAID BEAT' : 'FREE BEAT'}
-                          </span>
-                        );
-                      })()}
-                    </div>
-                  )}
-                  
-                  <div className="flex justify-between text-xs text-gray-500 mt-2">
-                    <span>{track.plays?.toLocaleString() || '0'} plays</span>
-                    <div className="flex items-center gap-1">
-                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                        <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd"></path>
-                      </svg>
-                      <span>{track.likes || 0}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
 
         {/* Infinite Scroll Trigger */}
         {page < (totalPages || 1) && (
@@ -1146,14 +949,46 @@ export default function Home() {
           </div>
         )}
 
-        {/* Made for You Section */}
-        <HorizontalScrollSection title="Made for You" viewAllLink="/foryou">
-          {madeForYouTracks.map((track) => {
+        {/* For You Section - Monthly Popular Tracks */}
+        <HorizontalScrollSection title="For You" viewAllLink="/tracks?sortBy=monthly">
+          {monthlyPopularLoading ? (
+            // Loading skeleton
+            Array.from({ length: 10 }).map((_, index) => (
+              <div
+                key={`loading-${index}`}
+                className="flex-shrink-0 w-48 sm:w-56"
+              >
+                <div className="bg-gray-700 rounded-lg h-48 sm:h-56 animate-pulse mb-3"></div>
+                <div className="bg-gray-700 rounded h-4 w-3/4 animate-pulse mb-2"></div>
+                <div className="bg-gray-700 rounded h-3 w-1/2 animate-pulse"></div>
+              </div>
+            ))
+          ) : (
+            forYouTracks.map((track) => {
+              // Find the full track object to get additional properties
+              const fullTrack = trendingTracksData.find(t => t._id === track.id);
+              return (
+                <TrackCard 
+                  key={`for-you-${track.id}`} 
+                  track={track} 
+                  fullTrackData={fullTrack}
+                />
+              );
+            })
+          )}
+        </HorizontalScrollSection>
+
+        {/* Recommended Playlists Section */}
+        <RecommendedPlaylists />
+
+        {/* New Releases Section */}
+        <HorizontalScrollSection title="New Releases" viewAllLink="/tracks?sortBy=newest">
+          {newReleases.map((track) => {
             // Find the full track object to get additional properties
             const fullTrack = trendingTracksData.find(t => t._id === track.id);
             return (
               <TrackCard 
-                key={`made-for-you-${track.id}`} 
+                key={`new-releases-${track.id}`} 
                 track={track} 
                 fullTrackData={fullTrack}
               />
@@ -1161,8 +996,17 @@ export default function Home() {
           })}
         </HorizontalScrollSection>
 
-        {/* Recommended Playlists Section */}
-        <RecommendedPlaylists />
+        {/* Popular Artists Section */}
+        <HorizontalScrollSection title="Popular Artists" viewAllLink="/artists">
+          {popularCreators.map((creator) => (
+            <ArtistCard 
+              key={creator.id} 
+              creator={creator} 
+              followStatus={followStatus}
+              setFollowStatus={setFollowStatus}
+            />
+          ))}
+        </HorizontalScrollSection>
 
         {/* Popular Songs Section */}
         <HorizontalScrollSection title="Popular Songs" viewAllLink="/tracks?sortBy=popularity">
@@ -1289,18 +1133,6 @@ export default function Home() {
               />
             );
           })}
-        </HorizontalScrollSection>
-
-        {/* Popular Artists Section - Now Horizontal Scroll */}
-        <HorizontalScrollSection title="Popular Artists" viewAllLink="/artists">
-          {popularCreators.map((creator) => (
-            <ArtistCard 
-              key={creator.id} 
-              creator={creator} 
-              followStatus={followStatus}
-              setFollowStatus={setFollowStatus}
-            />
-          ))}
         </HorizontalScrollSection>
         {/* Popular Albums Section */}
         <section className="px-4 md:px-6 py-8 sm:py-10">

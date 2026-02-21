@@ -48,6 +48,36 @@ body {
     text-wrap: balance;
   }
   
+  /* MTN MoMo Payment Animations */
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+  
+  .fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Pulse animation for loading spinner */
+  .animate-pulse-slow {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  /* Smooth transitions */
+  .transition-all-fast {
+    transition: all 0.2s ease-in-out;
+  }
+  
   .card-bg {
     background: rgba(30, 41, 59, 0.5);
     backdrop-filter: blur(10px);

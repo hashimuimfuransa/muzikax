@@ -5,8 +5,10 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
+import { usePayment } from '../contexts/PaymentContext';
 import PlaylistSelectionModal from './PlaylistSelectionModal';
 import ReportTrackModal from './ReportTrackModal';
+import PesaPalPayment from './PesaPalPayment';
 
 const ModernAudioPlayer = () => {
   const {
@@ -46,6 +48,7 @@ const ModernAudioPlayer = () => {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const { showPayment, hidePayment, isPaymentVisible, paymentData } = usePayment();
   
   // Check if device is mobile
   useEffect(() => {
@@ -62,6 +65,44 @@ const ModernAudioPlayer = () => {
       return () => window.removeEventListener('resize', checkIsMobile);
     }
   }, []);
+
+  // Listen for payment requests from AudioPlayerContext
+  useEffect(() => {
+    const handlePaymentRequest = (event: CustomEvent) => {
+      const { trackId, trackTitle, price, audioUrl } = event.detail;
+      showPayment({
+        trackId,
+        trackTitle,
+        price,
+        audioUrl
+      });
+    };
+
+    window.addEventListener('requestTrackPayment', handlePaymentRequest as EventListener);
+    
+    return () => {
+      window.removeEventListener('requestTrackPayment', handlePaymentRequest as EventListener);
+    };
+  }, [showPayment]);
+
+  // Handle successful payment
+  const handlePaymentSuccess = () => {
+    // Close payment modal
+    hidePayment();
+    
+    // Play the track using the bypass function
+    if (paymentData && paymentData.audioUrl) {
+      // Access playTrackAfterPurchase from window object
+      const audioPlayerContext = (window as any).audioPlayerContext;
+      if (audioPlayerContext && audioPlayerContext.playTrackAfterPurchase) {
+        audioPlayerContext.playTrackAfterPurchase({
+          id: paymentData.trackId,
+          title: paymentData.trackTitle,
+          audioUrl: paymentData.audioUrl
+        });
+      }
+    }
+  };
   
   // Check if current track is in favorites
   useEffect(() => {
@@ -546,6 +587,9 @@ const ModernAudioPlayer = () => {
           {/* The actual full player is rendered on the /player page */}
         </div>
       )}
+      
+      {/* PesaPal Payment Modal */}
+      {/* Global payment modal is handled by PaymentProvider in layout */}
     </>
   );
 };

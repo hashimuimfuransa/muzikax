@@ -165,6 +165,21 @@ export const AudioPlayerProvider = ({ children }) => {
             console.error('Cannot play track: Invalid audio URL', track);
             return;
         }
+
+        // Check if track is paid and requires purchase
+        if (track.paymentType === 'paid' && track.price > 0) {
+            // Dispatch event to trigger payment modal
+            const paymentEvent = new CustomEvent('requestTrackPayment', {
+                detail: {
+                    trackId: track.id,
+                    trackTitle: track.title,
+                    price: track.price,
+                    audioUrl: track.audioUrl
+                }
+            });
+            window.dispatchEvent(paymentEvent);
+            return; // Don't play the track yet
+        }
         // If we're already playing this track, just resume
         if ((currentTrack === null || currentTrack === void 0 ? void 0 : currentTrack.id) === track.id && audioRef.current) {
             console.log('Resuming existing track');
@@ -1219,6 +1234,178 @@ export const AudioPlayerProvider = ({ children }) => {
         link.click();
         document.body.removeChild(link);
     };
+
+    // Play track bypassing payment validation (used after successful purchase)
+    const playTrackAfterPurchase = (track, contextPlaylist, albumContext, isCycling = false) => {
+        console.log('PLAY TRACK AFTER PURCHASE CALLED with track:', track);
+        // This bypasses the payment check and plays the track directly
+        // Rest of the function remains the same as original playTrack
+        
+        // Validate that we have a valid audio URL
+        if (!track.audioUrl || track.audioUrl.trim() === '') {
+            console.error('Cannot play track: Invalid audio URL', track);
+            return;
+        }
+        
+        // If we're already playing this track, just resume
+        if ((currentTrack === null || currentTrack === void 0 ? void 0 : currentTrack.id) === track.id && audioRef.current) {
+            console.log('Resuming existing track');
+            audioRef.current.play().catch(error => {
+                console.error('Error resuming track:', error);
+            });
+            setIsPlaying(true);
+            console.log('Track resumed successfully');
+            return;
+        }
+        
+        // Stop current track if playing
+        if (audioRef.current) {
+            console.log('Stopping current audio');
+            audioRef.current.pause();
+            audioRef.current = null;
+        }
+        
+        // Clean up previous audio context
+        if (sourceRef.current) {
+            sourceRef.current.disconnect();
+            sourceRef.current = null;
+        }
+        
+        // Set the playback context
+        if (albumContext) {
+            console.log('Setting album context');
+            currentPlaybackContext.current = {
+                type: 'album',
+                data: albumContext,
+                albumId: albumContext.albumId,
+                albumComplete: false // Reset album completion flag
+            };
+            // Set the playlist to the album tracks
+            setPlaylist(albumContext.tracks);
+            // Update ref synchronously
+            playlistRef.current = albumContext.tracks;
+            const index = albumContext.tracks.findIndex(t => t.id === track.id);
+            console.log('Setting album track index to:', index);
+            
+            // Set the current track and index immediately
+            console.log('Setting current track to:', track);
+            setCurrentTrack(track);
+            // Update ref synchronously
+            currentTrackRef.current = track;
+            console.log('Setting current track index to:', index);
+            setCurrentTrackIndex(index);
+            // Update ref synchronously
+            currentTrackIndexRef.current = index;
+        }
+        else if (contextPlaylist && contextPlaylist.length > 0) {
+            console.log('Setting playlist context with', contextPlaylist.length, 'tracks');
+            // Store the original playlist before switching to single track context
+            storeOriginalPlaylist();
+            currentPlaybackContext.current = {
+                type: 'playlist',
+                data: contextPlaylist
+            };
+            setPlaylist(contextPlaylist);
+            // Update ref synchronously
+            playlistRef.current = contextPlaylist;
+            const index = contextPlaylist.findIndex(t => t.id === track.id);
+            console.log('Setting playlist track index to:', index);
+            
+            // Set the current track and index immediately
+            console.log('Setting current track to:', track);
+            setCurrentTrack(track);
+            // Update ref synchronously
+            currentTrackRef.current = track;
+            console.log('Setting current track index to:', index);
+            setCurrentTrackIndex(index);
+            // Update ref synchronously
+            currentTrackIndexRef.current = index;
+        }
+        else {
+            console.log('Setting single track context');
+            // Store the original playlist before switching to single track context
+            storeOriginalPlaylist();
+            currentPlaybackContext.current = { type: 'single' };
+            setPlaylist([track]);
+            // Update ref synchronously
+            playlistRef.current = [track];
+            console.log('Setting single track index to: 0');
+            
+            // Set the current track and index immediately
+            console.log('Setting current track to:', track);
+            setCurrentTrack(track);
+            // Update ref synchronously
+            currentTrackRef.current = track;
+            console.log('Setting current track index to: 0');
+            setCurrentTrackIndex(0);
+            // Update ref synchronously
+            currentTrackIndexRef.current = 0;
+        }
+        
+        // Create new audio element
+        const audio = new Audio(track.audioUrl);
+        audioRef.current = audio;
+        
+        // Set up event listeners
+        audio.onplay = () => {
+            console.log('Audio started playing');
+            setIsPlaying(true);
+        };
+        audio.onpause = () => {
+            console.log('Audio paused');
+            setIsPlaying(false);
+        };
+        audio.onended = handleAudioEnded;
+        audio.ontimeupdate = () => {
+            if (audio.duration) {
+                setProgress(audio.currentTime);
+                setDuration(audio.duration);
+            }
+        };
+        audio.onloadedmetadata = () => {
+            setDuration(audio.duration || 0);
+        };
+        
+        // Play the audio
+        audio.play().catch(error => {
+            console.error('Error playing audio:', error);
+        });
+        
+        // Only expand player when new track starts if it was explicitly played by user
+        // If it's an automatic playback (next track), preserve the current minimized state
+        if (explicitlyPlayedRef.current) {
+            setIsMinimized(false); // Expand player when explicitly played by user
+        }
+        
+        // If explicitlyPlayedRef.current is false, we preserve the current isMinimized state
+        // Mark this as an auto-played action (not explicitly played by user)
+        explicitlyPlayedRef.current = false;
+        
+        // Add to recently played (only for authenticated users)
+        const accessToken = localStorage.getItem('accessToken');
+        if (accessToken) {
+            addRecentlyPlayed(track.id)
+                .then(() => {
+                console.log(`Successfully added track ${track.id} to recently played`);
+            })
+                .catch((error) => {
+                console.error('Error adding track to recently played:', error);
+            });
+        }
+        
+        // Increment play count (only for authenticated users and not already incremented)
+        if (accessToken && !hasIncrementedPlayCount.current.has(track.id)) {
+            incrementPlayCount(track.id)
+                .then(() => {
+                console.log(`Successfully incremented play count for track ${track.id}`);
+                hasIncrementedPlayCount.current.add(track.id);
+            })
+                .catch((error) => {
+                console.error('Error incrementing play count:', error);
+            });
+        }
+    };
+
     return (_jsx(AudioPlayerContext.Provider, { value: {
             currentTrack,
             isPlaying,
@@ -1268,6 +1455,7 @@ export const AudioPlayerProvider = ({ children }) => {
             setPlaybackRate,
             shareTrack,
             downloadTrack, // Export downloadTrack function
+            playTrackAfterPurchase, // Export playTrackAfterPurchase function
             // Music visualization properties
             audioAnalyser: analyserRef.current,
             audioContext: audioContextRef.current,

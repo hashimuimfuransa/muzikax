@@ -194,7 +194,7 @@ export default function Home() {
   }, [refreshTrendingTracks]);
 
   // Transform tracks data to match existing interface
-  const trendingTracks: Track[] = trendingTracksData
+  const allTracks: Track[] = trendingTracksData
     .map((track) => ({
     id: track._id,
     title: track.title,
@@ -210,6 +210,9 @@ export default function Home() {
     category: track.type,
     creatorId: typeof track.creatorId === 'object' && track.creatorId !== null ? (track.creatorId as any)._id : track.creatorId
   }));
+
+  // Filter out beats from trending tracks for display
+  const trendingTracks: Track[] = allTracks.filter((track) => track.category !== "beat");
 
   // For now, use trending tracks for new tracks as well
   const newTracks: Track[] = trendingTracks;
@@ -261,7 +264,7 @@ export default function Home() {
     }
   }, [trendingTracksData]);
 
-  // For You section - use trending tracks for now
+  // For You section - use trending tracks (excluding beats)
   const forYouTracks: Track[] = trendingTracks.slice(0, 4);
 
   return (

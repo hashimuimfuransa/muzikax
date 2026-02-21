@@ -11,12 +11,13 @@ import { ITrack } from '../../types'
 import { useAudioPlayer } from '../../contexts/AudioPlayerContext'
 import { getFollowedCreators } from '../../services/trackService'
 import { getRecentlyPlayed } from '../../services/recentlyPlayedService'
+import { getArtistEarnings, requestWithdrawal, ArtistEarnings } from '../../services/withdrawalService'
 // Import UploadCare components
 import { FileUploaderRegular } from "@uploadcare/react-uploader";
 import "@uploadcare/react-uploader/core.css";
 
 // Define the possible active tab types
-type ActiveTab = 'profile' | 'favorites' | 'analytics' | 'tracks' | 'albums' | 'whatsapp' | 'following' | 'recently-played';
+type ActiveTab = 'profile' | 'favorites' | 'analytics' | 'tracks' | 'albums' | 'whatsapp' | 'earnings' | 'following' | 'recently-played';
 
 interface CreatorAnalytics {
   totalTracks: number
@@ -78,6 +79,13 @@ export default function Profile() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null) // Add avatar URL state
   const [recentlyPlayedTracks, setRecentlyPlayedTracks] = useState<any[]>([])
   const [loadingRecentlyPlayed, setLoadingRecentlyPlayed] = useState(false)
+  const [earnings, setEarnings] = useState<ArtistEarnings | null>(null)
+  const [loadingEarnings, setLoadingEarnings] = useState(false)
+  const [withdrawalAmount, setWithdrawalAmount] = useState('')
+  const [withdrawalPhone, setWithdrawalPhone] = useState('')
+  const [showWithdrawalModal, setShowWithdrawalModal] = useState(false)
+  const [submittingWithdrawal, setSubmittingWithdrawal] = useState(false)
+  const [showTabsSidebar, setShowTabsSidebar] = useState(false)
   const { currentTrack, isPlaying, playTrack, setCurrentPlaylist, favorites, addToFavorites, removeFromFavorites } = useAudioPlayer()
   const router = useRouter()
   const { isAuthenticated, user, isLoading, updateProfile, updateWhatsAppContact } = useAuth() // Import both functions
@@ -282,6 +290,47 @@ export default function Profile() {
       setError(`Failed to fetch albums: ${err.message || 'Unknown error'}`)
     } finally {
       setLoadingAlbums(false)
+    }
+  }
+
+  const fetchEarnings = async () => {
+    if (!user || user.role !== 'creator') return
+    
+    setLoadingEarnings(true)
+    setError(null)
+    
+    try {
+      const earningsData = await getArtistEarnings()
+      setEarnings(earningsData)
+    } catch (err: any) {
+      console.error('Failed to fetch earnings:', err)
+      setError(`Failed to fetch earnings: ${err.message || 'Unknown error'}`)
+    } finally {
+      setLoadingEarnings(false)
+    }
+  }
+
+  const handleWithdrawalRequest = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (!withdrawalAmount || !withdrawalPhone) {
+      alert('Please fill in all fields')
+      return
+    }
+
+    setSubmittingWithdrawal(true)
+    try {
+      const amount = Number(withdrawalAmount)
+      const response = await requestWithdrawal(amount, withdrawalPhone)
+      alert(`Withdrawal request submitted successfully! Available balance: ${response.availableBalance}`)
+      setWithdrawalAmount('')
+      setWithdrawalPhone('')
+      setShowWithdrawalModal(false)
+      fetchEarnings()
+    } catch (err: any) {
+      alert(`Failed to request withdrawal: ${err.message}`)
+    } finally {
+      setSubmittingWithdrawal(false)
     }
   }
 
@@ -661,9 +710,218 @@ export default function Profile() {
             </div>
           </div>
 
-          {/* Navigation Tabs */}
-          <div className="flex overflow-x-auto border-b border-gray-800 mb-6 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-            <button
+          {/* Navigation Tabs with Sidebar */}
+          <div className="flex gap-6 mb-6">
+            {/* Mobile Hamburger Button - More Prominent */}
+            <div className="lg:hidden flex items-center">
+              <button
+                onClick={() => setShowTabsSidebar(!showTabsSidebar)}
+                className={`relative group px-4 py-2.5 rounded-lg font-medium text-sm flex items-center gap-2 transition-all duration-300 ${
+                  showTabsSidebar
+                    ? 'bg-[#FF4D67] text-white shadow-lg shadow-[#FF4D67]/50'
+                    : 'bg-gradient-to-r from-[#FF4D67]/20 to-[#FFCB2B]/20 text-white hover:from-[#FF4D67]/30 hover:to-[#FFCB2B]/30 border border-[#FF4D67]/30'
+                }`}
+              >
+                <svg className={`w-5 h-5 transition-transform duration-300 ${showTabsSidebar ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+                <span>View All Tabs</span>
+                
+                {/* Pulsing Indicator Dot */}
+                {!showTabsSidebar && (
+                  <span className="absolute top-1 right-1 flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF4D67] opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FF4D67]"></span>
+                  </span>
+                )}
+              </button>
+
+              {/* Tooltip for first-time users */}
+              <div className="absolute top-full left-0 mt-2 bg-gray-900 border border-[#FF4D67]/50 rounded-lg px-3 py-2 text-xs text-gray-200 whitespace-nowrap pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity z-50">
+                <p className="font-semibold text-[#FF4D67] mb-1">Browse All Navigation</p>
+                <p>Access all profile sections including Analytics & Earnings</p>
+              </div>
+            </div>
+
+            {/* Sidebar - Desktop & Mobile */}
+            <div className={`fixed left-0 top-0 h-screen w-64 card-bg border-r border-gray-800 p-6 z-40 transform transition-transform duration-300 ${
+              showTabsSidebar ? 'translate-x-0' : '-translate-x-full'
+            } lg:translate-x-0 lg:static lg:h-auto lg:w-auto lg:border-0 lg:p-0 lg:bg-transparent`}>
+              {/* Close button for mobile */}
+              <button
+                onClick={() => setShowTabsSidebar(false)}
+                className="lg:hidden absolute top-4 right-4 p-2 hover:bg-gray-800/50 rounded-lg"
+              >
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+
+              {/* Sidebar Header */}
+              <div className="lg:hidden mb-6">
+                <h3 className="text-white font-bold text-lg mb-1 flex items-center gap-2">
+                  <svg className="w-5 h-5 text-[#FF4D67]" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2h-2.22l-1.414 1.414a1 1 0 01-1.414-1.414L9.586 13H5a2 2 0 01-2-2V5z" clipRule="evenodd" />
+                  </svg>
+                  All Navigation
+                </h3>
+                <p className="text-gray-400 text-xs">Browse all your profile sections</p>
+              </div>
+
+              <nav className="space-y-2">
+                {/* Profile Settings */}
+                <button
+                  onClick={() => {
+                    setActiveTab('profile')
+                    setShowTabsSidebar(false)
+                  }}
+                  className={`w-full text-left px-4 py-3 rounded-lg font-medium text-sm transition-all ${
+                    activeTab === 'profile'
+                      ? 'bg-[#FF4D67]/10 text-[#FF4D67] border-l-4 border-[#FF4D67]'
+                      : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
+                  }`}
+                >
+                  Profile Settings
+                </button>
+
+                {/* Favorites */}
+                <Link 
+                  href="/favorites"
+                  onClick={() => setShowTabsSidebar(false)}
+                  className={`block px-4 py-3 rounded-lg font-medium text-sm transition-all ${
+                    activeTab === 'favorites'
+                      ? 'bg-[#FF4D67]/10 text-[#FF4D67] border-l-4 border-[#FF4D67]'
+                      : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
+                  }`}
+                >
+                  Favorites
+                </Link>
+
+                {/* Recently Played */}
+                <button
+                  onClick={() => {
+                    setActiveTab('recently-played')
+                    setShowTabsSidebar(false)
+                  }}
+                  className={`w-full text-left px-4 py-3 rounded-lg font-medium text-sm transition-all ${
+                    activeTab === 'recently-played'
+                      ? 'bg-[#FF4D67]/10 text-[#FF4D67] border-l-4 border-[#FF4D67]'
+                      : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
+                  }`}
+                >
+                  Recently Played
+                </button>
+
+                {/* Following */}
+                <button
+                  onClick={() => {
+                    setActiveTab('following')
+                    setShowTabsSidebar(false)
+                  }}
+                  className={`w-full text-left px-4 py-3 rounded-lg font-medium text-sm transition-all ${
+                    activeTab === 'following'
+                      ? 'bg-[#FF4D67]/10 text-[#FF4D67] border-l-4 border-[#FF4D67]'
+                      : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
+                  }`}
+                >
+                  Following
+                </button>
+
+                {/* Creator Only Tabs */}
+                {user?.role === 'creator' && (
+                  <div className="border-t border-gray-700 pt-4 mt-4">
+                    <div className="mb-3 px-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="h-px flex-1 bg-gradient-to-r from-[#FF4D67] to-transparent"></div>
+                      </div>
+                      <p className="text-xs text-[#FF4D67] font-bold tracking-wider flex items-center gap-2">
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-2.77 3.066 3.066 0 00-3.58 3.03A3.066 3.066 0 006.267 3.455zm9.8 5.348a3.066 3.066 0 01-3.054 3.093 3.066 3.066 0 013.666-3.093zM9 12.794a3.066 3.066 0 01-3.054-3.093 3.066 3.066 0 013.666 3.093zM7 8.3a1 1 0 100-2 1 1 0 000 2zm8 8a1 1 0 11-2 0 1 1 0 012 0z" clipRule="evenodd" />
+                        </svg>
+                        CREATOR TOOLS
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        setActiveTab('analytics')
+                        setShowTabsSidebar(false)
+                      }}
+                      className={`w-full text-left px-4 py-3 rounded-lg font-medium text-sm transition-all ${
+                        activeTab === 'analytics'
+                          ? 'bg-[#FF4D67]/10 text-[#FF4D67] border-l-4 border-[#FF4D67]'
+                          : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
+                      }`}
+                    >
+                      Analytics
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setActiveTab('tracks')
+                        setShowTabsSidebar(false)
+                      }}
+                      className={`w-full text-left px-4 py-3 rounded-lg font-medium text-sm transition-all ${
+                        activeTab === 'tracks'
+                          ? 'bg-[#FF4D67]/10 text-[#FF4D67] border-l-4 border-[#FF4D67]'
+                          : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
+                      }`}
+                    >
+                      My Tracks
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setActiveTab('albums')
+                        setShowTabsSidebar(false)
+                      }}
+                      className={`w-full text-left px-4 py-3 rounded-lg font-medium text-sm transition-all ${
+                        activeTab === 'albums'
+                          ? 'bg-[#FF4D67]/10 text-[#FF4D67] border-l-4 border-[#FF4D67]'
+                          : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
+                      }`}
+                    >
+                      My Albums
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setActiveTab('whatsapp')
+                        setShowTabsSidebar(false)
+                      }}
+                      className={`w-full text-left px-4 py-3 rounded-lg font-medium text-sm transition-all ${
+                        activeTab === 'whatsapp'
+                          ? 'bg-[#FF4D67]/10 text-[#FF4D67] border-l-4 border-[#FF4D67]'
+                          : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
+                      }`}
+                    >
+                      WhatsApp Contact
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setActiveTab('earnings')
+                        setShowTabsSidebar(false)
+                        if (!earnings) {
+                          fetchEarnings()
+                        }
+                      }}
+                      className={`w-full text-left px-4 py-3 rounded-lg font-medium text-sm transition-all ${
+                        activeTab === 'earnings'
+                          ? 'bg-[#FF4D67]/10 text-[#FF4D67] border-l-4 border-[#FF4D67]'
+                          : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
+                      }`}
+                    >
+                      Earnings
+                    </button>
+                  </div>
+                )}
+              </nav>
+            </div>
+
+            {/* Desktop Horizontal Tabs */}
+            <div className="hidden lg:flex overflow-x-auto border-b border-gray-800 flex-1 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+              <button
               className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors whitespace-nowrap ${
                 activeTab === 'profile'
                   ? 'text-[#FF4D67] border-b-2 border-[#FF4D67]'
@@ -745,8 +1003,24 @@ export default function Profile() {
                 >
                   WhatsApp Contact
                 </button>
+                <button
+                  className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors whitespace-nowrap ${
+                    activeTab === 'earnings'
+                      ? 'text-[#FF4D67] border-b-2 border-[#FF4D67]'
+                      : 'text-gray-500 hover:text-gray-300'
+                  }`}
+                  onClick={() => {
+                    setActiveTab('earnings');
+                    if (!earnings) {
+                      fetchEarnings();
+                    }
+                  }}
+                >
+                  Earnings
+                </button>
               </>
             )}
+            </div>
           </div>
 
           {/* Profile Settings Tab */}
@@ -1429,6 +1703,235 @@ export default function Profile() {
               </div>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* Earnings Tab */}
+      {activeTab === 'earnings' && user?.role === 'creator' && (
+        <div className="space-y-6">
+          {/* Earnings Summary Cards */}
+          {loadingEarnings ? (
+            <div className="flex justify-center items-center h-40">
+              <div className="text-white text-sm">Loading earnings...</div>
+            </div>
+          ) : earnings ? (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Total Earnings Card */}
+                <div className="card-bg rounded-2xl p-5 border border-gray-700/50">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-gray-400 text-sm font-medium">Total Earnings</p>
+                      <p className="text-2xl font-bold text-white mt-2">
+                        {earnings.earnings.totalEarnings.toLocaleString()} RWF
+                      </p>
+                    </div>
+                    <svg className="w-8 h-8 text-[#FF4D67]" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                      <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"></path>
+                    </svg>
+                  </div>
+                </div>
+
+                {/* Available Balance Card */}
+                <div className="card-bg rounded-2xl p-5 border border-gray-700/50">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-gray-400 text-sm font-medium">Available Balance</p>
+                      <p className="text-2xl font-bold text-green-500 mt-2">
+                        {earnings.earnings.availableBalance.toLocaleString()} RWF
+                      </p>
+                    </div>
+                    <svg className="w-8 h-8 text-green-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
+                    </svg>
+                  </div>
+                </div>
+
+                {/* Total Withdrawn Card */}
+                <div className="card-bg rounded-2xl p-5 border border-gray-700/50">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-gray-400 text-sm font-medium">Total Withdrawn</p>
+                      <p className="text-2xl font-bold text-white mt-2">
+                        {earnings.earnings.totalWithdrawn.toLocaleString()} RWF
+                      </p>
+                    </div>
+                    <svg className="w-8 h-8 text-amber-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                      <path fillRule="evenodd" d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" clipRule="evenodd"></path>
+                    </svg>
+                  </div>
+                </div>
+
+                {/* Completed Transactions Card */}
+                <div className="card-bg rounded-2xl p-5 border border-gray-700/50">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-gray-400 text-sm font-medium">Transactions</p>
+                      <p className="text-2xl font-bold text-white mt-2">
+                        {earnings.earnings.completedTransactions}
+                      </p>
+                    </div>
+                    <svg className="w-8 h-8 text-blue-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 6H6.28l-.31-1.243A1 1 0 005 4H3z"></path>
+                      <path d="M16 16a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                      <path d="M4 16a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              {/* Request Withdrawal Button */}
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setShowWithdrawalModal(true)}
+                  disabled={earnings.earnings.availableBalance <= 0}
+                  className="px-6 py-2.5 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Request Withdrawal
+                </button>
+              </div>
+
+              {/* Recent Transactions */}
+              <div className="card-bg rounded-2xl p-5 sm:p-6 border border-gray-700/50">
+                <h3 className="text-lg sm:text-xl font-bold text-white mb-5">Recent Transactions</h3>
+                
+                {earnings.recentTransactions && earnings.recentTransactions.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-gray-700">
+                          <th className="text-left py-3 px-4 font-medium text-gray-400">Track</th>
+                          <th className="text-left py-3 px-4 font-medium text-gray-400">Buyer</th>
+                          <th className="text-right py-3 px-4 font-medium text-gray-400">Amount</th>
+                          <th className="text-left py-3 px-4 font-medium text-gray-400">Date</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {earnings.recentTransactions.map((transaction) => (
+                          <tr key={transaction._id} className="border-b border-gray-700/50 hover:bg-gray-800/30">
+                            <td className="py-3 px-4">
+                              <div className="flex items-center gap-3">
+                                <img
+                                  src={transaction.trackId?.coverURL || '/placeholder.jpg'}
+                                  alt={transaction.trackId?.title}
+                                  className="w-8 h-8 rounded object-cover"
+                                />
+                                <span className="text-white truncate">{transaction.trackId?.title}</span>
+                              </div>
+                            </td>
+                            <td className="py-3 px-4 text-gray-300">{transaction.buyerId?.name}</td>
+                            <td className="py-3 px-4 text-right text-green-500 font-medium">{transaction.amount.toLocaleString()} RWF</td>
+                            <td className="py-3 px-4 text-gray-400 text-xs">
+                              {new Date(transaction.completedDate).toLocaleDateString()}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-gray-400">No completed transactions yet</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Withdrawal History */}
+              {earnings.withdrawalHistory && earnings.withdrawalHistory.length > 0 && (
+                <div className="card-bg rounded-2xl p-5 sm:p-6 border border-gray-700/50">
+                  <h3 className="text-lg sm:text-xl font-bold text-white mb-5">Withdrawal History</h3>
+                  
+                  <div className="space-y-3">
+                    {earnings.withdrawalHistory.map((withdrawal) => (
+                      <div key={withdrawal._id} className="flex items-center justify-between p-4 bg-gray-800/30 rounded-lg border border-gray-700/50">
+                        <div className="flex-1">
+                          <p className="text-white font-medium">{withdrawal.amount.toLocaleString()} RWF</p>
+                          <p className="text-gray-400 text-xs mt-1">
+                            {withdrawal.mobileNumber} • {new Date(withdrawal.requestDate).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          withdrawal.status === 'paid' ? 'bg-green-900/30 text-green-400' :
+                          withdrawal.status === 'approved' ? 'bg-blue-900/30 text-blue-400' :
+                          withdrawal.status === 'pending' ? 'bg-yellow-900/30 text-yellow-400' :
+                          'bg-red-900/30 text-red-400'
+                        }`}>
+                          {withdrawal.status}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Withdrawal Modal */}
+              {showWithdrawalModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                  <div className="card-bg rounded-2xl p-6 border border-gray-700/50 max-w-md w-full">
+                    <h3 className="text-xl font-bold text-white mb-4">Request Withdrawal</h3>
+                    
+                    <div className="mb-4 p-3 bg-blue-900/20 rounded-lg border border-blue-700/50">
+                      <p className="text-blue-300 text-sm">
+                        Available Balance: <span className="font-bold">{earnings.earnings.availableBalance.toLocaleString()} RWF</span>
+                      </p>
+                    </div>
+                    
+                    <form onSubmit={handleWithdrawalRequest} className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Amount (RWF)
+                        </label>
+                        <input
+                          type="number"
+                          value={withdrawalAmount}
+                          onChange={(e) => setWithdrawalAmount(e.target.value)}
+                          placeholder="0"
+                          min="1"
+                          max={earnings.earnings.availableBalance}
+                          className="w-full px-3 py-2.5 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Mobile Number
+                        </label>
+                        <input
+                          type="tel"
+                          value={withdrawalPhone}
+                          onChange={(e) => setWithdrawalPhone(e.target.value)}
+                          placeholder="+250..."
+                          className="w-full px-3 py-2.5 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent"
+                        />
+                        <p className="text-xs text-gray-400 mt-1">Money will be sent to this mobile number</p>
+                      </div>
+                      
+                      <div className="flex gap-3 pt-4">
+                        <button
+                          type="button"
+                          onClick={() => setShowWithdrawalModal(false)}
+                          className="flex-1 px-4 py-2 border border-gray-700 rounded-lg text-white font-medium hover:bg-gray-800/30 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={submittingWithdrawal}
+                          className="flex-1 px-4 py-2 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+                        >
+                          {submittingWithdrawal ? 'Submitting...' : 'Request'}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="card-bg rounded-2xl p-8 border border-gray-700/50 text-center">
+              <p className="text-gray-400">Failed to load earnings data</p>
+            </div>
+          )}
         </div>
       )}
 

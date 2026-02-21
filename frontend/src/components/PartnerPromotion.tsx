@@ -116,13 +116,13 @@ const PartnerPromotion: React.FC<PartnerPromotionProps> = ({
   // Don't render if dismissed permanently (except for testing)
   const neverShowAgain = typeof window !== 'undefined' && localStorage.getItem('muzikax_promo_never_show') === 'true';
   
-  // For testing with showAfterVisits=0, ignore dismissal
+  // Disabled by default to prevent intrusive behavior
+  // Only show for explicit testing purposes
   if (showAfterVisits === 0) {
     if (!isVisible) return null;
   } else {
-    if (!isVisible || neverShowAgain || isDismissed) {
-      return null;
-    }
+    // Disabled for regular users
+    return null;
   }
 
   if (variant === 'rewarded') {
