@@ -322,12 +322,14 @@ export default function Home() {
       if (isAuthenticated && popularCreators.length > 0) {
         const newFollowStatus: Record<string, boolean> = {};
         for (const creator of popularCreators) {
-          try {
-            const isFollowing = await checkFollowStatus(creator.id);
-            newFollowStatus[creator.id] = isFollowing;
-          } catch (error) {
-            console.error(`Error checking follow status for creator ${creator.id}:`, error);
-            newFollowStatus[creator.id] = false;
+          if (creator.id) {
+            try {
+              const isFollowing = await checkFollowStatus(creator.id);
+              newFollowStatus[creator.id] = isFollowing;
+            } catch (error) {
+              console.error(`Error checking follow status for creator ${creator.id}:`, error);
+              newFollowStatus[creator.id] = false;
+            }
           }
         }
         setFollowStatus(prev => ({ ...prev, ...newFollowStatus }));
