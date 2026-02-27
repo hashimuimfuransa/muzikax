@@ -128,17 +128,6 @@ export default function MobileNavbar() {
         </div>
       </div>
       
-      {/* Floating Player Button when no track is playing */}
-      {!currentTrack && (
-        <Link 
-          href="/player"
-          className="absolute -top-5 left-1/2 transform -translate-x-1/2 w-10 h-10 rounded-full bg-[#FF4D67] flex items-center justify-center shadow-xl active:scale-95 transition-transform duration-200 ring-2 ring-white/20"
-        >
-          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-          </svg>
-        </Link>
-      )}
     </div>
   );
 }
