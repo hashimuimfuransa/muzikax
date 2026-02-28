@@ -8,7 +8,7 @@ import { FileUploaderRegular } from "@uploadcare/react-uploader";
 import "@uploadcare/react-uploader/core.css";
 
 const CommunityPage = () => {
-  const { user } = useAuth();
+  const { user, fetchUserProfile } = useAuth();
   const [vibes, setVibes] = useState([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newVibe, setNewVibe] = useState('');
@@ -27,6 +27,9 @@ const CommunityPage = () => {
   const [artistFilter, setArtistFilter] = useState('all'); // Filter: all, following, notFollowing
 
   // Helper function to make API requests with automatic token refresh
+  // Use a module-level variable to track refresh attempts and avoid race conditions
+  let refreshPromise = null;
+
   const makeApiRequest = async (url, options = {}) => {
     let token = localStorage.getItem('accessToken');
     
@@ -47,41 +50,65 @@ const CommunityPage = () => {
     
     // If the response is 401 (Unauthorized), try to refresh the token
     if (response.status === 401) {
+      // If a refresh is already in progress, wait for it
+      if (refreshPromise) {
+        token = await refreshPromise;
+        if (token) {
+          requestConfig.headers['Authorization'] = `Bearer ${token}`;
+          return await fetch(url, requestConfig);
+        }
+      }
+
       const refreshToken = localStorage.getItem('refreshToken');
       if (refreshToken) {
-        // Attempt to refresh the token
-        const refreshResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh-token`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ refreshToken })
-        });
+        // Create a new refresh promise
+        refreshPromise = (async () => {
+          try {
+            const refreshResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh-token`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ refreshToken })
+            });
+            
+            if (refreshResponse.ok) {
+              const refreshData = await refreshResponse.json();
+              localStorage.setItem('accessToken', refreshData.accessToken);
+              localStorage.setItem('refreshToken', refreshData.refreshToken);
+              return refreshData.accessToken;
+            }
+            return null;
+          } catch (err) {
+            console.error('Token refresh error:', err);
+            return null;
+          } finally {
+            refreshPromise = null;
+          }
+        })();
+
+        token = await refreshPromise;
         
-        if (refreshResponse.ok) {
-          const refreshData = await refreshResponse.json();
-          // Update tokens in localStorage
-          localStorage.setItem('accessToken', refreshData.accessToken);
-          localStorage.setItem('refreshToken', refreshData.refreshToken);
-          
-          // Update the token variable and retry the original request
-          token = refreshData.accessToken;
+        if (token) {
+          // Retry the original request with the new token
           requestConfig.headers['Authorization'] = `Bearer ${token}`;
-          
-          // Reattempt the original request with the new token
-          response = await fetch(url, requestConfig);
+          return await fetch(url, requestConfig);
         } else {
           // If refresh failed, redirect to login
           localStorage.removeItem('accessToken');
           localStorage.removeItem('refreshToken');
           localStorage.removeItem('user');
-          window.location.href = '/login';
-          return response; // Return the original failed response
+          if (typeof window !== 'undefined') {
+            window.location.href = '/login';
+          }
+          return response;
         }
       } else {
         // No refresh token available, redirect to login
-        window.location.href = '/login';
-        return response; // Return the original failed response
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login';
+        }
+        return response;
       }
     }
     
@@ -114,74 +141,92 @@ const CommunityPage = () => {
   const fetchRecommendedArtists = async () => {
     try {
       setLoadingArtists(true);
-      const token = localStorage.getItem('accessToken') || localStorage.getItem('token');
       
-      // Fetch current user's profile to get their following list
-      let userFollowing = [];
-      try {
-        const userResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`,
-          {
-            headers: {
-              'Authorization': token ? `Bearer ${token}` : ''
+      // Use following list from the current user object if available, 
+      // otherwise fetch it only once
+      let followingIds = [];
+      
+      if (user && user.following) {
+        // We already have the user's following list from AuthContext
+        followingIds = user.following
+          .map(id => {
+            if (!id) return '';
+            // Handle populated user object or just ID string/ObjectId
+            if (typeof id === 'object' && id !== null) {
+              return (id._id || id.id || '').toString();
             }
+            return String(id);
+          })
+          .filter(id => id.length > 0);
+        console.log('Using following list from AuthContext:', followingIds.length);
+      } else {
+        // Fallback: Fetch current user's profile if not in AuthContext
+        try {
+          const userResponse = await makeApiRequest(
+            `${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`
+          );
+          if (userResponse.ok) {
+            const userData = await userResponse.json();
+            const userFollowing = userData.following || [];
+            followingIds = userFollowing
+              .map(id => {
+                if (!id) return '';
+                if (typeof id === 'object' && id !== null) {
+                  return (id._id || id.id || '').toString();
+                }
+                return String(id);
+              })
+              .filter(id => id.length > 0);
           }
-        );
-        if (userResponse.ok) {
-          const userData = await userResponse.json();
-          userFollowing = userData.following || [];
-          console.log('User following list:', userFollowing);
+        } catch (err) {
+          console.error('Failed to fetch user profile fallback:', err);
         }
-      } catch (err) {
-        console.error('Failed to fetch user profile:', err);
-        userFollowing = user?.following || [];
       }
       
-      const followingIds = userFollowing
-        .map(id => {
-          if (!id) return '';
-          if (typeof id === 'object' && id !== null) {
-            return (id._id || id.id || '').toString();
-          }
-          return String(id);
-        })
-        .filter(id => id.length > 0);
-      console.log('User following array:', userFollowing);
-      console.log('Following IDs for comparison:', followingIds);
+      console.log('Normalized Following IDs:', followingIds);
       
-      // Fetch all creators without limit
+      // Use the faster public creators endpoint with a smaller limit
+      // This endpoint is optimized for fetching artist/creator profiles
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/public/users-for-chat?limit=100`,
-        {
-          headers: {
-            'Authorization': token ? `Bearer ${token}` : ''
-          }
-        }
+        `${process.env.NEXT_PUBLIC_API_URL}/api/public/creators?limit=20`
       );
       
       if (response.ok) {
         const data = await response.json();
-        // Filter for creators only - get all
-        const artists = Array.isArray(data.users) 
-          ? data.users.filter(u => u.role === 'creator')
-          : [];
+        const artists = Array.isArray(data.users) ? data.users : [];
         setRecommendedArtists(artists);
         
         // Mark which artists the user is already following
         const followedMap = {};
         artists.forEach(artist => {
-          const artistId = artist._id || artist.id;
-          const artistIdStr = String(artistId);
-          const isFollowing = followingIds.includes(artistIdStr);
+          const artistId = (artist._id || artist.id || '').toString();
+          const isFollowing = followingIds.some(fid => fid === artistId);
           followedMap[artistId] = isFollowing;
-          console.log(`Artist ${artist.name} (${artistIdStr}): ${isFollowing ? 'FOLLOWING' : 'not following'}`);
         });
+        
         const followingCount = Object.values(followedMap).filter(Boolean).length;
-        console.log(`Total artists being followed: ${followingCount}/${artists.length}`);
+        console.log(`Updated artists follow map: ${followingCount}/${artists.length}`);
         setFollowedArtists(followedMap);
       } else {
         console.error('Failed to fetch artists:', response.status);
-        setRecommendedArtists([]);
+        // Fallback to the chat users endpoint if the creators one fails
+        const fallbackResponse = await makeApiRequest(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/public/users-for-chat?limit=20`
+        );
+        if (fallbackResponse.ok) {
+          const data = await fallbackResponse.json();
+          const artists = Array.isArray(data.users) 
+            ? data.users.filter(u => u.role === 'creator')
+            : [];
+          setRecommendedArtists(artists);
+          const followedMap = {};
+          artists.forEach(artist => {
+            const artistId = (artist._id || artist.id || '').toString();
+            const isFollowing = followingIds.some(fid => fid === artistId);
+            followedMap[artistId] = isFollowing;
+          });
+          setFollowedArtists(followedMap);
+        }
       }
     } catch (error) {
       console.error('Error fetching recommended artists:', error);
@@ -220,6 +265,11 @@ const CommunityPage = () => {
         }));
         console.log(`Successfully ${isFollowing ? 'unfollowed' : 'followed'} artist`);
         
+        // Update global user state in AuthContext to sync following list across app
+        if (fetchUserProfile) {
+          fetchUserProfile();
+        }
+        
         // Refetch the artists to update the following counts
         setTimeout(() => {
           fetchRecommendedArtists();
@@ -235,8 +285,10 @@ const CommunityPage = () => {
 
   // Fetch vibes and recommended artists when component mounts
   useEffect(() => {
-    fetchVibes();
-    fetchRecommendedArtists();
+    if (user) {
+      fetchVibes();
+      fetchRecommendedArtists();
+    }
   }, [user]); // Add user as dependency to refetch when user loads
 
   // Handle media upload success from Uploadcare
@@ -891,7 +943,7 @@ const CommunityPage = () => {
                               {artist.name}
                             </h3>
                             <p className="text-xs text-gray-400">
-                              {artist.followers || 0} followers
+                              {artist.followersCount || 0} followers
                             </p>
                           </div>
 
@@ -1158,7 +1210,7 @@ const CommunityPage = () => {
                         </h3>
                         
                         <p className="text-gray-400 text-xs text-center mb-3">
-                          {artist.followers || 0} followers
+                          {artist.followersCount || 0} followers
                         </p>
                         
                         <button

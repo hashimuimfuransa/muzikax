@@ -17,6 +17,7 @@ interface Album {
   releaseDate?: string
   tracks?: any[]
   plays: number
+  category?: string
 }
 
 interface Playlist {
@@ -90,7 +91,7 @@ function ExploreContent() {
         coverImage: track.coverURL || "",
         coverURL: track.coverURL,
         duration: "",
-        category: track.type,
+        category: track.genre,
         type: track.type as 'song' | 'beat' | 'mix',
         paymentType: track.paymentType,
         creatorId: typeof track.creatorId === "object" && track.creatorId !== null
@@ -178,7 +179,8 @@ function ExploreContent() {
             coverURL: album.coverURL || '',
             releaseDate: album.releaseDate,
             tracks: album.tracks || [],
-            plays: album.plays || 0
+            plays: album.plays || 0,
+            category: album.genre
           })));
         }
       } catch (error) {
@@ -441,6 +443,20 @@ function ExploreContent() {
     return categoryMatch && searchMatch;
   });
 
+  // Filter beats based on selected category and search term
+  const filteredBeats = beats.filter(beat => {
+    // Apply category filter if selected
+    const categoryMatch = selectedCategory ? beat.category === selectedCategory : true;
+    
+    // Apply search filter if search term exists
+    const searchMatch = searchTerm 
+      ? beat.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        beat.artist.toLowerCase().includes(searchTerm.toLowerCase())
+      : true;
+    
+    return categoryMatch && searchMatch;
+  });
+
   // Filter creators based on search term
   const filteredCreators = allCreators.filter(creator => {
     return searchTerm 
@@ -653,7 +669,8 @@ function ExploreContent() {
               </div>
             ) : (
               <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 xs:gap-4 sm:gap-5 md:gap-6 lg:gap-8">
-                {beats.map((beat) => (
+                {filteredBeats.length > 0 ? (
+                  filteredBeats.map((beat) => (
                   <div key={`beat-${beat.id}`} className="group card-bg rounded-lg xs:rounded-xl sm:rounded-2xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10">
                     <div className="relative">
                       <img 
@@ -704,8 +721,8 @@ function ExploreContent() {
                                 creatorWhatsapp: beat.creatorWhatsapp
                               });
                               
-                              // Set playlist to all beats
-                              const beatTracks = beats
+                              // Set playlist to all filtered beats
+                              const beatTracks = filteredBeats
                                 .filter(b => b.audioURL)
                                 .map(b => ({
                                   id: b.id,
@@ -723,7 +740,7 @@ function ExploreContent() {
                                 }));
                               setCurrentPlaylist(beatTracks);
                               
-                              // Add all beats to queue
+                              // Add all filtered beats to queue
                               beatTracks.forEach((track: any) => {
                                 try {
                                   addToQueue({
@@ -846,8 +863,13 @@ function ExploreContent() {
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
+                ))
+              ) : (
+                <div className="col-span-full py-20 text-center text-gray-400">
+                  No beats found in this category
+                </div>
+              )}
+            </div>
             )}
           </>
         )}

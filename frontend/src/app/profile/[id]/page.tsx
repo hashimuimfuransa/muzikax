@@ -14,7 +14,9 @@ interface UserProfile {
   avatar?: string
   bio?: string
   followers?: number
+  followersCount?: number
   following?: number
+  followingCount?: number
   creatorType?: string
   role?: string
   genres?: string[]
@@ -120,7 +122,8 @@ export default function UserProfile() {
     )
   }
 
-  const followerCount = profile.followers || 0
+  const followerCount = profile.followersCount || profile.followers || 0
+  const followingCount = profile.followingCount || profile.following || 0
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black">
@@ -180,7 +183,7 @@ export default function UserProfile() {
                     <p className="text-xs text-gray-400 mt-1">Followers</p>
                   </div>
                   <div className="bg-gray-900/50 rounded-lg p-3 text-center">
-                    <p className="text-2xl font-bold text-[#FF4D67]">{profile.following || 0}</p>
+                    <p className="text-2xl font-bold text-[#FF4D67]">{followingCount}</p>
                     <p className="text-xs text-gray-400 mt-1">Following</p>
                   </div>
                 </div>

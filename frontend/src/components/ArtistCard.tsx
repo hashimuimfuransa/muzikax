@@ -113,7 +113,7 @@ export default function ArtistCard({ creator, followStatus, setFollowStatus }: A
           {creator.type}
         </p>
         <p className="text-gray-500 text-xs mb-2">
-          {(creator.followers || creator.followersCount || 0).toLocaleString()} followers
+          {(creator.followersCount || creator.followers || 0).toLocaleString()} followers
         </p>
         <button 
           className={`w-full px-3 py-1.5 ${followStatus[creator._id || creator.id || ''] ? 'bg-gray-600 hover:bg-gray-700 border-gray-600' : 'bg-transparent border border-[#FFCB2B] text-[#FFCB2B] hover:bg-[#FFCB2B]/10'} rounded-full text-xs font-medium transition-colors`}

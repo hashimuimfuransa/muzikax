@@ -1,41 +1,58 @@
 // Helper function to refresh token
+// Use a module-level variable to track refresh attempts and avoid race conditions
+let refreshPromise = null;
+
 const refreshToken = async () => {
-    try {
-        const refreshToken = localStorage.getItem('refreshToken');
-        if (!refreshToken) {
-            // Clear user data if no refresh token is available
-            localStorage.removeItem('user');
-            localStorage.removeItem('accessToken');
-            return null;
+    // If a refresh is already in progress, wait for it
+    if (refreshPromise) {
+        return await refreshPromise;
+    }
+
+    const currentRefreshToken = localStorage.getItem('refreshToken');
+    if (!currentRefreshToken) {
+        // Clear user data if no refresh token is available
+        localStorage.removeItem('user');
+        localStorage.removeItem('accessToken');
+        return null;
+    }
+
+    // Create a new refresh promise
+    refreshPromise = (async () => {
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh-token`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ refreshToken: currentRefreshToken })
+            });
+            if (response.ok) {
+                const data = await response.json();
+                localStorage.setItem('accessToken', data.accessToken);
+                localStorage.setItem('refreshToken', data.refreshToken);
+                return data.accessToken;
+            }
+            else {
+                // If refresh token is invalid, clear user data
+                localStorage.removeItem('user');
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('refreshToken');
+                return null;
+            }
         }
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh-token`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ refreshToken })
-        });
-        if (response.ok) {
-            const data = await response.json();
-            localStorage.setItem('accessToken', data.accessToken);
-            localStorage.setItem('refreshToken', data.refreshToken);
-            return data.accessToken;
-        }
-        else {
-            // If refresh token is invalid, clear user data and redirect to login
+        catch (error) {
+            console.error('Error refreshing token:', error);
+            // Clear user data on refresh error
             localStorage.removeItem('user');
             localStorage.removeItem('accessToken');
             localStorage.removeItem('refreshToken');
+            return null;
+        } finally {
+            refreshPromise = null;
         }
-    }
-    catch (error) {
-        console.error('Error refreshing token:', error);
-        // Clear user data on refresh error
-        localStorage.removeItem('user');
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-    }
-    return null;
+    })();
+
+    return await refreshPromise;
 };
 // Helper function to make authenticated request with token refresh
 const makeAuthenticatedRequest = async (url, options = {}) => {

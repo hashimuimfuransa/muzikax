@@ -137,6 +137,9 @@ export const getUserProfile = async (req: Request, res: Response): Promise<void>
       return;
     }
 
+    // Calculate following count from the following array
+    const followingCount = user.following ? user.following.length : 0;
+
     res.json({
       _id: user._id,
       name: user.name,
@@ -145,8 +148,12 @@ export const getUserProfile = async (req: Request, res: Response): Promise<void>
       creatorType: user.creatorType,
       avatar: user.avatar,
       bio: user.bio,
+      genres: user.genres,
+      following: user.following || [], // Add following array
       followersCount: user.followersCount,
+      followingCount: followingCount, // Add following count
       socials: user.socials,
+      whatsappContact: user.whatsappContact,
       createdAt: user.createdAt
     });
   } catch (error: any) {

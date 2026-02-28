@@ -290,7 +290,10 @@ const followCreator = async (req, res) => {
         // Check if user is already following this creator
         const isAlreadyFollowing = user.following.includes(creatorId);
         if (isAlreadyFollowing) {
-            res.status(400).json({ message: 'You are already following this creator' });
+            res.status(200).json({ 
+                message: 'Already following this creator',
+                followersCount: creator.followersCount
+            });
             return;
         }
         

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import Head from 'next/head';
+import Script from 'next/script';
 import "./globals.css";
 import { AuthProvider } from "../contexts/AuthContext";
 import { AudioPlayerProvider } from "../contexts/AudioPlayerContext";
@@ -108,8 +108,11 @@ export default function RootLayout({
         <meta name="pushsdk" content="dd3dba6d9211c567d19da6eb4f51db7e" />
         <meta name="google-adsense-account" content="ca-pub-5073101063025875" />
         <link rel="manifest" href="/manifest.json" />
+      </head>
+      <body className="pb-20 md:pb-0">
         {/* Structured Data for Rich Snippets */}
-        <script
+        <Script
+          id="root-structured-data"
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
@@ -141,11 +144,14 @@ export default function RootLayout({
             })
           }}
         />
-        {/* Removed ad scripts to prevent unwanted redirects */}
-        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5073101063025875"
-          crossOrigin="anonymous"></script>
-      </head>
-      <body className="pb-20 md:pb-0">
+        {/* Google AdSense Script */}
+        <Script
+          id="adsense-init"
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5073101063025875"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
         <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"}>
           <AuthProvider>
             <AudioPlayerProvider>

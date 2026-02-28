@@ -139,6 +139,7 @@ const getUserProfile = async (req, res) => {
             avatar: user.avatar,
             bio: user.bio,
             genres: user.genres,
+            following: user.following || [], // Add following array
             followersCount: user.followersCount,
             followingCount: followingCount, // Add following count
             socials: user.socials,

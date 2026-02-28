@@ -317,7 +317,7 @@ export const followCreator = async (req: Request, res: Response): Promise<void> 
     // Check if user is already following this creator
     const isAlreadyFollowing = user.following.some(id => id.toString() === creatorId);
     if (isAlreadyFollowing) {
-      res.json({ 
+      res.status(200).json({ 
         message: 'Already following this creator',
         followersCount: creator.followersCount
       });

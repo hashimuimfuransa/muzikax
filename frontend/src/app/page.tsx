@@ -156,6 +156,14 @@ export default function Home() {
       image:
         "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
       cta: "Upload Track",
+    },
+    {
+      id: 3,
+      title: "Connect with the Community",
+      subtitle: "Share your thoughts and see what's trending",
+      image:
+        "https://images.unsplash.com/photo-1524368535928-5b5e00ddc76b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+      cta: "View Vibes",
     }
   ];
 
@@ -867,6 +875,8 @@ export default function Home() {
                         // Fans can upgrade to creator, redirect to upload page
                         router.push("/upload");
                       }
+                    } else if (heroSlides[currentSlide].cta === "View Vibes") {
+                      router.push("/community");
                     } else {
                       router.push("/");
                     }
@@ -875,6 +885,14 @@ export default function Home() {
                   {heroSlides[currentSlide].cta}
                 </button>
 
+                {heroSlides[currentSlide].id !== 3 && (
+                  <button
+                    className="px-5 py-2.5 sm:px-6 sm:py-3 bg-white/10 backdrop-blur-md text-white border border-white/20 font-medium rounded-lg transition-all hover:bg-white/20 hover:scale-105 text-sm sm:text-base"
+                    onClick={() => router.push("/community")}
+                  >
+                    View Vibes
+                  </button>
+                )}
               </div>
             </div>
           </div>

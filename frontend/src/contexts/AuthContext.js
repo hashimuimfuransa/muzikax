@@ -47,6 +47,10 @@ export function AuthProvider({ children }) {
             localStorage.setItem('user', JSON.stringify(userData));
         }
     };
+    
+    // Module-level variable to track profile fetch attempts and avoid race conditions
+    let userProfileRefreshPromise = null;
+
     // Function to fetch and update the complete user profile
     const fetchUserProfile = async () => {
         // Check if we're in the browser before accessing localStorage
@@ -54,85 +58,97 @@ export function AuthProvider({ children }) {
             console.log('Not running in browser, skipping fetchUserProfile');
             return false;
         }
-        try {
-            const accessToken = localStorage.getItem('accessToken');
-            if (!accessToken) {
-                console.error('No access token found');
-                return false;
-            }
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${accessToken}`
+
+        // If a fetch is already in progress, return its result
+        if (userProfileRefreshPromise) {
+            return await userProfileRefreshPromise;
+        }
+
+        userProfileRefreshPromise = (async () => {
+            try {
+                const accessToken = localStorage.getItem('accessToken');
+                if (!accessToken) {
+                    console.error('No access token found');
+                    return false;
                 }
-            });
-            if (!response.ok) {
-                if (response.status === 401) {
-                    // Token might be expired, attempt refresh
-                    const refreshToken = localStorage.getItem('refreshToken');
-                    if (refreshToken) {
-                        const refreshResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh-token`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({ refreshToken })
-                        });
-                        if (refreshResponse.ok) {
-                            const refreshData = await refreshResponse.json();
-                            localStorage.setItem('accessToken', refreshData.accessToken);
-                            localStorage.setItem('refreshToken', refreshData.refreshToken);
-                            // Retry the profile request with new token
-                            const retryResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
-                                method: 'GET',
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                });
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        // Token might be expired, attempt refresh
+                        const refreshToken = localStorage.getItem('refreshToken');
+                        if (refreshToken) {
+                            const refreshResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh-token`, {
+                                method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
-                                    'Authorization': `Bearer ${refreshData.accessToken}`
-                                }
+                                },
+                                body: JSON.stringify({ refreshToken })
                             });
-                            if (!retryResponse.ok) {
-                                console.error('Failed to fetch user profile after token refresh');
+                            if (refreshResponse.ok) {
+                                const refreshData = await refreshResponse.json();
+                                localStorage.setItem('accessToken', refreshData.accessToken);
+                                localStorage.setItem('refreshToken', refreshData.refreshToken);
+                                // Retry the profile request with new token
+                                const retryResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
+                                    method: 'GET',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Authorization': `Bearer ${refreshData.accessToken}`
+                                    }
+                                });
+                                if (!retryResponse.ok) {
+                                    console.error('Failed to fetch user profile after token refresh');
+                                    setIsLoading(false);
+                                    return false;
+                                }
+                                const updatedUserData = await retryResponse.json();
+                                // Ensure whatsappContact is a string, not an object
+                                let whatsappContactValue = updatedUserData.whatsappContact || '';
+                                if (typeof whatsappContactValue === 'object' && whatsappContactValue !== null) {
+                                    // If it's an object, extract the actual WhatsApp number
+                                    whatsappContactValue = whatsappContactValue.whatsappContact || '';
+                                }
+                                const completeUser = Object.assign(Object.assign({}, updatedUserData), { id: updatedUserData._id, whatsappContact: whatsappContactValue });
+                                setUser(completeUser);
+                                localStorage.setItem('user', JSON.stringify(completeUser));
                                 setIsLoading(false);
-                                return false;
+                                return true;
                             }
-                            const updatedUserData = await retryResponse.json();
-                            // Ensure whatsappContact is a string, not an object
-                            let whatsappContactValue = updatedUserData.whatsappContact || '';
-                            if (typeof whatsappContactValue === 'object' && whatsappContactValue !== null) {
-                                // If it's an object, extract the actual WhatsApp number
-                                whatsappContactValue = whatsappContactValue.whatsappContact || '';
-                            }
-                            const completeUser = Object.assign(Object.assign({}, updatedUserData), { id: updatedUserData._id, whatsappContact: whatsappContactValue });
-                            setUser(completeUser);
-                            localStorage.setItem('user', JSON.stringify(completeUser));
-                            setIsLoading(false);
-                            return true;
                         }
                     }
+                    console.error('Failed to fetch user profile:', response.status);
+                    setIsLoading(false);
+                    return false;
                 }
-                console.error('Failed to fetch user profile:', response.status);
+                const updatedUserData = await response.json();
+                // Ensure whatsappContact is a string, not an object
+                let whatsappContactValue = updatedUserData.whatsappContact || '';
+                if (typeof whatsappContactValue === 'object' && whatsappContactValue !== null) {
+                    // If it's an object, extract the actual WhatsApp number
+                    whatsappContactValue = whatsappContactValue.whatsappContact || '';
+                }
+                const completeUser = Object.assign(Object.assign({}, updatedUserData), { id: updatedUserData._id, whatsappContact: whatsappContactValue });
+                setUser(completeUser);
+                localStorage.setItem('user', JSON.stringify(completeUser));
+                setIsLoading(false);
+                return true;
+            }
+            catch (error) {
+                console.error('Error fetching user profile:', error);
                 setIsLoading(false);
                 return false;
+            } finally {
+                userProfileRefreshPromise = null;
             }
-            const updatedUserData = await response.json();
-            // Ensure whatsappContact is a string, not an object
-            let whatsappContactValue = updatedUserData.whatsappContact || '';
-            if (typeof whatsappContactValue === 'object' && whatsappContactValue !== null) {
-                // If it's an object, extract the actual WhatsApp number
-                whatsappContactValue = whatsappContactValue.whatsappContact || '';
-            }
-            const completeUser = Object.assign(Object.assign({}, updatedUserData), { id: updatedUserData._id, whatsappContact: whatsappContactValue });
-            setUser(completeUser);
-            localStorage.setItem('user', JSON.stringify(completeUser));
-            setIsLoading(false);
-            return true;
-        }
-        catch (error) {
-            console.error('Error fetching user profile:', error);
-            setIsLoading(false);
-            return false;
-        }
+        })();
+
+        return await userProfileRefreshPromise;
     };
     const logout = () => {
         console.log('AuthProvider - logout called');

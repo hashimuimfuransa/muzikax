@@ -29,26 +29,43 @@ export default function ArtistsPage() {
   const [creators, setCreators] = useState<Creator[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [followedArtists, setFollowedArtists] = useState<Record<string, boolean>>({})
   const router = useRouter()
-  const { isAuthenticated } = useAuth()
+  const { user, isAuthenticated } = useAuth()
   
+  // Fetch artists on component mount
   useEffect(() => {
-    const loadCreators = async () => {
+    const getArtists = async () => {
       try {
         setLoading(true)
-        const fetchedCreators = await fetchPopularCreators(100) // Fetch more creators
-        setCreators(fetchedCreators)
+        const data = await fetchPopularCreators(50) // Fetch up to 50 creators
+        setCreators(data || [])
         setError(null)
       } catch (err) {
-        console.error('Failed to fetch creators:', err)
+        console.error('Error fetching artists:', err)
         setError('Failed to load artists. Please try again later.')
       } finally {
         setLoading(false)
       }
     }
     
-    loadCreators()
+    getArtists()
   }, [])
+  
+  // Update followedArtists when user or creators change
+  useEffect(() => {
+    if (user && user.following && creators.length > 0) {
+      const followedMap: Record<string, boolean> = {}
+      const followingIds = user.following.map((id: any) => 
+        (typeof id === 'object' && id !== null ? (id._id || id.id) : id).toString()
+      )
+      
+      creators.forEach(creator => {
+        followedMap[creator._id] = followingIds.includes(creator._id.toString())
+      })
+      setFollowedArtists(followedMap)
+    }
+  }, [user, creators])
   
   // Filter and sort creators
   const filteredAndSortedCreators = useMemo(() => {
@@ -82,25 +99,42 @@ export default function ArtistsPage() {
       return
     }
     
+    const isFollowing = followedArtists[creatorId]
+    
     try {
-      // Call the follow creator service
-      await followCreator(creatorId)
-      
-      // Update the followers count in the UI
-      setCreators(prevCreators => 
-        prevCreators.map(creator => 
-          creator._id === creatorId 
-            ? { ...creator, followersCount: creator.followersCount + 1 } 
-            : creator
+      if (isFollowing) {
+        // Call unfollow creator service
+        const { unfollowCreator } = await import('@/services/trackService')
+        await unfollowCreator(creatorId)
+        
+        // Update the followers count and following state in the UI
+        setCreators(prevCreators => 
+          prevCreators.map(creator => 
+            creator._id === creatorId 
+              ? { ...creator, followersCount: Math.max(0, creator.followersCount - 1) } 
+              : creator
+          )
         )
-      )
-      
-      // Show success feedback (you might want to add a toast notification here)
-      console.log('Successfully followed creator')
+        setFollowedArtists(prev => ({ ...prev, [creatorId]: false }))
+        console.log('Successfully unfollowed creator')
+      } else {
+        // Call the follow creator service
+        await followCreator(creatorId)
+        
+        // Update the followers count and following state in the UI
+        setCreators(prevCreators => 
+          prevCreators.map(creator => 
+            creator._id === creatorId 
+              ? { ...creator, followersCount: creator.followersCount + 1 } 
+              : creator
+          )
+        )
+        setFollowedArtists(prev => ({ ...prev, [creatorId]: true }))
+        console.log('Successfully followed creator')
+      }
     } catch (error) {
-      console.error('Failed to follow creator:', error)
-      // Show error feedback (you might want to add a toast notification here)
-      alert('Failed to follow creator. Please try again.')
+      console.error(`Failed to ${isFollowing ? 'unfollow' : 'follow'} creator:`, error)
+      alert(`Failed to ${isFollowing ? 'unfollow' : 'follow'} creator. Please try again.`)
     }
   }
   
@@ -189,10 +223,14 @@ export default function ArtistsPage() {
                     {creator.followersCount?.toLocaleString() || 0} followers
                   </p>
                   <button 
-                    className="w-full px-4 py-2 bg-transparent border border-[#FFCB2B] text-[#FFCB2B] hover:bg-[#FFCB2B]/10 rounded-full text-sm font-medium transition-colors"
+                    className={`w-full px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                      followedArtists[creator._id]
+                        ? 'bg-gray-700 text-white hover:bg-gray-600'
+                        : 'bg-transparent border border-[#FFCB2B] text-[#FFCB2B] hover:bg-[#FFCB2B]/10'
+                    }`}
                     onClick={(e) => handleFollowClick(creator._id, e)}
                   >
-                    Follow
+                    {followedArtists[creator._id] ? 'Following' : 'Follow'}
                   </button>
                 </div>
               </div>
