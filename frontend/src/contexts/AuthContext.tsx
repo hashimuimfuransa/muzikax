@@ -14,6 +14,7 @@ interface User {
   genres?: string[]
   followersCount?: number
   followingCount?: number
+  following?: any[]
   whatsappContact?: string // Add WhatsApp contact field
 }
 
