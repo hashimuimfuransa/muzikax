@@ -106,6 +106,7 @@ export default function RootLayout({
         <meta name="description" content="MuzikaX is Rwanda's premier digital music platform connecting African artists with global audiences. Discover unique African music, access artist resources, read industry news, and explore educational content." />
         <meta name="keywords" content="Rwandan music, African music, Afrobeats, Music streaming, Rwandan artists, Music platform, Digital music, Free music, Online radio, Music discovery, Artist resources, Music education, African culture, Music industry news" />
         <meta name="pushsdk" content="dd3dba6d9211c567d19da6eb4f51db7e" />
+        <meta name="google-adsense-account" content="ca-pub-5073101063025875" />
         <link rel="manifest" href="/manifest.json" />
         {/* Structured Data for Rich Snippets */}
         <script
