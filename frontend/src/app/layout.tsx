@@ -141,6 +141,8 @@ export default function RootLayout({
           }}
         />
         {/* Removed ad scripts to prevent unwanted redirects */}
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5073101063025875"
+          crossOrigin="anonymous"></script>
       </head>
       <body className="pb-20 md:pb-0">
         <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"}>
