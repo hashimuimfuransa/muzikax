@@ -1,6 +1,6 @@
 # Ads.txt file for muzikax.com
-# Generated for Ezoic integration
-# Last updated: 2026-01-29
+# Generated for AdSense and Ezoic integration
+# Last updated: 2026-02-28
 
 # Google AdSense
 google.com, pub-5073101063025875, DIRECT, f08c47fec0942fa0
