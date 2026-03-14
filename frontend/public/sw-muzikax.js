@@ -36,6 +36,15 @@ self.addEventListener('activate', event => {
 
 // Fetch event - serve from cache or network
 self.addEventListener('fetch', event => {
+  // Skip intercepting API calls, S3 uploads, and Chrome extensions
+  if (
+    event.request.url.includes('/api/') || 
+    event.request.url.includes('amazonaws.com') ||
+    event.request.url.startsWith('chrome-extension://')
+  ) {
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request)
       .then(response => {

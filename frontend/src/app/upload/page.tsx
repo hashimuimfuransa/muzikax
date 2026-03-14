@@ -3,12 +3,13 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../contexts/AuthContext'
-// Import UploadCare components
-import { FileUploaderRegular } from "@uploadcare/react-uploader";
-import "@uploadcare/react-uploader/core.css";
+import { getSignedUrl, uploadToS3, proxyUpload, uploadToCloudFront } from '../../services/s3Service'
 
 export default function Upload() {
   const [dragActive, setDragActive] = useState(false)
+  const [audioFile, setAudioFile] = useState<File | null>(null)
+  const [coverFile, setCoverFile] = useState<File | null>(null)
+  const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({})
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [genre, setGenre] = useState('afrobeat')
@@ -124,6 +125,59 @@ export default function Upload() {
     }
   }
 
+  // Handle S3 Upload
+  const handleS3Upload = async (file: File, type: 'audio' | 'cover' | 'album-cover' | string) => {
+    try {
+      // Use the new CloudFront upload method (Backend API)
+      const result: any = await uploadToCloudFront(file, (progress) => {
+        setUploadProgress(prev => ({ ...prev, [type]: progress }));
+      });
+      
+      return result.url;
+    } catch (error) {
+      console.error(`Error uploading ${type} to CloudFront:`, error);
+      
+      // Fallback to legacy methods if CloudFront fails
+      try {
+        let accessToken = localStorage.getItem('accessToken');
+        if (!accessToken) {
+          accessToken = await refreshToken();
+        }
+        
+        if (!accessToken) {
+          alert('Authentication error. Please log in again.');
+          return null;
+        }
+
+        // Try direct upload first
+        try {
+          // 1. Get signed URL
+          const { uploadUrl, fileUrl, key } = await getSignedUrl(file.name, file.type, accessToken);
+
+          // 2. Upload to S3
+          await uploadToS3(file, uploadUrl, (progress) => {
+            setUploadProgress(prev => ({ ...prev, [type]: progress }));
+          });
+
+          return fileUrl;
+        } catch (directError: any) {
+          console.warn('Direct S3 upload failed (possibly CORS), trying proxy upload...', directError);
+          
+          // Fallback to proxy upload
+          const result: any = await proxyUpload(file, accessToken, (progress) => {
+            setUploadProgress(prev => ({ ...prev, [type]: progress }));
+          });
+          
+          return result.fileUrl;
+        }
+      } catch (fallbackError) {
+        console.error(`Fallback error uploading ${type}:`, fallbackError);
+        alert(`Failed to upload ${type}. Please try again.`);
+        return null;
+      }
+    }
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0])
@@ -131,26 +185,43 @@ export default function Upload() {
   }
 
   // Handle successful audio upload
-  const handleAudioUploadSuccess = (info: any) => {
-    console.log('Audio uploaded successfully:', info);
-    if (info.cdnUrl) {
-      setAudioUrl(info.cdnUrl);
+  const handleAudioFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setAudioFile(file);
+      setIsUploading(true);
+      const url = await handleS3Upload(file, 'audio');
+      if (url) {
+        setAudioUrl(url);
+      }
+      setIsUploading(false);
     }
   };
 
   // Handle successful cover image upload
-  const handleCoverUploadSuccess = (info: any) => {
-    console.log('Cover image uploaded successfully:', info);
-    if (info.cdnUrl) {
-      setCoverUrl(info.cdnUrl);
+  const handleCoverFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setCoverFile(file);
+      setIsUploading(true);
+      const url = await handleS3Upload(file, 'cover');
+      if (url) {
+        setCoverUrl(url);
+      }
+      setIsUploading(false);
     }
   };
 
   // Handle successful album cover image upload
-  const handleAlbumCoverUploadSuccess = (info: any) => {
-    console.log('Album cover image uploaded successfully:', info);
-    if (info.cdnUrl) {
-      setAlbumCoverUrl(info.cdnUrl);
+  const handleAlbumCoverFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setIsUploading(true);
+      const url = await handleS3Upload(file, 'album-cover');
+      if (url) {
+        setAlbumCoverUrl(url);
+      }
+      setIsUploading(false);
     }
   };
 
@@ -219,17 +290,27 @@ export default function Upload() {
     )
   }
 
-  const handleAlbumAudioUploadSuccess = (info: any, trackId: string) => {
-    console.log('Album audio uploaded successfully:', info);
-    if (info.cdnUrl) {
-      updateAlbumTrack(trackId, 'audioUrl', info.cdnUrl);
+  const handleAlbumAudioFileChange = async (e: React.ChangeEvent<HTMLInputElement>, trackId: string) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setIsUploading(true);
+      const url = await handleS3Upload(file, `album-audio-${trackId}`);
+      if (url) {
+        updateAlbumTrack(trackId, 'audioUrl', url);
+      }
+      setIsUploading(false);
     }
   };
 
-  const handleAlbumTrackCoverUploadSuccess = (info: any, trackId: string) => {
-    console.log('Album track cover uploaded successfully:', info);
-    if (info.cdnUrl) {
-      updateAlbumTrack(trackId, 'coverUrl', info.cdnUrl);
+  const handleAlbumTrackCoverFileChange = async (e: React.ChangeEvent<HTMLInputElement>, trackId: string) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setIsUploading(true);
+      const url = await handleS3Upload(file, `album-cover-${trackId}`);
+      if (url) {
+        updateAlbumTrack(trackId, 'coverUrl', url);
+      }
+      setIsUploading(false);
     }
   };
 
@@ -648,12 +729,28 @@ export default function Upload() {
                     <h2 className="text-lg sm:text-xl font-medium text-white mb-4">Audio File</h2>
                     
                     {!audioUrl ? (
-                      <FileUploaderRegular
-                        pubkey={process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY || "YOUR_PUBLIC_KEY_HERE"}
-                        onFileUploadSuccess={handleAudioUploadSuccess}
-                        multiple={false}
-                        className="my-config"
-                      />
+                      <div className="flex flex-col space-y-2">
+                        <input
+                          type="file"
+                          accept="audio/*"
+                          onChange={handleAudioFileChange}
+                          className="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#FF4D67] file:text-white hover:file:bg-[#FF4D67]/80"
+                        />
+                        {uploadProgress['audio'] > 0 && uploadProgress['audio'] <= 100 && (
+                          <div className="space-y-1 mt-2">
+                            <div className="flex justify-between text-xs text-gray-400">
+                              <span>{uploadProgress['audio'] === 100 ? 'Processing...' : 'Uploading audio...'}</span>
+                              <span>{Math.round(uploadProgress['audio'])}%</span>
+                            </div>
+                            <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
+                              <div 
+                                className={`h-2 rounded-full transition-all duration-300 ${uploadProgress['audio'] === 100 ? 'bg-yellow-500 animate-pulse' : 'bg-[#FF4D67]'}`} 
+                                style={{ width: `${uploadProgress['audio']}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     ) : (
                       <div className="p-4 bg-green-900/30 border border-green-700 rounded-lg">
                         <p className="text-green-400">Audio uploaded successfully!</p>
@@ -667,12 +764,28 @@ export default function Upload() {
                     <h2 className="text-lg sm:text-xl font-medium text-white mb-4">Cover Image</h2>
                     
                     {!coverUrl ? (
-                      <FileUploaderRegular
-                        pubkey={process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY || "YOUR_PUBLIC_KEY_HERE"}
-                        onFileUploadSuccess={handleCoverUploadSuccess}
-                        multiple={false}
-                        className="my-config"
-                      />
+                      <div className="flex flex-col space-y-2">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleCoverFileChange}
+                          className="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#FF4D67] file:text-white hover:file:bg-[#FF4D67]/80"
+                        />
+                        {uploadProgress['cover'] > 0 && uploadProgress['cover'] <= 100 && (
+                          <div className="space-y-1 mt-2">
+                            <div className="flex justify-between text-xs text-gray-400">
+                              <span>{uploadProgress['cover'] === 100 ? 'Processing...' : 'Uploading cover...'}</span>
+                              <span>{Math.round(uploadProgress['cover'])}%</span>
+                            </div>
+                            <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
+                              <div 
+                                className={`h-2 rounded-full transition-all duration-300 ${uploadProgress['cover'] === 100 ? 'bg-yellow-500 animate-pulse' : 'bg-[#FF4D67]'}`} 
+                                style={{ width: `${uploadProgress['cover']}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     ) : (
                       <div className="p-4 bg-green-900/30 border border-green-700 rounded-lg">
                         <p className="text-green-400">Cover image uploaded successfully!</p>
@@ -912,12 +1025,28 @@ export default function Upload() {
                         Album Cover Image
                       </label>
                       {!albumCoverUrl ? (
-                        <FileUploaderRegular
-                          pubkey={process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY || "YOUR_PUBLIC_KEY_HERE"}
-                          onFileUploadSuccess={handleAlbumCoverUploadSuccess}
-                          multiple={false}
-                          className="my-config"
-                        />
+                        <div className="flex flex-col space-y-2">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleAlbumCoverFileChange}
+                            className="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#FF4D67] file:text-white hover:file:bg-[#FF4D67]/80"
+                          />
+                          {uploadProgress['album-cover'] > 0 && uploadProgress['album-cover'] <= 100 && (
+                            <div className="space-y-1 mt-2">
+                              <div className="flex justify-between text-xs text-gray-400">
+                                <span>{uploadProgress['album-cover'] === 100 ? 'Processing...' : 'Uploading album cover...'}</span>
+                                <span>{Math.round(uploadProgress['album-cover'])}%</span>
+                              </div>
+                              <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
+                                <div 
+                                  className={`h-2 rounded-full transition-all duration-300 ${uploadProgress['album-cover'] === 100 ? 'bg-yellow-500 animate-pulse' : 'bg-[#FF4D67]'}`} 
+                                  style={{ width: `${uploadProgress['album-cover']}%` }}
+                                ></div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       ) : (
                         <div className="p-4 bg-green-900/30 border border-green-700 rounded-lg">
                           <p className="text-green-400">Album cover uploaded successfully!</p>
@@ -970,16 +1099,31 @@ export default function Upload() {
                               </button>
                             </div>
 
-                            {/* Track Audio Upload */}
                             <div className="mb-4">
                               <h4 className="text-gray-300 text-sm mb-2">Audio File</h4>
                               {!track.audioUrl ? (
-                                <FileUploaderRegular
-                                  pubkey={process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY || "YOUR_PUBLIC_KEY_HERE"}
-                                  onFileUploadSuccess={(info) => handleAlbumAudioUploadSuccess(info, track.id)}
-                                  multiple={false}
-                                  className="my-config"
-                                />
+                                <div className="flex flex-col space-y-2">
+                                  <input
+                                    type="file"
+                                    accept="audio/*"
+                                    onChange={(e) => handleAlbumAudioFileChange(e, track.id)}
+                                    className="w-full text-sm text-gray-400 file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[#FF4D67] file:text-white hover:file:bg-[#FF4D67]/80"
+                                  />
+                                  {uploadProgress[`album-audio-${track.id}`] > 0 && uploadProgress[`album-audio-${track.id}`] <= 100 && (
+                                    <div className="w-full mt-2">
+                                      <div className="flex justify-between text-[10px] text-gray-400 mb-1">
+                                        <span>{uploadProgress[`album-audio-${track.id}`] === 100 ? 'Processing...' : 'Uploading...'}</span>
+                                        <span>{Math.round(uploadProgress[`album-audio-${track.id}`])}%</span>
+                                      </div>
+                                      <div className="w-full bg-gray-700 rounded-full h-1.5 overflow-hidden">
+                                        <div 
+                                          className={`h-1.5 rounded-full transition-all duration-300 ${uploadProgress[`album-audio-${track.id}`] === 100 ? 'bg-yellow-500 animate-pulse' : 'bg-[#FF4D67]'}`} 
+                                          style={{ width: `${uploadProgress[`album-audio-${track.id}`]}%` }}
+                                        ></div>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
                               ) : (
                                 <div className="p-2 bg-green-900/30 border border-green-700 rounded-lg">
                                   <p className="text-green-400 text-sm">Audio uploaded successfully!</p>
@@ -991,12 +1135,28 @@ export default function Upload() {
                             <div className="mb-4">
                               <h4 className="text-gray-300 text-sm mb-2">Track Cover Image (Optional)</h4>
                               {!track.coverUrl ? (
-                                <FileUploaderRegular
-                                  pubkey={process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY || "YOUR_PUBLIC_KEY_HERE"}
-                                  onFileUploadSuccess={(info) => handleAlbumTrackCoverUploadSuccess(info, track.id)}
-                                  multiple={false}
-                                  className="my-config"
-                                />
+                                <div className="flex flex-col space-y-2">
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => handleAlbumTrackCoverFileChange(e, track.id)}
+                                    className="w-full text-sm text-gray-400 file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[#FF4D67] file:text-white hover:file:bg-[#FF4D67]/80"
+                                  />
+                                  {uploadProgress[`album-cover-${track.id}`] > 0 && uploadProgress[`album-cover-${track.id}`] <= 100 && (
+                                    <div className="w-full mt-2">
+                                      <div className="flex justify-between text-[10px] text-gray-400 mb-1">
+                                        <span>{uploadProgress[`album-cover-${track.id}`] === 100 ? 'Processing...' : 'Uploading...'}</span>
+                                        <span>{Math.round(uploadProgress[`album-cover-${track.id}`])}%</span>
+                                      </div>
+                                      <div className="w-full bg-gray-700 rounded-full h-1.5 overflow-hidden">
+                                        <div 
+                                          className={`h-1.5 rounded-full transition-all duration-300 ${uploadProgress[`album-cover-${track.id}`] === 100 ? 'bg-yellow-500 animate-pulse' : 'bg-[#FF4D67]'}`} 
+                                          style={{ width: `${uploadProgress[`album-cover-${track.id}`]}%` }}
+                                        ></div>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
                               ) : (
                                 <div className="p-2 bg-green-900/30 border border-green-700 rounded-lg">
                                   <p className="text-green-400 text-sm">Cover uploaded successfully!</p>

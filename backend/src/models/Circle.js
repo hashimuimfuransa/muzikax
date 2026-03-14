@@ -65,7 +65,7 @@ const CircleSchema = new mongoose.Schema({
     type: String,
     maxlength: 200
   }],
-  coverImage: {
+  coverURL: {
     type: String
   },
   bannerImage: {

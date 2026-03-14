@@ -42,6 +42,12 @@ const CommunityPostSchema = new mongoose.Schema({
   mediaThumbnail: {
     type: String
   },
+  audioURL: {
+    type: String
+  },
+  coverURL: {
+    type: String
+  },
   likes: {
     type: Number,
     default: 0
@@ -127,6 +133,8 @@ CommunityPostSchema.index({ createdAt: -1 }); // For sorting by newest
 CommunityPostSchema.index({ userId: 1 });
 CommunityPostSchema.index({ circleId: 1 });
 CommunityPostSchema.index({ postType: 1 });
+CommunityPostSchema.index({ audioURL: 1 });
+CommunityPostSchema.index({ coverURL: 1 });
 CommunityPostSchema.index({ language: 1 });
 CommunityPostSchema.index({ location: 1 });
 CommunityPostSchema.index({ genre: 1 });

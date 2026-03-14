@@ -8,6 +8,7 @@ const Album_1 = require("../models/Album");
 const Track_1 = require("../models/Track");
 const User_1 = require("../models/User");
 const jwt_1 = require("../utils/jwt");
+const { signTrackUrls, signAlbumUrls } = require("../utils/s3");
 Object.defineProperty(exports, "protect", { enumerable: true, get: function () { return jwt_1.protect; } });
 // Create a new album
 const createAlbum = async (req, res) => {
@@ -64,7 +65,11 @@ const createAlbum = async (req, res) => {
         // Update tracks to reference this album
         await Track_1.updateMany({ _id: { $in: trackIds } }, { $set: { albumId: album._id } });
         console.log('Album created successfully:', album._id);
-        res.status(201).json(album);
+        
+        // Sign album URLs
+        const signedAlbum = await signAlbumUrls(album);
+        
+        res.status(201).json(signedAlbum);
     }
     catch (error) {
         console.error('Error creating album:', error);
@@ -85,8 +90,12 @@ const getAllAlbums = async (req, res) => {
             .skip(skip)
             .limit(limit);
         const total = await Album_1.countDocuments();
+
+        // Sign album URLs
+        const signedAlbums = await Promise.all(albums.map(album => signAlbumUrls(album)));
+
         res.json({
-            albums,
+            albums: signedAlbums,
             pagination: {
                 page,
                 limit,
@@ -110,7 +119,11 @@ const getAlbumById = async (req, res) => {
             res.status(404).json({ message: 'Album not found' });
             return;
         }
-        res.json(album);
+
+        // Sign album URLs
+        const signedAlbum = await signAlbumUrls(album);
+
+        res.json(signedAlbum);
     }
     catch (error) {
         res.status(500).json({ message: error.message });
@@ -125,7 +138,11 @@ const getAlbumsByCreator = async (req, res) => {
         const albums = await Album_1.find(query).lean()
             .populate({ path: 'tracks', populate: { path: 'creatorId', select: 'name avatar' } })
             .sort({ createdAt: -1 });
-        res.json(albums);
+
+        // Sign album URLs
+        const signedAlbums = await Promise.all(albums.map(album => signAlbumUrls(album)));
+
+        res.json(signedAlbums);
     }
     catch (error) {
         res.status(500).json({ message: error.message });
@@ -169,7 +186,11 @@ const updateAlbum = async (req, res) => {
         if (coverURL !== undefined)
             album.coverURL = coverURL;
         const updatedAlbum = await album.save();
-        res.json(updatedAlbum);
+
+        // Sign album URLs
+        const signedAlbum = await signAlbumUrls(updatedAlbum);
+
+        res.json(signedAlbum);
     }
     catch (error) {
         res.status(500).json({ message: error.message });

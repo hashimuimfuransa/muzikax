@@ -9,11 +9,12 @@ MuzikaX is a digital music platform connecting creators (artists, DJs, producers
 - React 18
 - Tailwind CSS
 - TypeScript
-- UploadCare for file uploads
+- AWS S3 for file uploads (Presigned URLs)
 
 ### Backend
 - Node.js
 - Express.js
+- AWS SDK v3 (S3 Client)
 - MongoDB with Mongoose
 - JWT Authentication
 
@@ -32,7 +33,7 @@ MuzikaX is a digital music platform connecting creators (artists, DJs, producers
    - Upload dashboard
    - Analytics section
    - Profile management
-   - Upload music / beats / mixes
+   - Upload music / beats / mixes (to AWS S3)
    - Manage collaborations
    - See followers and stats
 
@@ -45,7 +46,7 @@ MuzikaX is a digital music platform connecting creators (artists, DJs, producers
 - JWT authentication with refresh token
 - Role-based access control
 - Audio streaming with player
-- Track upload and management with UploadCare integration
+- Track upload and management with AWS S3 integration (Presigned URLs)
 - Creator profiles and analytics
 - Social features (following, comments)
 - Search and discovery
@@ -56,7 +57,7 @@ MuzikaX is a digital music platform connecting creators (artists, DJs, producers
 - Node.js (v16 or higher)
 - MongoDB instance (local or cloud)
 - npm or yarn
-- UploadCare account for file uploads
+- AWS Account with S3 Bucket (S3 Express One Zone recommended)
 
 ### Installation
 
@@ -89,20 +90,23 @@ JWT_ACCESS_SECRET=your_access_token_secret
 JWT_REFRESH_SECRET=your_refresh_token_secret
 JWT_ACCESS_EXPIRE=15m
 JWT_REFRESH_EXPIRE=7d
+Access_Key_ID=your_aws_access_key
+Secret_Access_Key=your_aws_secret_key
+S3_BUCKET_NAME=your_s3_bucket_name
+AWS_REGION=your_aws_region
 ```
 
 #### Frontend (.env.local)
 Create a `.env.local` file in the `frontend` directory:
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:5000
-NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY=your_uploadcare_public_key
 ```
 
-### UploadCare Setup
-1. Sign up for an account at [UploadCare](https://uploadcare.com/)
-2. Create a new project and get your public key
-3. Add your public key to the `NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY` environment variable in `.env.local`
-4. Configure any additional UploadCare settings as needed in your dashboard
+### AWS S3 Setup
+1. Create an AWS S3 Bucket (S3 Express One Zone recommended for performance).
+2. Configure CORS for your bucket to allow your frontend domain (e.g., http://localhost:3000).
+3. Create an IAM user with `AmazonS3FullAccess` or specific permissions for the bucket.
+4. Add the AWS credentials to your backend `.env` file.
 
 ### Running the Application
 

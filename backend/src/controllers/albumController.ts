@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import Album from '../models/Album';
 import Track from '../models/Track';
 import User from '../models/User';
+import { deleteFromS3, signAlbumUrls } from '../utils/s3';
 import { protect } from '../utils/jwt';
 
 // Create a new album
@@ -71,7 +72,11 @@ export const createAlbum = async (req: Request, res: Response): Promise<void> =>
     );
 
     console.log('Album created successfully:', album._id);
-    res.status(201).json(album);
+    
+    // Sign album URLs
+    const signedAlbum = await signAlbumUrls(album);
+    
+    res.status(201).json(signedAlbum);
   } catch (error: any) {
     console.error('Error creating album:', error);
     res.status(500).json({ message: error.message || 'Failed to create album' });
@@ -94,8 +99,13 @@ export const getAllAlbums = async (req: Request, res: Response): Promise<void> =
 
     const total = await Album.countDocuments();
 
+    // Sign album URLs
+    const signedAlbums = await Promise.all(
+      albums.map(album => signAlbumUrls(album))
+    );
+
     res.json({
-      albums,
+      albums: signedAlbums,
       pagination: {
         page,
         limit,
@@ -120,7 +130,10 @@ export const getAlbumById = async (req: Request, res: Response): Promise<void> =
       return;
     }
 
-    res.json(album);
+    // Sign album URLs
+    const signedAlbum = await signAlbumUrls(album);
+
+    res.json(signedAlbum);
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
@@ -135,7 +148,12 @@ export const getAlbumsByCreator = async (req: Request, res: Response): Promise<v
       .populate({ path: 'tracks', populate: { path: 'creatorId', select: 'name avatar' } })
       .sort({ createdAt: -1 });
 
-    res.json(albums);
+    // Sign album URLs
+    const signedAlbums = await Promise.all(
+      albums.map(album => signAlbumUrls(album))
+    );
+
+    res.json(signedAlbums);
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
@@ -183,7 +201,10 @@ export const updateAlbum = async (req: Request, res: Response): Promise<void> =>
 
     const updatedAlbum = await album.save();
 
-    res.json(updatedAlbum);
+    // Sign album URLs
+    const signedAlbum = await signAlbumUrls(updatedAlbum);
+
+    res.json(signedAlbum);
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
@@ -211,6 +232,11 @@ export const deleteAlbum = async (req: Request, res: Response): Promise<void> =>
       { _id: { $in: album.tracks } },
       { $unset: { albumId: "" } }
     );
+
+    // Delete album cover from S3 if it exists
+    if (album.coverURL) {
+      await deleteFromS3(album.coverURL);
+    }
 
     await album.deleteOne();
     res.json({ message: 'Album removed' });

@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getCreatorTracks = exports.getCreatorAnalytics = void 0;
 const Track_1 = require("../models/Track");
 const ListenerGeography_1 = require("../models/ListenerGeography");
+const { signTrackUrls } = require("../utils/s3");
 /**
  * Get creator analytics data
  * This is an independent controller for creator-specific functionality
@@ -107,8 +108,12 @@ const getCreatorTracks = async (req, res) => {
             .skip(skip)
             .limit(limit);
         const total = await Track_1.countDocuments({ creatorId });
+        
+        // Sign track URLs
+        const signedTracks = await Promise.all(tracks.map(track => signTrackUrls(track)));
+        
         const response = {
-            tracks,
+            tracks: signedTracks,
             page,
             pages: Math.ceil(total / limit),
             total

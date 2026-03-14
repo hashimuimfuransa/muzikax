@@ -9,6 +9,8 @@ const ListenerGeography_1 = require("../models/ListenerGeography");
 const User_1 = require("../models/User");
 const geoip = require('geoip-lite');
 const { handlePlaybackError } = require("../../cleanup_invalid_tracks");
+const { deleteFromS3, getDownloadSignedUrl, signTrackUrls } = require("../utils/s3");
+
 // import User from '../models/User'; // Not used in this controller
 // Upload track
 const uploadTrack = async (req, res) => {
@@ -42,7 +44,10 @@ const uploadTrack = async (req, res) => {
             copyrightAccepted: copyrightAccepted
         });
         
-        res.status(201).json(track);
+        // Sign track URLs
+        const signedTrack = await signTrackUrls(track);
+        
+        res.status(201).json(signedTrack);
     }
     catch (error) {
         res.status(500).json({ message: error.message });
@@ -169,8 +174,8 @@ const getAllTracks = async (req, res) => {
         
         const tracks = await trackQuery;
             
-        // Ensure all tracks have proper paymentType values
-        const tracksWithDefaults = tracks.map(track => {
+        // Ensure all tracks have proper paymentType values and sign URLs
+        const tracksWithDefaults = await Promise.all(tracks.map(async (track) => {
             // Convert Mongoose document to plain object to ensure all fields are accessible
             const trackObj = track.toObject ? track.toObject() : track;
             
@@ -179,8 +184,9 @@ const getAllTracks = async (req, res) => {
                 trackObj.paymentType = 'free';
             }
             
-            return trackObj;
-        });
+            // Sign track URLs
+            return await signTrackUrls(trackObj);
+        }));
         
         const total = await Track_1.countDocuments(query);
         res.json({
@@ -222,7 +228,10 @@ const getTrackById = async (req, res) => {
             trackObj.paymentType = 'free';
         }
         
-        res.json(trackObj);
+        // Sign track URLs
+        const signedTrack = await signTrackUrls(trackObj);
+        
+        res.json(signedTrack);
     }
     catch (error) {
         res.status(500).json({ message: error.message });
@@ -260,8 +269,8 @@ const getTracksByCreatorSimple = async (req, res) => {
             .sort({ createdAt: -1 })
             .populate('creatorId', 'name avatar');
             
-        // Ensure all tracks have proper paymentType values
-        const tracksWithDefaults = tracks.map(track => {
+        // Ensure all tracks have proper paymentType values and sign URLs
+        const tracksWithDefaults = await Promise.all(tracks.map(async (track) => {
             // Convert Mongoose document to plain object to ensure all fields are accessible
             const trackObj = track.toObject ? track.toObject() : track;
             
@@ -270,8 +279,9 @@ const getTracksByCreatorSimple = async (req, res) => {
                 trackObj.paymentType = 'free';
             }
             
-            return trackObj;
-        });
+            // Sign track URLs
+            return await signTrackUrls(trackObj);
+        }));
         
         res.json(tracksWithDefaults);
     }
@@ -316,8 +326,8 @@ const getTracksByCreator = async (req, res) => {
                 .sort({ createdAt: -1 })
                 .populate('creatorId', 'name avatar');
                 
-            // Ensure all tracks have proper paymentType values
-            const tracksWithDefaults = tracks.map(track => {
+            // Ensure all tracks have proper paymentType values and sign URLs
+            const tracksWithDefaults = await Promise.all(tracks.map(async (track) => {
                 // Convert Mongoose document to plain object to ensure all fields are accessible
                 const trackObj = track.toObject ? track.toObject() : track;
                 
@@ -326,8 +336,9 @@ const getTracksByCreator = async (req, res) => {
                     trackObj.paymentType = 'free';
                 }
                 
-                return trackObj;
-            });
+                // Sign track URLs
+                return await signTrackUrls(trackObj);
+            }));
             
             res.json(tracksWithDefaults);
             return;
@@ -342,8 +353,8 @@ const getTracksByCreator = async (req, res) => {
             .limit(limit)
             .populate('creatorId', 'name avatar');
             
-        // Ensure all tracks have proper paymentType values
-        const tracksWithDefaults = tracks.map(track => {
+        // Ensure all tracks have proper paymentType values and sign URLs
+        const tracksWithDefaults = await Promise.all(tracks.map(async (track) => {
             // Convert Mongoose document to plain object to ensure all fields are accessible
             const trackObj = track.toObject ? track.toObject() : track;
             
@@ -352,8 +363,9 @@ const getTracksByCreator = async (req, res) => {
                 trackObj.paymentType = 'free';
             }
             
-            return trackObj;
-        });
+            // Sign track URLs
+            return await signTrackUrls(trackObj);
+        }));
         
         const total = await Track_1.countDocuments({ creatorId: actualCreatorId });
         res.json({
@@ -382,8 +394,8 @@ const getTracksByAuthUser = async (req, res) => {
                 .sort({ createdAt: -1 })
                 .populate('creatorId', 'name avatar');
                 
-            // Ensure all tracks have proper paymentType values
-            const tracksWithDefaults = tracks.map(track => {
+            // Ensure all tracks have proper paymentType values and sign URLs
+            const tracksWithDefaults = await Promise.all(tracks.map(async (track) => {
                 // Convert Mongoose document to plain object to ensure all fields are accessible
                 const trackObj = track.toObject ? track.toObject() : track;
                 
@@ -392,8 +404,9 @@ const getTracksByAuthUser = async (req, res) => {
                     trackObj.paymentType = 'free';
                 }
                 
-                return trackObj;
-            });
+                // Sign track URLs
+                return await signTrackUrls(trackObj);
+            }));
             
             res.json(tracksWithDefaults);
             return;
@@ -408,8 +421,8 @@ const getTracksByAuthUser = async (req, res) => {
             .limit(limit)
             .populate('creatorId', 'name avatar');
             
-        // Ensure all tracks have proper paymentType values
-        const tracksWithDefaults = tracks.map(track => {
+        // Ensure all tracks have proper paymentType values and sign URLs
+        const tracksWithDefaults = await Promise.all(tracks.map(async (track) => {
             // Convert Mongoose document to plain object to ensure all fields are accessible
             const trackObj = track.toObject ? track.toObject() : track;
             
@@ -418,8 +431,9 @@ const getTracksByAuthUser = async (req, res) => {
                 trackObj.paymentType = 'free';
             }
             
-            return trackObj;
-        });
+            // Sign track URLs
+            return await signTrackUrls(trackObj);
+        }));
         
         const total = await Track_1.countDocuments({ creatorId });
         res.json({
@@ -473,7 +487,11 @@ const updateTrack = async (req, res) => {
         if (copyrightAccepted !== undefined)
             track.copyrightAccepted = copyrightAccepted;
         const updatedTrack = await track.save();
-        res.json(updatedTrack);
+        
+        // Sign track URLs
+        const signedTrack = await signTrackUrls(updatedTrack);
+        
+        res.json(signedTrack);
     }
     catch (error) {
         res.status(500).json({ message: error.message });
@@ -511,6 +529,10 @@ const deleteTrack = async (req, res) => {
         // Get reason from request body or query if admin
         const reason = req.body?.reason || req.query?.reason || 'No reason provided';
         
+        // Delete files from S3 if they exist
+        if (track.audioURL) await deleteFromS3(track.audioURL);
+        if (track.coverURL) await deleteFromS3(track.coverURL);
+
         // Delete the track
         await track.deleteOne();
         
@@ -588,8 +610,11 @@ const incrementPlayCount = async (req, res) => {
             console.error('Error recording play history:', playHistoryError);
             // Don't fail the main play count update if play history fails
         }
-
-        res.json(track);
+        
+        // Sign track URLs
+        const signedTrack = await signTrackUrls(track);
+        
+        res.json(signedTrack);
     }
     catch (error) {
         console.error('Error incrementing play count:', error);
@@ -672,7 +697,10 @@ const getMonthlyPopularTracks = async (req, res) => {
         tracksWithScores.sort((a, b) => b.score - a.score);
         const topTracks = tracksWithScores.slice(0, limit);
         
-        res.json(topTracks);
+        // Sign track URLs
+        const signedTopTracks = await Promise.all(topTracks.map(track => signTrackUrls(track)));
+        
+        res.json(signedTopTracks);
     } catch (error) {
         console.error('Error getting monthly popular tracks:', error);
         res.status(500).json({ message: error.message });
@@ -698,8 +726,8 @@ const getTrendingTracks = async (req, res) => {
             
             const tracks = await query.populate('creatorId', 'name avatar');
                 
-            // Ensure all tracks have proper paymentType values
-            const tracksWithDefaults = tracks.map(track => {
+            // Ensure all tracks have proper paymentType values and sign URLs
+            const tracksWithDefaults = await Promise.all(tracks.map(async (track) => {
                 // Convert Mongoose document to plain object to ensure all fields are accessible
                 const trackObj = track.toObject ? track.toObject() : track;
                 
@@ -708,8 +736,9 @@ const getTrendingTracks = async (req, res) => {
                     trackObj.paymentType = 'free';
                 }
                 
-                return trackObj;
-            });
+                // Sign track URLs
+                return await signTrackUrls(trackObj);
+            }));
             
             res.json(tracksWithDefaults);
         }
@@ -749,8 +778,8 @@ const getTracksByType = async (req, res) => {
         
         const tracks = await trackQuery;
             
-        // Ensure all tracks have proper paymentType values
-        const tracksWithDefaults = tracks.map(track => {
+        // Ensure all tracks have proper paymentType values and sign URLs
+        const tracksWithDefaults = await Promise.all(tracks.map(async (track) => {
             // Convert Mongoose document to plain object to ensure all fields are accessible
             const trackObj = track.toObject ? track.toObject() : track;
             
@@ -759,8 +788,9 @@ const getTracksByType = async (req, res) => {
                 trackObj.paymentType = 'free';
             }
             
-            return trackObj;
-        });
+            // Sign track URLs
+            return await signTrackUrls(trackObj);
+        }));
         
         res.json(tracksWithDefaults);
     }

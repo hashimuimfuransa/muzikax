@@ -4,6 +4,7 @@ const Circle = require('../models/Circle');
 const Track = require('../models/Track');
 const Message = require('../models/Message');
 const Chat = require('../models/Chat');
+const { deleteFromS3 } = require('../utils/s3');
 
 // Create a new community post
 exports.createCommunityPost = async (req, res) => {
@@ -804,6 +805,23 @@ exports.deleteCommunityPost = async (req, res) => {
     // Check if the user is the post owner
     if (post.userId.toString() !== userId.toString()) {
       return res.status(403).json({ message: 'Unauthorized: You can only delete your own posts' });
+    }
+
+    // Delete media from S3 if it exists
+    if (post.mediaUrl) {
+      try {
+        await deleteFromS3(post.mediaUrl);
+      } catch (err) {
+        console.error('Error deleting media from S3:', err);
+      }
+    }
+
+    if (post.mediaThumbnail) {
+      try {
+        await deleteFromS3(post.mediaThumbnail);
+      } catch (err) {
+        console.error('Error deleting thumbnail from S3:', err);
+      }
     }
 
     // Delete the post

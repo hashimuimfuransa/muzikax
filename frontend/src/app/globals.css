@@ -290,29 +290,6 @@ body {
   padding: 16px;
 }
 
-/* UploadCare widget responsive fixes */
-.my-config {
-  max-width: 100% !important;
-  width: 100% !important;
-}
-
-.my-config .uploadcare--widget {
-  max-width: 100% !important;
-}
-
-.my-config .uploadcare--widget__button {
-  width: 100% !important;
-  max-width: 100% !important;
-}
-
-/* Prevent horizontal overflow on mobile */
-@media (max-width: 768px) {
-  .my-config .uploadcare--widget__button {
-    padding-left: 1rem !important;
-    padding-right: 1rem !important;
-  }
-}
-
 /* Animation delay utilities */
 .delay-1000 {
   animation-delay: 1s;

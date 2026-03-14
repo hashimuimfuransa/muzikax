@@ -12,9 +12,7 @@ import { useAudioPlayer } from '../../contexts/AudioPlayerContext'
 import { getFollowedCreators } from '../../services/trackService'
 import { getRecentlyPlayed } from '../../services/recentlyPlayedService'
 import { getArtistEarnings, requestWithdrawal, ArtistEarnings } from '../../services/withdrawalService'
-// Import UploadCare components
-import { FileUploaderRegular } from "@uploadcare/react-uploader";
-import "@uploadcare/react-uploader/core.css";
+import { getSignedUrl, uploadToS3, proxyUpload, uploadToCloudFront } from '../../services/s3Service'
 
 // Define the possible active tab types
 type ActiveTab = 'profile' | 'favorites' | 'analytics' | 'tracks' | 'albums' | 'whatsapp' | 'earnings' | 'following' | 'recently-played';
@@ -77,6 +75,8 @@ export default function Profile() {
   const [newGenre, setNewGenre] = useState('')
   const [whatsappContact, setWhatsappContact] = useState('') // Add WhatsApp contact state
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null) // Add avatar URL state
+  const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({})
+  const [isUploading, setIsUploading] = useState(false)
   const [recentlyPlayedTracks, setRecentlyPlayedTracks] = useState<any[]>([])
   const [loadingRecentlyPlayed, setLoadingRecentlyPlayed] = useState(false)
   const [earnings, setEarnings] = useState<ArtistEarnings | null>(null)
@@ -334,13 +334,67 @@ export default function Profile() {
     }
   }
 
-  // Handle avatar upload success
-  const handleAvatarUploadSuccess = (info: any) => {
-    console.log('Avatar uploaded successfully:', info);
-    if (info && info.cdnUrl) {
-      setAvatarUrl(info.cdnUrl);
-      // Update the user's avatar in the database
-      updateProfile({ avatar: info.cdnUrl });
+  // Handle avatar upload with S3
+  const handleAvatarFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setIsUploading(true);
+      try {
+        // Use the new CloudFront upload method (Backend API)
+        const result: any = await uploadToCloudFront(file, (progress) => {
+          setUploadProgress(prev => ({ ...prev, avatar: progress }));
+        });
+        
+        setAvatarUrl(result.url);
+        updateProfile({ avatar: result.url });
+      } catch (error) {
+        console.error('Error uploading avatar to CloudFront:', error);
+        
+        // Fallback to legacy methods
+        try {
+          let accessToken = localStorage.getItem('accessToken');
+          if (!accessToken) {
+            // Attempt to refresh token if missing
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh-token`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ refreshToken: localStorage.getItem('refreshToken') })
+            });
+            if (response.ok) {
+              const data = await response.json();
+              accessToken = data.accessToken;
+              localStorage.setItem('accessToken', data.accessToken);
+              localStorage.setItem('refreshToken', data.refreshToken);
+            }
+          }
+
+          if (!accessToken) {
+            alert('Authentication error. Please log in again.');
+            return;
+          }
+
+          try {
+            const { uploadUrl, fileUrl } = await getSignedUrl(file.name, file.type, accessToken);
+            await uploadToS3(file, uploadUrl, (progress) => {
+              setUploadProgress(prev => ({ ...prev, avatar: progress }));
+            });
+            setAvatarUrl(fileUrl);
+            updateProfile({ avatar: fileUrl });
+          } catch (directError: any) {
+            console.warn('Direct S3 upload failed (possibly CORS), trying proxy upload...', directError);
+            const result: any = await proxyUpload(file, accessToken, (progress) => {
+              setUploadProgress(prev => ({ ...prev, avatar: progress }));
+            });
+            setAvatarUrl(result.fileUrl);
+            updateProfile({ avatar: result.fileUrl });
+          }
+        } catch (fallbackError) {
+          console.error('Fallback error uploading avatar:', fallbackError);
+          alert('Failed to upload avatar. Please try again.');
+        }
+      } finally {
+        setIsUploading(false);
+      }
     }
   };
 
@@ -665,12 +719,31 @@ export default function Profile() {
             </div>
             {/* Profile Picture Upload Button - Moved to a cleaner location */}
             <div className="flex justify-center sm:justify-start">
-              <FileUploaderRegular
-                pubkey={process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY || "YOUR_PUBLIC_KEY_HERE"}
-                onFileUploadSuccess={handleAvatarUploadSuccess}
-                multiple={false}
-                className="my-config"
-              />
+              <div className="flex flex-col space-y-2">
+                <label className="cursor-pointer bg-[#FF4D67] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#FF4D67]/80 transition-colors">
+                  Change Profile Picture
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAvatarFileChange}
+                    className="hidden"
+                  />
+                </label>
+                {uploadProgress['avatar'] > 0 && uploadProgress['avatar'] <= 100 && (
+                  <div className="w-full mt-2">
+                    <div className="flex justify-between text-[10px] text-gray-400 mb-1">
+                      <span>{uploadProgress['avatar'] === 100 ? 'Processing...' : 'Uploading...'}</span>
+                      <span>{Math.round(uploadProgress['avatar'])}%</span>
+                    </div>
+                    <div className="w-full bg-gray-700 rounded-full h-1.5 overflow-hidden">
+                      <div 
+                        className={`h-1.5 rounded-full transition-all duration-300 ${uploadProgress['avatar'] === 100 ? 'bg-yellow-500 animate-pulse' : 'bg-[#FF4D67]'}`} 
+                        style={{ width: `${uploadProgress['avatar']}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Bio Section */}
@@ -1050,30 +1123,40 @@ export default function Profile() {
                       <div className="absolute inset-0 bg-black/20"></div>
                     </div>
                     <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                      {!avatarUrl ? (
-                        <FileUploaderRegular
-                          pubkey={process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY || "YOUR_PUBLIC_KEY_HERE"}
-                          onFileUploadSuccess={handleAvatarUploadSuccess}
-                          multiple={false}
-                          className="my-config"
-                        />
-                      ) : (
-                        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                      <div className="flex flex-col space-y-2">
+                        <label className="cursor-pointer bg-[#FF4D67] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#FF4D67]/80 transition-colors">
+                          {avatarUrl ? 'Change' : 'Upload'}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleAvatarFileChange}
+                            className="hidden"
+                          />
+                        </label>
+                        {avatarUrl && (
                           <button 
                             type="button"
-                            onClick={() => setAvatarUrl(null)}
+                            onClick={() => {
+                              setAvatarUrl(null);
+                              updateProfile({ avatar: '' });
+                            }}
                             className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors text-sm font-medium w-full sm:w-auto"
                           >
                             Remove
                           </button>
-                          <FileUploaderRegular
-                            pubkey={process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY || "YOUR_PUBLIC_KEY_HERE"}
-                            onFileUploadSuccess={handleAvatarUploadSuccess}
-                            multiple={false}
-                            className="my-config"
-                          />
-                        </div>
-                      )}
+                        )}
+                        {uploadProgress['avatar'] > 0 && uploadProgress['avatar'] < 100 && (
+                          <div className="w-full mt-2">
+                            <div className="flex justify-between text-[10px] text-gray-400 mb-1">
+                              <span>Uploading...</span>
+                              <span>{Math.round(uploadProgress['avatar'])}%</span>
+                            </div>
+                            <div className="w-full bg-gray-700 rounded-full h-1.5 overflow-hidden">
+                              <div className="bg-[#FF4D67] h-1.5 rounded-full transition-all duration-300" style={{ width: `${uploadProgress['avatar']}%` }}></div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>

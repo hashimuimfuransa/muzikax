@@ -3,11 +3,9 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../contexts/AuthContext'
-// Import UploadCare components
-import { FileUploaderRegular } from "@uploadcare/react-uploader";
-import "@uploadcare/react-uploader/core.css";
 import { createAlbum } from '../../services/albumService'
 import { fetchCreatorTracks } from '../../services/creatorService'
+import { getSignedUrl, uploadToS3, proxyUpload, uploadToCloudFront } from '../../services/s3Service'
 
 interface AlbumTrack {
   id: string;
@@ -24,6 +22,7 @@ export default function CreateAlbum() {
   const [description, setDescription] = useState('')
   const [genre, setGenre] = useState('afrobeat')
   const [coverUrl, setCoverUrl] = useState<string | null>(null) // State for uploaded cover URL
+  const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({})
   const [tracks, setTracks] = useState<AlbumTrack[]>([])
   const [availableTracks, setAvailableTracks] = useState<any[]>([]) // Tracks available for selection
   const [selectedTrackIds, setSelectedTrackIds] = useState<string[]>([])
@@ -113,11 +112,53 @@ export default function CreateAlbum() {
     )
   }
 
-  // Handle successful cover image upload
-  const handleCoverUploadSuccess = (info: any) => {
-    console.log('Cover image uploaded successfully:', info);
-    if (info.cdnUrl) {
-      setCoverUrl(info.cdnUrl);
+  // Handle cover image upload with S3
+  const handleCoverFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setIsUploading(true);
+      try {
+        // Use the new CloudFront upload method (Backend API)
+        const result: any = await uploadToCloudFront(file, (progress) => {
+          setUploadProgress(prev => ({ ...prev, cover: progress }));
+        });
+        
+        setCoverUrl(result.url);
+      } catch (error) {
+        console.error('Error uploading cover to CloudFront:', error);
+        
+        // Fallback to legacy methods
+        try {
+          let accessToken = localStorage.getItem('accessToken');
+          if (!accessToken) {
+            accessToken = await refreshToken();
+          }
+
+          if (!accessToken) {
+            alert('Authentication error. Please log in again.');
+            return;
+          }
+
+          try {
+            const { uploadUrl, fileUrl } = await getSignedUrl(file.name, file.type, accessToken);
+            await uploadToS3(file, uploadUrl, (progress) => {
+              setUploadProgress(prev => ({ ...prev, cover: progress }));
+            });
+            setCoverUrl(fileUrl);
+          } catch (directError: any) {
+            console.warn('Direct S3 upload failed (possibly CORS), trying proxy upload...', directError);
+            const result: any = await proxyUpload(file, accessToken, (progress) => {
+              setUploadProgress(prev => ({ ...prev, cover: progress }));
+            });
+            setCoverUrl(result.fileUrl);
+          }
+        } catch (fallbackError) {
+          console.error('Fallback error uploading cover:', fallbackError);
+          alert('Failed to upload cover. Please try again.');
+        }
+      } finally {
+        setIsUploading(false);
+      }
     }
   };
 
@@ -376,11 +417,28 @@ export default function CreateAlbum() {
                         </button>
                       </div>
                     ) : (
-                      <FileUploaderRegular
-                        pubkey={process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY || "YOUR_UPLOADCARE_PUBLIC_KEY"}
-                        onFileUploadSuccess={handleCoverUploadSuccess}
-                        className="w-full"
-                      />
+                      <div className="flex flex-col space-y-2">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleCoverFileChange}
+                          className="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#FF4D67] file:text-white hover:file:bg-[#FF4D67]/80"
+                        />
+                        {uploadProgress['cover'] > 0 && uploadProgress['cover'] <= 100 && (
+                          <div className="w-full mt-2">
+                            <div className="flex justify-between text-[10px] text-gray-400 mb-1">
+                              <span>{uploadProgress['cover'] === 100 ? 'Processing...' : 'Uploading Cover...'}</span>
+                              <span>{Math.round(uploadProgress['cover'])}%</span>
+                            </div>
+                            <div className="w-full bg-gray-700 rounded-full h-1.5 overflow-hidden">
+                              <div 
+                                className={`h-1.5 rounded-full transition-all duration-300 ${uploadProgress['cover'] === 100 ? 'bg-yellow-500 animate-pulse' : 'bg-[#FF4D67]'}`} 
+                                style={{ width: `${uploadProgress['cover']}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
                 </div>

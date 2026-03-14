@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import User from '../models/User';
 import Track from '../models/Track';
 import Playlist from '../models/Playlist';
+import { deleteFromS3 } from '../utils/s3';
 import * as bcrypt from 'bcryptjs';
 import mongoose from 'mongoose';
 
@@ -178,6 +179,11 @@ export const deleteUser = async (req: Request, res: Response): Promise<void> => 
 
     // Also delete all tracks by this user
     await Track.deleteMany({ creatorId: user._id });
+
+    // Delete avatar from S3 if it exists
+    if (user.avatar) {
+      await deleteFromS3(user.avatar);
+    }
 
     await user.deleteOne();
     res.json({ message: 'User removed' });
