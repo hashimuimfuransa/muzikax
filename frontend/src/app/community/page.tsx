@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { FaPlus, FaMusic, FaUserFriends, FaFire, FaShare } from 'react-icons/fa';
 import { proxyUpload } from '../../services/s3Service';
 
@@ -24,8 +25,12 @@ interface Vibe {
   createdAt: string;
 }
 
-const CommunityPage = () => {
+const CommunityContent = () => {
   const { user, fetchUserProfile } = useAuth();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const postIdFromUrl = searchParams.get('postId');
+  
   const [vibes, setVibes] = useState<Vibe[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newVibe, setNewVibe] = useState('');
@@ -43,6 +48,23 @@ const CommunityPage = () => {
   const [followedArtists, setFollowedArtists] = useState<{[key: string]: boolean}>({}); 
   const [showArtistsModal, setShowArtistsModal] = useState(false); 
   const [artistFilter, setArtistFilter] = useState('all'); 
+  const [scrolledToPost, setScrolledToPost] = useState(false);
+
+  // Scroll to post if postId is in URL
+  useEffect(() => {
+    if (postIdFromUrl && vibes.length > 0 && !scrolledToPost) {
+      const element = document.getElementById(`vibe-${postIdFromUrl}`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Highlight the post
+        element.classList.add('ring-2', 'ring-[#FF4D67]', 'ring-offset-4', 'ring-offset-gray-900');
+        setTimeout(() => {
+          element.classList.remove('ring-2', 'ring-[#FF4D67]', 'ring-offset-4', 'ring-offset-gray-900');
+        }, 3000);
+        setScrolledToPost(true);
+      }
+    }
+  }, [postIdFromUrl, vibes, scrolledToPost]);
 
   // Helper function to make API requests with automatic token refresh
   let refreshPromise: Promise<string | null> | null = null;
@@ -485,12 +507,13 @@ const CommunityPage = () => {
   };
 
   if (!user) {
+    const currentPath = typeof window !== 'undefined' ? window.location.pathname + window.location.search : '/community';
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-white mb-4">Access Denied</h2>
           <p className="text-gray-400 mb-6">Please log in to access the community vibes</p>
-          <a href="/login" className="inline-block bg-gradient-to-r from-[#FF4D67] to-[#FF6B8B] text-white py-2 px-6 rounded-lg font-medium hover:from-[#FF6B8B] hover:to-[#FF8FA3] transition-all">
+          <a href={`/login?redirect=${encodeURIComponent(currentPath)}`} className="inline-block bg-gradient-to-r from-[#FF4D67] to-[#FF6B8B] text-white py-2 px-6 rounded-lg font-medium hover:from-[#FF6B8B] hover:to-[#FF8FA3] transition-all">
             Log In
           </a>
         </div>
@@ -574,7 +597,7 @@ const CommunityPage = () => {
             <div className="space-y-4">
               {filteredVibes.length > 0 ? (
                 filteredVibes.map((vibe, index) => (
-                  <div key={vibe.id || index} className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-4 sm:p-5 border border-gray-700/50 hover:border-gray-600/50 transition-all">
+                  <div key={vibe.id || index} id={`vibe-${vibe.id}`} className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-4 sm:p-5 border border-gray-700/50 hover:border-gray-600/50 transition-all">
                     <div className="flex items-start space-x-3">
                       <a href={`/profile/${vibe.userId?._id || vibe.userId || ''}`} className="flex-shrink-0 hover:opacity-80 transition-opacity">
                         {vibe.userAvatar ? (
@@ -848,6 +871,18 @@ const CommunityPage = () => {
         </div>
       )}
     </div>
+  );
+};
+
+const CommunityPage = () => {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#FF4D67]"></div>
+      </div>
+    }>
+      <CommunityContent />
+    </Suspense>
   );
 };
 

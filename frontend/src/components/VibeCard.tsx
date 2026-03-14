@@ -21,7 +21,7 @@ const VibeCard: React.FC<VibeCardProps> = ({ vibe }) => {
 
   return (
     <Link 
-      href="/community" 
+      href={`/community?postId=${vibe.id}`} 
       className="flex-shrink-0 w-64 sm:w-72 bg-gray-800/40 backdrop-blur-md border border-gray-700/50 rounded-2xl overflow-hidden hover:border-[#FF4D67]/50 transition-all duration-500 group snap-start"
     >
       <div className="p-4 flex flex-col h-full">

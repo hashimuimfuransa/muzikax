@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '../../contexts/AuthContext'
 import { useGoogleLogin } from '@react-oauth/google'
 
-export default function Login() {
+function LoginContent() {
   const [isLogin, setIsLogin] = useState(true)
   const [step, setStep] = useState(1) // 1: Email, 2: Password, 3: Name (for signup)
   const [email, setEmail] = useState('')
@@ -18,6 +18,8 @@ export default function Login() {
   const [showSignupPassword, setShowSignupPassword] = useState(false)
   const [agreeToTerms, setAgreeToTerms] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirect = searchParams.get('redirect')
   const { login } = useAuth()
 
   const googleLogin = useGoogleLogin({
@@ -71,7 +73,7 @@ export default function Login() {
         if (userData.role === 'admin') {
           router.push('/admin');
         } else {
-          router.push('/');
+          router.push(redirect || '/');
         }
       } catch (err) {
         console.error('Google login error:', err);
@@ -153,8 +155,8 @@ export default function Login() {
       if (userData.role === 'admin') {
         router.push('/admin')
       } else {
-        // All other users go to home page after login
-        router.push('/')
+        // All other users go to home page or redirect after login
+        router.push(redirect || '/')
       }
     } catch (error) {
       console.error('Login error:', error)
@@ -227,8 +229,8 @@ export default function Login() {
       if (userData.role === 'admin') {
         router.push('/admin')
       } else {
-        // All other users go to home page after signup
-        router.push('/')
+        // All other users go to home page or redirect after signup
+        router.push(redirect || '/')
       }
     } catch (error) {
       console.error('Signup error:', error)
@@ -597,5 +599,17 @@ export default function Login() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function Login() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#FF4D67]"></div>
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   )
 }
