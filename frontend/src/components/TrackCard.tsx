@@ -2,6 +2,7 @@
 
  import { useState } from 'react';
  import { useAudioPlayer } from '../contexts/AudioPlayerContext';
+ import { useLanguage } from '../contexts/LanguageContext';
  import { usePayment } from '../contexts/PaymentContext';
  import AddToQueueButton from './AddToQueueButton';
 
@@ -38,6 +39,7 @@ export default function TrackCard({
   showLikeButton = true,
   showAddToQueueButton = true
 }: TrackCardProps) {
+  const { t } = useLanguage();
   const { currentTrack, isPlaying, playTrack, setCurrentPlaylist, favorites, addToFavorites, removeFromFavorites } = useAudioPlayer();
   const { showPayment } = usePayment();
 
@@ -126,13 +128,13 @@ export default function TrackCard({
           {track.type === 'beat' && (
             <div className="absolute top-2 left-2 flex flex-col gap-1 z-10 pointer-events-none">
               <span className="px-1.5 py-0.5 bg-purple-600/90 backdrop-blur-sm text-white text-[10px] font-bold rounded shadow-lg">
-                BEAT
+                {t('beat')}
               </span>
               {(() => {
                 const paymentType = track.paymentType || fullTrackData?.paymentType || 'free';
                 return (
                   <span className={`px-1.5 py-0.5 ${paymentType === 'paid' ? 'bg-green-600/90' : 'bg-blue-600/90'} backdrop-blur-sm text-white text-[10px] font-bold rounded shadow-lg`}>
-                    {paymentType === 'paid' ? 'PAID' : 'FREE'}
+                    {paymentType === 'paid' ? t('paid') : t('free')}
                   </span>
                 );
               })()}
@@ -272,7 +274,7 @@ export default function TrackCard({
                 <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                 </svg>
-                BUY NOW
+                {t('buyNow')}
               </button>
             ) : (
               <button 
@@ -296,7 +298,7 @@ export default function TrackCard({
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                 </svg>
-                FREE DOWNLOAD
+                {t('freeDownload')}
               </button>
             )}
           </div>
@@ -311,7 +313,7 @@ export default function TrackCard({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            {track.plays?.toLocaleString() || '0'}
+            {track.plays?.toLocaleString() || '0'} {t('plays')}
           </span>
           <div className="flex items-center gap-2">
             <span className="flex items-center gap-1">

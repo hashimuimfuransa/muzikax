@@ -2,14 +2,17 @@
 
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '../contexts/AuthContext'
+import { useLanguage } from '../contexts/LanguageContext'
 import notificationService from '../services/notificationService'
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const { isAuthenticated, userRole, logout } = useAuth()
+  const { t, language, setLanguage } = useLanguage()
   const router = useRouter()
+  const pathname = usePathname()
   const [searchQuery, setSearchQuery] = useState('') // Add search state
   const [showCategories, setShowCategories] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -17,9 +20,9 @@ export default function Navbar() {
 
   // App-like categories similar to Spotify/Apple Music
   const categories = [
-    { id: 'home', name: 'Home', icon: '🏠' },
-    { id: 'beats', name: 'Beats', icon: '🎵' },
-    { id: 'mixes', name: 'Mixes', icon: '🎧' },
+    { id: 'home', name: t('home'), icon: '🏠' },
+    { id: 'beats', name: t('beats'), icon: '🎵' },
+    { id: 'mixes', name: t('mixes'), icon: '🎧' },
     { id: 'afrobeat', name: 'Afrobeat', icon: '🌍' },
     { id: 'hiphop', name: 'Hip Hop', icon: '🎤' },
     { id: 'rnb', name: 'R&B', icon: '🎷' },
@@ -33,7 +36,7 @@ export default function Navbar() {
     { id: 'house', name: 'House', icon: '🏠' },
     { id: 'jazz', name: 'Jazz', icon: '🎹' },
     { id: 'soul', name: 'Soul', icon: '❤️' },
-    { id: 'community', name: 'Community', icon: '👥' },
+    { id: 'community', name: t('community'), icon: '👥' },
   ];
 
   // Handle category selection
@@ -136,151 +139,143 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16 w-full">
           {/* Logo */}
           <div className="flex-shrink-0 flex items-center">
-            <Link href="/" className="flex items-center">
-              <img src="/muzikax.png" alt="MuzikaX Logo" className="h-8 w-auto" />
-              <span className="ml-3 text-xl font-bold text-white">MuzikaX</span>
+            <Link href="/" className="flex items-center group">
+              <img src="/muzikax.png" alt="MuzikaX Logo" className="h-9 w-auto transition-transform group-hover:scale-105" />
+              <span className="ml-2 text-2xl font-black text-white tracking-tighter">MuzikaX</span>
             </Link>
           </div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:block">
-            <div className="flex items-center space-x-2 sm:space-x-3 mx-2">
-              <Link href="/" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">
-                Home
+          {/* Desktop Navigation & Search (Center) */}
+          <div className="hidden md:flex flex-1 justify-center px-4">
+            <div className="flex items-center space-x-1 lg:space-x-4 bg-gray-800/30 px-3 py-1.5 rounded-full border border-gray-700/50 backdrop-blur-md">
+              <Link href="/" className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${pathname === '/' ? 'bg-[#FF4D67] text-white shadow-lg shadow-[#FF4D67]/20' : 'text-gray-300 hover:text-white hover:bg-gray-700/50'}`}>
+                {t('home')}
               </Link>
-              <Link href="/explore" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">
-                Explore
+              <Link href="/explore" className="px-3 py-1.5 rounded-full text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700/50 transition-all">
+                {t('explore')}
               </Link>
-              <Link href="/beats" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">
-                Beats
+              <Link href="/beats" className="px-3 py-1.5 rounded-full text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700/50 transition-all">
+                {t('beats')}
               </Link>
-              <Link href="/playlists" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">
-                Playlists
+              <Link href="/playlists" className="px-3 py-1.5 rounded-full text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700/50 transition-all">
+                {t('playlists')}
               </Link>
-              <Link href="/community" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">
-                Community
-              </Link>
-              <div className="relative group hidden lg:block">
-                <button className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base flex items-center">
-                  More
-                  <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-                  </svg>
-                </button>
-                <div className="absolute left-0 mt-2 w-48 bg-gray-800 rounded-lg shadow-lg py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
-                  <Link href="/about" className="block px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-700">
-                    About Us
-                  </Link>
-                  <Link href="/faq" className="block px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-700">
-                    FAQ
-                  </Link>
-                  <Link href="/contact" className="block px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-700">
-                    Contact
-                  </Link>
-                  <div className="border-t border-gray-700 my-1"></div>
-                  <Link href="/terms" className="block px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-700">
-                    Terms of Use
-                  </Link>
-                  <Link href="/privacy" className="block px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-700">
-                    Privacy Policy
-                  </Link>
-                  <Link href="/copyright" className="block px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-700">
-                    Copyright
-                  </Link>
-                </div>
-              </div>
               
-              {/* Search Bar */}
+              <div className="h-4 w-[1px] bg-gray-700 mx-1"></div>
+              
+              {/* Search Bar integrated in center */}
               <form onSubmit={handleSearch} className="relative">
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search music, artists, albums..."
-                  className="w-32 sm:w-48 md:w-56 px-3 py-1.5 sm:py-2 bg-gray-800/50 border border-gray-700 rounded-full text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent text-sm transition-all"
+                  placeholder={t('searchPlaceholder')}
+                  className="w-40 lg:w-64 px-4 py-1.5 bg-transparent text-white placeholder-gray-500 focus:outline-none text-sm"
                 />
                 <button 
                   type="submit"
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                  className="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-[#FF4D67] transition-colors"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                   </svg>
                 </button>
               </form>
-              
-              {/* Upload button for all users with proper navigation */}
-              <button 
-                onClick={() => {
-                  if (!isAuthenticated) {
-                    // If not authenticated, go to login
-                    router.push('/login');
-                  } else if (userRole === 'creator') {
-                    // If already a creator, go to upload
-                    router.push('/upload');
-                  } else {
-                    // If authenticated but not a creator, go to upload to upgrade
-                    router.push('/upload');
-                  }
-                }}
-                className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base bg-transparent border-none cursor-pointer"
-              >
-                Upload
-              </button>
             </div>
           </div>
 
-          {/* Notification Icon - Desktop Only */}
-          {isAuthenticated && (
-            <Link 
-              href="/notifications" 
-              className="hidden md:block relative p-2 text-gray-300 hover:text-white transition-colors"
+          {/* Desktop Controls (Right) */}
+          <div className="hidden md:flex items-center space-x-3">
+            <button 
+              onClick={() => {
+                if (!isAuthenticated) {
+                  router.push('/login');
+                } else {
+                  router.push('/upload');
+                }
+              }}
+              className="hidden lg:flex items-center px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-full text-sm font-bold border border-white/10 transition-all"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
               </svg>
-              {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-[#FF4D67] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                  {unreadCount > 99 ? '99+' : unreadCount}
-                </span>
-              )}
-            </Link>
-          )}
-          
-          {/* Auth Buttons */}
-          <div className="hidden md:block">
-            <div className="flex items-center space-x-2 sm:space-x-3">
-              {isAuthenticated ? (
-                <>
-                  <Link href="/profile" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">
-                    Profile
-                  </Link>
-                  {userRole === 'admin' && (
-                    <Link href="/admin" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">
-                      Admin Dashboard
-                    </Link>
-                  )}
-                  <button 
-                    onClick={() => {
-                      logout();
-                      router.push('/');
-                    }}
-                    className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base bg-transparent border-none cursor-pointer"
-                  >
-                    Logout
-                  </button>
-                </>
-              ) : (
-                <>
-                  <Link href="/login" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">
-                    Login
-                  </Link>
-                  <Link href="/login" className="px-3 py-1.5 sm:px-4 sm:py-2 btn-primary text-sm">
-                    Sign Up
-                  </Link>
-                </>
-              )}
+              {t('upload')}
+            </button>
+
+            {/* Language Switcher */}
+            <div className="relative group">
+              <button className="p-2 text-gray-300 hover:text-white transition-colors rounded-full hover:bg-gray-800 flex items-center space-x-1">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span className="text-xs font-bold uppercase">{language}</span>
+              </button>
+              <div className="absolute right-0 mt-2 w-40 bg-gray-900 border border-gray-800 rounded-2xl shadow-2xl py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 overflow-hidden">
+                <button 
+                  onClick={() => setLanguage('en')}
+                  className={`flex items-center justify-between w-full px-4 py-2.5 text-sm ${language === 'en' ? 'text-[#FF4D67] bg-[#FF4D67]/10' : 'text-gray-300 hover:text-white hover:bg-gray-800'} transition-colors`}
+                >
+                  <span>English</span>
+                  {language === 'en' && <div className="w-1.5 h-1.5 rounded-full bg-[#FF4D67]"></div>}
+                </button>
+                <button 
+                  onClick={() => setLanguage('rw')}
+                  className={`flex items-center justify-between w-full px-4 py-2.5 text-sm ${language === 'rw' ? 'text-[#FF4D67] bg-[#FF4D67]/10' : 'text-gray-300 hover:text-white hover:bg-gray-800'} transition-colors`}
+                >
+                  <span>Kinyarwanda</span>
+                  {language === 'rw' && <div className="w-1.5 h-1.5 rounded-full bg-[#FF4D67]"></div>}
+                </button>
+              </div>
             </div>
+
+            {isAuthenticated && (
+              <Link 
+                href="/notifications" 
+                className="relative p-2 text-gray-300 hover:text-white transition-colors rounded-full hover:bg-gray-800"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                </svg>
+                {unreadCount > 0 && (
+                  <span className="absolute top-1.5 right-1.5 bg-[#FF4D67] text-white text-[9px] font-black rounded-full h-4 w-4 flex items-center justify-center border-2 border-gray-900">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
+              </Link>
+            )}
+
+            <div className="h-6 w-[1px] bg-gray-800 mx-1"></div>
+
+            {isAuthenticated ? (
+              <div className="flex items-center space-x-2">
+                <Link href="/profile" className="flex items-center space-x-2 p-1 pl-3 pr-3 hover:bg-gray-800 rounded-full transition-all group">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#FF4D67] to-[#FF3352] flex items-center justify-center text-white font-bold text-xs uppercase">
+                    {t('profile').charAt(0)}
+                  </div>
+                </Link>
+                <button 
+                  onClick={() => {
+                    logout();
+                    router.push('/');
+                  }}
+                  className="p-2 text-gray-400 hover:text-white transition-colors"
+                  title={t('logout')}
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                  </svg>
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <Link href="/login" className="px-4 py-2 text-sm font-bold text-white hover:text-[#FF4D67] transition-all">
+                  {t('login')}
+                </Link>
+                <Link href="/login" className="px-5 py-2 bg-[#FF4D67] hover:bg-[#FF3352] text-white text-sm font-bold rounded-full transition-all shadow-lg shadow-[#FF4D67]/20 hover:scale-105 active:scale-95">
+                  {t('signUp')}
+                </Link>
+              </div>
+            )}
           </div>
 
           {/* Mobile Controls */}
@@ -357,78 +352,83 @@ export default function Navbar() {
       </div>
 
       {/* Mobile Menu */}
-      <div className={`${isMenuOpen ? 'block' : 'hidden'} md:hidden`}>
-        <div className="px-0 pt-2 pb-3 space-y-1 sm:px-1">
+      <div className={`${isMenuOpen ? 'block' : 'hidden'} md:hidden bg-gray-900 border-b border-gray-800`}>
+        <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
           <Link href="/" className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800" onClick={() => setIsMenuOpen(false)}>
-            Home
+            {t('home')}
           </Link>
           <Link href="/explore" className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800" onClick={() => setIsMenuOpen(false)}>
-            Explore
+            {t('explore')}
           </Link>
           <Link href="/beats" className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800" onClick={() => setIsMenuOpen(false)}>
-            Beats
+            {t('beats')}
           </Link>
           <Link href="/playlists" className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800" onClick={() => setIsMenuOpen(false)}>
-            Playlists
+            {t('playlists')}
           </Link>
           <Link href="/community" className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800" onClick={() => setIsMenuOpen(false)}>
-            Community
+            {t('community')}
           </Link>
-          <div className="px-3 py-2">
-            <div className="text-xs uppercase tracking-wide text-gray-500 mb-2">Information</div>
+          
+          <div className="px-3 py-2 border-t border-gray-800 mt-2">
+            <div className="text-xs uppercase tracking-wide text-gray-500 mb-2">{t('more')}</div>
             <Link href="/about" className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800" onClick={() => setIsMenuOpen(false)}>
-              About Us
+              {t('aboutUs')}
             </Link>
             <Link href="/faq" className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800" onClick={() => setIsMenuOpen(false)}>
-              FAQ
+              {t('faq')}
             </Link>
             <Link href="/contact" className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800" onClick={() => setIsMenuOpen(false)}>
-              Contact
+              {t('contact')}
             </Link>
           </div>
-          <div className="px-3 py-2">
-            <div className="text-xs uppercase tracking-wide text-gray-500 mb-2">Legal</div>
-            <Link href="/terms" className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800" onClick={() => setIsMenuOpen(false)}>
-              Terms of Use
-            </Link>
-            <Link href="/privacy" className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800" onClick={() => setIsMenuOpen(false)}>
-              Privacy Policy
-            </Link>
-            <Link href="/copyright" className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800" onClick={() => setIsMenuOpen(false)}>
-              Copyright
-            </Link>
+          
+          <div className="px-3 py-2 border-t border-gray-800 mt-2">
+            <div className="text-xs uppercase tracking-wide text-gray-500 mb-2">Language / Ururimi</div>
+            <div className="flex space-x-2 px-3 py-2">
+              <button 
+                onClick={() => setLanguage('en')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${language === 'en' ? 'bg-[#FF4D67] text-white' : 'bg-gray-800 text-gray-400'}`}
+              >
+                English
+              </button>
+              <button 
+                onClick={() => setLanguage('rw')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${language === 'rw' ? 'bg-[#FF4D67] text-white' : 'bg-gray-800 text-gray-400'}`}
+              >
+                Kinyarwanda
+              </button>
+            </div>
           </div>
-          {/* Upload button for all users with proper navigation */}
+
+          {/* Upload button for all users */}
           <button 
             onClick={() => {
+              setIsMenuOpen(false);
               if (!isAuthenticated) {
-                // If not authenticated, go to login
                 router.push('/login');
-              } else if (userRole === 'creator') {
-                // If already a creator, go to upload
-                router.push('/upload');
               } else {
-                // If authenticated but not a creator, go to upload to upgrade
                 router.push('/upload');
               }
             }}
-            className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800 w-full text-left bg-transparent border-none cursor-pointer"
+            className="block px-6 py-3 mt-4 rounded-xl text-base font-bold text-white bg-gradient-to-r from-[#FF4D67] to-[#FF3352] w-full text-center shadow-lg shadow-[#FF4D67]/20"
           >
-            Upload
+            {t('upload')}
           </button>
-          <div className="pt-4 pb-3 border-t border-gray-800">
-            <div className="flex items-center px-5">
+          
+          <div className="pt-4 pb-3 border-t border-gray-800 mt-4">
+            <div className="flex flex-col items-center px-5 space-y-2">
               {isAuthenticated ? (
                 <>
-                  <Link href="/profile" className="w-full text-center px-4 py-2 text-base font-medium text-gray-300 hover:text-white" onClick={() => setIsMenuOpen(false)}>
-                    Profile
+                  <Link href="/profile" className="w-full text-center px-4 py-3 text-base font-medium text-gray-300 hover:text-white bg-gray-800 rounded-xl" onClick={() => setIsMenuOpen(false)}>
+                    {t('profile')}
                   </Link>
-                  <Link href="/notifications" className="w-full text-center px-4 py-2 text-base font-medium text-gray-300 hover:text-white" onClick={() => setIsMenuOpen(false)}>
-                    Notifications
+                  <Link href="/notifications" className="w-full text-center px-4 py-3 text-base font-medium text-gray-300 hover:text-white bg-gray-800 rounded-xl" onClick={() => setIsMenuOpen(false)}>
+                    {t('notifications')}
                   </Link>
                   {userRole === 'admin' && (
-                    <Link href="/admin" className="w-full text-center px-4 py-2 text-base font-medium text-gray-300 hover:text-white" onClick={() => setIsMenuOpen(false)}>
-                      Admin Dashboard
+                    <Link href="/admin" className="w-full text-center px-4 py-3 text-base font-medium text-[#FF4D67] bg-gray-800 rounded-xl" onClick={() => setIsMenuOpen(false)}>
+                      {t('adminDashboard')}
                     </Link>
                   )}
                   <button 
@@ -437,18 +437,18 @@ export default function Navbar() {
                       router.push('/');
                       setIsMenuOpen(false);
                     }}
-                    className="w-full text-center px-4 py-2 text-base font-medium text-gray-300 hover:text-white bg-transparent border-none cursor-pointer"
+                    className="w-full text-center px-4 py-3 text-base font-medium text-gray-400 hover:text-white bg-transparent border border-gray-800 rounded-xl"
                   >
-                    Logout
+                    {t('logout')}
                   </button>
                 </>
               ) : (
                 <>
-                  <Link href="/login" className="w-full text-center px-4 py-2 text-base font-medium text-gray-300 hover:text-white" onClick={() => setIsMenuOpen(false)}>
-                    Login
+                  <Link href="/login" className="w-full text-center px-4 py-3 text-base font-medium text-gray-300 hover:text-white bg-gray-800 rounded-xl" onClick={() => setIsMenuOpen(false)}>
+                    {t('login')}
                   </Link>
-                  <Link href="/login" className="w-full text-center ml-3 px-4 py-2 btn-primary" onClick={() => setIsMenuOpen(false)}>
-                    Sign Up
+                  <Link href="/login" className="w-full text-center px-4 py-3 text-base font-bold text-white bg-[#FF4D67] rounded-xl shadow-lg" onClick={() => setIsMenuOpen(false)}>
+                    {t('signUp')}
                   </Link>
                 </>
               )}

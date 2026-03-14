@@ -4,16 +4,18 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
 import { useAudioPlayer } from '../contexts/AudioPlayerContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export default function MobileNavbar() {
   const pathname = usePathname();
   const { isAuthenticated, userRole } = useAuth();
   const { currentTrack, isPlaying, togglePlayPause } = useAudioPlayer();
+  const { t } = useLanguage();
 
   // Navigation items
   const navItems = [
     { 
-      name: 'Home', 
+      name: t('home'), 
       href: '/', 
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -22,7 +24,7 @@ export default function MobileNavbar() {
       )
     },
     { 
-      name: 'Explore', 
+      name: t('explore'), 
       href: '/explore', 
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -31,7 +33,7 @@ export default function MobileNavbar() {
       )
     },
     { 
-      name: 'Community', 
+      name: t('community'), 
       href: '/community', 
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -40,7 +42,7 @@ export default function MobileNavbar() {
       )
     },
     { 
-      name: 'Upload', 
+      name: t('upload'), 
       href: '/upload', 
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -49,7 +51,7 @@ export default function MobileNavbar() {
       )
     },
     { 
-      name: 'Library', 
+      name: t('library'), 
       href: isAuthenticated ? '/profile' : '/login', 
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

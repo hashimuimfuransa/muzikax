@@ -4,11 +4,11 @@ const Playlist = require('../models/Playlist');
 const getRecommendedPlaylists = async (req, res) => {
   try {
     // Get popular public playlists
-    const popularPlaylists = await Playlist.find({ 
+    const popularPlaylistsRaw = await Playlist.find({ 
       isPublic: true, 
       name: { $not: { $regex: /^(dox|test|mock|sample|demo)/i } } // Filter out test playlists
     })
-      .populate('userId', 'name')
+      .populate('userId', 'name role')
       .populate({
         path: 'tracks',
         select: 'title creatorId plays coverURL audioURL',
@@ -17,18 +17,26 @@ const getRecommendedPlaylists = async (req, res) => {
           select: 'name'
         }
       })
-      .sort({ createdAt: -1 })
-      .limit(10);
+      .sort({ createdAt: -1 });
+    
+    // Filter by creator role (only show playlists from creators or admins)
+    const popularPlaylists = popularPlaylistsRaw
+      .filter(playlist => playlist.userId && (playlist.userId.role === 'creator' || playlist.userId.role === 'admin'))
+      .slice(0, 10);
     
     // Get recently created public playlists
-    const recentPlaylists = await Playlist.find({ 
+    const recentPlaylistsRaw = await Playlist.find({ 
       isPublic: true,
       name: { $not: { $regex: /^(dox|test|mock|sample|demo)/i } } // Filter out test playlists
     })
-      .populate('userId', 'name')
+      .populate('userId', 'name role')
       .populate('tracks', 'title creatorId plays coverURL audioURL')
-      .sort({ createdAt: -1 })
-      .limit(5);
+      .sort({ createdAt: -1 });
+
+    // Filter by creator role (only show playlists from creators or admins)
+    const recentPlaylists = recentPlaylistsRaw
+      .filter(playlist => playlist.userId && (playlist.userId.role === 'creator' || playlist.userId.role === 'admin'))
+      .slice(0, 5);
     
     res.json({
       popular: popularPlaylists,
@@ -47,11 +55,11 @@ const getPublicPlaylists = async (req, res) => {
     const limit = parseInt(req.query.limit) || 20;
     const skip = (page - 1) * limit;
     
-    const playlists = await Playlist.find({ 
+    const playlistsRaw = await Playlist.find({ 
       isPublic: true,
       name: { $not: { $regex: /^(dox|test|mock|sample|demo)/i } } // Filter out test playlists
     })
-      .populate('userId', 'name')
+      .populate('userId', 'name role')
       .populate({
         path: 'tracks',
         select: 'title creatorId plays coverURL',
@@ -60,11 +68,14 @@ const getPublicPlaylists = async (req, res) => {
           select: 'name'
         }
       })
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
+      .sort({ createdAt: -1 });
+
+    // Filter by creator role (only show playlists from creators or admins)
+    const playlists = playlistsRaw
+      .filter(playlist => playlist.userId && (playlist.userId.role === 'creator' || playlist.userId.role === 'admin'))
+      .slice(skip, skip + limit);
     
-    const total = await Playlist.countDocuments({ isPublic: true });
+    const total = playlistsRaw.filter(playlist => playlist.userId && (playlist.userId.role === 'creator' || playlist.userId.role === 'admin')).length;
     
     res.json({
       playlists,

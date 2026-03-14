@@ -1,34 +1,36 @@
 'use client'
 
 import Link from 'next/link'
+import { useLanguage } from '../contexts/LanguageContext'
 
 export default function Footer() {
   const currentYear = new Date().getFullYear()
+  const { t } = useLanguage()
 
   const footerLinks = {
     product: [
-      { name: 'Home', href: '/' },
-      { name: 'Explore', href: '/explore' },
-      { name: 'Artists', href: '/artists' },
-      { name: 'Playlists', href: '/playlists' },
+      { name: t('home'), href: '/' },
+      { name: t('explore'), href: '/explore' },
+      { name: t('artists'), href: '/artists' },
+      { name: t('playlists'), href: '/playlists' },
     ],
     company: [
-      { name: 'About Us', href: '/about' },
-      { name: 'Careers', href: '#' },
-      { name: 'Blog', href: '#' },
-      { name: 'Press', href: '#' },
+      { name: t('aboutUs'), href: '/about' },
+      { name: t('careers'), href: '#' },
+      { name: t('blog'), href: '#' },
+      { name: t('press'), href: '#' },
     ],
     support: [
-      { name: 'Help Center', href: '/faq' },
-      { name: 'Contact Us', href: '/contact' },
-      { name: 'Community', href: '#' },
-      { name: 'Status', href: '#' },
+      { name: t('helpCenter'), href: '/faq' },
+      { name: t('contactUs'), href: '/contact' },
+      { name: t('community'), href: '#' },
+      { name: t('status'), href: '#' },
     ],
     legal: [
-      { name: 'Terms of Use', href: '/terms' },
-      { name: 'Privacy Policy', href: '/privacy' },
-      { name: 'Copyright Policy', href: '/copyright' },
-      { name: 'Cookie Policy', href: '#' },
+      { name: t('termsOfUse'), href: '/terms' },
+      { name: t('privacyPolicy'), href: '/privacy' },
+      { name: t('copyrightPolicy'), href: '/copyright' },
+      { name: t('cookiePolicy'), href: '#' },
     ],
     social: [
       { name: 'Twitter', href: '#', icon: '🐦' },
@@ -50,7 +52,7 @@ export default function Footer() {
               <span className="ml-3 text-xl font-bold text-white">MuzikaX</span>
             </Link>
             <p className="mt-4 text-gray-400 text-sm">
-              Connecting Rwandan music creators with fans worldwide. Discover, stream, and share the best of Rwandan music.
+              {t('footerDescription')}
             </p>
             <div className="flex flex-col sm:flex-row items-center gap-4 mt-6">
               <div className="flex items-center text-sm text-gray-400">
@@ -78,7 +80,7 @@ export default function Footer() {
 
           {/* Product Links */}
           <div>
-            <h3 className="text-sm font-semibold text-white uppercase tracking-wider">Product</h3>
+            <h3 className="text-sm font-semibold text-white uppercase tracking-wider">{t('product')}</h3>
             <ul className="mt-4 space-y-3">
               {footerLinks.product.map((link) => (
                 <li key={link.name}>
@@ -95,7 +97,7 @@ export default function Footer() {
 
           {/* Company Links */}
           <div>
-            <h3 className="text-sm font-semibold text-white uppercase tracking-wider">Company</h3>
+            <h3 className="text-sm font-semibold text-white uppercase tracking-wider">{t('company')}</h3>
             <ul className="mt-4 space-y-3">
               {footerLinks.company.map((link) => (
                 <li key={link.name}>
@@ -112,7 +114,7 @@ export default function Footer() {
 
           {/* Support Links */}
           <div>
-            <h3 className="text-sm font-semibold text-white uppercase tracking-wider">Support</h3>
+            <h3 className="text-sm font-semibold text-white uppercase tracking-wider">{t('support')}</h3>
             <ul className="mt-4 space-y-3">
               {footerLinks.support.map((link) => (
                 <li key={link.name}>
@@ -129,7 +131,7 @@ export default function Footer() {
 
           {/* Legal Links */}
           <div>
-            <h3 className="text-sm font-semibold text-white uppercase tracking-wider">Legal</h3>
+            <h3 className="text-sm font-semibold text-white uppercase tracking-wider">{t('legal')}</h3>
             <ul className="mt-4 space-y-3">
               {footerLinks.legal.map((link) => (
                 <li key={link.name}>
@@ -149,10 +151,10 @@ export default function Footer() {
         <div className="mt-12 pt-8 border-t border-gray-800">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-gray-400 text-sm text-center md:text-left">
-              © {currentYear} MuzikaX. All rights reserved.
+              © {currentYear} MuzikaX. {t('allRightsReserved')}
             </p>
             <div className="flex flex-col sm:flex-row items-center gap-4">
-              <span className="text-gray-400 text-sm text-center">Made with ❤️ in Rwanda</span>
+              <span className="text-gray-400 text-sm text-center">{t('madeWithIn')}</span>
             </div>
           </div>
         </div>

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAudioPlayer } from '@/contexts/AudioPlayerContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { FaPlay, FaPause, FaHeart } from 'react-icons/fa';
 
 interface Track {
@@ -24,7 +25,9 @@ interface MixesHorizontalScrollProps {
   viewAllLink?: string;
 }
 
-const MixesHorizontalScroll = ({ title = 'Popular Mixes', viewAllLink = '/mixes' }: MixesHorizontalScrollProps) => {
+const MixesHorizontalScroll = ({ title, viewAllLink = '/mixes' }: MixesHorizontalScrollProps) => {
+  const { t } = useLanguage();
+  const displayTitle = title || t('popularMixes');
   const [mixes, setMixes] = useState<Track[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -137,9 +140,9 @@ const MixesHorizontalScroll = ({ title = 'Popular Mixes', viewAllLink = '/mixes'
     return (
       <section className="px-4 md:px-6 py-8">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-white">{title}</h2>
+          <h2 className="text-2xl font-bold text-white">{displayTitle}</h2>
           <Link href={viewAllLink} className="text-[#FF4D67] hover:text-[#FFCB2B] transition-colors">
-            View All
+            {t('viewAll')}
           </Link>
         </div>
         <div className="flex overflow-x-auto pb-4 scrollbar-hide">
@@ -163,9 +166,9 @@ const MixesHorizontalScroll = ({ title = 'Popular Mixes', viewAllLink = '/mixes'
     return (
       <section className="px-4 md:px-6 py-8">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-white">{title}</h2>
+          <h2 className="text-2xl font-bold text-white">{displayTitle}</h2>
           <Link href={viewAllLink} className="text-[#FF4D67] hover:text-[#FFCB2B] transition-colors">
-            View All
+            {t('viewAll')}
           </Link>
         </div>
         <div className="text-red-500">Error loading mixes: {error}</div>
@@ -180,9 +183,9 @@ const MixesHorizontalScroll = ({ title = 'Popular Mixes', viewAllLink = '/mixes'
   return (
     <section className="px-4 md:px-6 py-8">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-white">{title}</h2>
+        <h2 className="text-2xl font-bold text-white">{displayTitle}</h2>
         <Link href={viewAllLink} className="text-[#FF4D67] hover:text-[#FFCB2B] transition-colors">
-          View All
+          {t('viewAll')}
         </Link>
       </div>
       <div className="flex overflow-x-auto pb-4 scrollbar-hide">
@@ -254,7 +257,7 @@ const MixesHorizontalScroll = ({ title = 'Popular Mixes', viewAllLink = '/mixes'
                   
                   {/* Stats */}
                   <div className="flex justify-between text-xs text-gray-500">
-                    <span>{(track.plays || 0).toLocaleString()} plays</span>
+                    <span>{(track.plays || 0).toLocaleString()} {t('plays')}</span>
                     <div className="flex items-center gap-1">
                       <FaHeart className="w-3 h-3" />
                       <span>{track.likes || 0}</span>

@@ -22,8 +22,8 @@ const searchAll = async (req, res) => {
     
     // Search tracks if type is 'all' or 'tracks'
     if (type === 'all' || type === 'tracks') {
-      // Build track query
-      const trackQuery = {};
+      // Build track query - exclude mixes from 'tracks' to have them separate
+      const trackQuery = { type: { $ne: 'mix' } };
       
       // Add text search if query exists
       if (searchRegex) {
@@ -57,6 +57,38 @@ const searchAll = async (req, res) => {
         price: track.price || 0,
         creatorId: track.creatorId ? track.creatorId._id : null,
         creatorWhatsapp: track.creatorId ? track.creatorId.whatsappContact : null
+      }));
+    }
+
+    // Search mixes if type is 'all' or 'mixes'
+    if (type === 'all' || type === 'mixes') {
+      const mixQuery = { type: 'mix' };
+      
+      if (searchRegex) {
+        mixQuery.$or = [
+          { title: searchRegex },
+          { description: searchRegex }
+        ];
+      }
+      
+      if (genre) {
+        mixQuery.genre = genre;
+      }
+      
+      const mixes = await Track.find(mixQuery)
+      .populate('creatorId', 'name avatar')
+      .sort({ plays: -1, createdAt: -1 });
+      
+      results.mixes = mixes.map(track => ({
+        id: track._id,
+        title: track.title,
+        artist: track.creatorId ? track.creatorId.name : 'Unknown Artist',
+        plays: track.plays,
+        likes: track.likes,
+        coverImage: track.coverURL || '',
+        audioURL: track.audioURL,
+        type: track.type,
+        creatorId: track.creatorId ? track.creatorId._id : null
       }));
     }
     
@@ -134,10 +166,10 @@ const searchAll = async (req, res) => {
       
       // Genre filter doesn't apply to playlists directly, but we can filter by tracks' genres
       const playlists = await Playlist.find(playlistQuery)
-      .populate('userId', 'name')
+      .populate('userId', 'name role')
       .populate({
         path: 'tracks',
-        select: 'title genre creatorId',
+        select: 'title genre creatorId coverURL audioURL',
         populate: {
           path: 'creatorId',
           select: 'name'
@@ -145,10 +177,14 @@ const searchAll = async (req, res) => {
       })
       .sort({ createdAt: -1 });
       
-      // Filter by genre if specified (check if any track in playlist matches genre)
-      let filteredPlaylists = playlists;
+      // Filter by creator role (only show playlists from creators or admins)
+      // and by genre if specified (check if any track in playlist matches genre)
+      let filteredPlaylists = playlists.filter(playlist => 
+        playlist.userId && (playlist.userId.role === 'creator' || playlist.userId.role === 'admin')
+      );
+      
       if (genre) {
-        filteredPlaylists = playlists.filter(playlist => 
+        filteredPlaylists = filteredPlaylists.filter(playlist => 
           playlist.tracks && playlist.tracks.some(track => track.genre === genre)
         );
       }
@@ -160,7 +196,7 @@ const searchAll = async (req, res) => {
         creator: playlist.userId ? playlist.userId.name : 'Unknown Creator',
         coverImage: playlist.tracks && playlist.tracks.length > 0 ? 
                    (playlist.tracks[0].coverURL || '') : '',
-        tracks: playlist.tracks ? playlist.tracks.length : 0,
+        tracks: playlist.tracks || [],
         isPublic: playlist.isPublic
       }));
     }

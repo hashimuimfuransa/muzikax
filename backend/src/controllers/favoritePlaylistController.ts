@@ -156,7 +156,7 @@ export const createPlaylist = async (req: Request, res: Response): Promise<void>
       description: description || '',
       userId,
       tracks: trackIds || [],
-      isPublic: isPublic !== undefined ? isPublic : true
+      isPublic: isPublic !== undefined ? isPublic : false
     });
 
     const savedPlaylist = await playlist.save();

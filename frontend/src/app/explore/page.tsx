@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useTrendingTracks, usePopularCreators } from '@/hooks/useTracks'
 import { useAudioPlayer } from '@/contexts/AudioPlayerContext'
+import { useLanguage } from '@/contexts/LanguageContext'
 import { Suspense } from 'react'
 import { followCreator, unfollowCreator, checkFollowStatus } from '@/services/trackService'
 
@@ -103,6 +104,7 @@ function ExploreContent() {
   }, [trendingTracksData, trendingLoading]);
   const { creators: popularCreatorsData, loading: creatorsLoading, refresh: refreshCreators } = usePopularCreators(20)
   const { currentTrack, isPlaying, playTrack, setCurrentPlaylist, favorites, favoritesLoading, addToFavorites, removeFromFavorites, addToQueue } = useAudioPlayer()
+  const { t } = useLanguage()
 
   // State for albums and playlists
   const [albums, setAlbums] = useState<Album[]>([])
@@ -499,16 +501,16 @@ function ExploreContent() {
         <div className="container mx-auto px-4 sm:px-8 relative z-10">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] mb-3 sm:mb-4">
-              Explore Rwandan Music
+              {t('exploreRwandanMusic')}
             </h1>
             <p className="text-base sm:text-lg text-gray-300 max-w-2xl mx-auto mb-6 sm:mb-8">
-              Discover trending tracks and talented creators from Rwanda's vibrant music scene
+              {t('exploreHeroDescription')}
             </p>
             
             <div className="relative max-w-xl mx-auto">
               <input
                 type="text"
-                placeholder="Search tracks, artists, albums..."
+                placeholder={t('searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full py-2.5 sm:py-3 px-4 sm:px-6 pl-10 sm:pl-12 bg-gray-800/70 backdrop-blur-sm border border-gray-700/50 rounded-full text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm sm:text-base shadow-lg"
@@ -534,7 +536,7 @@ function ExploreContent() {
             }`}
             onClick={() => handleCategoryClick('')}
           >
-            All
+            {t('all')}
           </button>
           
           {categories.slice(0, 5).map((category) => (
@@ -555,7 +557,7 @@ function ExploreContent() {
           <div className="flex items-center flex-shrink-0 relative">
             <details className="group">
               <summary className="px-2.5 py-1.5 xs:px-3 xs:py-2 rounded-full text-xs xs:text-sm font-medium bg-gray-800/50 text-gray-300 hover:bg-gray-700/50 border border-gray-700/50 cursor-pointer list-none flex items-center gap-1">
-                <span>More</span>
+                <span>{t('more')}</span>
                 <svg className="w-3 h-3 ml-1 transition-transform duration-300 group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
                 </svg>
@@ -563,7 +565,7 @@ function ExploreContent() {
               <div className="fixed z-50 inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 sm:p-8" onClick={(e) => e.stopPropagation()}>
                 <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl shadow-2xl shadow-[#FF4D67]/50 border border-gray-700/50 max-h-[80vh] w-full max-w-md overflow-hidden">
                   <div className="p-4 border-b border-gray-700/50 flex justify-between items-center">
-                    <h3 className="text-lg font-bold text-white">More Genres</h3>
+                    <h3 className="text-lg font-bold text-white">{t('moreGenres')}</h3>
                     <button 
                       onClick={() => {
                         const details = document.querySelector('details');
@@ -616,7 +618,7 @@ function ExploreContent() {
             }`}
             onClick={() => setActiveTab('tracks')}
           >
-            Trending Tracks
+            {t('trendingTracks')}
           </button>
           <button
             className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors ${
@@ -626,7 +628,7 @@ function ExploreContent() {
             }`}
             onClick={() => setActiveTab('beats')}
           >
-            Beats
+            {t('beats')}
           </button>
           <button
             className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors ${
@@ -636,7 +638,7 @@ function ExploreContent() {
             }`}
             onClick={() => setActiveTab('albums')}
           >
-            Albums
+            {t('albums')}
           </button>
           <button
             className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors ${
@@ -646,7 +648,7 @@ function ExploreContent() {
             }`}
             onClick={() => setActiveTab('playlists')}
           >
-            Playlists
+            {t('playlists')}
           </button>
           <button
             className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors ${
@@ -656,7 +658,7 @@ function ExploreContent() {
             }`}
             onClick={() => setActiveTab('creators')}
           >
-            Top Creators
+            {t('topCreators')}
           </button>
         </div>
 
@@ -665,7 +667,7 @@ function ExploreContent() {
           <>
             {beatsLoading ? (
               <div className="flex justify-center items-center h-64">
-                <div className="text-white">Loading beats...</div>
+                <div className="text-white">{t('loadingBeats')}</div>
               </div>
             ) : (
               <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 xs:gap-4 sm:gap-5 md:gap-6 lg:gap-8">
@@ -685,13 +687,13 @@ function ExploreContent() {
                       {/* Beat indicator badge */}
                       <div className="absolute top-3 left-3">
                         <span className="px-2 py-1 bg-purple-600 text-white text-xs rounded-full">
-                          BEAT
+                          {t('beat')}
                         </span>
                       </div>
                       {/* Payment type indicator */}
                       <div className="absolute top-3 right-3">
                         <span className={`px-2 py-1 text-xs rounded-full ${beat.paymentType === 'paid' ? 'bg-green-600 text-white' : 'bg-blue-600 text-white'}`}>
-                          {beat.paymentType === 'paid' ? 'PAID' : 'FREE'}
+                          {beat.paymentType === 'paid' ? t('paid') : t('free')}
                         </span>
                       </div>
                       {beat.paymentType === 'paid' && beat.price && (
@@ -816,7 +818,7 @@ function ExploreContent() {
                               });
                               const toastEvent = new CustomEvent('showToast', {
                                 detail: {
-                                  message: `Added ${beat.title} to queue!`,
+                                  message: t('addedToPlaylist'),
                                   type: 'success'
                                 }
                               });
@@ -833,7 +835,7 @@ function ExploreContent() {
                             }
                           }}
                           className="p-2 sm:p-2.5 rounded-full bg-black/40 backdrop-blur-md text-white opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 hover:bg-black/60 shadow-md"
-                          title={`Add ${beat.title} to queue`}
+                          title={t('queue')}
                         >
                           <svg 
                             className="w-5 h-5 sm:w-6 sm:h-6"
@@ -853,7 +855,7 @@ function ExploreContent() {
                       <p className="text-gray-400 text-xs xs:text-sm sm:text-base mb-2 xs:mb-3 sm:mb-4">{beat.artist}</p>
                       
                       <div className="flex justify-between text-xs sm:text-sm text-gray-500">
-                        <span className="text-xs">{beat.plays.toLocaleString()} plays</span>
+                        <span className="text-xs">{beat.plays.toLocaleString()} {t('plays')}</span>
                         <div className="flex items-center gap-1">
                           <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                             <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd"></path>
@@ -866,7 +868,7 @@ function ExploreContent() {
                 ))
               ) : (
                 <div className="col-span-full py-20 text-center text-gray-400">
-                  No beats found in this category
+                  {t('noBeatsFound')}
                 </div>
               )}
             </div>
@@ -879,11 +881,12 @@ function ExploreContent() {
           <>
             {albumsLoading ? (
               <div className="flex justify-center items-center h-64">
-                <div className="text-white">Loading albums...</div>
+                <div className="text-white">{t('loadingAlbums')}</div>
               </div>
             ) : (
               <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 xs:gap-4 sm:gap-5 md:gap-6 lg:gap-8">
-                {albums.map((album) => (
+                {albums.length > 0 ? (
+                  albums.map((album) => (
                   <div key={`album-${album.id}`} className="group card-bg rounded-lg xs:rounded-xl sm:rounded-2xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10">
                     <div className="relative">
                       <img 
@@ -970,7 +973,7 @@ function ExploreContent() {
                       <p className="text-gray-400 text-xs xs:text-sm sm:text-base mb-2 xs:mb-3 sm:mb-4">{album.artist}</p>
                       
                       <div className="flex justify-between text-xs sm:text-sm text-gray-500">
-                        <span className="text-xs">{album.tracks?.length || 0} tracks</span>
+                        <span className="text-xs">{album.tracks?.length || 0} {t('tracks')}</span>
                         <div className="flex items-center gap-1">
                           <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                             <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd"></path>
@@ -980,7 +983,12 @@ function ExploreContent() {
                       </div>
                     </div>
                   </div>
-                ))}
+                ))
+                ) : (
+                  <div className="col-span-full py-20 text-center text-gray-400">
+                    {t('noAlbumsFound')}
+                  </div>
+                )}
               </div>
             )}
           </>
@@ -991,11 +999,12 @@ function ExploreContent() {
           <>
             {playlistsLoading ? (
               <div className="flex justify-center items-center h-64">
-                <div className="text-white">Loading playlists...</div>
+                <div className="text-white">{t('loadingPlaylists')}</div>
               </div>
             ) : (
               <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 xs:gap-4 sm:gap-5 md:gap-6 lg:gap-8">
-                {playlists.map((playlist) => (
+                {playlists.length > 0 ? (
+                  playlists.map((playlist) => (
                   <div key={`playlist-${playlist.id}`} className="group card-bg rounded-lg xs:rounded-xl sm:rounded-2xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10">
                     <div className="relative">
                       <img 
@@ -1066,7 +1075,7 @@ function ExploreContent() {
                                 // Show success notification
                                 const toastEvent = new CustomEvent('showToast', {
                                   detail: {
-                                    message: `Added ${formattedTracks.length} tracks from "${playlist.name}" to queue!`,
+                                    message: t('addedTracksToQueue', { count: formattedTracks.length, name: playlist.name }),
                                     type: 'success'
                                   }
                                 });
@@ -1085,17 +1094,22 @@ function ExploreContent() {
                     <div className="p-3 xs:p-4 sm:p-5">
                       <h3 className="font-bold text-white text-xs xs:text-sm sm:text-lg mb-1 truncate">{playlist.name}</h3>
                       <p className="text-gray-400 text-xs xs:text-sm sm:text-base mb-2 xs:mb-3 sm:mb-4">
-                        {playlist.description ? `${playlist.description.substring(0, 60)}...` : 'Playlist'}
+                        {playlist.description ? `${playlist.description.substring(0, 60)}...` : t('playlists')}
                       </p>
-                      <p className="text-gray-500 text-xs mb-2 xs:mb-3">by {playlist.userId?.name || 'Unknown Creator'}</p>
+                      <p className="text-gray-500 text-xs mb-2 xs:mb-3">{t('byCreator', { name: playlist.userId?.name || 'Unknown Creator' })}</p>
                       
                       <div className="flex justify-between text-xs sm:text-sm text-gray-500">
-                        <span>{playlist.tracks?.length || 0} tracks</span>
-                        <span className="capitalize">{playlist.isPublic ? 'Public' : 'Private'}</span>
+                        <span>{playlist.tracks?.length || 0} {t('tracks')}</span>
+                        <span className="capitalize">{playlist.isPublic ? t('public') : t('private')}</span>
                       </div>
                     </div>
                   </div>
-                ))}
+                ))
+                ) : (
+                  <div className="col-span-full py-20 text-center text-gray-400">
+                    {t('noPlaylistsFound')}
+                  </div>
+                )}
               </div>
             )}
           </>
@@ -1106,7 +1120,7 @@ function ExploreContent() {
           <>
             {trendingLoading ? (
               <div className="flex justify-center items-center h-64">
-                <div className="text-white">Loading tracks...</div>
+                <div className="text-white">{t('loading')}</div>
               </div>
             ) : (
               <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 xs:gap-4 sm:gap-5 md:gap-6 lg:gap-8">
@@ -1270,7 +1284,7 @@ function ExploreContent() {
                       <p className="text-gray-400 text-xs xs:text-sm sm:text-base mb-2 xs:mb-3 sm:mb-4">{track.artist}</p>
                       
                       <div className="flex justify-between text-xs sm:text-sm text-gray-500">
-                        <span>{track.plays.toLocaleString()} plays</span>
+                        <span>{track.plays.toLocaleString()} {t('plays')}</span>
                         <div className="flex items-center gap-1">
                           <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                             <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd"></path>
@@ -1292,11 +1306,12 @@ function ExploreContent() {
           <>
             {creatorsLoading ? (
               <div className="flex justify-center items-center h-64">
-                <div className="text-white">Loading creators...</div>
+                <div className="text-white">{t('loading')}</div>
               </div>
             ) : (
               <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 xs:gap-4 sm:gap-5 md:gap-6">
-                {filteredCreators.map((creator) => (
+                {filteredCreators.length > 0 ? (
+                  filteredCreators.map((creator) => (
                   <div key={`creator-${creator._id || creator.id}`} className="group card-bg rounded-lg xs:rounded-xl sm:rounded-2xl p-3 xs:p-4 sm:p-5 md:p-6 transition-all duration-300 hover:border-[#FFCB2B]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FFCB2B]/10 cursor-pointer"
                     onClick={() => {
                       router.push(`/artists/${creator._id || creator.id}`);
@@ -1321,7 +1336,7 @@ function ExploreContent() {
                     </div>
                     
                     <div className="flex justify-center text-xs xs:text-sm text-gray-500 mb-2 xs:mb-3">
-                      <span>{creator.followersCount.toLocaleString()} followers</span>
+                      <span>{creator.followersCount.toLocaleString()} {t('followers')}</span>
                     </div>
                     
                     <button 
@@ -1360,10 +1375,15 @@ function ExploreContent() {
                         }
                       }}
                     >
-                      {followStatus[creator._id || creator.id || ''] ? 'Following' : 'Follow'}
+                      {followStatus[creator._id || creator.id || ''] ? t('following') : t('follow')}
                     </button>
                   </div>
-                ))}
+                ))
+                ) : (
+                  <div className="col-span-full py-20 text-center text-gray-400">
+                    {t('noCreatorsFound')}
+                  </div>
+                )}
               </div>
             )}
           </>

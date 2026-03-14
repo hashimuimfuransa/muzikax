@@ -1,5 +1,6 @@
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { followCreator, unfollowCreator, checkFollowStatus } from '../services/trackService';
 
 interface Creator {
@@ -22,6 +23,7 @@ interface ArtistCardProps {
 export default function ArtistCard({ creator, followStatus, setFollowStatus }: ArtistCardProps) {
   const router = useRouter();
   const { isAuthenticated } = useAuth();
+  const { t } = useLanguage();
 
   const handleFollowToggle = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -113,13 +115,13 @@ export default function ArtistCard({ creator, followStatus, setFollowStatus }: A
           {creator.type}
         </p>
         <p className="text-gray-500 text-xs mb-2">
-          {(creator.followersCount || creator.followers || 0).toLocaleString()} followers
+          {(creator.followersCount || creator.followers || 0).toLocaleString()} {t('followers')}
         </p>
         <button 
           className={`w-full px-3 py-1.5 ${followStatus[creator._id || creator.id || ''] ? 'bg-gray-600 hover:bg-gray-700 border-gray-600' : 'bg-transparent border border-[#FFCB2B] text-[#FFCB2B] hover:bg-[#FFCB2B]/10'} rounded-full text-xs font-medium transition-colors`}
           onClick={handleFollowToggle}
         >
-          {followStatus[creator._id || creator.id || ''] ? 'Unfollow' : 'Follow'}
+          {followStatus[creator._id || creator.id || ''] ? t('unfollow') : t('follow')}
         </button>
       </div>
     </div>

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import Script from 'next/script';
 import "./globals.css";
 import { AuthProvider } from "../contexts/AuthContext";
+import { LanguageProvider } from "../contexts/LanguageContext";
 import { AudioPlayerProvider } from "../contexts/AudioPlayerContext";
 import { CommunityProvider } from "../contexts/CommunityContext";
 import { PaymentProvider } from "../contexts/PaymentContext";
@@ -154,18 +155,20 @@ export default function RootLayout({
         />
         <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"}>
           <AuthProvider>
-            <AudioPlayerProvider>
-              <CommunityProvider>
-                <PaymentProvider>
-                  <ConditionalNavbar />
-                  <PushNotificationInitializer />
-                  {children}
-                  <ModernAudioPlayer />
-                  <PWAInstallPrompt />
-                  <ContactFloatingButton />
-                </PaymentProvider>
-              </CommunityProvider>
-            </AudioPlayerProvider>
+            <LanguageProvider>
+              <AudioPlayerProvider>
+                <CommunityProvider>
+                  <PaymentProvider>
+                    <ConditionalNavbar />
+                    <PushNotificationInitializer />
+                    {children}
+                    <ModernAudioPlayer />
+                    <PWAInstallPrompt />
+                    <ContactFloatingButton />
+                  </PaymentProvider>
+                </CommunityProvider>
+              </AudioPlayerProvider>
+            </LanguageProvider>
           </AuthProvider>
         </GoogleOAuthProvider>
       </body>

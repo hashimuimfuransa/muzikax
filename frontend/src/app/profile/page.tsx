@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../contexts/AuthContext'
+import { useLanguage } from '../../contexts/LanguageContext'
 import { fetchCreatorAnalytics, fetchCreatorTracks } from '../../services/creatorService'
 import { getAlbumsByCreator, deleteAlbum } from '../../services/albumService'
 import { deleteTrack } from '../../services/trackService'
@@ -88,6 +89,7 @@ export default function Profile() {
   const [showTabsSidebar, setShowTabsSidebar] = useState(false)
   const { currentTrack, isPlaying, playTrack, setCurrentPlaylist, favorites, addToFavorites, removeFromFavorites } = useAudioPlayer()
   const router = useRouter()
+  const { t } = useLanguage()
   const { isAuthenticated, user, isLoading, updateProfile, updateWhatsAppContact } = useAuth() // Import both functions
 
   // Check authentication on component mount
@@ -1099,13 +1101,13 @@ export default function Profile() {
           {/* Profile Settings Tab */}
           {activeTab === 'profile' && (
             <div className="card-bg rounded-2xl p-5 sm:p-6 border border-gray-700/50">
-              <h3 className="text-lg sm:text-xl font-bold text-white mb-5">Account Settings</h3>
+              <h3 className="text-lg sm:text-xl font-bold text-white mb-5">{t('accountSettings')}</h3>
               
               <form onSubmit={handleSubmit} className="space-y-5">
                 {/* Avatar Upload Section */}
                 <div className="pt-2">
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Profile Picture
+                    {t('profilePicture')}
                   </label>
                   <div className="flex flex-col sm:flex-row items-center gap-4">
                     <div className="w-16 h-16 rounded-full bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center relative overflow-hidden">
@@ -1125,7 +1127,7 @@ export default function Profile() {
                     <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                       <div className="flex flex-col space-y-2">
                         <label className="cursor-pointer bg-[#FF4D67] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#FF4D67]/80 transition-colors">
-                          {avatarUrl ? 'Change' : 'Upload'}
+                          {avatarUrl ? t('change') : t('upload')}
                           <input
                             type="file"
                             accept="image/*"
@@ -1142,13 +1144,13 @@ export default function Profile() {
                             }}
                             className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors text-sm font-medium w-full sm:w-auto"
                           >
-                            Remove
+                            {t('remove')}
                           </button>
                         )}
                         {uploadProgress['avatar'] > 0 && uploadProgress['avatar'] < 100 && (
                           <div className="w-full mt-2">
                             <div className="flex justify-between text-[10px] text-gray-400 mb-1">
-                              <span>Uploading...</span>
+                              <span>{t('loading')}</span>
                               <span>{Math.round(uploadProgress['avatar'])}%</span>
                             </div>
                             <div className="w-full bg-gray-700 rounded-full h-1.5 overflow-hidden">
@@ -1163,7 +1165,7 @@ export default function Profile() {
 
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
-                    Full Name
+                    {t('fullName')}
                   </label>
                   <input
                     type="text"
@@ -1175,7 +1177,7 @@ export default function Profile() {
 
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
-                    Email Address
+                    {t('emailAddress')}
                   </label>
                   <input
                     type="email"
@@ -1190,13 +1192,13 @@ export default function Profile() {
                     {/* Bio Field */}
                     <div>
                       <label htmlFor="bio" className="block text-sm font-medium text-gray-300 mb-2">
-                        Bio
+                        {t('bio')}
                       </label>
                       <textarea
                         id="bio"
                         value={bio}
                         onChange={(e) => setBio(e.target.value)}
-                        placeholder="Tell your fans about yourself..."
+                        placeholder={t('bioPlaceholder')}
                         className="w-full px-3 py-2.5 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm min-h-[100px]"
                       />
                     </div>
@@ -1204,7 +1206,7 @@ export default function Profile() {
                     {/* Genres Field */}
                     <div>
                       <label className="block text-sm font-medium text-gray-300 mb-2">
-                        Favorite Genres
+                        {t('favoriteGenres')}
                       </label>
                       <div className="flex flex-wrap gap-2 mb-3">
                         {genres.map((genre, index) => (
@@ -1227,7 +1229,7 @@ export default function Profile() {
                           type="text"
                           value={newGenre}
                           onChange={(e) => setNewGenre(e.target.value)}
-                          placeholder="Add a genre..."
+                          placeholder={t('addGenrePlaceholder')}
                           className="flex-1 px-3 py-2.5 bg-gray-800/50 border border-gray-700 rounded-l-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm"
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') {
@@ -1249,7 +1251,7 @@ export default function Profile() {
                           }}
                           className="px-4 bg-[#FF4D67] text-white rounded-r-lg hover:bg-[#FF4D67]/80 transition-colors text-sm font-medium"
                         >
-                          Add
+                          {t('add')}
                         </button>
                       </div>
                     </div>
@@ -1258,24 +1260,24 @@ export default function Profile() {
 
                 <div>
                   <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-300 mb-2">
-                    Current Password
+                    {t('currentPassword')}
                   </label>
                   <input
                     type="password"
                     id="currentPassword"
-                    placeholder="Enter current password"
+                    placeholder={t('currentPasswordPlaceholder')}
                     className="w-full px-3 py-2.5 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm"
                   />
                 </div>
 
                 <div>
                   <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
-                    New Password
+                    {t('newPassword')}
                   </label>
                   <input
                     type="password"
                     id="password"
-                    placeholder="Enter new password"
+                    placeholder={t('newPasswordPlaceholder')}
                     className="w-full px-3 py-2.5 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm"
                   />
                 </div>
@@ -1286,17 +1288,17 @@ export default function Profile() {
                       <svg className="w-4 h-4 text-[#FFCB2B]" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                         <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 101 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"></path>
                       </svg>
-                      Want to become a creator?
+                      {t('wantBecomeCreator')}
                     </h4>
                     <p className="text-xs text-gray-400 mb-3">
-                      Upgrade your account to upload music and connect with fans.
+                      {t('upgradeAccountDescription')}
                     </p>
                     <button 
                       onClick={() => router.push('/upload')}
                       className="px-3 py-1.5 bg-transparent border border-[#FFCB2B] text-[#FFCB2B] hover:bg-[#FFCB2B]/10 rounded-full text-xs font-medium transition-colors"
                       type="button"
                     >
-                      Upgrade to Creator
+                      {t('upgradeToCreator')}
                     </button>
                   </div>
                 )}
@@ -1306,7 +1308,7 @@ export default function Profile() {
                     type="submit"
                     className="px-5 py-2.5 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-opacity text-sm"
                   >
-                    Save Changes
+                    {t('saveChanges')}
                   </button>
                 </div>
               </form>
@@ -1317,41 +1319,41 @@ export default function Profile() {
                   <svg className="w-5 h-5 text-[#FF4D67]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                   </svg>
-                  Legal & Information
+                  {t('legalInformation')}
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Link href="/about" className="flex items-center justify-between p-3 bg-gray-800/30 hover:bg-gray-700/50 rounded-lg border border-gray-700 transition-colors group">
-                    <span className="text-gray-300 group-hover:text-white">About Us</span>
+                    <span className="text-gray-300 group-hover:text-white">{t('aboutUs')}</span>
                     <svg className="w-4 h-4 text-gray-500 group-hover:text-[#FF4D67]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
                     </svg>
                   </Link>
                   <Link href="/contact" className="flex items-center justify-between p-3 bg-gray-800/30 hover:bg-gray-700/50 rounded-lg border border-gray-700 transition-colors group">
-                    <span className="text-gray-300 group-hover:text-white">Contact Us</span>
+                    <span className="text-gray-300 group-hover:text-white">{t('contactUs')}</span>
                     <svg className="w-4 h-4 text-gray-500 group-hover:text-[#FF4D67]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
                     </svg>
                   </Link>
                   <Link href="/faq" className="flex items-center justify-between p-3 bg-gray-800/30 hover:bg-gray-700/50 rounded-lg border border-gray-700 transition-colors group">
-                    <span className="text-gray-300 group-hover:text-white">FAQ</span>
+                    <span className="text-gray-300 group-hover:text-white">{t('faq')}</span>
                     <svg className="w-4 h-4 text-gray-500 group-hover:text-[#FF4D67]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
                     </svg>
                   </Link>
                   <Link href="/terms" className="flex items-center justify-between p-3 bg-gray-800/30 hover:bg-gray-700/50 rounded-lg border border-gray-700 transition-colors group">
-                    <span className="text-gray-300 group-hover:text-white">Terms of Use</span>
+                    <span className="text-gray-300 group-hover:text-white">{t('termsOfUse')}</span>
                     <svg className="w-4 h-4 text-gray-500 group-hover:text-[#FF4D67]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
                     </svg>
                   </Link>
                   <Link href="/privacy" className="flex items-center justify-between p-3 bg-gray-800/30 hover:bg-gray-700/50 rounded-lg border border-gray-700 transition-colors group">
-                    <span className="text-gray-300 group-hover:text-white">Privacy Policy</span>
+                    <span className="text-gray-300 group-hover:text-white">{t('privacyPolicy')}</span>
                     <svg className="w-4 h-4 text-gray-500 group-hover:text-[#FF4D67]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
                     </svg>
                   </Link>
                   <Link href="/copyright" className="flex items-center justify-between p-3 bg-gray-800/30 hover:bg-gray-700/50 rounded-lg border border-gray-700 transition-colors group">
-                    <span className="text-gray-300 group-hover:text-white">Copyright Policy</span>
+                    <span className="text-gray-300 group-hover:text-white">{t('copyrightPolicy')}</span>
                     <svg className="w-4 h-4 text-gray-500 group-hover:text-[#FF4D67]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
                     </svg>
@@ -1364,7 +1366,7 @@ export default function Profile() {
           {/* Creator Analytics Tab */}
           {activeTab === 'analytics' && user?.role === 'creator' && (
             <div className="card-bg rounded-2xl p-5 sm:p-6 border border-gray-700/50">
-              <h3 className="text-lg sm:text-xl font-bold text-white mb-5">Performance Analytics</h3>
+              <h3 className="text-lg sm:text-xl font-bold text-white mb-5">{t('creatorAnalytics')}</h3>
               
               {error && (
                 <div className="bg-red-900/50 border border-red-700 rounded-lg p-4 mb-5">
@@ -1380,22 +1382,22 @@ export default function Profile() {
               
               {loadingAnalytics ? (
                 <div className="flex justify-center items-center h-40">
-                  <div className="text-white text-sm">Loading analytics...</div>
+                  <div className="text-white text-sm">{t('loading')}</div>
                 </div>
               ) : analytics ? (
                 <>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                     <div className="card-bg rounded-xl p-5 border border-gray-700/30 text-center">
                       <div className="text-2xl sm:text-3xl font-bold text-[#FF4D67] mb-2">{analytics.totalTracks}</div>
-                      <div className="text-gray-400 text-sm">Total Tracks</div>
+                      <div className="text-gray-400 text-sm">{t('totalTracks')}</div>
                     </div>
                     <div className="card-bg rounded-xl p-5 border border-gray-700/30 text-center">
                       <div className="text-2xl sm:text-3xl font-bold text-[#FFCB2B] mb-2">{analytics.totalPlays.toLocaleString()}</div>
-                      <div className="text-gray-400 text-sm">Total Plays</div>
+                      <div className="text-gray-400 text-sm">{t('totalPlays')}</div>
                     </div>
                     <div className="card-bg rounded-xl p-5 border border-gray-700/30 text-center">
                       <div className="text-2xl sm:text-3xl font-bold text-[#6C63FF] mb-2">{analytics.totalLikes.toLocaleString()}</div>
-                      <div className="text-gray-400 text-sm">Total Likes</div>
+                      <div className="text-gray-400 text-sm">{t('totalLikes')}</div>
                     </div>
                   </div>
                   
@@ -1434,7 +1436,7 @@ export default function Profile() {
           {activeTab === 'tracks' && user?.role === 'creator' && (
             <div className="card-bg rounded-2xl p-5 sm:p-6 border border-gray-700/50">
               <div className="flex justify-between items-center mb-5">
-                <h3 className="text-lg sm:text-xl font-bold text-white">My Tracks</h3>
+                <h3 className="text-lg sm:text-xl font-bold text-white">{t('myTracks')}</h3>
                 <button 
                   onClick={() => router.push('/upload')}
                   className="px-4 py-2 bg-[#FF4D67] text-white rounded-lg hover:bg-[#FF4D67]/80 transition-colors text-sm font-medium flex items-center gap-2"
@@ -1442,7 +1444,7 @@ export default function Profile() {
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                     <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd"></path>
                   </svg>
-                  Upload Track
+                  {t('uploadTrack')}
                 </button>
               </div>
 
@@ -1453,14 +1455,14 @@ export default function Profile() {
                     onClick={() => fetchTracks(tracksPage)}
                     className="mt-2 px-3 py-1.5 bg-red-700 text-white rounded hover:bg-red-600 text-sm"
                   >
-                    Retry
+                    {t('retry')}
                   </button>
                 </div>
               )}
 
               {loadingTracks ? (
                 <div className="flex justify-center items-center h-40">
-                  <div className="text-white text-sm">Loading tracks...</div>
+                  <div className="text-white text-sm">{t('loadingTracks')}</div>
                 </div>
               ) : tracks && tracks.length > 0 ? (
                 <>
@@ -1502,7 +1504,7 @@ export default function Profile() {
                             }}
                             className="flex-1 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors text-sm font-medium"
                           >
-                            Play
+                            {t('play')}
                           </button>
                           <button 
                             onClick={() => router.push(`/edit-track/${track._id}`)}
@@ -1539,11 +1541,11 @@ export default function Profile() {
                         disabled={tracksPage === 1}
                         className="px-3 py-1.5 bg-gray-800 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700 transition-colors text-sm"
                       >
-                        Previous
+                        {t('previous')}
                       </button>
                       
                       <span className="text-white text-sm">
-                        Page {tracksPage} of {tracksTotalPages}
+                        {t('pageOf', { current: tracksPage, total: tracksTotalPages })}
                       </span>
                       
                       <button
@@ -1551,7 +1553,7 @@ export default function Profile() {
                         disabled={tracksPage === tracksTotalPages}
                         className="px-3 py-1.5 bg-gray-800 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700 transition-colors text-sm"
                       >
-                        Next
+                        {t('next')}
                       </button>
                     </div>
                   )}
@@ -1563,13 +1565,13 @@ export default function Profile() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
                     </svg>
                   </div>
-                  <h4 className="text-white font-medium mb-2">No tracks yet</h4>
-                  <p className="text-gray-400 text-sm mb-4">Start uploading your music to share with fans</p>
+                  <h4 className="text-white font-medium mb-2">{t('noTracksYet')}</h4>
+                  <p className="text-gray-400 text-sm mb-4">{t('startUploading')}</p>
                   <button 
                     onClick={() => router.push('/upload')}
                     className="px-4 py-2 bg-[#FF4D67] text-white rounded-lg hover:bg-[#FF4D67]/80 transition-colors text-sm font-medium"
                   >
-                    Upload Your First Track
+                    {t('uploadFirstTrack')}
                   </button>
                 </div>
               ) : null}
@@ -1599,14 +1601,14 @@ export default function Profile() {
                     onClick={fetchAlbums}
                     className="mt-2 px-3 py-1.5 bg-red-700 text-white rounded hover:bg-red-600 text-sm"
                   >
-                    Retry
+                    {t('retry')}
                   </button>
                 </div>
               )}
 
               {loadingAlbums ? (
                 <div className="flex justify-center items-center h-40">
-                  <div className="text-white text-sm">Loading albums...</div>
+                  <div className="text-white text-sm">{t('loadingAlbums')}</div>
                 </div>
               ) : albums && albums.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1644,7 +1646,7 @@ export default function Profile() {
                       <p className="text-gray-400 text-xs mb-2">{album.artist}</p>
                       <div className="flex justify-between items-center text-xs text-gray-400">
                         <span>{album.year}</span>
-                        <span>{album.tracks} tracks</span>
+                        <span>{t('tracksCount', { count: album.tracks })}</span>
                       </div>
                       
                       <div className="flex gap-2 mt-3">
@@ -1652,7 +1654,7 @@ export default function Profile() {
                           onClick={() => router.push(`/edit-album/${album.id}`)}
                           className="flex-1 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors text-sm font-medium"
                         >
-                          Edit
+                          {t('edit')}
                         </button>
                         <button 
                           onClick={() => {
@@ -1680,13 +1682,13 @@ export default function Profile() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 4a1 1 0 00-2 0v7.268a2 2 0 000 3.464V16a1 1 0 102 0v-1.268a2 2 0 000-3.464V4zM11 4a1 1 0 10-2 0v1.268a2 2 0 000 3.464V16a1 1 0 102 0V8.732a2 2 0 000-3.464V4zM16 3a1 1 0 011 1v7.268a2 2 0 010 3.464V16a1 1 0 11-2 0v-1.268a2 2 0 010-3.464V4a1 1 0 011-1z"></path>
                     </svg>
                   </div>
-                  <h4 className="text-white font-medium mb-2">No albums yet</h4>
-                  <p className="text-gray-400 text-sm mb-4">Create your first album to showcase your music collection</p>
+                  <h4 className="text-white font-medium mb-2">{t('noAlbumsYet')}</h4>
+                  <p className="text-gray-400 text-sm mb-4">{t('createFirstAlbum')}</p>
                   <button 
                     onClick={() => router.push('/create-album')}
                     className="px-4 py-2 bg-[#FFCB2B] text-gray-900 rounded-lg hover:bg-[#FFCB2B]/80 transition-colors text-sm font-medium"
                   >
-                    Create Your First Album
+                    {t('createYourFirstAlbum')}
                   </button>
                 </div>
               ) : null}
@@ -1699,9 +1701,9 @@ export default function Profile() {
       {showDeleteModal && itemToDelete && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
           <div className="card-bg rounded-2xl p-6 max-w-md w-full border border-gray-700/50">
-            <h3 className="text-lg font-bold text-white mb-2">Confirm Deletion</h3>
+            <h3 className="text-lg font-bold text-white mb-2">{t('confirmDeletion')}</h3>
             <p className="text-gray-400 text-sm mb-6">
-              Are you sure you want to delete "{itemToDelete.title}"? This action cannot be undone.
+              {t('confirmDeleteMessage', { title: itemToDelete.title })}
             </p>
             <div className="flex gap-3 justify-end">
               <button
@@ -1711,13 +1713,13 @@ export default function Profile() {
                 }}
                 className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium"
               >
-                Cancel
+                {t('cancel')}
               </button>
               <button
                 onClick={confirmDelete}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
               >
-                Delete
+                {t('delete')}
               </button>
             </div>
           </div>
@@ -1727,11 +1729,11 @@ export default function Profile() {
       {/* WhatsApp Contact Tab */}
       {activeTab === 'whatsapp' && user?.role === 'creator' && (
         <div className="card-bg rounded-2xl p-5 sm:p-6 border border-gray-700/50">
-          <h3 className="text-lg sm:text-xl font-bold text-white mb-5">WhatsApp Contact Information</h3>
+          <h3 className="text-lg sm:text-xl font-bold text-white mb-5">{t('whatsappContactInfo')}</h3>
           
           <div className="max-w-2xl">
             <p className="text-gray-400 text-sm mb-6">
-              Fans can contact you via WhatsApp for beats and collaborations. This information will be visible to other users when they view your profile or tracks marked as beats.
+              {t('whatsappContactDescription')}
             </p>
             
             <form onSubmit={async (e) => {
@@ -1739,25 +1741,25 @@ export default function Profile() {
               // Use the new WhatsApp contact update function
               const success = await updateWhatsAppContact(whatsappContact.trim());
               if (success) {
-                alert('WhatsApp contact updated successfully!');
+                alert(t('whatsappUpdated'));
               } else {
-                alert('Failed to update WhatsApp contact. Please try again.');
+                alert(t('whatsappUpdateFailed'));
               }
             }} className="space-y-6">
               <div>
                 <label htmlFor="whatsappContact" className="block text-sm font-medium text-gray-300 mb-2">
-                  WhatsApp Number
+                  {t('whatsappNumber')}
                 </label>
                 <input
                   type="text"
                   id="whatsappContact"
                   value={whatsappContact}
                   onChange={(e) => setWhatsappContact(e.target.value)}
-                  placeholder="Enter your WhatsApp number (e.g., +1234567890)"
+                  placeholder={t('whatsappPlaceholder')}
                   className="w-full px-3 py-2.5 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm"
                 />
                 <p className="mt-2 text-xs text-gray-400">
-                  Include country code. Leave empty if you don't want to be contacted via WhatsApp.
+                  {t('whatsappHelpText')}
                 </p>
               </div>
               
@@ -1766,13 +1768,13 @@ export default function Profile() {
                   <svg className="w-5 h-5 text-[#25D366]" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.480-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.87 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
                   </svg>
-                  How it works
+                  {t('howItWorks')}
                 </h4>
                 <ul className="text-xs text-gray-400 space-y-1">
-                  <li>• Users can contact you directly via WhatsApp for beats</li>
-                  <li>• Your number is only visible for tracks marked as "beats"</li>
-                  <li>• You can update this information at any time</li>
-                  <li>• Leave empty to disable WhatsApp contact</li>
+                  <li>• {t('whatsappWorks1')}</li>
+                  <li>• {t('whatsappWorks2')}</li>
+                  <li>• {t('whatsappWorks3')}</li>
+                  <li>• {t('whatsappWorks4')}</li>
                 </ul>
               </div>
               
@@ -1781,7 +1783,7 @@ export default function Profile() {
                   type="submit"
                   className="px-5 py-2.5 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-opacity text-sm"
                 >
-                  Save WhatsApp Number
+                  {t('saveWhatsApp')}
                 </button>
               </div>
             </form>
@@ -1795,7 +1797,7 @@ export default function Profile() {
           {/* Earnings Summary Cards */}
           {loadingEarnings ? (
             <div className="flex justify-center items-center h-40">
-              <div className="text-white text-sm">Loading earnings...</div>
+              <div className="text-white text-sm">{t('loadingEarnings')}</div>
             </div>
           ) : earnings ? (
             <>
@@ -1804,7 +1806,7 @@ export default function Profile() {
                 <div className="card-bg rounded-2xl p-5 border border-gray-700/50">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-gray-400 text-sm font-medium">Total Earnings</p>
+                      <p className="text-gray-400 text-sm font-medium">{t('totalEarnings')}</p>
                       <p className="text-2xl font-bold text-white mt-2">
                         {earnings.earnings.totalEarnings.toLocaleString()} RWF
                       </p>
@@ -1819,7 +1821,7 @@ export default function Profile() {
                 <div className="card-bg rounded-2xl p-5 border border-gray-700/50">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-gray-400 text-sm font-medium">Available Balance</p>
+                      <p className="text-gray-400 text-sm font-medium">{t('availableBalance')}</p>
                       <p className="text-2xl font-bold text-green-500 mt-2">
                         {earnings.earnings.availableBalance.toLocaleString()} RWF
                       </p>
@@ -1834,7 +1836,7 @@ export default function Profile() {
                 <div className="card-bg rounded-2xl p-5 border border-gray-700/50">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-gray-400 text-sm font-medium">Total Withdrawn</p>
+                      <p className="text-gray-400 text-sm font-medium">{t('totalWithdrawn')}</p>
                       <p className="text-2xl font-bold text-white mt-2">
                         {earnings.earnings.totalWithdrawn.toLocaleString()} RWF
                       </p>
@@ -1849,7 +1851,7 @@ export default function Profile() {
                 <div className="card-bg rounded-2xl p-5 border border-gray-700/50">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-gray-400 text-sm font-medium">Transactions</p>
+                      <p className="text-gray-400 text-sm font-medium">{t('transactions')}</p>
                       <p className="text-2xl font-bold text-white mt-2">
                         {earnings.earnings.completedTransactions}
                       </p>
@@ -1870,23 +1872,23 @@ export default function Profile() {
                   disabled={earnings.earnings.availableBalance <= 0}
                   className="px-6 py-2.5 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Request Withdrawal
+                  {t('requestWithdrawal')}
                 </button>
               </div>
 
               {/* Recent Transactions */}
               <div className="card-bg rounded-2xl p-5 sm:p-6 border border-gray-700/50">
-                <h3 className="text-lg sm:text-xl font-bold text-white mb-5">Recent Transactions</h3>
+                <h3 className="text-lg sm:text-xl font-bold text-white mb-5">{t('recentTransactions')}</h3>
                 
                 {earnings.recentTransactions && earnings.recentTransactions.length > 0 ? (
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b border-gray-700">
-                          <th className="text-left py-3 px-4 font-medium text-gray-400">Track</th>
-                          <th className="text-left py-3 px-4 font-medium text-gray-400">Buyer</th>
-                          <th className="text-right py-3 px-4 font-medium text-gray-400">Amount</th>
-                          <th className="text-left py-3 px-4 font-medium text-gray-400">Date</th>
+                          <th className="text-left py-3 px-4 font-medium text-gray-400">{t('track')}</th>
+                          <th className="text-left py-3 px-4 font-medium text-gray-400">{t('buyer')}</th>
+                          <th className="text-right py-3 px-4 font-medium text-gray-400">{t('amount')}</th>
+                          <th className="text-left py-3 px-4 font-medium text-gray-400">{t('date')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1914,7 +1916,7 @@ export default function Profile() {
                   </div>
                 ) : (
                   <div className="text-center py-8">
-                    <p className="text-gray-400">No completed transactions yet</p>
+                    <p className="text-gray-400">{t('noTransactionsYet')}</p>
                   </div>
                 )}
               </div>
@@ -1922,7 +1924,7 @@ export default function Profile() {
               {/* Withdrawal History */}
               {earnings.withdrawalHistory && earnings.withdrawalHistory.length > 0 && (
                 <div className="card-bg rounded-2xl p-5 sm:p-6 border border-gray-700/50">
-                  <h3 className="text-lg sm:text-xl font-bold text-white mb-5">Withdrawal History</h3>
+                  <h3 className="text-lg sm:text-xl font-bold text-white mb-5">{t('withdrawalHistory')}</h3>
                   
                   <div className="space-y-3">
                     {earnings.withdrawalHistory.map((withdrawal) => (
@@ -1939,7 +1941,7 @@ export default function Profile() {
                           withdrawal.status === 'pending' ? 'bg-yellow-900/30 text-yellow-400' :
                           'bg-red-900/30 text-red-400'
                         }`}>
-                          {withdrawal.status}
+                          {t(withdrawal.status)}
                         </span>
                       </div>
                     ))}
@@ -1951,18 +1953,18 @@ export default function Profile() {
               {showWithdrawalModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                   <div className="card-bg rounded-2xl p-6 border border-gray-700/50 max-w-md w-full">
-                    <h3 className="text-xl font-bold text-white mb-4">Request Withdrawal</h3>
+                    <h3 className="text-xl font-bold text-white mb-4">{t('requestWithdrawal')}</h3>
                     
                     <div className="mb-4 p-3 bg-blue-900/20 rounded-lg border border-blue-700/50">
                       <p className="text-blue-300 text-sm">
-                        Available Balance: <span className="font-bold">{earnings.earnings.availableBalance.toLocaleString()} RWF</span>
+                        {t('availableBalance')}: <span className="font-bold">{earnings.earnings.availableBalance.toLocaleString()} RWF</span>
                       </p>
                     </div>
                     
                     <form onSubmit={handleWithdrawalRequest} className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-300 mb-2">
-                          Amount (RWF)
+                          {t('amountRwf')}
                         </label>
                         <input
                           type="number"
@@ -1977,7 +1979,7 @@ export default function Profile() {
                       
                       <div>
                         <label className="block text-sm font-medium text-gray-300 mb-2">
-                          Mobile Number
+                          {t('mobileNumber')}
                         </label>
                         <input
                           type="tel"
@@ -1986,7 +1988,7 @@ export default function Profile() {
                           placeholder="+250..."
                           className="w-full px-3 py-2.5 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent"
                         />
-                        <p className="text-xs text-gray-400 mt-1">Money will be sent to this mobile number</p>
+                        <p className="text-xs text-gray-400 mt-1">{t('withdrawalPhoneHelp')}</p>
                       </div>
                       
                       <div className="flex gap-3 pt-4">
@@ -1995,14 +1997,14 @@ export default function Profile() {
                           onClick={() => setShowWithdrawalModal(false)}
                           className="flex-1 px-4 py-2 border border-gray-700 rounded-lg text-white font-medium hover:bg-gray-800/30 transition-colors"
                         >
-                          Cancel
+                          {t('cancel')}
                         </button>
                         <button
                           type="submit"
                           disabled={submittingWithdrawal}
                           className="flex-1 px-4 py-2 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
                         >
-                          {submittingWithdrawal ? 'Submitting...' : 'Request'}
+                          {submittingWithdrawal ? t('submitting') : t('request')}
                         </button>
                       </div>
                     </form>
@@ -2022,7 +2024,7 @@ export default function Profile() {
       {activeTab === 'recently-played' && (
         <div className="card-bg rounded-2xl p-5 sm:p-6 border border-gray-700/50">
           <div className="flex justify-between items-center mb-5">
-            <h3 className="text-lg sm:text-xl font-bold text-white">Recently Played</h3>
+            <h3 className="text-lg sm:text-xl font-bold text-white">{t('recentlyPlayed')}</h3>
             <button 
               onClick={() => router.push('/explore')}
               className="px-4 py-2 bg-[#FF4D67] text-white rounded-lg hover:bg-[#FF4D67]/80 transition-colors text-sm font-medium flex items-center gap-2"
@@ -2030,13 +2032,13 @@ export default function Profile() {
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                 <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd"></path>
               </svg>
-              View New Tracks
+              {t('viewNewTracks')}
             </button>
           </div>
                     
           {loadingRecentlyPlayed ? (
             <div className="flex justify-center items-center h-40">
-              <div className="text-white text-sm">Loading recently played tracks...</div>
+              <div className="text-white text-sm">{t('loadingRecentlyPlayed')}</div>
             </div>
           ) : recentlyPlayedTracks.length > 0 ? (
             <div className="space-y-4">
@@ -2067,7 +2069,7 @@ export default function Profile() {
                     <h3 className="font-bold text-white text-sm sm:text-base truncate">{track.title}</h3>
                     <p className="text-gray-400 text-xs sm:text-sm truncate">{track.artist}</p>
                     <p className="text-gray-500 text-xs mt-1">
-                      Played {new Date(track.playedAt).toLocaleDateString()}
+                      {t('playedDate', { date: new Date(track.playedAt).toLocaleDateString() })}
                     </p>
                   </div>
                             
@@ -2108,15 +2110,15 @@ export default function Profile() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
               </div>
-              <h3 className="text-xl sm:text-2xl font-bold text-white mb-3">No recently played tracks</h3>
+              <h3 className="text-xl sm:text-2xl font-bold text-white mb-3">{t('noRecentlyPlayed')}</h3>
               <p className="text-gray-500 mb-6 max-w-md mx-auto">
-                Start listening to music and your recently played tracks will appear here
+                {t('startListening')}
               </p>
               <button 
                 onClick={() => router.push('/explore')}
                 className="px-5 py-2.5 sm:px-6 sm:py-3 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-opacity text-sm sm:text-base"
               >
-                Explore Music
+                {t('exploreMusic')}
               </button>
             </div>
           )}
@@ -2126,11 +2128,11 @@ export default function Profile() {
       {/* Following Tab */}
       {activeTab === 'following' && (
         <div className="card-bg rounded-2xl p-5 sm:p-6 border border-gray-700/50">
-          <h3 className="text-lg sm:text-xl font-bold text-white mb-5">Following</h3>
+          <h3 className="text-lg sm:text-xl font-bold text-white mb-5">{t('following')}</h3>
                     
           {loadingFollowed ? (
             <div className="flex justify-center items-center h-40">
-              <div className="text-white text-sm">Loading followed creators...</div>
+              <div className="text-white text-sm">{t('loadingFollowed')}</div>
             </div>
           ) : followedCreators && followedCreators.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -2160,7 +2162,7 @@ export default function Profile() {
                     </div>
                   </div>
                   <div className="flex justify-between text-xs text-gray-400">
-                    <span>{creator.followersCount || 0} followers</span>
+                    <span>{t('followersCount', { count: creator.followersCount || 0 })}</span>
                   </div>
                 </div>
               ))}
@@ -2172,13 +2174,13 @@ export default function Profile() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
                 </svg>
               </div>
-              <h4 className="text-white font-medium mb-2">Not following anyone yet</h4>
-              <p className="text-gray-400 text-sm mb-4">Start following creators to see them here</p>
+              <h4 className="text-white font-medium mb-2">{t('notFollowingYet')}</h4>
+              <p className="text-gray-400 text-sm mb-4">{t('startFollowing')}</p>
               <button 
                 onClick={() => router.push('/explore')}
                 className="px-4 py-2 bg-[#FF4D67] text-white rounded-lg hover:bg-[#FF4D67]/80 transition-colors text-sm font-medium"
               >
-                Explore Creators
+                {t('exploreCreators')}
               </button>
             </div>
           )}

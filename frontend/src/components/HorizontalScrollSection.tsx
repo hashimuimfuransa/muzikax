@@ -1,4 +1,5 @@
 import { ReactNode, useRef, useState, useEffect } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface HorizontalScrollSectionProps {
   title: string;
@@ -11,6 +12,7 @@ export default function HorizontalScrollSection({
   viewAllLink,
   children
 }: HorizontalScrollSectionProps) {
+  const { t } = useLanguage();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -56,7 +58,7 @@ export default function HorizontalScrollSection({
               href={viewAllLink}
               className="text-[#FF4D67] hover:text-[#FFCB2B] text-sm sm:text-base font-medium transition-all duration-300 hover:scale-105"
             >
-              View All
+              {t('viewAll')}
             </a>
           )}
         </div>

@@ -6,11 +6,13 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
 import { usePayment } from '../contexts/PaymentContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import PlaylistSelectionModal from './PlaylistSelectionModal';
 import ReportTrackModal from './ReportTrackModal';
 import PesaPalPayment from './PesaPalPayment';
 
 const ModernAudioPlayer = () => {
+  const { t } = useLanguage();
   const {
     currentTrack,
     isPlaying,
@@ -152,11 +154,11 @@ const ModernAudioPlayer = () => {
     if (isFavorite) {
       // Remove from favorites
       removeFromFavorites(currentTrack.id);
-      setToast({message: 'Removed from favorites!', type: 'success'});
+      setToast({message: t('removedFromFavorites'), type: 'success'});
     } else {
       // Add to favorites
       addToFavorites(currentTrack);
-      setToast({message: 'Added to favorites!', type: 'success'});
+      setToast({message: t('addedToFavorites'), type: 'success'});
     }
     setIsFavorite(!isFavorite);
   };
@@ -178,7 +180,7 @@ const ModernAudioPlayer = () => {
 
   // Handle track added to playlist
   const handleTrackAdded = () => {
-    setToast({message: 'Added to playlist!', type: 'success'});
+    setToast({message: t('addedToPlaylist'), type: 'success'});
   };
 
   // No longer redirect to full player page automatically
@@ -224,7 +226,7 @@ const ModernAudioPlayer = () => {
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
           <div className="bg-gray-800 rounded-xl p-6 w-full max-w-md mx-4">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold">Share Track</h3>
+              <h3 className="text-xl font-bold">{t('shareTrack')}</h3>
               <button 
                 onClick={() => setIsShareModalOpen(false)}
                 className="text-gray-400 hover:text-white"
@@ -304,7 +306,7 @@ const ModernAudioPlayer = () => {
             <button 
               onClick={() => {
                 shareTrack('copy');
-                setToast({message: 'Link copied to clipboard!', type: 'success'});
+                setToast({message: t('linkCopied'), type: 'success'});
                 setIsShareModalOpen(false);
               }}
               className="w-full mt-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg flex items-center justify-center transition-colors"
@@ -312,7 +314,7 @@ const ModernAudioPlayer = () => {
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
               </svg>
-              Copy Link
+              {t('copyLink')}
             </button>
           </div>
         </div>
@@ -361,14 +363,14 @@ const ModernAudioPlayer = () => {
                   <h4 className="text-white font-bold text-sm truncate">{currentTrack.title}</h4>
                   <p className="text-[#FFCB2B] text-xs truncate">{currentTrack.artist}</p>
                   <div className="flex items-center gap-1 mt-1 flex-wrap">
-                    <span className="text-[#FF4D67] text-xs font-medium">BEAT</span>
+                    <span className="text-[#FF4D67] text-xs font-medium">{t('beat')}</span>
                     {(() => {
                       // Handle missing or null paymentType by defaulting to 'free'
                       const paymentType = currentTrack.paymentType || 'free';
                       return paymentType === "paid" ? (
-                        <span className="text-green-400 text-xs">• PAID</span>
+                        <span className="text-green-400 text-xs">• {t('paid')}</span>
                       ) : (
-                        <span className="text-blue-400 text-xs">• FREE</span>
+                        <span className="text-blue-400 text-xs">• {t('free')}</span>
                       );
                     })()}
                   </div>
@@ -387,7 +389,7 @@ const ModernAudioPlayer = () => {
                   <svg className="w-3 h-3 text-purple-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                     <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
                   </svg>
-                  <p className="text-purple-400 text-xs truncate">from {currentPlaylistName}</p>
+                  <p className="text-purple-400 text-xs truncate">{t('fromPlaylist', { name: currentPlaylistName })}</p>
                 </div>
               )}
               
@@ -445,7 +447,7 @@ const ModernAudioPlayer = () => {
                   touch-manipulation
                   p-1
                 "
-                title="Shuffle playlist"
+                title={t('shufflePlaylist')}
               >
                 <svg className="w-3 h-3 text-gray-300" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z" />
@@ -465,7 +467,7 @@ const ModernAudioPlayer = () => {
                   p-1
                   ml-0.5
                 "
-                title="Open full player"
+                title={t('openFullPlayer')}
               >
                 <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M12 5v14" />
@@ -502,7 +504,7 @@ const ModernAudioPlayer = () => {
                   touch-manipulation
                   p-1
                 `}
-                title="Loop track/playlist"
+                title={t('loopTrack')}
               >
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -522,7 +524,7 @@ const ModernAudioPlayer = () => {
                     touch-manipulation
                     p-1
                   "
-                  title="Adjust volume"
+                  title={t('adjustVolume')}
                 >
                   <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z" clipRule="evenodd"></path>
@@ -563,7 +565,7 @@ const ModernAudioPlayer = () => {
                   touch-manipulation
                   p-1
                 `}
-                title={isFavorite ? "Remove from favorites" : "Save track"}
+                title={isFavorite ? t('removeFromFavorites') : t('saveTrack')}
               >
                 <svg 
                   className="w-3.5 h-3.5" 

@@ -165,8 +165,8 @@ const searchTracks = async (req, res) => {
 const getRecommendedPlaylists = async (req, res) => {
   try {
     // Get popular playlists based on various criteria
-    const popularPlaylists = await Playlist.find({ isPublic: true })
-      .populate('userId', 'name')
+    const popularPlaylistsRaw = await Playlist.find({ isPublic: true })
+      .populate('userId', 'name role')
       .populate({
         path: 'tracks',
         select: 'title creatorId plays coverURL audioURL',
@@ -175,10 +175,15 @@ const getRecommendedPlaylists = async (req, res) => {
           select: 'name'
         }
       })
-      .sort({ createdAt: -1 })
-      .limit(10);
+      .sort({ createdAt: -1 });
+
+    // Filter by creator role (only show playlists from creators or admins)
+    const popularPlaylists = popularPlaylistsRaw
+      .filter(playlist => playlist.userId && (playlist.userId.role === 'creator' || playlist.userId.role === 'admin'))
+      .slice(0, 10);
     
     // Get genre-based playlists
+    // (Existing aggregation logic could be refined but we'll focus on the find queries first)
     const genrePlaylists = await Playlist.aggregate([
       { $match: { isPublic: true } },
       { $lookup: {
@@ -200,11 +205,15 @@ const getRecommendedPlaylists = async (req, res) => {
     ]);
     
     // Get recently created playlists
-    const recentPlaylists = await Playlist.find({ isPublic: true })
-      .populate('userId', 'name')
+    const recentPlaylistsRaw = await Playlist.find({ isPublic: true })
+      .populate('userId', 'name role')
       .populate('tracks', 'title creatorId plays coverURL audioURL')
-      .sort({ createdAt: -1 })
-      .limit(5);
+      .sort({ createdAt: -1 });
+
+    // Filter by creator role (only show playlists from creators or admins)
+    const recentPlaylists = recentPlaylistsRaw
+      .filter(playlist => playlist.userId && (playlist.userId.role === 'creator' || playlist.userId.role === 'admin'))
+      .slice(0, 5);
     
     res.json({
       popular: popularPlaylists,

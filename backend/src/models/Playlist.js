@@ -55,7 +55,7 @@ const PlaylistSchema = new mongoose_1.Schema({
         }],
     isPublic: {
         type: Boolean,
-        default: true
+        default: false
     }
 }, {
     timestamps: true

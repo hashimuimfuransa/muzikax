@@ -4,6 +4,7 @@ import { Fragment, useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../contexts/AuthContext";
+import { useLanguage } from "../contexts/LanguageContext";
 import { useTrendingTracks, usePopularCreators, useTracksByType } from "../hooks/useTracks";
 import { useAudioPlayer } from "../contexts/AudioPlayerContext";
 import { getAlbumById } from "../services/albumService";
@@ -80,6 +81,7 @@ const generateAvatar = (name: string) => {
 export default function Home() {
   const router = useRouter();
   const { isAuthenticated, userRole } = useAuth();
+  const { t } = useLanguage();
   
   // Redirect admin users to admin dashboard immediately
   if (isAuthenticated && userRole === "admin") {
@@ -157,27 +159,27 @@ export default function Home() {
   const heroSlides = [
     {
       id: 1,
-      title: "Discover Rwandan Music",
-      subtitle: "Explore the vibrant sounds of Rwanda",
+      title: t('discoverRwandanMusic'),
+      subtitle: t('exploreVibrantSounds'),
       image:
         "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
-      cta: "Explore Music",
+      cta: t('exploreMusic'),
     },
     {
       id: 2,
-      title: "Share Your Talent",
-      subtitle: "Upload your music and connect with fans",
+      title: t('shareYourTalent'),
+      subtitle: t('uploadAndConnect'),
       image:
         "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
-      cta: "Upload Track",
+      cta: t('uploadTrack'),
     },
     {
       id: 3,
-      title: "Connect with the Community",
-      subtitle: "Share your thoughts and see what's trending",
+      title: t('connectWithCommunity'),
+      subtitle: t('shareThoughtsTrending'),
       image:
         "https://images.unsplash.com/photo-1524368535928-5b5e00ddc76b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
-      cta: "View Vibes",
+      cta: t('viewVibes'),
     }
   ];
 
@@ -1031,13 +1033,13 @@ export default function Home() {
               disabled={trendingLoading}
               className="px-6 py-3 bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] text-white rounded-full font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
             >
-              {trendingLoading ? 'Loading...' : 'Load More Tracks'}
+              {trendingLoading ? t('loading') : t('loadMore')}
             </button>
           </div>
         )}
 
         {/* For You Section - Monthly Popular Tracks */}
-        <HorizontalScrollSection title="For You" viewAllLink="/tracks?sortBy=monthly">
+        <HorizontalScrollSection title={t('forYou')} viewAllLink="/tracks?sortBy=monthly">
           {monthlyPopularLoading ? (
             // Loading skeleton
             Array.from({ length: 10 }).map((_, index) => (
@@ -1071,7 +1073,7 @@ export default function Home() {
 
         {/* Trending Vibes Section - Community Posts */}
         <HorizontalScrollSection 
-          title="Trending Vibes" 
+          title={t('trendingVibes')} 
           viewAllLink="/community"
         >
           {vibesLoading ? (
@@ -1108,7 +1110,7 @@ export default function Home() {
         </HorizontalScrollSection>
 
         {/* New Releases Section */}
-        <HorizontalScrollSection title="New Releases" viewAllLink="/tracks?sortBy=newest">
+        <HorizontalScrollSection title={t('newReleases')} viewAllLink="/tracks?sortBy=newest">
           {newReleases.map((track) => {
             // Find the full track object to get additional properties
             const fullTrack = trendingTracksData.find(t => t._id === track.id);
@@ -1123,7 +1125,7 @@ export default function Home() {
         </HorizontalScrollSection>
 
         {/* Popular Artists Section */}
-        <HorizontalScrollSection title="Recommend Artists" viewAllLink="/artists">
+        <HorizontalScrollSection title={t('recommendArtists')} viewAllLink="/artists">
           {popularCreators.map((creator) => (
             <ArtistCard 
               key={creator.id} 
@@ -1136,7 +1138,7 @@ export default function Home() {
 
         {/* New Tracks from Followed Artists Section */}
         {isAuthenticated && followedTracks.length > 0 && (
-          <HorizontalScrollSection title="New from Artists You Follow">
+          <HorizontalScrollSection title={t('newFromFollowed')}>
             {followedTracks.map((track) => {
               // Find the full track object to get additional properties if available
               const fullTrack = trendingTracksData.find(t => t._id === track.id);
@@ -1152,7 +1154,7 @@ export default function Home() {
         )}
 
         {/* Popular Songs Section */}
-        <HorizontalScrollSection title="Popular Songs" viewAllLink="/tracks?sortBy=popularity">
+        <HorizontalScrollSection title={t('popularSongs')} viewAllLink="/tracks?sortBy=popularity">
           {popularSongs.map((track) => {
             // Find the full track object to get additional properties
             const fullTrack = trendingTracksData.find(t => t._id === track.id);
@@ -1167,7 +1169,7 @@ export default function Home() {
         </HorizontalScrollSection>
 
         {/* Popular Beats Section - Horizontal Scroll */}
-        <HorizontalScrollSection title="Popular Beats" viewAllLink="/beats?sortBy=popularity">
+        <HorizontalScrollSection title={t('popularBeats')} viewAllLink="/beats?sortBy=popularity">
           {sortedBeatTracks.slice(0, 15).map((track) => {
             return (
               <TrackCard 
@@ -1201,7 +1203,7 @@ export default function Home() {
         </HorizontalScrollSection>
 
         {/* Rising Tracks Section */}
-        <HorizontalScrollSection title="Rising Tracks" viewAllLink="/tracks?sortBy=engagement">
+        <HorizontalScrollSection title={t('risingTracks')} viewAllLink="/tracks?sortBy=engagement">
           {risingTracks.map((track) => {
             // Find the full track object to get additional properties
             const fullTrack = trendingTracksData.find(t => t._id === track.id);
@@ -1216,7 +1218,7 @@ export default function Home() {
         </HorizontalScrollSection>
 
         {/* Based on Your Listening Section */}
-        <HorizontalScrollSection title="Based on Your Listening" viewAllLink="/foryou">
+        <HorizontalScrollSection title={t('basedOnListening')} viewAllLink="/foryou">
           {basedOnListening.map((track) => {
             // Find the full track object to get additional properties
             const fullTrack = trendingTracksData.find(t => t._id === track.id);
@@ -1231,19 +1233,19 @@ export default function Home() {
         </HorizontalScrollSection>
 
         {/* Popular Mixes Section */}
-        <MixesHorizontalScroll title="Popular Mixes" viewAllLink="/mixes" />
+        <MixesHorizontalScroll title={t('popularMixes')} viewAllLink="/mixes" />
 
         {/* Popular Albums Section */}
         <section className="px-4 md:px-6 py-8 sm:py-10">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl sm:text-2xl font-bold text-white">
-              Popular Albums
+              {t('popularAlbums')}
             </h2>
             <a
               href="/albums"
               className="text-[#FF4D67] hover:text-[#FFCB2B] text-sm sm:text-base transition-colors"
             >
-              View All
+              {t('viewAll')}
             </a>
           </div>
 

@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Suspense } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
+import { useLanguage } from '@/contexts/LanguageContext'
 import { followCreator } from '@/services/trackService'
 import { useAudioPlayer } from '@/contexts/AudioPlayerContext'
 
@@ -68,25 +69,27 @@ interface Playlist {
   description: string
   creator: string
   coverImage: string
-  tracks: number
+  tracks: any[]
   isPublic: boolean
 }
 
 function SearchResultsContent() {
+  const { t } = useLanguage()
   const searchParams = useSearchParams()
   const query = searchParams.get('q') || ''
   const [searchQuery, setSearchQuery] = useState(query)
-  const [activeTab, setActiveTab] = useState<'tracks' | 'artists' | 'albums' | 'playlists'>('tracks')
+  const [activeTab, setActiveTab] = useState<'tracks' | 'artists' | 'albums' | 'playlists' | 'mixes'>('tracks')
   const [selectedGenre, setSelectedGenre] = useState<string | null>(null)
   const [tracks, setTracks] = useState<SearchTrack[]>([])
   const [artists, setArtists] = useState<Creator[]>([])
   const [albums, setAlbums] = useState<Album[]>([])
   const [playlists, setPlaylists] = useState<Playlist[]>([])
+  const [mixes, setMixes] = useState<SearchTrack[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [following, setFollowing] = useState<Record<string, boolean>>({})
   const { isAuthenticated } = useAuth()
-  const { playTrack } = useAudioPlayer()
+  const { playTrack, setCurrentPlaylist } = useAudioPlayer()
   
   // Genre list for filtering
   const genres = [
@@ -147,6 +150,7 @@ function SearchResultsContent() {
       setArtists(data.artists || [])
       setAlbums(data.albums || [])
       setPlaylists(data.playlists || [])
+      setMixes(data.mixes || [])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unknown error occurred')
       console.error('Search error:', err)
@@ -168,6 +172,32 @@ function SearchResultsContent() {
       // Update URL with new search query
       window.history.pushState({}, '', `/search?q=${encodeURIComponent(searchQuery.trim())}`)
       fetchSearchResults(searchQuery.trim())
+    }
+  }
+
+  // Handle playlist playback
+  const handlePlayPlaylist = (playlist: Playlist) => {
+    if (playlist.tracks && playlist.tracks.length > 0) {
+      // Convert tracks to the format expected by the audio player
+      const playerTracks: PlayerTrack[] = playlist.tracks
+        .filter(track => track && track.audioURL)
+        .map(track => ({
+          id: track.id || track._id,
+          title: track.title,
+          artist: playlist.creator === 'admin' || playlist.creator?.toLowerCase().includes('muzikax') ? 'MuzikaX' : track.creatorId?.name || 'MuzikaX',
+          coverImage: track.coverURL || track.coverImage || '',
+          audioUrl: track.audioURL || '',
+          creatorId: track.creatorId?._id || track.creatorId || '',
+          type: 'song' as const
+        }))
+      
+      if (playerTracks.length > 0) {
+        // Set the current playlist
+        setCurrentPlaylist(playerTracks)
+        
+        // Play the first track
+        playTrack(playerTracks[0], playerTracks)
+      }
     }
   }
 
@@ -207,7 +237,7 @@ function SearchResultsContent() {
           {/* Search Header */}
           <div className="text-center mb-8 sm:mb-12">
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] mb-4">
-              Search Results
+              {t('searchResults')}
             </h1>
             
             {/* Search Bar */}
@@ -217,7 +247,7 @@ function SearchResultsContent() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search music, artists, albums..."
+                  placeholder={t('searchPlaceholder')}
                   className="w-full px-4 py-3 sm:py-4 pl-12 pr-20 bg-gray-800/50 border border-gray-700 rounded-full text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent text-sm sm:text-base transition-all"
                 />
                 <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">
@@ -229,7 +259,7 @@ function SearchResultsContent() {
                   type="submit"
                   className="absolute right-2 top-1/2 transform -translate-y-1/2 px-4 py-1.5 sm:py-2 bg-[#FF4D67] hover:bg-[#FF4D67]/80 text-white rounded-full text-sm font-medium transition-colors"
                 >
-                  Search
+                  {t('search')}
                 </button>
               </div>
             </form>
@@ -245,7 +275,7 @@ function SearchResultsContent() {
                   }`}
                   onClick={() => setSelectedGenre(null)}
                 >
-                  All Genres
+                  {t('allGenres')}
                 </button>
                 
                 {genres.slice(0, 10).map((genre) => (
@@ -269,7 +299,7 @@ function SearchResultsContent() {
                     onChange={(e) => setSelectedGenre(e.target.value || null)}
                     className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium bg-gray-800/50 text-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
                   >
-                    <option value="">All Genres</option>
+                    <option value="">{t('allGenres')}</option>
                     {genres.map((genre) => (
                       <option key={genre.id} value={genre.id}>
                         {genre.name}
@@ -283,7 +313,7 @@ function SearchResultsContent() {
                   {genres.length > 10 && (
                     <details className="group">
                       <summary className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium bg-gray-800/50 text-gray-300 hover:bg-gray-700/50 cursor-pointer list-none">
-                        More Genres
+                        {t('moreGenres')}
                       </summary>
                       <div className="absolute z-10 mt-2 p-2 bg-gray-800 rounded-lg shadow-lg grid grid-cols-2 sm:grid-cols-3 gap-2 w-64">
                         {genres.slice(10).map((genre) => (
@@ -315,13 +345,20 @@ function SearchResultsContent() {
           {/* Results Info */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
             <p className="text-gray-400">
-              {loading ? 'Searching...' : selectedGenre 
-                ? `Found ${tracks.length + artists.length + albums.length + playlists.length} results for "${query || 'all'}" in ${genres.find(g => g.id === selectedGenre)?.name || selectedGenre}`
-                : `Found ${tracks.length + artists.length + albums.length + playlists.length} results for "${query}"`}
+              {loading ? t('searching') : selectedGenre 
+                ? t('foundResultsInGenre', {
+                    count: tracks.length + artists.length + albums.length + playlists.length + mixes.length,
+                    query: query || 'all',
+                    genre: genres.find(g => g.id === selectedGenre)?.name || selectedGenre
+                  })
+                : t('foundResults', {
+                    count: tracks.length + artists.length + albums.length + playlists.length + mixes.length,
+                    query: query
+                  })}
             </p>
             
             {/* Tabs */}
-            <div className="flex border-b border-gray-800">
+            <div className="flex flex-wrap border-b border-gray-800">
               <button
                 className={`py-2 px-4 font-medium text-sm sm:text-base transition-colors ${
                   activeTab === 'tracks'
@@ -330,7 +367,7 @@ function SearchResultsContent() {
                 }`}
                 onClick={() => setActiveTab('tracks')}
               >
-                Tracks ({tracks.length})
+                {t('tracks')} ({tracks.length})
               </button>
               <button
                 className={`py-2 px-4 font-medium text-sm sm:text-base transition-colors ${
@@ -340,7 +377,7 @@ function SearchResultsContent() {
                 }`}
                 onClick={() => setActiveTab('artists')}
               >
-                Artists ({artists.length})
+                {t('artists')} ({artists.length})
               </button>
               <button
                 className={`py-2 px-4 font-medium text-sm sm:text-base transition-colors ${
@@ -350,7 +387,7 @@ function SearchResultsContent() {
                 }`}
                 onClick={() => setActiveTab('albums')}
               >
-                Albums ({albums.length})
+                {t('albums')} ({albums.length})
               </button>
               <button
                 className={`py-2 px-4 font-medium text-sm sm:text-base transition-colors ${
@@ -360,7 +397,17 @@ function SearchResultsContent() {
                 }`}
                 onClick={() => setActiveTab('playlists')}
               >
-                Playlists ({playlists.length})
+                {t('playlists')} ({playlists.length})
+              </button>
+              <button
+                className={`py-2 px-4 font-medium text-sm sm:text-base transition-colors ${
+                  activeTab === 'mixes'
+                    ? 'text-[#FF4D67] border-b-2 border-[#FF4D67]'
+                    : 'text-gray-500 hover:text-gray-300'
+                }`}
+                onClick={() => setActiveTab('mixes')}
+              >
+                {t('mixes')} ({mixes.length})
               </button>
             </div>
           </div>
@@ -597,38 +644,53 @@ function SearchResultsContent() {
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                   {playlists.length > 0 ? (
                     playlists.map((playlist) => (
-                      <div key={playlist.id} className="group card-bg rounded-xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10">
+                      <div 
+                        key={playlist.id} 
+                        className="group card-bg rounded-xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10 cursor-pointer"
+                        onClick={() => handlePlayPlaylist(playlist)}
+                      >
                         <div className="relative">
-                          <img 
-                            src={playlist.coverImage || '/placeholder-playlist.png'} 
-                            alt={playlist.name} 
-                            className="w-full aspect-square object-cover"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <button 
-                              onClick={() => {
-                                // TODO: Implement playlist play functionality
-                                // This would require fetching full playlist data with tracks
-                                alert('Playlist playback coming soon!');
-                              }}
-                              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
-                              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
+                          {playlist.coverImage ? (
+                            <img 
+                              src={playlist.coverImage} 
+                              alt={playlist.name} 
+                              className="w-full aspect-square object-cover transition-transform duration-300 group-hover:scale-105"
+                            />
+                          ) : (
+                            <div className="w-full aspect-square bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center">
+                              <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
                               </svg>
-                            </button>
+                            </div>
+                          )}
+                          
+                          {/* Play Overlay */}
+                          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/90 flex items-center justify-center group-hover:scale-110 transition-transform">
+                              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-gray-900 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                          </div>
+                          
+                          {/* Track Count Badge */}
+                          <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full">
+                            {playlist.tracks?.length || 0} tracks
                           </div>
                         </div>
                         
                         <div className="p-3">
-                          <h3 className="font-bold text-white text-sm sm:text-base mb-1 truncate">{playlist.name}</h3>
-                          <p className="text-gray-400 text-xs sm:text-sm truncate">
-                            {playlist.description ? `${playlist.description.substring(0, 40)}...` : 'Playlist'}
+                          <h3 className="font-bold text-white text-sm sm:text-base mb-1 truncate group-hover:text-[#FF4D67] transition-colors">
+                            {playlist.name}
+                          </h3>
+                          <p className="text-gray-400 text-[10px] sm:text-xs truncate">
+                            {playlist.creator}
                           </p>
-                          <p className="text-gray-500 text-xs mb-2">by {playlist.creator}</p>
-                          <div className="flex justify-between items-center">
-                            <span className="text-gray-500 text-xs">{playlist.tracks} tracks</span>
-                            <span className="text-gray-500 text-xs capitalize">{playlist.isPublic ? 'Public' : 'Private'}</span>
-                          </div>
+                          {playlist.description && (
+                            <p className="text-gray-500 text-[10px] sm:text-xs mt-1 truncate">
+                              {playlist.description}
+                            </p>
+                          )}
                         </div>
                       </div>
                     ))
@@ -638,6 +700,71 @@ function SearchResultsContent() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                       </svg>
                       <h3 className="mt-4 text-lg font-medium text-white">No playlists found</h3>
+                      <p className="mt-2 text-gray-400">Try adjusting your search to find what you're looking for.</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Mixes Tab */}
+              {activeTab === 'mixes' && (
+                <div className="space-y-4">
+                  {mixes.length > 0 ? (
+                    mixes.map((mix) => (
+                      <div key={mix.id} className="flex items-center gap-4 p-4 card-bg rounded-xl hover:bg-gray-800/50 transition-colors group">
+                        <div className="relative">
+                          <img 
+                            src={mix.coverImage || '/placeholder-track.png'} 
+                            alt={mix.title} 
+                            className="w-16 h-16 rounded-lg object-cover"
+                          />
+                          <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button 
+                              onClick={() => {
+                                const formattedTrack: PlayerTrack = {
+                                  id: mix.id,
+                                  title: mix.title,
+                                  artist: mix.artist,
+                                  coverImage: mix.coverImage,
+                                  audioUrl: mix.audioURL,
+                                  creatorId: mix.creatorId,
+                                  plays: mix.plays,
+                                  likes: mix.likes,
+                                  type: 'mix'
+                                };
+                                playTrack(formattedTrack);
+                              }}
+                              className="w-8 h-8 rounded-full gradient-primary flex items-center justify-center text-white"
+                            >
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                        
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-bold text-white truncate">{mix.title}</h3>
+                          <p className="text-gray-400 text-sm truncate">{mix.artist}</p>
+                        </div>
+                        
+                        <div className="text-right">
+                          <p className="text-gray-500 text-xs sm:text-sm">{mix.plays.toLocaleString()} plays</p>
+                          <div className="flex items-center gap-1 mt-1 justify-end">
+                            <svg className="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                              <path fillRule="evenodd" d="M3.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span className="text-gray-500 text-xs sm:text-sm">{mix.likes}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-12">
+                      <svg className="w-16 h-16 mx-auto text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                      </svg>
+                      <h3 className="mt-4 text-lg font-medium text-white">No mixes found</h3>
                       <p className="mt-2 text-gray-400">Try adjusting your search to find what you're looking for.</p>
                     </div>
                   )}

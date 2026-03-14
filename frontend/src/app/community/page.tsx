@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { FaPlus, FaMusic, FaUserFriends, FaFire, FaShare } from 'react-icons/fa';
 import { proxyUpload } from '../../services/s3Service';
@@ -26,6 +27,7 @@ interface Vibe {
 }
 
 const CommunityContent = () => {
+  const { t } = useLanguage();
   const { user, fetchUserProfile } = useAuth();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -279,7 +281,7 @@ const CommunityContent = () => {
         }
 
         if (!accessToken) {
-          alert('Authentication error. Please log in again.');
+          alert(t('authError'));
           return;
         }
 
@@ -295,7 +297,7 @@ const CommunityContent = () => {
         setPreviewUrl(fileUrl);
       } catch (error) {
         console.error('Error uploading media:', error);
-        alert('Failed to upload media. Please try again.');
+        alert(t('mediaUploadFailed'));
       } finally {
         setIsUploading(false);
       }
@@ -346,7 +348,7 @@ const CommunityContent = () => {
   };
 
   const deleteVibe = async (vibeId: string) => {
-    if (!window.confirm('Are you sure you want to delete this post?')) {
+    if (!window.confirm(t('confirmDeleteVibe'))) {
       return;
     }
     
@@ -460,7 +462,7 @@ const CommunityContent = () => {
 
   const sharePost = async (postId: string, postTitle: string) => {
     const shareUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/community`;
-    const shareText = `Check out this vibe: "${postTitle}"`;
+    const shareText = t('checkOutVibe', { title: postTitle });
 
     try {
       if (navigator.share && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
@@ -474,11 +476,11 @@ const CommunityContent = () => {
           method: 'POST'
         }).catch(() => {});
         
-        setSharedNotification('Post shared successfully! 🎉');
+        setSharedNotification(t('postSharedSuccess'));
         setTimeout(() => setSharedNotification(null), 3000);
       } else {
         await navigator.clipboard.writeText(shareUrl);
-        setSharedNotification('Link copied to clipboard! 📋');
+        setSharedNotification(t('linkCopied'));
         setTimeout(() => setSharedNotification(null), 3000);
         
         await makeApiRequest(`${process.env.NEXT_PUBLIC_API_URL}/api/community/posts/${postId}/share`, {
@@ -489,7 +491,7 @@ const CommunityContent = () => {
       if (error.name !== 'AbortError') {
         try {
           await navigator.clipboard.writeText(shareUrl);
-          setSharedNotification('Link copied to clipboard! 📋');
+          setSharedNotification(t('linkCopied'));
           setTimeout(() => setSharedNotification(null), 3000);
         } catch (clipboardError) {
           console.error('Error sharing:', clipboardError);
@@ -500,10 +502,10 @@ const CommunityContent = () => {
 
   const formatTimeAgo = (date: string) => {
     const seconds = Math.floor((new Date().getTime() - new Date(date).getTime()) / 1000);
-    if (seconds < 60) return `${seconds} seconds ago`;
-    if (seconds < 3600) return `${Math.floor(seconds / 60)} minutes ago`;
-    if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours ago`;
-    return `${Math.floor(seconds / 86400)} days ago`;
+    if (seconds < 60) return t('secondsAgo', { count: seconds });
+    if (seconds < 3600) return t('minutesAgo', { count: Math.floor(seconds / 60) });
+    if (seconds < 86400) return t('hoursAgo', { count: Math.floor(seconds / 3600) });
+    return t('daysAgo', { count: Math.floor(seconds / 86400) });
   };
 
   if (!user) {
@@ -511,10 +513,10 @@ const CommunityContent = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">Access Denied</h2>
-          <p className="text-gray-400 mb-6">Please log in to access the community vibes</p>
+          <h2 className="text-2xl font-bold text-white mb-4">{t('accessDenied')}</h2>
+          <p className="text-gray-400 mb-6">{t('loginToAccessCommunity')}</p>
           <a href={`/login?redirect=${encodeURIComponent(currentPath)}`} className="inline-block bg-gradient-to-r from-[#FF4D67] to-[#FF6B8B] text-white py-2 px-6 rounded-lg font-medium hover:from-[#FF6B8B] hover:to-[#FF8FA3] transition-all">
-            Log In
+            {t('logIn')}
           </a>
         </div>
       </div>
@@ -537,8 +539,8 @@ const CommunityContent = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
             <div className="text-center mb-6 sm:mb-8">
-              <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-[#FF4D67] to-[#FF8FA3] bg-clip-text text-transparent mb-2">Vibes</h1>
-              <p className="text-gray-400">Where artists and fans share the feels ✨</p>
+              <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-[#FF4D67] to-[#FF8FA3] bg-clip-text text-transparent mb-2">{t('vibes')}</h1>
+              <p className="text-gray-400">{t('vibesSubtitle')}</p>
             </div>
 
             <div className="mb-6 flex justify-center">
@@ -547,7 +549,7 @@ const CommunityContent = () => {
                 className="bg-gradient-to-r from-[#FF4D67] to-[#FF6B8B] text-white py-3 px-6 rounded-full font-medium flex items-center space-x-2 hover:from-[#FF6B8B] hover:to-[#FF8FA3] transition-all shadow-lg"
               >
                 <FaPlus className="text-sm" />
-                <span>Share a Vibe</span>
+                <span>{t('shareVibe')}</span>
               </button>
             </div>
 
@@ -562,7 +564,7 @@ const CommunityContent = () => {
                         : 'text-gray-400 hover:text-white'
                     }`}
                   >
-                    <FaUserFriends className="mr-1 text-xs" /> <span className="hidden sm:inline">All Vibes</span><span className="inline sm:hidden">Vibes</span>
+                    <FaUserFriends className="mr-1 text-xs" /> <span className="hidden sm:inline">{t('allVibes')}</span><span className="inline sm:hidden">{t('vibes')}</span>
                   </button>
                   <button
                     onClick={() => setSelectedCategory('artist')}
@@ -572,7 +574,7 @@ const CommunityContent = () => {
                         : 'text-gray-400 hover:text-white'
                     }`}
                   >
-                    <FaMusic className="mr-1 text-xs" /> <span className="hidden sm:inline">For Artists</span><span className="inline sm:hidden">Artists</span>
+                    <FaMusic className="mr-1 text-xs" /> <span className="hidden sm:inline">{t('forArtists')}</span><span className="inline sm:hidden">{t('artists')}</span>
                   </button>
                   <button
                     onClick={() => setSelectedCategory('trending')}
@@ -582,13 +584,13 @@ const CommunityContent = () => {
                         : 'text-gray-400 hover:text-white'
                     }`}
                   >
-                    <FaFire className="mr-1 text-xs" /> <span className="hidden sm:inline">On the Flip!</span><span className="inline sm:hidden">Flip</span>
+                    <FaFire className="mr-1 text-xs" /> <span className="hidden sm:inline">{t('onTheFlip')}</span><span className="inline sm:hidden">{t('flip')}</span>
                   </button>
                   <button
                     onClick={() => setShowArtistsModal(true)}
                     className="lg:hidden flex items-center px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm transition-colors text-gray-400 hover:text-white whitespace-nowrap"
                   >
-                    <FaMusic className="mr-1 text-xs" /> Discover
+                    <FaMusic className="mr-1 text-xs" /> {t('discover')}
                   </button>
                 </div>
               </div>
@@ -617,7 +619,7 @@ const CommunityContent = () => {
                           <div className="flex items-center space-x-2">
                             {vibe.category === 'trending' && (
                               <span className="bg-gradient-to-r from-amber-500 to-yellow-500 text-gray-900 text-xs font-medium px-2 py-1 rounded-full flex items-center">
-                                <FaFire className="mr-1 text-xs" /> Flip!
+                                <FaFire className="mr-1 text-xs" /> {t('flip')}
                               </span>
                             )}
                             {(user && (user._id === (vibe.userId?._id || vibe.userId))) && (
@@ -703,10 +705,10 @@ const CommunityContent = () => {
                                         type="text"
                                         value={newComment[vibe.id] || ''}
                                         onChange={(e) => setNewComment(prev => ({ ...prev, [vibe.id]: e.target.value }))}
-                                        placeholder="Write a comment..."
+                                        placeholder={t('writeComment')}
                                         className="flex-1 bg-gray-700 text-white rounded-l-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
                                       />
-                                      <button onClick={() => submitComment(vibe.id)} className="bg-gradient-to-r from-[#FF4D67] to-[#FF6B8B] text-white px-4 rounded-r-lg text-sm font-medium">Post</button>
+                                      <button onClick={() => submitComment(vibe.id)} className="bg-gradient-to-r from-[#FF4D67] to-[#FF6B8B] text-white px-4 rounded-r-lg text-sm font-medium">{t('post')}</button>
                                     </div>
                                   </div>
                                 )}
@@ -720,7 +722,7 @@ const CommunityContent = () => {
                 ))
               ) : (
                 <div className="text-center py-12 bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 sm:p-8">
-                  <p className="text-gray-400">No vibes here yet. Share yours and get things flowing! 🎧</p>
+                  <p className="text-gray-400">{t('noVibesYet')}</p>
                 </div>
               )}
             </div>
@@ -729,7 +731,7 @@ const CommunityContent = () => {
           <div className="lg:col-span-1">
             <div className="sticky top-6">
               <div className="bg-gradient-to-b from-gray-800/50 to-gray-900/50 backdrop-blur-sm rounded-2xl p-5 border border-gray-700/50">
-                <h2 className="text-xl font-bold text-white mb-4">Discover Artists</h2>
+                <h2 className="text-xl font-bold text-white mb-4">{t('discoverArtists')}</h2>
                 <div className="flex gap-2 mb-4">
                   {['all', 'following', 'notFollowing'].map(filter => (
                     <button
@@ -737,7 +739,7 @@ const CommunityContent = () => {
                       onClick={() => setArtistFilter(filter)}
                       className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${artistFilter === filter ? 'bg-[#FF4D67] text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
                     >
-                      {filter.charAt(0).toUpperCase() + filter.slice(1)}
+                      {t(filter)}
                     </button>
                   ))}
                 </div>
@@ -759,13 +761,13 @@ const CommunityContent = () => {
                         )}
                         <div className="flex-1 min-w-0">
                           <h3 className="font-semibold text-white text-sm truncate">{artist.name}</h3>
-                          <p className="text-xs text-gray-400">{artist.followersCount || 0} followers</p>
+                          <p className="text-xs text-gray-400">{t('followersCount', { count: artist.followersCount || 0 })}</p>
                         </div>
                         <button
                           onClick={() => toggleFollowArtist(artist._id || artist.id)}
                           className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${followedArtists[artist._id || artist.id] ? 'bg-gray-700 text-white' : 'bg-[#FF4D67] text-white'}`}
                         >
-                          {followedArtists[artist._id || artist.id] ? 'Following' : 'Follow'}
+                          {followedArtists[artist._id || artist.id] ? t('following') : t('follow')}
                         </button>
                       </div>
                     ))}
@@ -781,33 +783,33 @@ const CommunityContent = () => {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[70] p-4">
           <div className="bg-gray-800 rounded-2xl w-full max-w-md p-6 border border-gray-700 shadow-2xl">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold text-white">Share Your Vibe</h3>
+              <h3 className="text-xl font-bold text-white">{t('shareVibe')}</h3>
               <button onClick={() => setShowCreateModal(false)} className="text-gray-400 hover:text-white">✕</button>
             </div>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Category</label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">{t('category')}</label>
                 <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#FF4D67] outline-none">
-                  <option value="general">General</option>
-                  <option value="artist">For Artists</option>
-                  <option value="trending">On the Flip!</option>
+                  <option value="general">{t('general')}</option>
+                  <option value="artist">{t('forArtists')}</option>
+                  <option value="trending">{t('onTheFlip')}</option>
                 </select>
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Your Vibe</label>
-                <textarea value={newVibe} onChange={(e) => setNewVibe(e.target.value)} placeholder="What's your vibe today? 🎵" className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#FF4D67] outline-none h-32 resize-none" />
+                <label className="block text-sm font-medium text-gray-300 mb-2">{t('yourVibe')}</label>
+                <textarea value={newVibe} onChange={(e) => setNewVibe(e.target.value)} placeholder={t('yourVibePlaceholder')} className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#FF4D67] outline-none h-32 resize-none" />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Add Photo or Video</label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">{t('addMedia')}</label>
                 {!previewUrl ? (
                   <div className="relative border-2 border-dashed border-gray-600 rounded-xl p-4 text-center hover:border-[#FF4D67] transition-colors">
                     <input type="file" accept="image/*,video/*" onChange={handleMediaFileChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                     <div className="flex flex-col items-center">
                       <FaPlus className="text-gray-400 mb-2" />
-                      <span className="text-sm text-gray-400">Click to upload media</span>
+                      <span className="text-sm text-gray-400">{t('clickToUpload')}</span>
                     </div>
                   </div>
                 ) : (
@@ -823,7 +825,7 @@ const CommunityContent = () => {
                 {isUploading && uploadProgress > 0 && uploadProgress < 100 && (
                   <div className="w-full mt-2">
                     <div className="flex justify-between text-[10px] text-gray-400 mb-1">
-                      <span>Uploading Vibe...</span>
+                      <span>{t('uploadingVibe')}...</span>
                       <span>{Math.round(uploadProgress)}%</span>
                     </div>
                     <div className="w-full bg-gray-700 rounded-full h-1.5 overflow-hidden">
@@ -838,7 +840,7 @@ const CommunityContent = () => {
                 disabled={isUploading || (!newVibe.trim() && !mediaFile)}
                 className="w-full bg-gradient-to-r from-[#FF4D67] to-[#FF6B8B] text-white py-3 rounded-xl font-bold hover:shadow-lg disabled:opacity-50 transition-all mt-2"
               >
-                {isUploading ? 'Uploading...' : 'Post Vibe'}
+                {isUploading ? t('uploading') : t('postVibe')}
               </button>
             </div>
           </div>
@@ -849,20 +851,20 @@ const CommunityContent = () => {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[80] lg:hidden flex items-end">
           <div className="bg-gray-800 w-full rounded-t-3xl p-6 max-h-[80vh] overflow-y-auto animate-slide-up">
             <div className="w-12 h-1.5 bg-gray-600 rounded-full mx-auto mb-6" onClick={() => setShowArtistsModal(false)}></div>
-            <h2 className="text-xl font-bold text-white mb-4">Discover Artists</h2>
+            <h2 className="text-xl font-bold text-white mb-4">{t('discoverArtists')}</h2>
             <div className="space-y-4">
               {recommendedArtists.map((artist: any) => (
                 <div key={artist._id} className="flex items-center gap-3 p-3 rounded-xl bg-gray-700/30">
                   <img src={artist.avatar || '/default-avatar.png'} className="w-12 h-12 rounded-full object-cover" />
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-white text-sm truncate">{artist.name}</h3>
-                    <p className="text-xs text-gray-400">{artist.followersCount || 0} followers</p>
+                    <p className="text-xs text-gray-400">{t('followersCount', { count: artist.followersCount || 0 })}</p>
                   </div>
                   <button
                     onClick={() => toggleFollowArtist(artist._id)}
                     className={`px-3 py-1 rounded-full text-xs font-medium ${followedArtists[artist._id] ? 'bg-gray-700 text-white' : 'bg-[#FF4D67] text-white'}`}
                   >
-                    {followedArtists[artist._id] ? 'Following' : 'Follow'}
+                    {followedArtists[artist._id] ? t('following') : t('follow')}
                   </button>
                 </div>
               ))}
