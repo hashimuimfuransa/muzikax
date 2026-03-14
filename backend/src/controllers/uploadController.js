@@ -12,7 +12,7 @@ Object.defineProperty(exports, "protect", { enumerable: true, get: function () {
 // Upload track with cover image
 const uploadTrack = async (req, res) => {
     try {
-        const { title, description, genre, type, paymentType, price, currency, audioURL, coverURL, albumId } = req.body;
+        const { title, description, genre, type, paymentType, price, currency, audioURL, audioVariants, coverURL, albumId } = req.body;
         const user = req.user;
         console.log('Upload track request received:', {
             title,
@@ -23,6 +23,7 @@ const uploadTrack = async (req, res) => {
             price,
             currency,
             audioURL,
+            audioVariants,
             coverURL,
             albumId,
             userId: user._id,
@@ -58,6 +59,7 @@ const uploadTrack = async (req, res) => {
             price: price || 0,
             currency: currency || 'RWF',
             audioURL,
+            audioVariants: audioVariants || {},
             coverURL: finalCoverURL || ''
         };
         // Add album reference if provided

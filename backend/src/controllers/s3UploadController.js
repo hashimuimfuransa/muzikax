@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.proxyUpload = exports.getSignedUrl = void 0;
 const s3_1 = require("../utils/s3");
+const { processAudio } = require("../utils/audioProcessor");
 
 const getSignedUrl = async (req, res) => {
     try {
@@ -50,10 +51,38 @@ const proxyUpload = async (req, res) => {
         const fileUrl = await (0, s3_1.uploadToS3Direct)(req.file.buffer, uniqueFileName, req.file.mimetype);
         console.log(`Successfully uploaded to S3: ${fileUrl}`);
         
-        res.json({
+        const responseData = {
             fileUrl: fileUrl,
             key: uniqueFileName
-        });
+        };
+
+        // If it's an audio file, generate optimized streaming versions
+        if (req.file.mimetype.startsWith("audio/")) {
+            console.log(`Processing audio file: ${fileName}`);
+            try {
+                const variants = await processAudio(req.file.buffer, req.file.originalname);
+                const variantUrls = {};
+                
+                for (const variant of variants) {
+                    const variantKey = `${timestamp}-${variant.name}`;
+                    const url = await (0, s3_1.uploadToS3Direct)(variant.buffer, variantKey, variant.mimetype);
+                    
+                    // Map to specific keys based on bitrate/format
+                    if (variant.name.includes("_96.ogg")) variantUrls.low = url;
+                    else if (variant.name.includes("_160.ogg")) variantUrls.medium = url;
+                    else if (variant.name.includes("_320.ogg")) variantUrls.high = url;
+                    else if (variant.name.includes(".m4a")) variantUrls.m4a = url;
+                }
+                
+                responseData.variants = variantUrls;
+                console.log("Audio variants generated and uploaded successfully");
+            } catch (processError) {
+                console.error("Audio processing failed, but original file was uploaded:", processError);
+                // Continue with original file only
+            }
+        }
+        
+        res.json(responseData);
     } catch (error) {
         console.error('Error in proxy upload controller:', error);
         res.status(500).json({ message: error.message });

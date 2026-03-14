@@ -58,6 +58,12 @@ const TrackSchema = new mongoose_1.Schema({
         type: String,
         required: true
     },
+    audioVariants: {
+        low: { type: String, default: '' },    // 96kbps ogg
+        medium: { type: String, default: '' }, // 160kbps ogg
+        high: { type: String, default: '' },   // 320kbps ogg
+        m4a: { type: String, default: '' }     // aac
+    },
     coverURL: {
         type: String,
         default: ''

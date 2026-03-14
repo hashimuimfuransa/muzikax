@@ -224,6 +224,19 @@ const signTrackUrls = async (track) => {
         if (coverKey) {
             trackObj.coverURL = await (0, exports.getDownloadSignedUrl)(coverKey);
         }
+
+        // Sign audio variants if present
+        if (trackObj.audioVariants) {
+            const variantKeys = ['low', 'medium', 'high', 'm4a'];
+            for (const key of variantKeys) {
+                if (trackObj.audioVariants[key]) {
+                    const variantKey = getKeyFromUrl(trackObj.audioVariants[key]);
+                    if (variantKey) {
+                        trackObj.audioVariants[key] = await (0, exports.getDownloadSignedUrl)(variantKey);
+                    }
+                }
+            }
+        }
     }
     catch (error) {
         console.error('Error signing track URLs:', error);
