@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../../contexts/AuthContext';
 import PlaylistSelectionModal from '../../components/PlaylistSelectionModal';
 import ReportTrackModal from '../../components/ReportTrackModal';
-import { fetchCreatorProfile, fetchTracksByCreatorPublic } from '../../services/trackService';
+import { fetchCreatorProfile, fetchTracksByCreatorPublic, fetchMonthlyPopularTracks } from '../../services/trackService';
 
 // Define comment interface with replies
 interface CommentWithReplies {
@@ -46,6 +46,7 @@ const FullPagePlayer = () => {
     shareTrack,
     downloadTrack, // Add downloadTrack from context
     shufflePlaylist, // Add shufflePlaylist from context
+    shuffleQueue, // Add shuffleQueue from context
     toggleLoop,
     isLooping,
     queue, // Add queue from context
@@ -53,6 +54,7 @@ const FullPagePlayer = () => {
     removeFromQueue, // Add removeFromQueue from context
     clearQueue, // Add clearQueue from context
     playFromQueue, // Add playFromQueue from context
+    playTrack, // Add playTrack from context
     moveQueueItem, // Add moveQueueItem from context
     addRecommendationsToQueue, // Add addRecommendationsToQueue from context
     currentPlaylistName,
@@ -73,7 +75,9 @@ const FullPagePlayer = () => {
   // Added state for creator profile and tracks
   const [creator, setCreator] = useState<any>(null);
   const [creatorTracks, setCreatorTracks] = useState<any[]>([]);
+  const [popularTracks, setPopularTracks] = useState<any[]>([]);
   const [loadingCreator, setLoadingCreator] = useState(false);
+  const [loadingPopular, setLoadingPopular] = useState(false);
   
   // Added state for comment replies
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
@@ -236,6 +240,23 @@ const FullPagePlayer = () => {
     
     fetchCreatorData();
   }, [currentTrack]);
+
+  // Fetch popular tracks
+  useEffect(() => {
+    const fetchPopular = async () => {
+      setLoadingPopular(true);
+      try {
+        const data = await fetchMonthlyPopularTracks(10);
+        setPopularTracks(data);
+      } catch (error) {
+        console.error('Error fetching popular tracks:', error);
+      } finally {
+        setLoadingPopular(false);
+      }
+    };
+    
+    fetchPopular();
+  }, []);
 
   // Format time in MM:SS
   const formatTime = (seconds: number) => {
@@ -448,7 +469,7 @@ const FullPagePlayer = () => {
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[#FF4D67]/20 via-transparent to-[#8B5CF6]/20 z-0"></div>
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-[#FFCB2B]/20 via-transparent to-[#FF4D67]/20 z-0"></div>      
       {/* Content Container */}
-      <div className="relative z-10">
+      <div className="relative z-10 w-full overflow-hidden">
         {/* Toast Notification */}
         {toast && (
           <div className={`fixed top-20 right-4 z-50 px-4 py-2 rounded-lg shadow-lg ${toast.type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white`}>
@@ -565,16 +586,16 @@ const FullPagePlayer = () => {
         <div className="flex justify-between items-center p-4 sm:p-6 border-b border-white/10 gap-2 flex-wrap backdrop-blur-sm bg-black/20">
           <button 
             onClick={minimizeAndGoBack}
-            className="flex items-center text-gray-300 hover:text-white transition-all duration-300 p-3 rounded-xl hover:bg-white/10 min-w-[44px] min-h-[44px] touch-manipulation"
+            className="flex items-center text-gray-300 hover:text-white transition-all duration-300 p-3 rounded-xl hover:bg-white/10 min-w-[44px] min-h-[44px] touch-manipulation flex-shrink-0"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
             </svg>
           </button>
           
-          <h1 className="text-xl sm:text-2xl font-bold px-2 bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] whitespace-nowrap">Now Playing</h1>
+          <h1 className="text-xl sm:text-2xl font-bold px-2 bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] truncate text-center flex-1 min-w-0">Now Playing</h1>
           
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-shrink-0">
             
 
             
@@ -593,8 +614,8 @@ const FullPagePlayer = () => {
         <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-4 md:py-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6 lg:gap-8">
             {/* Main Player Section */}
-            <div className="lg:col-span-2">
-              <div className="flex flex-col items-center">
+            <div className="lg:col-span-2 w-full max-w-full overflow-hidden">
+              <div className="flex flex-col items-center w-full">
                 {/* Album Art */}
                 <div className="relative mb-6 sm:mb-8 group">
                   <div className="absolute -inset-2 sm:-inset-3 md:-inset-4 bg-gradient-to-r from-[#FF4D67] via-[#8B5CF6] to-[#FFCB2B] rounded-3xl blur-xl opacity-30 group-hover:opacity-50 transition-opacity duration-500 animate-pulse"></div>
@@ -607,13 +628,13 @@ const FullPagePlayer = () => {
                 </div>
                 
                 {/* Track Info */}
-                <div className="text-center mb-6 sm:mb-8 w-full px-4">
-                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2 drop-shadow-lg">{currentTrack.title}</h2>
+                <div className="text-center mb-6 sm:mb-8 w-full px-4 overflow-hidden">
+                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2 drop-shadow-lg truncate line-clamp-1">{currentTrack.title}</h2>
                   <Link 
                     href={`/artists/${(typeof currentTrack.creatorId === 'object' && currentTrack.creatorId !== null) 
                       ? (currentTrack.creatorId as any)._id 
                       : currentTrack.creatorId}`}
-                    className="text-lg sm:text-xl md:text-2xl bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] hover:from-[#ff3350] hover:to-[#ffd64d] mt-2 inline-block font-semibold"
+                    className="text-lg sm:text-xl md:text-2xl bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] hover:from-[#ff3350] hover:to-[#ffd64d] mt-2 inline-block font-semibold max-w-full truncate"
                   >
                     {currentTrack.artist}
                   </Link>
@@ -640,21 +661,7 @@ const FullPagePlayer = () => {
                       })()}
                     </div>
                   )}
-                  {/* Play Count and Likes */}
-                  <div className="flex justify-center gap-6 sm:gap-8 mt-4 text-gray-200">
-                    <div className="flex items-center bg-white/10 backdrop-blur-sm px-4 py-2 rounded-xl">
-                      <svg className="w-5 h-5 mr-2 text-[#FF4D67]" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                      </svg>
-                      <span className="font-medium">{currentTrack.plays || 0} plays</span>
-                    </div>
-                    <div className="flex items-center bg-white/10 backdrop-blur-sm px-4 py-2 rounded-xl">
-                      <svg className="w-5 h-5 mr-2 text-[#FFCB2B]" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                      </svg>
-                      <span className="font-medium">{currentTrack.likes || 0} likes</span>
-                    </div>
-                  </div>
+
                   
                   {/* Current Playlist Indicator */}
                   {currentPlaylistName && (
@@ -1120,10 +1127,10 @@ const FullPagePlayer = () => {
                 </div>
                 
                 {/* Queue Section */}
-                <div className="mt-6 bg-gray-800/50 rounded-xl p-4">
-                  <div className="flex justify-between items-center mb-3">
-                    <h3 className="font-bold text-lg">Up Next</h3>
-                    <div className="flex gap-2">
+                <div className="mt-4 sm:mt-6 bg-gray-800/50 rounded-xl p-3 sm:p-4 w-full max-w-2xl overflow-hidden">
+                  <div className="flex justify-between items-center mb-3 px-1 w-full gap-2">
+                    <h3 className="font-bold text-base sm:text-lg truncate flex-1 min-w-0">Up Next</h3>
+                    <div className="flex gap-1 sm:gap-2">
                       <button 
                         onClick={async () => {
                           // Add recommendations to queue
@@ -1134,9 +1141,20 @@ const FullPagePlayer = () => {
                             setToast({message: 'No recommendations available', type: 'error'});
                           }
                         }}
-                        className="text-sm text-gray-400 hover:text-white bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded"
+                        className="text-xs sm:text-sm text-gray-400 hover:text-white bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded"
                       >
-                        Add Recs
+                        <span className="hidden sm:inline">Add Recommendations</span>
+                        <span className="sm:hidden">+ Recs</span>
+                      </button>
+                      <button 
+                        onClick={shuffleQueue}
+                        className="text-xs sm:text-sm text-gray-400 hover:text-white bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded flex items-center gap-1"
+                        title="Shuffle Queue"
+                      >
+                        <span className="hidden sm:inline">Shuffle</span>
+                        <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                        </svg>
                       </button>
                       <button 
                         onClick={() => {
@@ -1144,7 +1162,7 @@ const FullPagePlayer = () => {
                           clearQueue();
                           setToast({message: 'Queue cleared!', type: 'success'});
                         }}
-                        className="text-sm text-gray-400 hover:text-white"
+                        className="text-xs sm:text-sm text-gray-400 hover:text-white bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded"
                       >
                         Clear
                       </button>
@@ -1152,7 +1170,7 @@ const FullPagePlayer = () => {
                   </div>
                   
                   {queue && queue.length > 0 ? (
-                    <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
+                    <div className="space-y-2 max-h-[300px] sm:max-h-[400px] overflow-y-auto pr-2">
                       {queue.map((queuedTrack, index) => (
                         <div 
                           key={`${queuedTrack.id}-${index}`} 
@@ -1170,27 +1188,27 @@ const FullPagePlayer = () => {
                               moveQueueItem(draggedIndex, index);
                             }
                           }}
-                          className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-700/50 cursor-pointer transition-colors group bg-gray-700/30"
+                          className="flex items-center gap-2 sm:gap-3 p-2 rounded-lg hover:bg-gray-700/50 cursor-pointer transition-colors group bg-gray-700/30 w-full"
                           onClick={() => {
                             // Play this track from the queue
                             playFromQueue(queuedTrack.id);
                             setToast({message: `Playing ${queuedTrack.title}`, type: 'success'});
                           }}
                         >
-                          <div className="flex items-center gap-1">
-                            <span className="text-gray-500 text-sm w-5">{index + 1}</span>
-                            <svg className="w-4 h-4 text-gray-400 cursor-move" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <div className="flex items-center gap-1 flex-shrink-0">
+                            <span className="text-gray-500 text-xs sm:text-sm w-4 sm:w-5">{index + 1}</span>
+                            <svg className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 cursor-move" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
                             </svg>
                           </div>
                           <img 
                             src={queuedTrack.coverImage} 
                             alt={queuedTrack.title} 
-                            className="w-10 h-10 rounded object-cover"
+                            className="w-8 h-8 sm:w-10 sm:h-10 rounded object-cover flex-shrink-0"
                           />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">{queuedTrack.title}</p>
-                            <p className="text-xs text-gray-400 truncate">{queuedTrack.artist}</p>
+                          <div className="flex-1 min-w-0 overflow-hidden">
+                            <p className="text-xs sm:text-sm font-medium truncate line-clamp-1">{queuedTrack.title}</p>
+                            <p className="text-[10px] sm:text-xs text-gray-400 truncate">{queuedTrack.artist}</p>
                           </div>
                           <button 
                             onClick={(e) => {
@@ -1198,7 +1216,7 @@ const FullPagePlayer = () => {
                               removeFromQueue(queuedTrack.id);
                               setToast({message: 'Removed from queue', type: 'success'});
                             }}
-                            className="text-gray-500 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="text-gray-500 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity p-1"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -1209,7 +1227,7 @@ const FullPagePlayer = () => {
                     </div>
                   ) : (
                     <div>
-                      <p className="text-gray-400 text-center py-4 text-sm">Queue is empty</p>
+                      <p className="text-gray-400 text-center py-4 text-xs sm:text-sm">Queue is empty</p>
                       <button 
                         onClick={async () => {
                           // Add recommendations to queue
@@ -1220,11 +1238,83 @@ const FullPagePlayer = () => {
                             setToast({message: 'No recommendations available', type: 'error'});
                           }
                         }}
-                        className="w-full mt-2 py-2 bg-[#FF4D67] hover:bg-[#ff3350] rounded-lg text-white font-medium transition-colors"
+                        className="w-full mt-2 py-2 bg-[#FF4D67] hover:bg-[#ff3350] rounded-lg text-white text-sm sm:text-base font-medium transition-colors touch-manipulation"
                       >
                         Add Recommendations
                       </button>
                     </div>
+                  )}
+                </div>
+
+                {/* Popular Playlist Section */}
+                <div className="mt-4 sm:mt-6 bg-gray-800/50 rounded-xl p-3 sm:p-4 w-full max-w-2xl overflow-hidden">
+                  <div className="flex justify-between items-center mb-3 px-1 w-full gap-2">
+                    <h3 className="font-bold text-base sm:text-lg truncate flex-1 min-w-0">Popular This Month</h3>
+                    <button 
+                      onClick={() => {
+                        const shuffled = [...popularTracks];
+                        for (let i = shuffled.length - 1; i > 0; i--) {
+                          const j = Math.floor(Math.random() * (i + 1));
+                          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+                        }
+                        setPopularTracks(shuffled);
+                        setToast({message: 'Popular playlist shuffled!', type: 'success'});
+                      }}
+                      className="text-xs sm:text-sm text-gray-400 hover:text-white bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded flex items-center gap-1"
+                      title="Shuffle Popular"
+                    >
+                      <span className="hidden sm:inline">Shuffle</span>
+                      <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                      </svg>
+                    </button>
+                  </div>
+                  
+                  {loadingPopular ? (
+                    <div className="flex items-center justify-center py-4">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF4D67]"></div>
+                    </div>
+                  ) : popularTracks.length > 0 ? (
+                    <div className="space-y-2 max-h-[300px] sm:max-h-[400px] overflow-y-auto pr-2">
+                      {popularTracks.map((track, index) => (
+                        <div 
+                          key={track.id} 
+                          className="flex items-center gap-2 sm:gap-3 p-2 rounded-lg hover:bg-gray-700/50 cursor-pointer transition-colors group bg-gray-700/30 w-full"
+                          onClick={() => {
+                            playTrack(track, popularTracks);
+                            setToast({message: `Playing ${track.title}`, type: 'success'});
+                          }}
+                        >
+                          <span className="text-gray-500 text-xs sm:text-sm w-4 sm:w-5 flex-shrink-0">{index + 1}</span>
+                          <img 
+                            src={track.coverImage} 
+                            alt={track.title} 
+                            className="w-8 h-8 sm:w-10 sm:h-10 rounded object-cover flex-shrink-0"
+                          />
+                          <div className="flex-1 min-w-0 overflow-hidden">
+                            <p className="text-xs sm:text-sm font-medium truncate line-clamp-1">{track.title}</p>
+                            <p className="text-[10px] sm:text-xs text-gray-400 truncate">{track.artist}</p>
+                          </div>
+                          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+                             <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  addToQueue(track);
+                                  setToast({message: 'Added to queue', type: 'success'});
+                                }}
+                                className="p-1 sm:p-2 text-gray-400 hover:text-white transition-colors touch-manipulation"
+                                title="Add to Queue"
+                              >
+                                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path>
+                                </svg>
+                              </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-400 text-center py-4 text-sm">No popular tracks found</p>
                   )}
                 </div>
               </div>
@@ -1301,10 +1391,10 @@ const FullPagePlayer = () => {
                               <img 
                                 src={track.coverArt || track.coverURL || currentTrack.coverImage} 
                                 alt={track.title} 
-                                className="w-10 h-10 sm:w-10 sm:h-10 rounded object-cover"
+                                className="w-10 h-10 sm:w-10 sm:h-10 rounded object-cover flex-shrink-0"
                               />
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium truncate">{track.title}</p>
+                              <div className="flex-1 min-w-0 overflow-hidden">
+                                <p className="text-sm font-medium truncate line-clamp-1">{track.title}</p>
                                 <p className="text-xs text-gray-400 truncate">{track.artist || creator.name}</p>
                               </div>
                             </div>

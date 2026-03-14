@@ -1,3 +1,5 @@
+'use client';
+
  import { useState } from 'react';
  import { useAudioPlayer } from '../contexts/AudioPlayerContext';
  import { usePayment } from '../contexts/PaymentContext';

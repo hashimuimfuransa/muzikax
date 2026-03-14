@@ -568,14 +568,11 @@ const incrementPlayCount = async (req, res) => {
         }
 
         // Capture IP address and store geography data
-        const ipAddress = req.ip || req.connection.remoteAddress || '';
-        if (ipAddress) {
-            // Remove IPv6 prefix if present
-            const cleanIpAddress = ipAddress.replace('::ffff:', '');
-            
+        const ipAddress = req.ip || req.connection.remoteAddress || "";
+        const cleanIpAddress = ipAddress.replace("::ffff:", "");
+        if (cleanIpAddress) {
             // Get geography data from IP
             const geo = geoip.lookup(cleanIpAddress);
-            
             if (geo) {
                 // Store geography data
                 await ListenerGeography_1.create({

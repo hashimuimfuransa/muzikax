@@ -1,7 +1,9 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { fetchTrackById } from '../../../services/trackService';
+import { fetchTrackById, fetchTracksByCreatorPublic } from '../../../services/trackService';
 import Script from 'next/script';
+import TrackDetailClient from './TrackDetailClient';
+import TrackCard from '../../../components/TrackCard';
 
 interface Track {
   _id: string;
@@ -16,7 +18,9 @@ interface Track {
   audioURL: string;
   duration?: string;
   genre?: string;
+  type?: 'song' | 'beat' | 'mix';
   releaseDate?: string;
+  createdAt?: string;
   description?: string;
   paymentType?: 'free' | 'paid';
   price?: number;
@@ -129,6 +133,7 @@ export default async function TrackDetailPage({ params }: { params: Promise<{ id
   }
   
   let track: Track;
+  let artistTracks: any[] = [];
   
   try {
     const fetchedTrack = await fetchTrackById(trackId);
@@ -144,96 +149,101 @@ export default async function TrackDetailPage({ params }: { params: Promise<{ id
         ? fetchedTrack.creatorId as any
         : { _id: '', name: 'Unknown Artist' },
     };
+
+    // Fetch other tracks by the same creator
+    if (track.creatorId?._id) {
+      const allArtistTracks = await fetchTracksByCreatorPublic(track.creatorId._id);
+      // Filter out the current track and limit to 6
+      artistTracks = allArtistTracks
+        .filter((t: any) => (t._id || t.id) !== trackId)
+        .slice(0, 6);
+    }
   } catch (error) {
-    console.error('Error fetching track:', error);
+    console.error('Error fetching track data:', error);
     notFound();
   }
+
+  const formattedDate = track.releaseDate 
+    ? new Date(track.releaseDate).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })
+    : track.createdAt 
+      ? new Date(track.createdAt).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        })
+      : 'N/A';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black py-8">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
-          {/* Track header */}
-          <div className="flex flex-col md:flex-row gap-8 mb-12">
-            <div className="md:w-1/3">
-              <div className="relative">
-                {track.coverURL || track.coverImage ? (
-                  <img
-                    src={track.coverURL || track.coverImage}
-                    alt={`${track.title} cover`}
-                    className="w-full rounded-2xl shadow-2xl"
+          {/* Track Detail Client (Header + Playback) */}
+          <TrackDetailClient track={track} />
+
+          {/* More from Artist Section */}
+          {artistTracks.length > 0 && (
+            <div className="mb-12">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-white">More from {track.artist}</h2>
+              </div>
+              <div className="flex overflow-x-auto gap-4 pb-4 scrollbar-hide">
+                {artistTracks.map((t: any) => (
+                  <TrackCard 
+                    key={t._id || t.id}
+                    track={{
+                      id: t._id || t.id,
+                      title: t.title,
+                      artist: track.artist,
+                      coverImage: t.coverURL || t.coverImage || '',
+                      plays: t.plays,
+                      likes: t.likes,
+                      duration: t.duration,
+                      type: t.type,
+                      paymentType: t.paymentType,
+                      price: t.price
+                    }}
+                    fullTrackData={t}
                   />
-                ) : (
-                  <div className="w-full aspect-square bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] rounded-2xl flex items-center justify-center">
-                    <svg className="w-24 h-24 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
-                    </svg>
-                  </div>
-                )}
+                ))}
               </div>
             </div>
-
-            <div className="md:w-2/3">
-              <div className="flex flex-col justify-end h-full">
-                <p className="text-[#FFCB2B] text-sm uppercase tracking-wider mb-2">
-                  {track.genre || 'Song'}
-                </p>
-                <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">
-                  {track.title}
-                </h1>
-                <p className="text-xl text-gray-300 mb-6">
-                  {track.artist}
-                </p>
-
-                <div className="flex flex-wrap items-center gap-4 text-gray-400 mb-8">
-                  <span>{track.plays?.toLocaleString() || '0'} plays</span>
-                  <span>•</span>
-                  <span>{track.likes?.toLocaleString() || '0'} likes</span>
-                  <span>•</span>
-                  <span>{track.duration || 'N/A'}</span>
-                  {track.paymentType === 'paid' && track.price && (
-                    <>
-                      <span>•</span>
-                      <span className="text-green-400 font-semibold">
-                        {track.price.toLocaleString()} RWF
-                      </span>
-                    </>
-                  )}
-                </div>
-
-                <div className="flex gap-4">
-                  {/* Play button would go here */}
-                  <button className="px-8 py-3 gradient-primary rounded-full text-white font-medium hover:opacity-90 transition-opacity flex items-center gap-2">
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
-                    </svg>
-                    Play Track
-                  </button>
-                </div>
-
-                {track.description && (
-                  <div className="mt-8">
-                    <h3 className="text-lg font-semibold text-white mb-2">About</h3>
-                    <p className="text-gray-400">{track.description}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+          )}
 
           {/* Additional track info */}
-          <div className="card-bg rounded-2xl p-6">
-            <h2 className="text-2xl font-bold text-white mb-4">Track Details</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-400">
-              <div>
-                <p><span className="text-white">Artist:</span> {track.creatorId?.name || track.artist}</p>
-                <p><span className="text-white">Plays:</span> {track.plays?.toLocaleString() || '0'}</p>
-                <p><span className="text-white">Likes:</span> {track.likes?.toLocaleString() || '0'}</p>
+          <div className="card-bg rounded-2xl p-6 border border-gray-800/50">
+            <h2 className="text-2xl font-bold text-white mb-6">Track Details</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-gray-400">
+              <div className="space-y-4">
+                <div className="flex justify-between py-2 border-b border-gray-800/50">
+                  <span className="text-gray-500">Artist</span>
+                  <span className="text-white font-medium">{track.creatorId?.name || track.artist}</span>
+                </div>
+                <div className="flex justify-between py-2 border-b border-gray-800/50">
+                  <span className="text-gray-500">Plays</span>
+                  <span className="text-white font-medium">{track.plays?.toLocaleString() || '0'}</span>
+                </div>
+                <div className="flex justify-between py-2 border-b border-gray-800/50">
+                  <span className="text-gray-500">Likes</span>
+                  <span className="text-white font-medium">{track.likes?.toLocaleString() || '0'}</span>
+                </div>
               </div>
-              <div>
-                <p><span className="text-white">Genre:</span> {track.genre || 'N/A'}</p>
-                <p><span className="text-white">Duration:</span> {track.duration || 'N/A'}</p>
-                <p><span className="text-white">Release Date:</span> {track.releaseDate || 'N/A'}</p>
+              <div className="space-y-4">
+                <div className="flex justify-between py-2 border-b border-gray-800/50">
+                  <span className="text-gray-500">Genre</span>
+                  <span className="text-white font-medium">{track.genre || 'N/A'}</span>
+                </div>
+                <div className="flex justify-between py-2 border-b border-gray-800/50">
+                  <span className="text-gray-500">Duration</span>
+                  <span className="text-white font-medium">{track.duration || 'N/A'}</span>
+                </div>
+                <div className="flex justify-between py-2 border-b border-gray-800/50">
+                  <span className="text-gray-500">Release Date</span>
+                  <span className="text-white font-medium">{formattedDate}</span>
+                </div>
               </div>
             </div>
           </div>

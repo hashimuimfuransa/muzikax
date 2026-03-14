@@ -72,6 +72,7 @@ interface AudioPlayerContextType {
   removeFromFavorites: (trackId: string) => void;
   setCurrentPlaylist: (tracks: Track[]) => void;
   shufflePlaylist: () => void; // Add shufflePlaylist function
+  shuffleQueue: () => void; // Add shuffleQueue function
   toggleLoop: () => void;
   isLooping: boolean;
   currentTrackIndex: number;
@@ -1385,6 +1386,33 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
       } 
     }));
   };
+
+  // Add shuffleQueue function
+  const shuffleQueue = () => {
+    if (queue.length <= 1) {
+      window.dispatchEvent(new CustomEvent('playerToast', { 
+        detail: { 
+          message: 'Queue is too short to shuffle',
+          type: 'error'
+        } 
+      }));
+      return;
+    }
+    
+    const shuffledQueue = [...queue];
+    for (let i = shuffledQueue.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffledQueue[i], shuffledQueue[j]] = [shuffledQueue[j], shuffledQueue[i]];
+    }
+    
+    setQueue(shuffledQueue);
+    window.dispatchEvent(new CustomEvent('playerToast', { 
+      detail: { 
+        message: 'Queue shuffled!',
+        type: 'success'
+      } 
+    }));
+  };
   
   // Add toggleLoop function
   const toggleLoop = () => {
@@ -1612,6 +1640,7 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
         removeFromFavorites,
         setCurrentPlaylist,
         shufflePlaylist, // Export shufflePlaylist function
+        shuffleQueue, // Export shuffleQueue function
         toggleLoop,
         isLooping,
         currentTrackIndex,
