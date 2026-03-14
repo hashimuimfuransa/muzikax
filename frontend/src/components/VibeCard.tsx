@@ -1,0 +1,127 @@
+import React from 'react';
+import Link from 'next/link';
+import { FaHeart, FaComment } from 'react-icons/fa';
+
+interface VibeCardProps {
+  vibe: {
+    id: string;
+    userName: string;
+    userAvatar?: string;
+    content: string;
+    mediaUrl?: string;
+    mediaThumbnail?: string;
+    likes: number;
+    commentCount: number;
+    postType: 'text' | 'image' | 'video' | 'audio';
+  };
+}
+
+const VibeCard: React.FC<VibeCardProps> = ({ vibe }) => {
+  const firstLetter = vibe.userName ? vibe.userName.charAt(0).toUpperCase() : '?';
+
+  return (
+    <Link 
+      href="/community" 
+      className="flex-shrink-0 w-64 sm:w-72 bg-gray-800/40 backdrop-blur-md border border-gray-700/50 rounded-2xl overflow-hidden hover:border-[#FF4D67]/50 transition-all duration-500 group snap-start"
+    >
+      <div className="p-4 flex flex-col h-full">
+        {/* User Info */}
+        <div className="flex items-center space-x-3 mb-3">
+          <div className="relative">
+            {vibe.userAvatar ? (
+              <img
+                src={vibe.userAvatar}
+                alt={vibe.userName}
+                className="w-10 h-10 rounded-full object-cover border-2 border-[#FF4D67]/30 group-hover:border-[#FF4D67] transition-colors duration-500"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center border-2 border-[#FF4D67]/30 group-hover:border-[#FF4D67] transition-colors duration-500">
+                <span className="text-white font-bold text-sm">{firstLetter}</span>
+              </div>
+            )}
+            {vibe.postType !== 'text' && (
+              <div className="absolute -bottom-1 -right-1 bg-[#FF4D67] text-white text-[10px] p-1 rounded-full border border-gray-900">
+                {vibe.postType === 'image' ? '📸' : vibe.postType === 'video' ? '🎥' : '🎵'}
+              </div>
+            )}
+          </div>
+          <div className="overflow-hidden">
+            <h3 className="font-semibold text-white text-sm truncate group-hover:text-[#FF4D67] transition-colors duration-300">
+              {vibe.userName}
+            </h3>
+            <p className="text-[10px] text-gray-500 uppercase tracking-wider">Community Vibe</p>
+          </div>
+        </div>
+
+        {/* Content Preview */}
+        <div className="flex-1 mb-4">
+          {vibe.mediaUrl && (vibe.postType === 'image' || vibe.postType === 'video') ? (
+            <div className="relative w-full aspect-video rounded-xl overflow-hidden mb-3">
+              {vibe.postType === 'image' ? (
+                <img 
+                  src={vibe.mediaUrl} 
+                  alt="Vibe media" 
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                />
+              ) : (
+                <div className="relative w-full h-full">
+                  {vibe.mediaThumbnail ? (
+                    <img 
+                      src={vibe.mediaThumbnail} 
+                      alt="Video thumbnail" 
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gray-700 flex items-center justify-center">
+                      <span className="text-4xl">🎥</span>
+                    </div>
+                  )}
+                  {/* Play icon overlay for videos */}
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40 transition-colors">
+                    <div className="w-10 h-10 rounded-full bg-[#FF4D67] flex items-center justify-center text-white transform group-hover:scale-110 transition-transform">
+                      <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24">
+                        <path d="M8 5v14l11-7z" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-gray-900/60 to-transparent"></div>
+            </div>
+          ) : vibe.postType === 'audio' ? (
+            <div className="bg-gray-700/30 rounded-xl p-3 mb-3 flex items-center space-x-3 border border-gray-700/50">
+              <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-green-500">
+                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                  <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
+                </svg>
+              </div>
+              <span className="text-xs text-gray-400">Voice Note</span>
+            </div>
+          ) : null}
+          <p className="text-gray-300 text-sm line-clamp-3 leading-relaxed italic">
+            "{vibe.content}"
+          </p>
+        </div>
+
+        {/* Stats */}
+        <div className="flex items-center justify-between pt-3 border-t border-gray-700/30 text-gray-400 text-xs">
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-1.5 group/stat">
+              <FaHeart className="group-hover/stat:text-[#FF4D67] transition-colors" />
+              <span>{vibe.likes}</span>
+            </div>
+            <div className="flex items-center space-x-1.5 group/stat">
+              <FaComment className="group-hover/stat:text-blue-400 transition-colors" />
+              <span>{vibe.commentCount}</span>
+            </div>
+          </div>
+          <span className="text-[#FF4D67] font-medium group-hover:translate-x-1 transition-transform duration-300">
+            View All →
+          </span>
+        </div>
+      </div>
+    </Link>
+  );
+};
+
+export default VibeCard;

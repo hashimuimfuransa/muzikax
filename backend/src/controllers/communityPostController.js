@@ -205,11 +205,18 @@ exports.getTrendingPosts = async (req, res) => {
         startDate = new Date(now.setDate(now.getDate() - 7));
     }
 
-    const posts = await CommunityPost.find({
+    let posts = await CommunityPost.find({
       createdAt: { $gte: startDate }
     })
     .sort({ likes: -1, comments: -1, shares: -1 })
     .limit(parseInt(limit));
+
+    // Fallback: If no posts in the specified period, get most popular posts ever
+    if (posts.length === 0) {
+      posts = await CommunityPost.find({})
+        .sort({ likes: -1, comments: -1, shares: -1 })
+        .limit(parseInt(limit));
+    }
 
     res.json({
       posts: posts.map(post => ({

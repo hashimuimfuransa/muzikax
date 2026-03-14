@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getTrendingTracks = exports.incrementPlayCount = exports.deleteTrack = exports.updateTrack = exports.getTracksByAuthUser = exports.getTracksByCreator = exports.getTracksByCreatorSimple = exports.getTrackById = exports.getAllTracks = exports.uploadTrack = void 0;
+exports.handleInvalidTrack = exports.getTracksFromFollowedArtists = exports.getTracksByType = exports.getTrendingTracks = exports.getMonthlyPopularTracks = exports.incrementPlayCount = exports.deleteTrack = exports.updateTrack = exports.getTracksByAuthUser = exports.getTracksByCreator = exports.getTracksByCreatorSimple = exports.getTrackById = exports.getAllTracks = exports.uploadTrack = void 0;
 const Track_1 = require("../models/Track");
 const ListenerGeography_1 = require("../models/ListenerGeography");
 const User_1 = require("../models/User");
@@ -799,6 +799,79 @@ const getTracksByType = async (req, res) => {
     }
 };
 exports.getTracksByType = getTracksByType;
+
+// Get tracks from creators that the user follows
+const getTracksFromFollowedArtists = async (req, res) => {
+    console.log('--- TRACK FOLLOWING ENDPOINT HIT ---');
+    try {
+        if (!req.user) {
+            console.log('Error: req.user is missing in getTracksFromFollowedArtists');
+            res.status(401).json({ message: 'User not authenticated' });
+            return;
+        }
+
+        const userId = req.user._id;
+        console.log(`User ID from request: ${userId}`);
+        const limit = parseInt(req.query.limit) || 20;
+        
+        // Use a direct require to be absolutely sure we're getting the model
+        const User = require('../models/User');
+        console.log('User model loaded');
+        
+        const user = await User.findById(userId).select('following').lean();
+        console.log('User fetched from DB');
+        
+        if (!user || !user.following || !Array.isArray(user.following) || user.following.length === 0) {
+            console.log(`User ${userId} has no followed artists or following is not an array`);
+            res.json([]);
+            return;
+        }
+        
+        console.log(`Fetching tracks for following: ${user.following.length} artists`);
+        
+        // Use a direct require to be absolutely sure we're getting the model
+        const Track = require('../models/Track');
+        console.log('Track model loaded');
+        
+        // Find tracks by creators in the following list
+        const tracks = await Track.find({
+            creatorId: { $in: user.following }
+        })
+        .sort({ createdAt: -1 })
+        .limit(limit)
+        .populate('creatorId', 'name avatar')
+        .lean();
+        
+        console.log(`Found ${tracks.length} tracks to sign`);
+        
+        // Sign track URLs
+        const signedTracks = await Promise.all(tracks.map(async (trackObj) => {
+            // Ensure paymentType defaults to 'free' if not present
+            if (!trackObj.paymentType) {
+                trackObj.paymentType = 'free';
+            }
+            
+            // Sign track URLs
+            try {
+                return await signTrackUrls(trackObj);
+            } catch (err) {
+                console.error(`Error signing track URLs for track ${trackObj._id}:`, err);
+                return trackObj;
+            }
+        }));
+        
+        console.log('All tracks signed, sending response');
+        res.json(signedTracks);
+    } catch (error) {
+        console.error('FATAL ERROR in getTracksFromFollowedArtists:', error);
+        res.status(500).json({ 
+            message: 'Server error: GET_FOLLOWED_TRACKS_FAILED', 
+            error: error.message,
+            stack: error.stack
+        });
+    }
+};
+exports.getTracksFromFollowedArtists = getTracksFromFollowedArtists;
 
 // Handle playback error and remove invalid tracks
 const handleInvalidTrack = async (req, res) => {

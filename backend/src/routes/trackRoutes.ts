@@ -10,7 +10,9 @@ import {
   deleteTrack,
   incrementPlayCount,
   getTrendingTracks,
-  getTracksByType
+  getMonthlyPopularTracks,
+  getTracksByType,
+  getTracksFromFollowedArtists
 } from '../controllers/trackController';
 import { protect, creator } from '../utils/jwt';
 
@@ -25,6 +27,7 @@ router.route('/creator/:creatorId/simple').get(getTracksByCreatorSimple);
 router.route('/creator/:creatorId').get(getTracksByCreator);
 
 // Protected routes
+router.route('/following').get(protect, getTracksFromFollowedArtists);
 router.route('/upload').post(protect, creator, uploadTrack);
 router.route('/creator').get(protect, creator, getTracksByAuthUser);
 router.route('/:id/play').put(incrementPlayCount);

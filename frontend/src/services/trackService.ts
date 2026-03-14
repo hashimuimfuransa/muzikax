@@ -617,6 +617,45 @@ export const incrementTrackPlayCount = async (trackId: string): Promise<boolean>
 };
 
 /**
+ * Fetch tracks from creators that the user follows
+ */
+export const fetchTracksFromFollowedArtists = async (limit: number = 20): Promise<any[]> => {
+  try {
+    const response = await makeAuthenticatedRequest(`${process.env.NEXT_PUBLIC_API_URL}/api/tracks/following?limit=${limit}`);
+    
+    if (!response.ok) {
+      if (response.status === 401) return []; // Not authenticated
+      throw new Error(`Failed to fetch followed artists tracks: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    
+    // Map the fields to match the Track interface used in the frontend
+    return data.map((track: any) => ({
+      id: track._id,
+      title: track.title,
+      artist: track.creatorId?.name || 'Unknown Artist',
+      album: track.albumTitle || '',
+      plays: track.plays || 0,
+      likes: track.likes || 0,
+      coverImage: track.coverURL || '',
+      duration: track.duration || '',
+      category: track.type || 'song',
+      type: track.type || 'song',
+      paymentType: track.paymentType || 'free',
+      price: track.price,
+      currency: track.currency,
+      creatorId: track.creatorId?._id || track.creatorId || '',
+      audioUrl: track.audioURL || '',
+      creatorWhatsapp: track.creatorId?.whatsappContact || undefined
+    }));
+  } catch (error) {
+    console.error('Error fetching followed artists tracks:', error);
+    return [];
+  }
+};
+
+/**
  * Delete track
  */
 export const deleteTrack = async (trackId: string): Promise<boolean> => {

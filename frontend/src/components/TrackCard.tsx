@@ -120,6 +120,30 @@ export default function TrackCard({
               target.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMTAwIDEwMCI+CiAgPGxpbmVhckdyYWRpZW50IGlkPSJncmFkIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+CiAgICA8c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNGRjRENDciLz4KICAgIDxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI0ZGQ0IyQiIvPgogIDwvbGluZWFyR3JhZGllbnQ+CiAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjZ3JhZCkiLz4KICA8dGV4dCB4PSI1MCIgeT0iNTAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIzNSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iIGZpbGw9IndoaXRlIj4KICAgIHsgdHJhY2sudGl0bGUgJiYgdHJhY2sudGl0bGUudHJpbSgpLmxlbmd0aCA+IDAgPyB0cmFjay50aXRsZS50cmltKCkuY2hhckF0KDApLnRvVXBwZXJDYXNlKCkgOiAnPycgfQogIDwvdGV4dD4KPC9zdmc+'; // Fallback to SVG with text
             }}
           />
+          {/* Overlay badges for beats */}
+          {track.type === 'beat' && (
+            <div className="absolute top-2 left-2 flex flex-col gap-1 z-10 pointer-events-none">
+              <span className="px-1.5 py-0.5 bg-purple-600/90 backdrop-blur-sm text-white text-[10px] font-bold rounded shadow-lg">
+                BEAT
+              </span>
+              {(() => {
+                const paymentType = track.paymentType || fullTrackData?.paymentType || 'free';
+                return (
+                  <span className={`px-1.5 py-0.5 ${paymentType === 'paid' ? 'bg-green-600/90' : 'bg-blue-600/90'} backdrop-blur-sm text-white text-[10px] font-bold rounded shadow-lg`}>
+                    {paymentType === 'paid' ? 'PAID' : 'FREE'}
+                  </span>
+                );
+              })()}
+            </div>
+          )}
+          {/* Price overlay for paid beats */}
+          {track.type === 'beat' && (track.paymentType === 'paid' || fullTrackData?.paymentType === 'paid') && (track.price || fullTrackData?.price) && (
+            <div className="absolute top-2 right-2 z-10 pointer-events-none">
+              <span className="px-1.5 py-0.5 bg-yellow-600/90 backdrop-blur-sm text-white text-[10px] font-bold rounded shadow-lg">
+                {(track.price || fullTrackData?.price)?.toLocaleString()} RWF
+              </span>
+            </div>
+          )}
         </div>
         {showPlayButton && (
           <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
@@ -213,57 +237,27 @@ export default function TrackCard({
       </div>
 
       <div className="p-3">
-        <div className="flex items-start justify-between mb-1">
-          <h3 className="font-bold text-white text-sm sm:text-base truncate flex-1">
+        <div className="mb-1">
+          <h3 className="font-bold text-white text-sm sm:text-base truncate">
             {track.title}
           </h3>
-          {/* Beat indicator badge */}
-          {track.type === 'beat' && (
-            <span className="ml-2 px-2 py-0.5 bg-purple-600 text-white text-xs rounded-full whitespace-nowrap">
-              BEAT
-            </span>
-          )}
+          <p className="text-gray-400 text-xs sm:text-sm truncate">
+            {track.artist}
+          </p>
         </div>
-        <p className="text-gray-400 text-xs sm:text-sm truncate">
-          {track.artist}
-        </p>
         
-        {/* Payment type indicator for beats */}
+        {/* Compact Action Button for beats */}
         {track.type === 'beat' && (
-          <div className="mt-2">
-            {(() => {
-              // Handle missing or null paymentType by defaulting to 'free'
-              const paymentType = track.paymentType || fullTrackData?.paymentType || 'free';
-              const price = track.price || fullTrackData?.price;
-              return (
-                <>
-                  <span className={`inline-block px-2 py-1 text-xs rounded-full ${paymentType === 'paid' ? 'bg-green-600 text-white' : 'bg-blue-600 text-white'}`}>
-                    {paymentType === 'paid' ? 'PAID BEAT' : 'FREE BEAT'}
-                  </span>
-                  {paymentType === 'paid' && price && (
-                    <span className="ml-2 inline-block px-2 py-1 text-xs rounded-full bg-yellow-600 text-white">
-                      {price.toLocaleString()} RWF
-                    </span>
-                  )}
-                </>
-              );
-            })()}
-          </div>
-        )}
-        
-        {/* Conditionally show download or MTN MoMo button for beats */}
-        {track.type === 'beat' && (
-          <div className="mt-2">
+          <div className="mt-2 h-8">
             {(track.paymentType === 'paid' || fullTrackData?.paymentType === 'paid') ? (
               <button 
                 onClick={(e) => {
                   e.stopPropagation();
                   const price = track.price || fullTrackData?.price;
                   if (!price || price <= 0) {
-                    alert('Price not available for this beat');
+                    alert('Price not available');
                     return;
                   }
-                  // Open global PesaPal payment modal
                   showPayment({
                     trackId: track.id,
                     trackTitle: track.title,
@@ -271,21 +265,19 @@ export default function TrackCard({
                     audioUrl: fullTrackData?.audioURL || fullTrackData?.audioUrl
                   });
                 }}
-                className="w-full py-2 px-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                className="w-full h-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-lg text-[10px] sm:text-xs font-bold flex items-center justify-center gap-1.5 transition-all duration-200"
               >
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                 </svg>
-                Buy Now - {(track.price || fullTrackData?.price)?.toLocaleString()} RWF
+                BUY NOW
               </button>
             ) : (
               <button 
                 onClick={(e) => {
                   e.stopPropagation();
-                  // Download free beat immediately
                   const downloadUrl = fullTrackData?.audioURL || fullTrackData?.audioUrl;
                   if (fullTrackData && downloadUrl) {
-                    // Create temporary link for download
                     const link = document.createElement('a');
                     link.href = downloadUrl;
                     link.download = `${track.title}.mp3`;
@@ -297,24 +289,35 @@ export default function TrackCard({
                     alert('Download link not available');
                   }
                 }}
-                className="w-full py-1.5 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs flex items-center justify-center gap-1"
+                className="w-full h-full bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 border border-blue-600/30 rounded-lg text-[10px] sm:text-xs font-bold flex items-center justify-center gap-1.5 transition-all duration-200"
               >
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                 </svg>
-                Download
+                FREE DOWNLOAD
               </button>
             )}
           </div>
         )}
         
-        <div className="flex justify-between text-xs text-gray-500 mt-2">
-          <span>{track.plays?.toLocaleString() || '0'} plays</span>
-          <div className="flex items-center gap-1">
-            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-              <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd"></path>
+        {/* Placeholder for non-beat tracks to maintain consistent height if needed */}
+        {track.type !== 'beat' && <div className="mt-2 h-8 hidden sm:block"></div>}
+        
+        <div className="flex justify-between items-center text-[10px] sm:text-xs text-gray-500 mt-2 pt-2 border-t border-gray-800/50">
+          <span className="flex items-center gap-1">
+            <svg className="w-3 h-3 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span>{track.likes || 0}</span>
+            {track.plays?.toLocaleString() || '0'}
+          </span>
+          <div className="flex items-center gap-2">
+            <span className="flex items-center gap-1">
+              <svg className={`w-3 h-3 ${isFavorite ? 'text-red-500 fill-current' : 'opacity-70'}`} fill={isFavorite ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+              </svg>
+              {track.likes || 0}
+            </span>
           </div>
         </div>
       </div>

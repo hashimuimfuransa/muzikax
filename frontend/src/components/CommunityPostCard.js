@@ -60,11 +60,19 @@ const CommunityPostCard = ({ post, showFullContent = false }) => {
       {/* Post Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center space-x-3">
-          <img
-            src={post.userAvatar || '/placeholder-avatar.jpg'}
-            alt={post.userName}
-            className="w-10 h-10 rounded-full object-cover border-2 border-[#FF4D67]"
-          />
+          {post.userAvatar ? (
+            <img
+              src={post.userAvatar}
+              alt={post.userName}
+              className="w-10 h-10 rounded-full object-cover border-2 border-[#FF4D67]"
+            />
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center border-2 border-[#FF4D67]">
+              <span className="text-white font-bold text-sm">
+                {post.userName ? post.userName.charAt(0).toUpperCase() : '?'}
+              </span>
+            </div>
+          )}
           <div>
             <div className="flex items-center space-x-2">
               <h3 className="font-semibold text-white">{post.userName}</h3>

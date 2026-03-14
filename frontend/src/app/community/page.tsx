@@ -226,8 +226,8 @@ const CommunityPage = () => {
   };
 
   useEffect(() => {
+    fetchVibes(); // Fetch vibes regardless of user auth
     if (user) {
-      fetchVibes();
       fetchRecommendedArtists();
     }
   }, [user]);
@@ -597,7 +597,7 @@ const CommunityPage = () => {
                                 <FaFire className="mr-1 text-xs" /> Flip!
                               </span>
                             )}
-                            {(user._id === (vibe.userId?._id || vibe.userId)) && (
+                            {(user && (user._id === (vibe.userId?._id || vibe.userId))) && (
                               <button onClick={() => deleteVibe(vibe.id)} className="text-red-500 hover:text-red-400">
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                   <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
@@ -666,25 +666,27 @@ const CommunityPage = () => {
                                   </div>
                                 ))}
                                 
-                                <div className="flex space-x-2 mt-3">
-                                  {user.avatar ? (
-                                    <img src={user.avatar} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
-                                  ) : (
-                                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-[#FF4D67] to-[#FF6B8B] flex items-center justify-center flex-shrink-0">
-                                      <span className="text-white text-xs font-medium">{user.name?.charAt(0).toUpperCase()}</span>
+                                {user && (
+                                  <div className="flex space-x-2 mt-3">
+                                    {user.avatar ? (
+                                      <img src={user.avatar} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+                                    ) : (
+                                      <div className="w-8 h-8 rounded-full bg-gradient-to-r from-[#FF4D67] to-[#FF6B8B] flex items-center justify-center flex-shrink-0">
+                                        <span className="text-white text-xs font-medium">{user.name?.charAt(0).toUpperCase()}</span>
+                                      </div>
+                                    )}
+                                    <div className="flex-1 flex">
+                                      <input
+                                        type="text"
+                                        value={newComment[vibe.id] || ''}
+                                        onChange={(e) => setNewComment(prev => ({ ...prev, [vibe.id]: e.target.value }))}
+                                        placeholder="Write a comment..."
+                                        className="flex-1 bg-gray-700 text-white rounded-l-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+                                      />
+                                      <button onClick={() => submitComment(vibe.id)} className="bg-gradient-to-r from-[#FF4D67] to-[#FF6B8B] text-white px-4 rounded-r-lg text-sm font-medium">Post</button>
                                     </div>
-                                  )}
-                                  <div className="flex-1 flex">
-                                    <input
-                                      type="text"
-                                      value={newComment[vibe.id] || ''}
-                                      onChange={(e) => setNewComment(prev => ({ ...prev, [vibe.id]: e.target.value }))}
-                                      placeholder="Write a comment..."
-                                      className="flex-1 bg-gray-700 text-white rounded-l-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
-                                    />
-                                    <button onClick={() => submitComment(vibe.id)} className="bg-gradient-to-r from-[#FF4D67] to-[#FF6B8B] text-white px-4 rounded-r-lg text-sm font-medium">Post</button>
                                   </div>
-                                </div>
+                                )}
                               </div>
                             )}
                           </div>

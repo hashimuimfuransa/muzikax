@@ -157,15 +157,19 @@ export default function CommunityCommentSection({
             >
               <div className="flex items-start justify-between mb-2">
                 <div className="flex items-center gap-2 flex-1">
-                  <img
-                    src={comment.userAvatar || '/placeholder-avatar.jpg'}
-                    alt={comment.username}
-                    className="w-7 h-7 rounded-full object-cover"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = '/placeholder-avatar.jpg';
-                    }}
-                  />
+                  {comment.userAvatar ? (
+                    <img
+                      src={comment.userAvatar}
+                      alt={comment.username}
+                      className="w-7 h-7 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center border border-[#FF4D67]/30">
+                      <span className="text-white font-bold text-[10px]">
+                        {comment.username ? comment.username.charAt(0).toUpperCase() : '?'}
+                      </span>
+                    </div>
+                  )}
                   <div className="min-w-0 flex-1">
                     <span className="font-semibold text-white text-sm">{comment.username}</span>
                     <span className="text-gray-500 text-xs ml-2">{formatTimestamp(comment.createdAt)}</span>
@@ -220,15 +224,19 @@ export default function CommunityCommentSection({
                         <div key={reply.id} className="bg-gray-800/20 rounded p-2">
                           <div className="flex items-start justify-between mb-1">
                             <div className="flex items-center gap-2">
-                              <img
-                                src={reply.userAvatar || '/placeholder-avatar.jpg'}
-                                alt={reply.username}
-                                className="w-5 h-5 rounded-full object-cover"
-                                onError={(e) => {
-                                  const target = e.target as HTMLImageElement;
-                                  target.src = '/placeholder-avatar.jpg';
-                                }}
-                              />
+                              {reply.userAvatar ? (
+                                <img
+                                  src={reply.userAvatar}
+                                  alt={reply.username}
+                                  className="w-5 h-5 rounded-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center border border-[#FF4D67]/30">
+                                  <span className="text-white font-bold text-[8px]">
+                                    {reply.username ? reply.username.charAt(0).toUpperCase() : '?'}
+                                  </span>
+                                </div>
+                              )}
                               <span className="font-semibold text-white text-xs">{reply.username}</span>
                               <span className="text-gray-500 text-xs">{formatTimestamp(reply.createdAt)}</span>
                             </div>

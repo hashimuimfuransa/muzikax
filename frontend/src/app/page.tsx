@@ -14,6 +14,8 @@ import ArtistCard from "../components/ArtistCard";
 import RecommendedPlaylists from "../components/RecommendedPlaylists";
 import PartnerPromotion from "../components/PartnerPromotion";
 import MixesHorizontalScroll from "../components/MixesHorizontalScroll";
+import VibeCard from "../components/VibeCard";
+import { communityPostService } from "../services/communityService";
 
 interface Track {
   id: string;
@@ -50,6 +52,18 @@ interface Album {
   coverImage: string;
   year: number;
   tracks: number;
+}
+
+interface Vibe {
+  id: string;
+  userName: string;
+  userAvatar?: string;
+  content: string;
+  mediaUrl?: string;
+  mediaThumbnail?: string;
+  likes: number;
+  commentCount: number;
+  postType: 'text' | 'image' | 'video' | 'audio';
 }
 
 // Function to generate avatar with first letter of name
@@ -315,14 +329,27 @@ export default function Home() {
   const newTracks: Track[] = trendingTracks;
 
   // Transform creators data to match existing interface
-  const popularCreators: Creator[] = popularCreatorsData.map((creator) => ({
-    id: creator._id,
-    name: creator.name,
-    type: creator.creatorType || "Artist",
-    followers: creator.followersCount || 0,
-    avatar: creator.avatar || "", // Preserve empty values so we can show fallback in UI
-    verified: true, // For now, we'll assume all creators are verified
-  }));
+  // Filter out creators the user already follows and sort by followers count
+  const popularCreators: Creator[] = useMemo(() => {
+    let creators = popularCreatorsData.map((creator) => ({
+      id: creator._id,
+      name: creator.name,
+      type: creator.creatorType || "Artist",
+      followers: creator.followersCount || 0,
+      avatar: creator.avatar || "", 
+      verified: true, 
+    }));
+    
+    // Sort by followers count descending
+    creators.sort((a, b) => (b.followers || 0) - (a.followers || 0));
+    
+    // Filter out creators already followed by the user
+    if (isAuthenticated) {
+      return creators.filter(creator => creator.id && !followStatus[creator.id]);
+    }
+    
+    return creators;
+  }, [popularCreatorsData, followStatus, isAuthenticated]);
   
   // Check follow status for each popular creator when creators load or user changes
   useEffect(() => {
@@ -355,6 +382,72 @@ export default function Home() {
   const [albumsLoading, setAlbumsLoading] = useState(true);
   const [playingAlbumId, setPlayingAlbumId] = useState<string | null>(null);
   
+  // Community Vibes state
+  const [trendingVibes, setTrendingVibes] = useState<Vibe[]>([]);
+  const [vibesLoading, setVibesLoading] = useState(true);
+
+  // New Tracks from Artists You Follow
+  const [followedTracks, setFollowedTracks] = useState<Track[]>([]);
+  const [followedTracksLoading, setFollowedTracksLoading] = useState(false);
+  
+  useEffect(() => {
+    const fetchFollowedTracks = async () => {
+      if (isAuthenticated) {
+        try {
+          setFollowedTracksLoading(true);
+          const { fetchTracksFromFollowedArtists } = await import('@/services/trackService');
+          const tracks = await fetchTracksFromFollowedArtists(15);
+          setFollowedTracks(tracks);
+        } catch (error) {
+          console.error('Error fetching followed tracks:', error);
+        } finally {
+          setFollowedTracksLoading(false);
+        }
+      } else {
+        setFollowedTracks([]);
+      }
+    };
+    
+    fetchFollowedTracks();
+  }, [isAuthenticated, popularCreatorsData]); // Refresh when popular creators change as it might mean follow status changed
+  
+  useEffect(() => {
+    const fetchTrendingVibes = async () => {
+      try {
+        setVibesLoading(true);
+        const data = await communityPostService.getTrendingPosts('week', 10);
+        let posts = data?.posts || [];
+        
+        // If no trending posts, try to get regular posts
+        if (posts.length === 0) {
+          const regularData = await communityPostService.getPosts({ limit: 10 });
+          posts = regularData?.posts || [];
+        }
+        
+        if (posts.length > 0) {
+          const processedVibes: Vibe[] = posts.map((post: any) => ({
+            id: post._id || post.id,
+            userName: post.userName || 'Unknown User',
+            userAvatar: post.userAvatar,
+            content: post.content || '',
+            mediaUrl: post.mediaUrl,
+            mediaThumbnail: post.mediaThumbnail,
+            likes: post.likes || 0,
+            commentCount: typeof post.comments === 'number' ? post.comments : (Array.isArray(post.comments) ? post.comments.length : 0),
+            postType: post.postType || 'text'
+          }));
+          setTrendingVibes(processedVibes);
+        }
+      } catch (error) {
+        console.error('Error fetching trending vibes:', error);
+      } finally {
+        setVibesLoading(false);
+      }
+    };
+    
+    fetchTrendingVibes();
+  }, []);
+
   useEffect(() => {
     const fetchAlbums = async () => {
       try {
@@ -529,38 +622,6 @@ export default function Home() {
       const bScore = (b.plays || 0) * 0.4 + (b.likes || 0) * 0.4 + (bDurationNum ? Math.min(bDurationNum, 300) * 0.2 : 0);
       return bScore - aScore;
     });
-    const uniqueSortedTracks = removeDuplicateTracks(sortedTracks);
-    return uniqueSortedTracks.slice(0, 10);
-  }, [trendingTracks]);
-
-  // Continue Listening - tracks with recent activity and high engagement
-  // Only show tracks of type 'song', not beats
-  const continueListening: Track[] = useMemo(() => {
-    // Filter to only include song type tracks
-    const songTracks = trendingTracks.filter(track => 
-      track.type === 'song' || track.category === 'song'
-    );
-    
-    // Prioritize tracks with recent activity indicators
-    const sortedTracks = [...songTracks].sort((a, b) => {
-      // Weight recent interactions - assuming tracks with recent likes or plays are more relevant
-      const aRecency = (a.likes || 0) * 0.6 + (a.plays || 0) * 0.4;
-      const bRecency = (b.likes || 0) * 0.6 + (b.plays || 0) * 0.4;
-      return bRecency - aRecency;
-    });
-    const uniqueSortedTracks = removeDuplicateTracks(sortedTracks);
-    return uniqueSortedTracks.slice(0, 10);
-  }, [trendingTracks]);
-
-  // Similar to Liked Songs - tracks similar to user's favorites (highly liked tracks)
-  // Only show tracks of type 'song', not beats
-  const similarToLiked: Track[] = useMemo(() => {
-    // Filter to only include song type tracks
-    const songTracks = trendingTracks.filter(track => 
-      track.type === 'song' || track.category === 'song'
-    );
-    
-    const sortedTracks = [...songTracks].sort((a, b) => (b.likes || 0) - (a.likes || 0));
     const uniqueSortedTracks = removeDuplicateTracks(sortedTracks);
     return uniqueSortedTracks.slice(0, 10);
   }, [trendingTracks]);
@@ -1008,6 +1069,44 @@ export default function Home() {
         {/* Recommended Playlists Section */}
         <RecommendedPlaylists />
 
+        {/* Trending Vibes Section - Community Posts */}
+        <HorizontalScrollSection 
+          title="Trending Vibes" 
+          viewAllLink="/community"
+        >
+          {vibesLoading ? (
+              // Loading skeleton
+              Array.from({ length: 5 }).map((_, index) => (
+                <div
+                  key={`vibe-loading-${index}`}
+                  className="flex-shrink-0 w-64 sm:w-72"
+                >
+                  <div className="bg-gray-800/40 backdrop-blur-md border border-gray-700/50 rounded-2xl p-4 h-48 animate-pulse">
+                    <div className="flex items-center space-x-3 mb-4">
+                      <div className="w-10 h-10 rounded-full bg-gray-700"></div>
+                      <div className="flex-1 space-y-2">
+                        <div className="h-3 bg-gray-700 rounded w-1/2"></div>
+                        <div className="h-2 bg-gray-700 rounded w-1/4"></div>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="h-3 bg-gray-700 rounded"></div>
+                      <div className="h-3 bg-gray-700 rounded"></div>
+                      <div className="h-3 bg-gray-700 rounded w-2/3"></div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              trendingVibes.map((vibe) => (
+                <VibeCard 
+                  key={`vibe-${vibe.id}`} 
+                  vibe={vibe} 
+                />
+              ))
+            )}
+        </HorizontalScrollSection>
+
         {/* New Releases Section */}
         <HorizontalScrollSection title="New Releases" viewAllLink="/tracks?sortBy=newest">
           {newReleases.map((track) => {
@@ -1024,7 +1123,7 @@ export default function Home() {
         </HorizontalScrollSection>
 
         {/* Popular Artists Section */}
-        <HorizontalScrollSection title="Popular Artists" viewAllLink="/artists">
+        <HorizontalScrollSection title="Recommend Artists" viewAllLink="/artists">
           {popularCreators.map((creator) => (
             <ArtistCard 
               key={creator.id} 
@@ -1034,6 +1133,23 @@ export default function Home() {
             />
           ))}
         </HorizontalScrollSection>
+
+        {/* New Tracks from Followed Artists Section */}
+        {isAuthenticated && followedTracks.length > 0 && (
+          <HorizontalScrollSection title="New from Artists You Follow">
+            {followedTracks.map((track) => {
+              // Find the full track object to get additional properties if available
+              const fullTrack = trendingTracksData.find(t => t._id === track.id);
+              return (
+                <TrackCard 
+                  key={`followed-${track.id}`} 
+                  track={track} 
+                  fullTrackData={fullTrack}
+                />
+              );
+            })}
+          </HorizontalScrollSection>
+        )}
 
         {/* Popular Songs Section */}
         <HorizontalScrollSection title="Popular Songs" viewAllLink="/tracks?sortBy=popularity">
@@ -1084,21 +1200,6 @@ export default function Home() {
           })}
         </HorizontalScrollSection>
 
-        {/* New Releases Section */}
-        <HorizontalScrollSection title="New Releases" viewAllLink="/tracks?sortBy=newest">
-          {newReleases.map((track) => {
-            // Find the full track object to get additional properties
-            const fullTrack = trendingTracksData.find(t => t._id === track.id);
-            return (
-              <TrackCard 
-                key={`new-releases-${track.id}`} 
-                track={track} 
-                fullTrackData={fullTrack}
-              />
-            );
-          })}
-        </HorizontalScrollSection>
-
         {/* Rising Tracks Section */}
         <HorizontalScrollSection title="Rising Tracks" viewAllLink="/tracks?sortBy=engagement">
           {risingTracks.map((track) => {
@@ -1129,38 +1230,9 @@ export default function Home() {
           })}
         </HorizontalScrollSection>
 
-        {/* Continue Listening Section */}
-        <HorizontalScrollSection title="Continue Listening" viewAllLink="/recently-played">
-          {continueListening.map((track) => {
-            // Find the full track object to get additional properties
-            const fullTrack = trendingTracksData.find(t => t._id === track.id);
-            return (
-              <TrackCard 
-                key={`continue-listening-${track.id}`} 
-                track={track} 
-                fullTrackData={fullTrack}
-              />
-            );
-          })}
-        </HorizontalScrollSection>
-
         {/* Popular Mixes Section */}
         <MixesHorizontalScroll title="Popular Mixes" viewAllLink="/mixes" />
 
-        {/* Similar to Liked Songs Section */}
-        <HorizontalScrollSection title="Similar to Liked Songs" viewAllLink="/favorites">
-          {similarToLiked.map((track) => {
-            // Find the full track object to get additional properties
-            const fullTrack = trendingTracksData.find(t => t._id === track.id);
-            return (
-              <TrackCard 
-                key={`similar-liked-${track.id}`} 
-                track={track} 
-                fullTrackData={fullTrack}
-              />
-            );
-          })}
-        </HorizontalScrollSection>
         {/* Popular Albums Section */}
         <section className="px-4 md:px-6 py-8 sm:py-10">
           <div className="flex items-center justify-between mb-6">
@@ -1175,7 +1247,7 @@ export default function Home() {
             </a>
           </div>
 
-          <div className="grid grid-cols-[repeat(auto-fill,_minmax(250px,_1fr))] gap-4 sm:gap-6 md:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-[repeat(auto-fill,_minmax(250px,_1fr))] gap-4 sm:gap-6 md:gap-6">
             {albumsLoading ? (
               // Loading skeleton
               Array.from({ length: 6 }).map((_, index) => (
@@ -1385,7 +1457,7 @@ export default function Home() {
 
           {/* Trending Tracks */}
           {activeTab === "trending" && (
-            <div className="grid grid-cols-[repeat(auto-fill,_minmax(250px,_1fr))] gap-4 sm:gap-6 md:gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-[repeat(auto-fill,_minmax(250px,_1fr))] gap-3 sm:gap-6 md:gap-6">
               {trendingTracks.map((track) => (
                 <div
                   key={`trending-tab-${track.id}`}
@@ -1396,7 +1468,7 @@ export default function Home() {
                       <img
                         src={track.coverImage}
                         alt={track.title}
-                        className="w-full h-40 sm:h-48 object-cover"
+                        className="w-full h-32 sm:h-48 object-cover"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
                           target.onerror = null; // Prevent infinite loop
@@ -1422,8 +1494,8 @@ export default function Home() {
                         }}
                       />
                     ) : null}
-                    <div className="image-fallback absolute inset-0 bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center w-full h-40 sm:h-48">
-                      <span className="text-2xl font-bold text-white">
+                    <div className="image-fallback absolute inset-0 bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center w-full h-32 sm:h-48">
+                      <span className="text-xl sm:text-2xl font-bold text-white">
                         {track.title && track.title.trim().length > 0
                           ? track.title.trim().charAt(0).toUpperCase()
                           : '?'}
@@ -1466,12 +1538,12 @@ export default function Home() {
                             setCurrentPlaylist(playlistTracks);
                           }
                         }}
-                        className="w-12 h-12 sm:w-14 sm:h-14 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300"
+                        className="w-10 h-10 sm:w-14 sm:h-14 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300"
                         disabled={!trendingTracksData.find(t => t._id === track.id)?.audioURL}
                       >
                         {currentTrack?.id === track.id && isPlaying ? (
                           <svg
-                            className="w-5 h-5 sm:w-6 sm:h-6"
+                            className="w-4 h-4 sm:w-6 sm:h-6"
                             fill="currentColor"
                             viewBox="0 0 20 20"
                             xmlns="http://www.w3.org/2000/svg"
@@ -1484,7 +1556,7 @@ export default function Home() {
                           </svg>
                         ) : (
                           <svg
-                            className="w-5 h-5 sm:w-6 sm:h-6"
+                            className="w-4 h-4 sm:w-6 sm:h-6"
                             fill="currentColor"
                             viewBox="0 0 20 20"
                             xmlns="http://www.w3.org/2000/svg"
@@ -1513,7 +1585,7 @@ export default function Home() {
                         className="p-1.5 sm:p-2 rounded-full bg-black/30 backdrop-blur-sm text-white opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110"
                       >
                         <svg
-                          className={`w-4 h-4 sm:w-5 sm:h-5 transition-all duration-200 ${favoriteStatus[track.id] ? 'text-red-500 fill-current scale-110' : 'stroke-current'}`}
+                          className={`w-3.5 h-3.5 sm:w-5 sm:h-5 transition-all duration-200 ${favoriteStatus[track.id] ? 'text-red-500 fill-current scale-110' : 'stroke-current'}`}
                           fill={favoriteStatus[track.id] ? "currentColor" : "none"}
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -1526,23 +1598,23 @@ export default function Home() {
                   </div>
                   
                   {/* Track Info */}
-                  <div className="p-4 sm:p-5">
-                    <h3 className="font-bold text-white text-lg mb-1 truncate" title={track.title}>
+                  <div className="p-3 sm:p-5">
+                    <h3 className="font-bold text-white text-sm sm:text-lg mb-0.5 sm:mb-1 truncate" title={track.title}>
                       {track.title || 'Untitled Track'}
                     </h3>
-                    <p className="text-gray-400 text-sm sm:text-base mb-1 truncate" title={track.artist}>
+                    <p className="text-gray-400 text-[10px] sm:text-base mb-1 truncate" title={track.artist}>
                       {track.artist || 'Unknown Artist'}
                     </p>
                     
                     {/* Album info - only show if album exists and is not empty */}
                     {track.album && track.album.trim() !== '' && (
-                      <p className="text-gray-500 text-xs sm:text-sm mb-3 truncate" title={track.album}>
+                      <p className="text-gray-500 text-[10px] sm:text-sm mb-2 sm:mb-3 truncate" title={track.album}>
                         {track.album}
                       </p>
                     )}
                     
                     {/* Stats */}
-                    <div className="flex justify-between text-xs sm:text-sm text-gray-500">
+                    <div className="flex justify-between text-[10px] sm:text-sm text-gray-500">
                       <span>{(track.plays || 0).toLocaleString()} plays</span>
                       <div className="flex items-center gap-1">
                         <svg
@@ -1568,7 +1640,7 @@ export default function Home() {
 
           {/* New Releases */}
           {activeTab === "new" && (
-            <div className="grid grid-cols-[repeat(auto-fill,_minmax(250px,_1fr))] gap-4 sm:gap-6 md:gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-[repeat(auto-fill,_minmax(250px,_1fr))] gap-4 sm:gap-6 md:gap-6">
               {newTracks.map((track) => (
                 <Fragment key={`new-releases-tab-${track.id}`}><div
                   className="group card-bg rounded-2xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10"
@@ -1738,14 +1810,14 @@ export default function Home() {
 
           {/* Popular Creators */}
           {activeTab === "popular" && (
-            <div className="grid grid-cols-[repeat(auto-fill,_minmax(250px,_1fr))] gap-4 sm:gap-6 md:gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-[repeat(auto-fill,_minmax(250px,_1fr))] gap-3 sm:gap-6 md:gap-6">
               {popularCreators.map((creator) => (
                 <div
                   key={creator._id || creator.id}
-                  className="group card-bg rounded-2xl p-4 sm:p-6 transition-all duration-300 hover:border-[#FFCB2B]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FFCB2B]/10 cursor-pointer"
+                  className="group card-bg rounded-2xl p-3 sm:p-6 transition-all duration-300 hover:border-[#FFCB2B]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FFCB2B]/10 cursor-pointer"
                   onClick={() => router.push(`/artists/${creator._id || creator.id}`)}
                 >
-                  <div className="flex items-center gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-5">
+                  <div className="flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-4 mb-3 sm:mb-5 text-center sm:text-left">
                     <div className="relative">
                       {creator.avatar && creator.avatar.trim() !== '' ? (
                         <img
@@ -1760,27 +1832,27 @@ export default function Home() {
                         <div className="absolute bottom-0 right-0 w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-[#FF4D67] border-2 border-gray-900"></div>
                       )}
                     </div>
-                    <div>
-                      <h3 className="font-bold text-white text-base sm:text-lg">
+                    <div className="min-w-0 w-full">
+                      <h3 className="font-bold text-white text-sm sm:text-lg truncate">
                         {creator.name}
                       </h3>
-                      <p className="text-[#FFCB2B] text-xs sm:text-sm">
+                      <p className="text-[#FFCB2B] text-[10px] sm:text-sm">
                         {creator.type}
                       </p>
                     </div>
                   </div>
 
-                  <p className="text-gray-400 text-xs sm:text-sm mb-4 sm:mb-5">
+                  <p className="text-gray-400 text-xs sm:text-sm mb-4 sm:mb-5 hidden sm:block">
                     Creating amazing music that resonates with the heart of
                     Rwanda.
                   </p>
 
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-500 text-xs sm:text-sm">
+                  <div className="flex flex-col sm:flex-row justify-between items-center gap-2">
+                    <span className="text-gray-500 text-[10px] sm:text-sm whitespace-nowrap">
                       {(creator.followers || creator.followersCount || 0).toLocaleString()} followers
                     </span>
                     <button 
-                      className={`px-3 py-1.5 sm:px-4 sm:py-2 ${followStatus[creator._id || creator.id || ''] ? 'bg-gray-600 hover:bg-gray-700 border-gray-600' : 'bg-transparent border border-[#FFCB2B] text-[#FFCB2B] hover:bg-[#FFCB2B]/10'} rounded-full text-xs sm:text-sm font-medium transition-colors`}
+                      className={`w-full sm:w-auto px-3 py-1.5 sm:px-4 sm:py-2 ${followStatus[creator._id || creator.id || ''] ? 'bg-gray-600 hover:bg-gray-700 border-gray-600' : 'bg-transparent border border-[#FFCB2B] text-[#FFCB2B] hover:bg-[#FFCB2B]/10'} rounded-full text-[10px] sm:text-sm font-medium transition-colors`}
                       onClick={async (e) => {
                         e.stopPropagation();
                         const creatorId = creator._id || creator.id;
@@ -1828,7 +1900,7 @@ export default function Home() {
 
           {/* Beats */}
           {activeTab === "beats" && (
-            <div className="grid grid-cols-[repeat(auto-fill,_minmax(250px,_1fr))] gap-4 sm:gap-6 md:gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-[repeat(auto-fill,_minmax(250px,_1fr))] gap-4 sm:gap-6 md:gap-6">
               {beatsLoading ? (
                 // Loading skeleton
                 Array.from({ length: 6 }).map((_, index) => (
