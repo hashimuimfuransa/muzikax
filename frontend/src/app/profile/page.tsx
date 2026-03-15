@@ -831,7 +831,6 @@ export default function Profile() {
                   </p>
                 </div>
             </div>
-          </div>
 
           {/* Navigation Tabs with Sidebar */}
           <div className="flex gap-6 mb-6">
@@ -1742,8 +1741,6 @@ export default function Profile() {
               ) : null}
             </div>
           )}
-        </div>
-      </div>
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && itemToDelete && (
@@ -2234,6 +2231,8 @@ export default function Profile() {
           )}
         </div>
       )}
+        </div>
+      </div>
     </div>
   )
 }

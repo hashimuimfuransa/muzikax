@@ -502,104 +502,100 @@ export default function ArtistProfilePage() {
             
             {/* Content Display */}
             {activeTab === 'tracks' ? (
-          <>
-            {getFilteredTracks().length > 0 ? (
-              <div className="grid grid-cols-1 gap-4">
-                {getFilteredTracks().map((track) => (
-                  <div key={track._id} className="flex items-center gap-4 p-4 card-bg rounded-xl hover:bg-gray-800/50 transition-colors group">
-                    <div className="relative">
-                      <img 
-                        src={track.coverArt || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'} 
-                        alt={track.title} 
-                        className="w-16 h-16 rounded-lg object-cover"
-                      />
-                      <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button 
-                          onClick={() => handlePlayTrack(track)}
-                          className="w-8 h-8 rounded-full gradient-primary flex items-center justify-center text-white"
-                        >
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
+              getFilteredTracks().length > 0 ? (
+                <div className="grid grid-cols-1 gap-4">
+                  {getFilteredTracks().map((track) => (
+                    <div key={track._id} className="flex items-center gap-4 p-4 card-bg rounded-xl hover:bg-gray-800/50 transition-colors group">
+                      <div className="relative">
+                        <img 
+                          src={track.coverArt || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'} 
+                          alt={track.title} 
+                          className="w-16 h-16 rounded-lg object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button 
+                            onClick={() => handlePlayTrack(track)}
+                            className="w-8 h-8 rounded-full gradient-primary flex items-center justify-center text-white"
+                          >
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-bold text-white truncate">{track.title}</h3>
+                        <p className="text-gray-400 text-sm truncate">{track.artist}</p>
+                        {track.album && <p className="text-gray-500 text-xs truncate">{track.album}</p>}
+                      </div>
+                      
+                      <div className="text-right">
+                        <p className="text-gray-500 text-xs sm:text-sm">{track.plays.toLocaleString()} plays</p>
+                        <div className="flex items-center gap-1 mt-1 justify-end">
+                          <svg className="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd"></path>
                           </svg>
-                        </button>
+                          <span className="text-gray-500 text-xs sm:text-sm">{track.likes}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="text-gray-500 text-sm hidden sm:block">
+                        {formatDuration(track.duration)}
                       </div>
                     </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-white truncate">{track.title}</h3>
-                      <p className="text-gray-400 text-sm truncate">{track.artist}</p>
-                      {track.album && <p className="text-gray-500 text-xs truncate">{track.album}</p>}
-                    </div>
-                    
-                    <div className="text-right">
-                      <p className="text-gray-500 text-xs sm:text-sm">{track.plays.toLocaleString()} plays</p>
-                      <div className="flex items-center gap-1 mt-1 justify-end">
-                        <svg className="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                          <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd"></path>
-                        </svg>
-                        <span className="text-gray-500 text-xs sm:text-sm">{track.likes}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="text-gray-500 text-sm hidden sm:block">
-                      {formatDuration(track.duration)}
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <svg className="w-16 h-16 mx-auto text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <h3 className="mt-4 text-lg font-medium text-white">No tracks found</h3>
+                  <p className="mt-2 text-gray-400">Try adjusting your search to find what you're looking for.</p>
+                </div>
+              )
             ) : (
-              <div className="text-center py-12">
-                <svg className="w-16 h-16 mx-auto text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                <h3 className="mt-4 text-lg font-medium text-white">No tracks found</h3>
-                <p className="mt-2 text-gray-400">Try adjusting your search to find what you're looking for.</p>
-              </div>
-            )}
-          </>
-        ) : (
-          <>
-            {getFilteredAlbums().length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                {getFilteredAlbums().map((album) => (
-                  <div key={album.id} className="group card-bg rounded-xl p-4 transition-all duration-300 hover:border-[#FFCB2B]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FFCB2B]/10">
-                    <div className="relative mb-3">
-                      <img 
-                        src={album.coverImage || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'} 
-                        alt={album.title} 
-                        className="w-full aspect-square rounded-lg object-cover"
-                      />
-                      <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handlePlayAlbum(album.id);
-                          }}
-                          className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center text-white"
-                        >
-                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
-                          </svg>
-                        </button>
+              getFilteredAlbums().length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                  {getFilteredAlbums().map((album) => (
+                    <div key={album.id} className="group card-bg rounded-xl p-4 transition-all duration-300 hover:border-[#FFCB2B]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FFCB2B]/10">
+                      <div className="relative mb-3">
+                        <img 
+                          src={album.coverImage || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'} 
+                          alt={album.title} 
+                          className="w-full aspect-square rounded-lg object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handlePlayAlbum(album.id);
+                            }}
+                            className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center text-white"
+                          >
+                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
+                            </svg>
+                          </button>
+                        </div>
                       </div>
+                      <h3 className="font-bold text-white text-sm truncate">{album.title}</h3>
+                      <p className="text-gray-400 text-xs truncate">{album.artist}</p>
+                      <p className="text-gray-500 text-xs mt-1">{album.year} • {album.tracks} tracks</p>
                     </div>
-                    <h3 className="font-bold text-white text-sm truncate">{album.title}</h3>
-                    <p className="text-gray-400 text-xs truncate">{album.artist}</p>
-                    <p className="text-gray-500 text-xs mt-1">{album.year} • {album.tracks} tracks</p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <svg className="w-16 h-16 mx-auto text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                <h3 className="mt-4 text-lg font-medium text-white">No albums found</h3>
-                <p className="mt-2 text-gray-400">Try adjusting your search to find what you're looking for.</p>
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <svg className="w-16 h-16 mx-auto text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <h3 className="mt-4 text-lg font-medium text-white">No albums found</h3>
+                  <p className="mt-2 text-gray-400">Try adjusting your search to find what you're looking for.</p>
+                </div>
+              )
             )}
-          </>
-        )}
       </div>
     </div>
   </div>
