@@ -602,5 +602,7 @@ export default function ArtistProfilePage() {
         )}
       </div>
     </div>
-  )
+  </div>
+</div>
+)
 }
