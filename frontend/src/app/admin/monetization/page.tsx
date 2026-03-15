@@ -331,7 +331,7 @@ export default function AdminMonetization() {
                         <div className="flex gap-2">
                           <button
                             onClick={() => handleApprove(record)}
-                            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+                            className="px-4 py-2 bg-[#FF4D67] hover:bg-[#FF4D67]/90 text-white rounded-lg transition-colors"
                           >
                             Approve
                           </button>

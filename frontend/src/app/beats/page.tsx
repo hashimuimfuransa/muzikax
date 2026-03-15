@@ -369,7 +369,7 @@ export default function BeatsPage() {
                   setSelectedFilter('all');
                   setSelectedGenre(null);
                 }}
-                className="mt-4 px-4 py-2 bg-[#FF4D67] hover:bg-[#FF4D67]/80 text-white rounded-full text-sm font-medium transition-colors"
+                className="mt-4 px-4 py-2 btn-primary text-white rounded-full text-sm font-medium transition-colors"
               >
                 Clear Filters
               </button>
@@ -547,7 +547,7 @@ export default function BeatsPage() {
                             audioUrl: track.audioURL
                           });
                         }}
-                        className="flex-1 py-1.5 px-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-lg text-xs flex items-center justify-center gap-1 transition-colors font-semibold"
+                        className="flex-1 py-1.5 px-3 btn-primary text-white rounded-lg text-xs flex items-center justify-center gap-1 transition-colors font-semibold"
                       >
                         <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                           <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
@@ -572,7 +572,7 @@ export default function BeatsPage() {
                             alert('Download link not available');
                           }
                         }}
-                        className="flex-1 py-1.5 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs flex items-center justify-center gap-1 transition-colors"
+                        className="flex-1 py-1.5 px-3 btn-secondary text-white rounded-lg text-xs flex items-center justify-center gap-1 transition-colors"
                       >
                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>

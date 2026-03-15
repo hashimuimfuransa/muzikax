@@ -146,13 +146,13 @@ const PartnerPromotion: React.FC<PartnerPromotionProps> = ({
           <div className="flex flex-col sm:flex-row gap-2">
             <button
               onClick={handleRewardClick}
-              className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-black font-bold py-2 px-6 rounded-full transition-all duration-300 transform hover:scale-105"
+              className="px-6 py-2 btn-primary rounded-full font-bold transition-all duration-300 transform hover:scale-105"
             >
               Watch & Get Reward
             </button>
             <button
               onClick={handleNeverShowAgain}
-              className="text-gray-300 hover:text-white text-sm underline transition-colors"
+              className="text-gray-300 hover:text-white text-sm underline transition-colors px-2"
             >
               Don't show again
             </button>
@@ -166,7 +166,7 @@ const PartnerPromotion: React.FC<PartnerPromotionProps> = ({
     <div className="inline-block relative animate-fadeIn">
       <button
         onClick={handlePromotionClick}
-        className="bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
+        className="px-6 py-3 btn-primary rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
       >
         {buttonText}
       </button>

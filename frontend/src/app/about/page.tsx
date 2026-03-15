@@ -76,33 +76,33 @@ export default function AboutUs() {
             <button
               onClick={() => setActiveTab("mission")}
               className={`px-6 py-3 font-medium rounded-t-lg transition-all ${
-                activeTab === "mission"
-                  ? "bg-[#FF4D67] text-white"
-                  : "text-gray-400 hover:text-white hover:bg-gray-700/50"
-              }`}
-            >
-              Our Mission
-            </button>
-            <button
-              onClick={() => setActiveTab("vision")}
-              className={`px-6 py-3 font-medium rounded-t-lg transition-all ${
-                activeTab === "vision"
-                  ? "bg-[#FF4D67] text-white"
-                  : "text-gray-400 hover:text-white hover:bg-gray-700/50"
-              }`}
-            >
-              Our Vision
-            </button>
-            <button
-              onClick={() => setActiveTab("values")}
-              className={`px-6 py-3 font-medium rounded-t-lg transition-all ${
-                activeTab === "values"
-                  ? "bg-[#FF4D67] text-white"
-                  : "text-gray-400 hover:text-white hover:bg-gray-700/50"
-              }`}
-            >
-              Core Values
-            </button>
+                  activeTab === "mission"
+                    ? "btn-primary text-white"
+                    : "text-gray-400 hover:text-white hover:bg-gray-700/50"
+                }`}
+              >
+                Our Mission
+              </button>
+              <button
+                onClick={() => setActiveTab("vision")}
+                className={`px-6 py-3 font-medium rounded-t-lg transition-all ${
+                  activeTab === "vision"
+                    ? "btn-primary text-white"
+                    : "text-gray-400 hover:text-white hover:bg-gray-700/50"
+                }`}
+              >
+                Our Vision
+              </button>
+              <button
+                onClick={() => setActiveTab("values")}
+                className={`px-6 py-3 font-medium rounded-t-lg transition-all ${
+                  activeTab === "values"
+                    ? "btn-primary text-white"
+                    : "text-gray-400 hover:text-white hover:bg-gray-700/50"
+                }`}
+              >
+                Core Values
+              </button>
           </div>
 
           <div className="min-h-[200px]">

@@ -225,8 +225,8 @@ const BeatPlayer = ({ className = '' }: BeatPlayerProps) => {
               (() => {
                 const paymentType = currentTrack.paymentType || 'free';
                 return paymentType === 'paid'
-                  ? 'bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30'
-                  : 'bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:bg-blue-500/30';
+                  ? 'btn-primary text-white'
+                  : 'btn-secondary text-white';
               })()
             }`}
           >

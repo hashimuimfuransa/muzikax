@@ -19,7 +19,22 @@ function LoginContent() {
   const [agreeToTerms, setAgreeToTerms] = useState(false)
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirect = searchParams.get('redirect')
+  const [redirect, setRedirect] = useState<string | null>(null)
+  
+  useEffect(() => {
+    // Manually extract the redirect parameter from the URL to include any query parameters it might have
+    const params = new URLSearchParams(window.location.search)
+    // We want the raw value of everything after "redirect="
+    const fullUrl = window.location.search
+    const redirectPrefix = 'redirect='
+    const redirectIndex = fullUrl.indexOf(redirectPrefix)
+    
+    if (redirectIndex !== -1) {
+      const redirectValue = fullUrl.substring(redirectIndex + redirectPrefix.length)
+      setRedirect(decodeURIComponent(redirectValue))
+    }
+  }, [])
+
   const { login } = useAuth()
 
   const googleLogin = useGoogleLogin({
@@ -73,7 +88,8 @@ function LoginContent() {
         if (userData.role === 'admin') {
           router.push('/admin');
         } else {
-          router.push(redirect || '/');
+          const redirectPath = redirect || '/';
+          router.push(redirectPath);
         }
       } catch (err) {
         console.error('Google login error:', err);
@@ -156,7 +172,8 @@ function LoginContent() {
         router.push('/admin')
       } else {
         // All other users go to home page or redirect after login
-        router.push(redirect || '/')
+        const redirectPath = redirect || '/';
+        router.push(redirectPath)
       }
     } catch (error) {
       console.error('Login error:', error)

@@ -453,6 +453,50 @@ const ModernAudioPlayer = () => {
                   <path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z" />
                 </svg>
               </button>
+
+              {/* Create Playlist Button */}
+              <button
+                onClick={() => {
+                  if (!isAuthenticated) {
+                    router.push('/login?redirect=/playlists?create=true');
+                    return;
+                  }
+                  router.push('/playlists?create=true');
+                }}
+                className="
+                  w-9 h-9 rounded-full
+                  bg-white/5 hover:bg-white/15
+                  flex items-center justify-center
+                  transition
+                  min-w-[48px] min-h-[48px]
+                  touch-manipulation
+                  p-1
+                "
+                title="Create Playlist"
+              >
+                <svg className="w-3.5 h-3.5 text-gray-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                  <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd"></path>
+                </svg>
+              </button>
+
+              {/* View Playlist Button */}
+              <button
+                onClick={() => router.push('/playlists')}
+                className="
+                  w-9 h-9 rounded-full
+                  bg-white/5 hover:bg-white/15
+                  flex items-center justify-center
+                  transition
+                  min-w-[48px] min-h-[48px]
+                  touch-manipulation
+                  p-1
+                "
+                title="View Playlist"
+              >
+                <svg className="w-3.5 h-3.5 text-gray-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                  <path fillRule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V5zm11 1H6v8l4-2 4 2V6z" clipRule="evenodd"></path>
+                </svg>
+              </button>
               
               {/* Expand Button */}
               <button

@@ -164,6 +164,7 @@ export default function Home() {
       image:
         "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
       cta: t('exploreMusic'),
+      type: 'explore'
     },
     {
       id: 2,
@@ -172,6 +173,7 @@ export default function Home() {
       image:
         "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
       cta: t('uploadTrack'),
+      type: 'upload'
     },
     {
       id: 3,
@@ -180,6 +182,7 @@ export default function Home() {
       image:
         "https://images.unsplash.com/photo-1524368535928-5b5e00ddc76b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
       cta: t('viewVibes'),
+      type: 'vibes'
     }
   ];
 
@@ -924,10 +927,11 @@ export default function Home() {
                   className="px-5 py-2.5 sm:px-6 sm:py-3 btn-primary font-medium rounded-lg transition-all hover:scale-105 text-sm sm:text-base"
                   onClick={() => {
                     // Primary CTA button functionality
-                    if (heroSlides[currentSlide].cta === "Explore Music") {
+                    const slideType = (heroSlides[currentSlide] as any).type;
+                    if (slideType === "explore") {
                       router.push("/explore");
                     } else if (
-                      heroSlides[currentSlide].cta === "Upload Track"
+                      slideType === "upload"
                     ) {
                       // Check authentication and role before allowing upload
                       if (!isAuthenticated) {
@@ -938,7 +942,7 @@ export default function Home() {
                         // Fans can upgrade to creator, redirect to upload page
                         router.push("/upload");
                       }
-                    } else if (heroSlides[currentSlide].cta === "View Vibes") {
+                    } else if (slideType === "vibes") {
                       router.push("/community");
                     } else {
                       router.push("/");
@@ -950,7 +954,7 @@ export default function Home() {
 
                 {heroSlides[currentSlide].id !== 3 && (
                   <button
-                    className="px-5 py-2.5 sm:px-6 sm:py-3 bg-white/10 backdrop-blur-md text-white border border-white/20 font-medium rounded-lg transition-all hover:bg-white/20 hover:scale-105 text-sm sm:text-base"
+                    className="px-5 py-2.5 sm:px-6 sm:py-3 btn-secondary font-medium rounded-lg transition-all hover:scale-105 text-sm sm:text-base"
                     onClick={() => router.push("/community")}
                   >
                     View Vibes

@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, useRef, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '../../contexts/AuthContext'
 import { useAudioPlayer } from '../../contexts/AudioPlayerContext'
 import { getUserPlaylists, deletePlaylist, addTrackToPlaylist } from '../../services/userService'
@@ -36,12 +36,29 @@ interface Playlist {
 }
 
 export default function PublicPlaylists() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black py-8 sm:py-12">
+        <div className="container mx-auto px-4 sm:px-8">
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF4D67]"></div>
+          </div>
+        </div>
+      </div>
+    }>
+      <PlaylistsContent />
+    </Suspense>
+  )
+}
+
+function PlaylistsContent() {
   const [playlists, setPlaylists] = useState<Playlist[]>([])
   const [filteredPlaylists, setFilteredPlaylists] = useState<Playlist[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
-  const [sortBy, setSortBy] = useState('recent') // recent, popular, tracks
+  const [sortBy, setSortBy] = useState('recommended') // recent, popular, tracks, recommended
+  const [filterType, setFilterType] = useState('all') // all, mine, muzikax, other
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [newPlaylistName, setNewPlaylistName] = useState('')
   const [newPlaylistDescription, setNewPlaylistDescription] = useState('')
@@ -55,9 +72,38 @@ export default function PublicPlaylists() {
   const [showAddToPlaylistModal, setShowAddToPlaylistModal] = useState(false)
   const [selectedTrackToAdd, setSelectedTrackToAdd] = useState<PlaylistTrack | null>(null)
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { user, isAuthenticated, isLoading: authLoading } = useAuth()
-  const { playTrack, setCurrentPlaylist } = useAudioPlayer()
+  const { currentTrack, playTrack, setCurrentPlaylist } = useAudioPlayer()
   const hasFetchedRef = useRef(false)
+  const hasCheckedParamsRef = useRef(false)
+
+  // Handle create from query param
+  useEffect(() => {
+    if (isAuthenticated && !authLoading && !hasCheckedParamsRef.current) {
+      const createParam = searchParams.get('create');
+      if (createParam === 'true') {
+        setShowCreateModal(true);
+        
+        // Add current track if it exists
+        if (currentTrack) {
+          const playlistTrack: PlaylistTrack = {
+            _id: currentTrack.id,
+            title: currentTrack.title,
+            creatorId: {
+              name: currentTrack.artist
+            },
+            plays: currentTrack.plays || 0,
+            coverURL: currentTrack.coverImage,
+            audioURL: currentTrack.audioUrl || (currentTrack as any).audioURL
+          };
+          
+          setSelectedTracksForNewPlaylist([playlistTrack]);
+        }
+      }
+      hasCheckedParamsRef.current = true;
+    }
+  }, [isAuthenticated, authLoading, searchParams, currentTrack]);
 
   // Reset the fetch ref when auth state changes significantly
   useEffect(() => {
@@ -78,7 +124,7 @@ export default function PublicPlaylists() {
 
   useEffect(() => {
     filterAndSortPlaylists()
-  }, [playlists, searchQuery, sortBy])
+  }, [playlists, searchQuery, sortBy, filterType])
   
   // Debug logs
   useEffect(() => {
@@ -86,9 +132,10 @@ export default function PublicPlaylists() {
       isAuthenticated,
       playlistsLength: playlists.length,
       filteredPlaylistsLength: filteredPlaylists.length,
-      searchQuery
+      searchQuery,
+      filterType
     });
-  }, [isAuthenticated, playlists.length, filteredPlaylists.length, searchQuery]);
+  }, [isAuthenticated, playlists.length, filteredPlaylists.length, searchQuery, filterType]);
 
   const fetchPlaylists = async () => {
     try {
@@ -160,6 +207,20 @@ export default function PublicPlaylists() {
   const filterAndSortPlaylists = () => {
     let filtered = [...playlists]
     
+    // Apply type filter
+    if (filterType !== 'all') {
+      filtered = filtered.filter(playlist => {
+        const isMuzikaX = playlist.userId?.name === 'admin' || 
+                         playlist.userId?.name?.toLowerCase().includes('muzikax');
+        const isMine = user && (playlist.userId?._id === user.id || (playlist as any).userId === user.id);
+        
+        if (filterType === 'mine') return isMine;
+        if (filterType === 'muzikax') return isMuzikaX;
+        if (filterType === 'other') return !isMine && !isMuzikaX;
+        return true;
+      });
+    }
+
     // Apply search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim()
@@ -176,6 +237,16 @@ export default function PublicPlaylists() {
     
     // Apply sorting
     filtered.sort((a, b) => {
+      // Recommendation sort (MuzikaX first, then by plays/recent)
+      const isMuzikaXA = a.userId?.name === 'admin' || a.userId?.name?.toLowerCase().includes('muzikax');
+      const isMuzikaXB = b.userId?.name === 'admin' || b.userId?.name?.toLowerCase().includes('muzikax');
+      
+      if (sortBy === 'recommended') {
+        if (isMuzikaXA && !isMuzikaXB) return -1;
+        if (!isMuzikaXA && isMuzikaXB) return 1;
+        // If both are MuzikaX or both are not, fall through to default sort (recent)
+      }
+
       switch (sortBy) {
         case 'popular':
           return b.tracks.reduce((sum, track) => sum + (track.plays || 0), 0) - 
@@ -550,45 +621,78 @@ export default function PublicPlaylists() {
 
         {/* Search and Filters */}
         <div className="card-bg rounded-2xl p-4 sm:p-6 mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Search */}
-            <div className="md:col-span-2">
-              <label htmlFor="search" className="block text-sm font-medium text-gray-400 mb-1">
-                Search Playlists
-              </label>
-              <input
-                type="text"
-                id="search"
-                placeholder="Search by playlist name, creator, or track..."
-                className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            
-            {/* Sort */}
-            <div>
-              <label htmlFor="sort" className="block text-sm font-medium text-gray-400 mb-1">
-                Sort By
-              </label>
-              <select
-                id="sort"
-                className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
+          <div className="space-y-6">
+            {/* Filter Tabs */}
+            <div className="flex flex-wrap gap-2 sm:gap-3">
+              <button
+                onClick={() => setFilterType('all')}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${filterType === 'all' ? 'bg-[#FF4D67] text-white shadow-lg shadow-[#FF4D67]/20' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}
               >
-                <option value="recent">Most Recent</option>
-                <option value="popular">Most Popular</option>
-                <option value="tracks">Most Tracks</option>
-              </select>
+                All Playlists
+              </button>
+              {isAuthenticated && (
+                <button
+                  onClick={() => setFilterType('mine')}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${filterType === 'mine' ? 'bg-[#FF4D67] text-white shadow-lg shadow-[#FF4D67]/20' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}
+                >
+                  My Playlists
+                </button>
+              )}
+              <button
+                onClick={() => setFilterType('muzikax')}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${filterType === 'muzikax' ? 'bg-[#FF4D67] text-white shadow-lg shadow-[#FF4D67]/20' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}
+              >
+                MuzikaX Playlists
+              </button>
+              <button
+                onClick={() => setFilterType('other')}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${filterType === 'other' ? 'bg-[#FF4D67] text-white shadow-lg shadow-[#FF4D67]/20' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}
+              >
+                Other Users
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Search */}
+              <div className="md:col-span-2">
+                <label htmlFor="search" className="block text-sm font-medium text-gray-400 mb-1">
+                  Search Playlists
+                </label>
+                <input
+                  type="text"
+                  id="search"
+                  placeholder="Search by playlist name, creator, or track..."
+                  className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              
+              {/* Sort */}
+              <div>
+                <label htmlFor="sort" className="block text-sm font-medium text-gray-400 mb-1">
+                  Sort By
+                </label>
+                <select
+                  id="sort"
+                  className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                >
+                  <option value="recommended">Recommended</option>
+                  <option value="recent">Most Recent</option>
+                  <option value="popular">Most Popular</option>
+                  <option value="tracks">Most Tracks</option>
+                </select>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Results Info */}
-        <div className="mb-6">
+        <div className="mb-6 flex justify-between items-center">
           <p className="text-gray-400">
-            Showing {filteredPlaylists.length} of {playlists.length} playlists
+            Showing {filteredPlaylists.length} playlists
           </p>
         </div>
 

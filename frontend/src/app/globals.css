@@ -84,12 +84,22 @@ body {
   }
   
   .btn-primary {
-    background: linear-gradient(90deg, #FF4D67, #FFCB2B);
+    background: linear-gradient(135deg, #FF4D67 0%, #FFCB2B 100%);
     color: white;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(255, 77, 103, 0.3);
+  }
+  
+  .btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    font-weight: 500;
   }
   
   .gradient-primary {
-    background: linear-gradient(90deg, #FF4D67, #FFCB2B);
+    background: linear-gradient(135deg, #FF4D67 0%, #FFCB2B 100%);
   }
   
   .scrollbar-hide::-webkit-scrollbar {

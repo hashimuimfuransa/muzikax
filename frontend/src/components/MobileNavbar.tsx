@@ -92,7 +92,7 @@ export default function MobileNavbar() {
                 e.preventDefault();
                 togglePlayPause();
               }}
-              className="w-6 h-6 rounded-full bg-[#FF4D67] flex items-center justify-center active:scale-95 transition-transform duration-200 shadow-lg flex-shrink-0"
+              className="w-6 h-6 rounded-full btn-primary flex items-center justify-center active:scale-95 transition-transform duration-200 shadow-lg flex-shrink-0"
             >
               {isPlaying ? (
                 <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24">

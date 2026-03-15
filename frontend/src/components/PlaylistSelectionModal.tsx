@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAudioPlayer } from '../contexts/AudioPlayerContext';
 import { useAuth } from '../contexts/AuthContext';
 import { createPlaylist, addTrackToPlaylist } from '../services/userService';
@@ -12,6 +13,7 @@ interface PlaylistSelectionModalProps {
 }
 
 const PlaylistSelectionModal = ({ isOpen, onClose, onTrackAdded }: PlaylistSelectionModalProps) => {
+  const router = useRouter();
   const { currentTrack, playlists, createPlaylist: createPlaylistContext } = useAudioPlayer();
   const { isAuthenticated } = useAuth();
   const [showNewPlaylistForm, setShowNewPlaylistForm] = useState(false);
@@ -133,7 +135,10 @@ const PlaylistSelectionModal = ({ isOpen, onClose, onTrackAdded }: PlaylistSelec
                     {loading ? 'Adding...' : 'Add to Playlist'}
                   </button>
                   <button
-                    onClick={() => setShowNewPlaylistForm(true)}
+                    onClick={() => {
+                      router.push('/playlists?create=true');
+                      onClose();
+                    }}
                     className="px-4 py-2 bg-gray-700 text-white rounded-lg font-medium hover:bg-gray-600 transition-colors"
                   >
                     New
@@ -144,7 +149,10 @@ const PlaylistSelectionModal = ({ isOpen, onClose, onTrackAdded }: PlaylistSelec
               <div className="text-center py-6">
                 <p className="text-gray-400 mb-4">You don't have any playlists yet.</p>
                 <button
-                  onClick={() => setShowNewPlaylistForm(true)}
+                  onClick={() => {
+                    router.push('/playlists?create=true');
+                    onClose();
+                  }}
                   className="px-4 py-2 bg-[#FF4D67] text-white rounded-lg font-medium hover:bg-[#FF4D67]/90 transition-colors"
                 >
                   Create New Playlist

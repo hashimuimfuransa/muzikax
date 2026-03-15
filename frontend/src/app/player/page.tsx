@@ -847,7 +847,13 @@ const FullPagePlayer = () => {
                   </button>
 
                   <button
-                    onClick={handleAddToPlaylist}
+                    onClick={() => {
+                      if (!isAuthenticated) {
+                        router.push('/login?redirect=/playlists?create=true');
+                        return;
+                      }
+                      router.push('/playlists?create=true');
+                    }}
                     className={`
                       group flex flex-col items-center gap-1
                       text-xs sm:text-sm
@@ -868,10 +874,10 @@ const FullPagePlayer = () => {
                       "
                     >
                       <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                        <path fillRule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V5zm11 1H6v8l4-2 4 2V6z" clipRule="evenodd"></path>
+                        <path fillRule="evenodd" d="M3 5a2 2-0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V5zm11 1H6v8l4-2 4 2V6z" clipRule="evenodd"></path>
                       </svg>
                     </div>
-                    <span className="truncate">Playlist</span>
+                    <span className="truncate">Create Playlist</span>
                   </button>
 
                   <button
@@ -986,7 +992,7 @@ const FullPagePlayer = () => {
                           className={`
                             group flex flex-col items-center gap-1
                             text-sm
-                            text-green-400
+                            text-[#FF4D67]
                             hover:text-white
                             transition-all
                           `}
@@ -994,7 +1000,7 @@ const FullPagePlayer = () => {
                           <div
                             className="
                               w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full
-                              bg-gradient-to-br from-green-500/30 to-emerald-500/30 border border-green-500/50 hover:from-green-500/40 hover:to-emerald-500/40
+                              gradient-primary border border-white/20 hover:scale-110
                               flex items-center justify-center
                               transition-all
                             "
@@ -1122,7 +1128,7 @@ const FullPagePlayer = () => {
                     onClick={() => router.push('/playlists')}
                     className="px-3 py-2 sm:px-4 sm:py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm transition-colors touch-manipulation"
                   >
-                    View Playlists
+                    View Playlist
                   </button>
                 </div>
                 

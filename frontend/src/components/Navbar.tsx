@@ -271,7 +271,7 @@ export default function Navbar() {
                 <Link href="/login" className="px-4 py-2 text-sm font-bold text-white hover:text-[#FF4D67] transition-all">
                   {t('login')}
                 </Link>
-                <Link href="/login" className="px-5 py-2 bg-[#FF4D67] hover:bg-[#FF3352] text-white text-sm font-bold rounded-full transition-all shadow-lg shadow-[#FF4D67]/20 hover:scale-105 active:scale-95">
+                <Link href="/login" className="px-5 py-2 btn-primary text-white text-sm font-bold rounded-full transition-all shadow-lg hover:scale-105 active:scale-95">
                   {t('signUp')}
                 </Link>
               </div>
@@ -324,6 +324,7 @@ export default function Navbar() {
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white focus:outline-none"
+              title={isMenuOpen ? "Close menu" : "Open menu"}
             >
               <svg
                 className={`${isMenuOpen ? 'hidden' : 'block'} h-6 w-6`}
