@@ -2,15 +2,25 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useAudioPlayer } from '../contexts/AudioPlayerContext';
 import { useLanguage } from '../contexts/LanguageContext';
 
 export default function MobileNavbar() {
   const pathname = usePathname();
-  const { isAuthenticated, userRole } = useAuth();
+  const [mounted, setMounted] = useState(false);
+  const { isAuthenticated: actualAuth, userRole: actualRole } = useAuth();
   const { currentTrack, isPlaying, togglePlayPause } = useAudioPlayer();
-  const { t } = useLanguage();
+  const { t, language: actualLanguage } = useLanguage();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isAuthenticated = mounted ? actualAuth : false;
+  const userRole = mounted ? actualRole : null;
+  const language = mounted ? actualLanguage : 'en';
 
   // Navigation items
   const navItems = [

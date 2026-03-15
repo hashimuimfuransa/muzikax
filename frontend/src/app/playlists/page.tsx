@@ -814,7 +814,7 @@ function PlaylistsContent() {
                     {playlist.name}
                   </h3>
                   <p className="text-gray-400 text-sm mb-2">
-                    by {playlist.userId?.name || 'Unknown Creator'}
+                    by {playlist.userId?.name === 'admin' ? 'MuzikaX' : (playlist.userId?.name || 'MuzikaX')}
                   </p>
                   {playlist.description && (
                     <p className="text-gray-500 text-sm line-clamp-2">

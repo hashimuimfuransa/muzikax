@@ -248,8 +248,16 @@ const getPlaylists = async (req, res) => {
 
     const userId = req.user._id;
 
-    // Find the user's playlists and populate tracks
-    const playlists = await Playlist.find({ userId }).populate('tracks');
+    // Find the user's playlists and populate tracks and userId
+    const playlistsRaw = await Playlist.find({ userId }).populate('tracks').populate('userId', 'name role');
+
+    const playlists = playlistsRaw.map(playlist => {
+      const playlistObj = playlist.toObject();
+      if (playlistObj.userId && playlistObj.userId.role === 'admin') {
+        playlistObj.userId.name = 'MuzikaX';
+      }
+      return playlistObj;
+    });
 
     res.json({ 
       playlists

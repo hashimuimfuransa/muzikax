@@ -9,14 +9,26 @@ import notificationService from '../services/notificationService'
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const { isAuthenticated, userRole, logout } = useAuth()
-  const { t, language, setLanguage } = useLanguage()
+  const [mounted, setMounted] = useState(false)
+  const { isAuthenticated: actualAuth, userRole: actualRole, logout } = useAuth()
+  const { t, language: actualLanguage, setLanguage } = useLanguage()
   const router = useRouter()
   const pathname = usePathname()
+  
+  // Use mounted state to avoid hydration mismatch
+  const mountedAuth = mounted ? actualAuth : false;
+  const isAuthenticated = mountedAuth;
+  const userRole = mounted ? actualRole : null;
+  const language = mounted ? actualLanguage : 'en';
   const [searchQuery, setSearchQuery] = useState('') // Add search state
   const [showCategories, setShowCategories] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const categoriesRef = useRef<HTMLDivElement>(null);
+
+  // Set mounted state
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // App-like categories similar to Spotify/Apple Music
   const categories = [

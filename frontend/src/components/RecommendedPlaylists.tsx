@@ -29,9 +29,15 @@ interface Playlist {
 
 interface RecommendedPlaylistsProps {
   className?: string
+  titleClassName?: string
+  titleSize?: 'sm' | 'md' | 'lg'
 }
 
-export default function RecommendedPlaylists({ className = '' }: RecommendedPlaylistsProps) {
+export default function RecommendedPlaylists({ 
+  className = '', 
+  titleClassName = '',
+  titleSize = 'lg'
+}: RecommendedPlaylistsProps) {
   const [playlists, setPlaylists] = useState<Playlist[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -107,10 +113,14 @@ export default function RecommendedPlaylists({ className = '' }: RecommendedPlay
   }
 
   if (loading) {
+    const sectionPadding = className.includes('p-') || className.includes('px-') ? '' : 'px-4 md:px-8 py-8'
     return (
-      <section className={`px-4 md:px-8 py-8 ${className}`}>
+      <section className={`${sectionPadding} ${className}`}>
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-white">Recommended Playlists</h2>
+          <h2 className={`font-bold text-white ${
+            titleSize === 'sm' ? 'text-base sm:text-lg' : 
+            titleSize === 'md' ? 'text-xl' : 'text-2xl'
+          } ${titleClassName}`}>Recommended Playlists</h2>
         </div>
         <div className="flex space-x-4 overflow-x-auto pb-4">
           {[...Array(5)].map((_, index) => (
@@ -129,10 +139,15 @@ export default function RecommendedPlaylists({ className = '' }: RecommendedPlay
     return null // Don't show anything if there's an error or no playlists
   }
 
+  const sectionPadding = className.includes('p-') || className.includes('px-') ? '' : 'px-4 md:px-8 py-8'
+
   return (
-    <section className={`px-4 md:px-8 py-8 ${className}`}>
+    <section className={`${sectionPadding} ${className}`}>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-white">Recommended Playlists</h2>
+        <h2 className={`font-bold text-white ${
+            titleSize === 'sm' ? 'text-base sm:text-lg' : 
+            titleSize === 'md' ? 'text-xl' : 'text-2xl'
+          } ${titleClassName}`}>Recommended Playlists</h2>
         <button 
           onClick={handleViewAll}
           className="text-[#FF4D67] hover:text-[#FF4D67]/80 text-sm font-medium transition-colors"
@@ -185,7 +200,7 @@ export default function RecommendedPlaylists({ className = '' }: RecommendedPlay
                 {playlist.name}
               </h3>
               <p className="text-gray-400 text-sm truncate">
-                {playlist.userId?.name || 'Unknown Creator'}
+                {playlist.userId?.name === 'admin' ? 'MuzikaX' : (playlist.userId?.name || 'MuzikaX')}
               </p>
               {playlist.description && (
                 <p className="text-gray-500 text-xs mt-1 truncate">

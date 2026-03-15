@@ -17,6 +17,9 @@ import PartnerPromotion from "../components/PartnerPromotion";
 import MixesHorizontalScroll from "../components/MixesHorizontalScroll";
 import VibeCard from "../components/VibeCard";
 import { communityPostService } from "../services/communityService";
+import { fetchRecommendedTracks } from "../services/recommendationService";
+import { getRecentlyPlayed } from "../services/recentlyPlayedService";
+import { ITrack } from "../types";
 
 interface Track {
   id: string;
@@ -394,6 +397,11 @@ export default function Home() {
   // New Tracks from Artists You Follow
   const [followedTracks, setFollowedTracks] = useState<Track[]>([]);
   const [followedTracksLoading, setFollowedTracksLoading] = useState(false);
+
+  // Recommendation state
+  const [recommendedTracks, setRecommendedTracks] = useState<Track[]>([]);
+  const [recentlyPlayedTracks, setRecentlyPlayedTracks] = useState<any[]>([]);
+  const [recommendationsLoading, setRecommendationsLoading] = useState(false);
   
   useEffect(() => {
     const fetchFollowedTracks = async () => {
@@ -415,6 +423,51 @@ export default function Home() {
     
     fetchFollowedTracks();
   }, [isAuthenticated, popularCreatorsData]); // Refresh when popular creators change as it might mean follow status changed
+
+  // Fetch recommendations based on user listening history
+  useEffect(() => {
+    const fetchRecommendations = async () => {
+      if (isAuthenticated) {
+        setRecommendationsLoading(true);
+        try {
+          // Fetch recently played tracks to check if the user has history
+          const history = await getRecentlyPlayed();
+          setRecentlyPlayedTracks(history || []);
+          
+          if (history && history.length > 0) {
+            // Fetch personalized recommendations
+            const recommended = await fetchRecommendedTracks(undefined, 10);
+            const transformedTracks: Track[] = recommended.map((track: ITrack) => ({
+              id: track._id,
+              title: track.title,
+              artist: typeof track.creatorId === 'object' && track.creatorId !== null ? (track.creatorId as any).name : (typeof track.creatorId === 'string' ? 'Artist' : 'Unknown Artist'),
+              album: typeof track.albumId === 'object' && track.albumId !== null ? (track.albumId as any).title : (track.albumTitle || ''),
+              plays: track.plays || 0,
+              likes: track.likes || 0,
+              coverImage: track.coverURL || '',
+              duration: track.duration || '',
+              category: track.type,
+              type: track.type,
+              paymentType: track.paymentType,
+              price: track.price,
+              currency: track.currency,
+              creatorId: typeof track.creatorId === 'object' && track.creatorId !== null ? (track.creatorId as any)._id : track.creatorId as string
+            }));
+            setRecommendedTracks(transformedTracks);
+          }
+        } catch (error) {
+          console.error('Error fetching recommendations:', error);
+        } finally {
+          setRecommendationsLoading(false);
+        }
+      } else {
+        setRecommendedTracks([]);
+        setRecentlyPlayedTracks([]);
+      }
+    };
+
+    fetchRecommendations();
+  }, [isAuthenticated]);
   
   useEffect(() => {
     const fetchTrendingVibes = async () => {
@@ -613,6 +666,12 @@ export default function Home() {
   // Based on Your Listening - personalized recommendations based on variety
   // Only show tracks of type 'song', not beats
   const basedOnListening: Track[] = useMemo(() => {
+    // If we have real recommended tracks, use them
+    if (recommendedTracks.length > 0) {
+      return recommendedTracks;
+    }
+
+    // Fallback to trending tracks if not logged in or no history
     // Filter to only include song type tracks
     const songTracks = trendingTracks.filter(track => 
       track.type === 'song' || track.category === 'song'
@@ -629,7 +688,7 @@ export default function Home() {
     });
     const uniqueSortedTracks = removeDuplicateTracks(sortedTracks);
     return uniqueSortedTracks.slice(0, 10);
-  }, [trendingTracks]);
+  }, [trendingTracks, recommendedTracks]);
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black relative overflow-hidden">
@@ -1222,19 +1281,21 @@ export default function Home() {
         </HorizontalScrollSection>
 
         {/* Based on Your Listening Section */}
-        <HorizontalScrollSection title={t('basedOnListening')} viewAllLink="/foryou">
-          {basedOnListening.map((track) => {
-            // Find the full track object to get additional properties
-            const fullTrack = trendingTracksData.find(t => t._id === track.id);
-            return (
-              <TrackCard 
-                key={`listening-${track.id}`} 
-                track={track} 
-                fullTrackData={fullTrack}
-              />
-            );
-          })}
-        </HorizontalScrollSection>
+        {isAuthenticated && recentlyPlayedTracks.length > 0 && basedOnListening.length > 0 && (
+          <HorizontalScrollSection title={t('basedOnListening')} viewAllLink="/foryou">
+            {basedOnListening.map((track) => {
+              // Find the full track object to get additional properties
+              const fullTrack = trendingTracksData.find(t => t._id === track.id);
+              return (
+                <TrackCard 
+                  key={`listening-${track.id}`} 
+                  track={track} 
+                  fullTrackData={fullTrack}
+                />
+              );
+            })}
+          </HorizontalScrollSection>
+        )}
 
         {/* Popular Mixes Section */}
         <MixesHorizontalScroll title={t('popularMixes')} viewAllLink="/mixes" />

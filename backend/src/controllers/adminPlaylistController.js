@@ -177,9 +177,29 @@ const getRecommendedPlaylists = async (req, res) => {
       })
       .sort({ createdAt: -1 });
 
-    // Filter by creator role (only show playlists from creators or admins)
+    // Sort to prioritize MuzikaX (admin) playlists first, then by total plays/recent
     const popularPlaylists = popularPlaylistsRaw
-      .filter(playlist => playlist.userId && (playlist.userId.role === 'creator' || playlist.userId.role === 'admin'))
+      .filter(playlist => playlist.userId)
+      .map(playlist => {
+        const playlistObj = playlist.toObject();
+        // Calculate total plays for sorting
+        playlistObj.totalPlays = (playlistObj.tracks || []).reduce((sum, track) => sum + (track.plays || 0), 0);
+        
+        if (playlistObj.userId && playlistObj.userId.role === 'admin') {
+          playlistObj.userId.name = 'MuzikaX';
+        }
+        return playlistObj;
+      })
+      .sort((a, b) => {
+        // Prioritize admins (MuzikaX)
+        const isAdminA = a.userId?.role === 'admin';
+        const isAdminB = b.userId?.role === 'admin';
+        if (isAdminA && !isAdminB) return -1;
+        if (!isAdminA && isAdminB) return 1;
+        
+        // Then by total plays
+        return (b.totalPlays || 0) - (a.totalPlays || 0);
+      })
       .slice(0, 10);
     
     // Get genre-based playlists
@@ -210,9 +230,23 @@ const getRecommendedPlaylists = async (req, res) => {
       .populate('tracks', 'title creatorId plays coverURL audioURL')
       .sort({ createdAt: -1 });
 
-    // Filter by creator role (only show playlists from creators or admins)
+    // Include fan playlists in recent as well, prioritizing admin
     const recentPlaylists = recentPlaylistsRaw
-      .filter(playlist => playlist.userId && (playlist.userId.role === 'creator' || playlist.userId.role === 'admin'))
+      .filter(playlist => playlist.userId)
+      .map(playlist => {
+        const playlistObj = playlist.toObject();
+        if (playlistObj.userId && playlistObj.userId.role === 'admin') {
+          playlistObj.userId.name = 'MuzikaX';
+        }
+        return playlistObj;
+      })
+      .sort((a, b) => {
+        const isAdminA = a.userId?.role === 'admin';
+        const isAdminB = b.userId?.role === 'admin';
+        if (isAdminA && !isAdminB) return -1;
+        if (!isAdminA && isAdminB) return 1;
+        return 0; // Keep original sort (recent) for the rest
+      })
       .slice(0, 5);
     
     res.json({

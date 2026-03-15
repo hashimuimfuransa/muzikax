@@ -13,6 +13,7 @@ import PesaPalPayment from './PesaPalPayment';
 
 const ModernAudioPlayer = () => {
   const { t } = useLanguage();
+  const [mounted, setMounted] = useState(false);
   const {
     currentTrack,
     isPlaying,
@@ -36,6 +37,7 @@ const ModernAudioPlayer = () => {
     shareTrack,
     downloadTrack,
     shufflePlaylist,
+    shuffleQueue,
     toggleLoop,
     isLooping,
     currentPlaylistName
@@ -52,6 +54,11 @@ const ModernAudioPlayer = () => {
   const [isMobile, setIsMobile] = useState(false);
   const { showPayment, hidePayment, isPaymentVisible, paymentData } = usePayment();
   
+  // Set mounted state
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Check if device is mobile
   useEffect(() => {
     const checkIsMobile = () => {
@@ -191,8 +198,8 @@ const ModernAudioPlayer = () => {
   const isBeat = currentTrack?.type === 'beat' || 
                  (currentTrack?.title && currentTrack.title.toLowerCase().includes('beat'));
 
-  // Don't render if there's no current track
-  if (!currentTrack) return null;
+  // Don't render if there's no current track or if not mounted
+  if (!mounted || !currentTrack) return null;
 
   // Don't render minimized player on mobile devices (handled by MobileNavbar)
   if (isMinimized && isMobile) {
@@ -437,7 +444,7 @@ const ModernAudioPlayer = () => {
               
               {/* Shuffle Button */}
               <button
-                onClick={shufflePlaylist}
+                onClick={shuffleQueue}
                 className="
                   w-9 h-9 rounded-full
                   bg-white/5 hover:bg-white/15
@@ -447,7 +454,7 @@ const ModernAudioPlayer = () => {
                   touch-manipulation
                   p-1
                 "
-                title={t('shufflePlaylist')}
+                title={t('shuffleQueue')}
               >
                 <svg className="w-3 h-3 text-gray-300" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z" />

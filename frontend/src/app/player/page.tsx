@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../../contexts/AuthContext';
 import PlaylistSelectionModal from '../../components/PlaylistSelectionModal';
 import ReportTrackModal from '../../components/ReportTrackModal';
+import RecommendedPlaylists from '../../components/RecommendedPlaylists';
 import { fetchCreatorProfile, fetchTracksByCreatorPublic, fetchMonthlyPopularTracks } from '../../services/trackService';
 
 // Define comment interface with replies
@@ -909,7 +910,7 @@ const FullPagePlayer = () => {
                   
                   {/* Shuffle Button */}
                   <button
-                    onClick={shufflePlaylist}
+                    onClick={shuffleQueue}
                     className={`
                       group flex flex-col items-center gap-1
                       text-xs sm:text-sm
@@ -918,7 +919,7 @@ const FullPagePlayer = () => {
                       transition-all
                       min-w-[60px]
                     `}
-                    title="Shuffle playlist"
+                    title="Shuffle queue"
                   >
                     <div
                       className="
@@ -1322,6 +1323,11 @@ const FullPagePlayer = () => {
                   ) : (
                     <p className="text-gray-400 text-center py-4 text-sm">No popular tracks found</p>
                   )}
+                </div>
+
+                {/* Recommended Playlists Section */}
+                <div className="mt-4 sm:mt-6 bg-gray-800/50 rounded-xl p-0 w-full max-w-2xl overflow-hidden">
+                   <RecommendedPlaylists className="px-3 sm:px-4 py-4" titleSize="sm" />
                 </div>
               </div>
             </div>

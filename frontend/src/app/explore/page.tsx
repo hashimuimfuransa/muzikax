@@ -1096,7 +1096,7 @@ function ExploreContent() {
                       <p className="text-gray-400 text-xs xs:text-sm sm:text-base mb-2 xs:mb-3 sm:mb-4">
                         {playlist.description ? `${playlist.description.substring(0, 60)}...` : t('playlists')}
                       </p>
-                      <p className="text-gray-500 text-xs mb-2 xs:mb-3">{t('byCreator', { name: playlist.userId?.name || 'Unknown Creator' })}</p>
+                      <p className="text-gray-500 text-xs mb-2 xs:mb-3">{t('byCreator', { name: playlist.userId?.name === 'admin' ? 'MuzikaX' : (playlist.userId?.name || 'MuzikaX') })}</p>
                       
                       <div className="flex justify-between text-xs sm:text-sm text-gray-500">
                         <span>{playlist.tracks?.length || 0} {t('tracks')}</span>

@@ -177,28 +177,39 @@ const searchAll = async (req, res) => {
       })
       .sort({ createdAt: -1 });
       
-      // Filter by creator role (only show playlists from creators or admins)
-      // and by genre if specified (check if any track in playlist matches genre)
-      let filteredPlaylists = playlists.filter(playlist => 
-        playlist.userId && (playlist.userId.role === 'creator' || playlist.userId.role === 'admin')
-      );
+      // Include all public playlists
+      let filteredPlaylists = playlists.filter(playlist => playlist.userId);
       
       if (genre) {
         filteredPlaylists = filteredPlaylists.filter(playlist => 
           playlist.tracks && playlist.tracks.some(track => track.genre === genre)
         );
       }
+
+      // Sort to prioritize MuzikaX (admin)
+      filteredPlaylists.sort((a, b) => {
+        const isAdminA = a.userId?.role === 'admin';
+        const isAdminB = b.userId?.role === 'admin';
+        if (isAdminA && !isAdminB) return -1;
+        if (!isAdminA && isAdminB) return 1;
+        return 0;
+      });
       
-      results.playlists = filteredPlaylists.map(playlist => ({
-        id: playlist._id,
-        name: playlist.name,
-        description: playlist.description || '',
-        creator: playlist.userId ? playlist.userId.name : 'Unknown Creator',
-        coverImage: playlist.tracks && playlist.tracks.length > 0 ? 
-                   (playlist.tracks[0].coverURL || '') : '',
-        tracks: playlist.tracks || [],
-        isPublic: playlist.isPublic
-      }));
+      results.playlists = filteredPlaylists.map(playlist => {
+        const creatorName = (playlist.userId && playlist.userId.role === 'admin') ? 'MuzikaX' : 
+                           (playlist.userId ? playlist.userId.name : 'Unknown Creator');
+        
+        return {
+          id: playlist._id,
+          name: playlist.name,
+          description: playlist.description || '',
+          creator: creatorName,
+          coverImage: playlist.tracks && playlist.tracks.length > 0 ? 
+                     (playlist.tracks[0].coverURL || '') : '',
+          tracks: playlist.tracks || [],
+          isPublic: playlist.isPublic
+        };
+      });
     }
     
     res.json(results);
