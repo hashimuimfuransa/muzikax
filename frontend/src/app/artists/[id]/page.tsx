@@ -304,173 +304,204 @@ export default function ArtistProfilePage() {
           Back to Artists
         </button>
         
-        {/* Artist Header */}
-        <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-2xl p-6 md:p-8 mb-8">
-          <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-            <div className="flex-shrink-0">
-              {creator.avatar && creator.avatar.trim() !== '' ? (
-                <img 
-                  src={creator.avatar} 
-                  alt={creator.name} 
-                  className="w-32 h-32 rounded-full object-cover"
-                />
-              ) : (
-                generateAvatar(creator.name)
+        {/* Artist Header Section */}
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-800/80 via-gray-900/90 to-black border border-gray-700/30 mb-8">
+          {/* Subtle Background Effect */}
+          <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-[#FF4D67]/10 rounded-full blur-[100px] pointer-events-none"></div>
+          <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 bg-[#FFCB2B]/50 rounded-full blur-[100px] pointer-events-none opacity-20"></div>
+
+          <div className="relative z-10 p-6 md:p-10">
+            <div className="flex flex-col md:flex-row items-center md:items-end gap-8">
+              {/* Profile Picture */}
+              <div className="flex-shrink-0 group relative">
+                <div className="absolute -inset-1 bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] rounded-full blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+                <div className="relative w-32 h-32 md:w-44 md:h-44 rounded-full border-4 border-gray-900 overflow-hidden shadow-2xl">
+                  {creator.avatar && creator.avatar.trim() !== '' ? (
+                    <img 
+                      src={creator.avatar} 
+                      alt={creator.name} 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-700 flex items-center justify-center">
+                      <span className="text-5xl font-bold text-[#FF4D67]">{creator.name.charAt(0).toUpperCase()}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <div className="text-center md:text-left flex-1">
+                <div className="flex items-center justify-center md:justify-start gap-3 mb-2">
+                  <span className="px-3 py-1 bg-[#FF4D67]/10 text-[#FF4D67] text-[10px] uppercase font-bold tracking-widest rounded-full border border-[#FF4D67]/20">
+                    Verified Artist
+                  </span>
+                  <span className="px-3 py-1 bg-[#FFCB2B]/10 text-[#FFCB2B] text-[10px] uppercase font-bold tracking-widest rounded-full border border-[#FFCB2B]/20 capitalize">
+                    {creator.creatorType || 'Artist'}
+                  </span>
+                </div>
+                
+                <h1 className="text-4xl md:text-6xl font-black text-white mb-4 tracking-tight drop-shadow-md">
+                  {creator.name}
+                </h1>
+                
+                <div className="flex flex-wrap justify-center md:justify-start gap-6 text-sm text-gray-400 mb-8">
+                  <div className="flex flex-col">
+                    <span className="text-white font-bold text-lg">{creator.followersCount?.toLocaleString() || 0}</span>
+                    <span className="text-[10px] uppercase tracking-widest font-medium">Followers</span>
+                  </div>
+                  <div className="w-px h-10 bg-gray-800 hidden md:block"></div>
+                  <div className="flex flex-col">
+                    <span className="text-white font-bold text-lg">{stats?.totalTracks || tracks.length}</span>
+                    <span className="text-[10px] uppercase tracking-widest font-medium">Tracks</span>
+                  </div>
+                  <div className="w-px h-10 bg-gray-800 hidden md:block"></div>
+                  <div className="flex flex-col">
+                    <span className="text-white font-bold text-lg">{formatNumber(stats?.totalPlays || 0)}</span>
+                    <span className="text-[10px] uppercase tracking-widest font-medium">Total Plays</span>
+                  </div>
+                  <div className="w-px h-10 bg-gray-800 hidden md:block"></div>
+                  <div className="flex flex-col">
+                    <span className="text-white font-bold text-lg">
+                      {new Date(creator.createdAt).getFullYear()}
+                    </span>
+                    <span className="text-[10px] uppercase tracking-widest font-medium">Since</span>
+                  </div>
+                </div>
+                
+                <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
+                  <button 
+                    className={`px-8 py-3.5 rounded-full font-bold text-sm transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-xl ${
+                      isFollowing 
+                        ? 'bg-gray-800 text-gray-300 border border-gray-700 hover:bg-gray-700' 
+                        : 'bg-[#FF4D67] text-white shadow-[#FF4D67]/20'
+                    }`}
+                    onClick={async () => {
+                      if (!user) {
+                        router.push('/login');
+                      } else {
+                        try {
+                          if (isFollowing) {
+                            await unfollowCreator(creator._id);
+                            setCreator(prev => prev ? { ...prev, followersCount: Math.max(0, prev.followersCount - 1) } : null);
+                            setIsFollowing(false);
+                          } else {
+                            await followCreator(creator._id);
+                            setCreator(prev => prev ? { ...prev, followersCount: prev.followersCount + 1 } : null);
+                            setIsFollowing(true);
+                          }
+                        } catch (error) {
+                          console.error('Failed to follow/unfollow:', error);
+                        }
+                      }
+                    }}
+                  >
+                    {isFollowing ? 'Following' : 'Follow Artist'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Content Layout: Sidebar + Main Content */}
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Left Sidebar (Desktop Only) / Top Info (Mobile) */}
+          <div className="lg:w-1/3 space-y-8">
+            {/* Bio Card */}
+            <div className="bg-gray-800/30 backdrop-blur-sm rounded-3xl p-6 border border-gray-700/30">
+              <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                <svg className="w-5 h-5 text-[#FF4D67]" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+                Artist Bio
+              </h2>
+              <p className="text-gray-400 leading-relaxed text-sm">
+                {creator.bio || `${creator.name} is a talented ${creator.creatorType || 'artist'} on MuzikaX. Stay tuned for their upcoming releases!`}
+              </p>
+              
+              {creator.genres && creator.genres.length > 0 && (
+                <div className="mt-6 pt-6 border-t border-gray-700/50">
+                  <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Genres</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {creator.genres.map((genre, index) => (
+                      <span 
+                        key={index} 
+                        className="px-3 py-1 bg-gray-700/50 text-gray-300 text-xs rounded-lg border border-gray-700/50"
+                      >
+                        {genre}
+                      </span>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
-            
-            <div className="text-center md:text-left flex-1">
-              <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">{creator.name}</h1>
-              <p className="text-[#FFCB2B] text-lg mb-4 capitalize">{creator.creatorType || 'Artist'}</p>
-              
-              <div className="flex flex-wrap justify-center md:justify-start gap-4 mb-6">
-                <div className="bg-gray-800 rounded-lg px-4 py-2">
-                  <p className="text-gray-400 text-sm">Followers</p>
-                  <p className="text-white font-bold">{creator.followersCount?.toLocaleString() || 0}</p>
+
+            {/* Stats Summary - New Card */}
+            <div className="bg-gradient-to-br from-[#FF4D67]/10 to-[#FFCB2B]/5 rounded-3xl p-6 border border-[#FF4D67]/10">
+              <h3 className="text-white font-bold mb-4">Engagement</h3>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400 text-sm">Monthly Plays</span>
+                  <span className="text-white font-bold">{formatNumber(stats?.monthlyPlays || 0)}</span>
                 </div>
-                
-                <div className="bg-gray-800 rounded-lg px-4 py-2">
-                  <p className="text-gray-400 text-sm">Tracks</p>
-                  <p className="text-white font-bold">{stats?.totalTracks || tracks.length}</p>
+                <div className="w-full bg-gray-800 h-1.5 rounded-full overflow-hidden">
+                  <div className="bg-[#FF4D67] h-full rounded-full" style={{ width: '65%' }}></div>
                 </div>
-                
-                <div className="bg-gray-800 rounded-lg px-4 py-2">
-                  <p className="text-gray-400 text-sm">Total Plays</p>
-                  <p className="text-white font-bold">{formatNumber(stats?.totalPlays || 0)}</p>
-                </div>
-                
-                <div className="bg-gray-800 rounded-lg px-4 py-2">
-                  <p className="text-gray-400 text-sm">Monthly Plays</p>
-                  <p className="text-white font-bold">{formatNumber(stats?.monthlyPlays || 0)}</p>
-                </div>
-                
-                <div className="bg-gray-800 rounded-lg px-4 py-2">
-                  <p className="text-gray-400 text-sm">Member Since</p>
-                  <p className="text-white font-bold">
-                    {new Date(creator.createdAt).toLocaleDateString('en-US', { 
-                      year: 'numeric', 
-                      month: 'long' 
-                    })}
-                  </p>
+                <div className="flex justify-between items-center pt-2">
+                  <span className="text-gray-400 text-sm">Popularity</span>
+                  <span className="text-[#FFCB2B] font-bold">Trending</span>
                 </div>
               </div>
-              
-              <button 
-                className={`px-6 py-3 ${isFollowing ? 'bg-gray-600 hover:bg-gray-700' : 'bg-[#FF4D67] hover:bg-[#FF4D67]/90'} text-white rounded-full font-medium transition-colors`}
-                onClick={async () => {
-                  // Handle follow/unfollow action here
-                  if (!user) {
-                    router.push('/login');
-                  } else {
-                    try {
-                      if (isFollowing) {
-                        // Unfollow the creator
-                        await unfollowCreator(creator._id);
-                        
-                        // Update the followers count in the UI
-                        setCreator(prev => 
-                          prev ? {
-                            ...prev,
-                            followersCount: Math.max(0, prev.followersCount - 1)  // Prevent negative counts
-                          } : null
-                        );
-                        
-                        // Update the follow status
-                        setIsFollowing(false);
-                        
-                        // Show success feedback
-                        console.log('Successfully unfollowed creator');
-                      } else {
-                        // Follow the creator
-                        await followCreator(creator._id);
-                        
-                        // Update the followers count in the UI
-                        setCreator(prev => 
-                          prev ? {
-                            ...prev,
-                            followersCount: prev.followersCount + 1
-                          } : null
-                        );
-                        
-                        // Update the follow status
-                        setIsFollowing(true);
-                        
-                        // Show success feedback
-                        console.log('Successfully followed creator');
-                      }
-                    } catch (error) {
-                      console.error('Failed to follow/unfollow creator:', error);
-                      alert('Failed to follow/unfollow creator. Please try again.');
-                    }
-                  }
-                }}
-              >
-                {isFollowing ? 'Unfollow' : 'Follow'}
-              </button>            </div>
+            </div>
           </div>
-        </div>
-        
-        {/* Artist Bio */}
-        <div className="bg-gray-800/50 rounded-2xl p-6 mb-8">
-          <h2 className="text-2xl font-bold text-white mb-4">About</h2>
-          <p className="text-gray-300">
-            {creator.bio || `${creator.name} is a talented ${creator.creatorType || 'artist'} on MuzikaX. Stay tuned for their upcoming releases!`}
-          </p>
           
-          {/* Display genres if available */}
-          {creator.genres && creator.genres.length > 0 && (
-            <div className="mt-4">
-              <h3 className="text-gray-400 text-sm mb-2">Genres</h3>
-              <div className="flex flex-wrap gap-2">
-                {creator.genres.map((genre, index) => (
-                  <span 
-                    key={index} 
-                    className="px-3 py-1 bg-gray-700 text-gray-300 text-xs rounded-full"
-                  >
-                    {genre}
-                  </span>
-                ))}
+          {/* Main Content Area */}
+          <div className="lg:w-2/3">
+            {/* Search & Tabs Row */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8">
+              {/* Tabs */}
+              <div className="flex p-1 bg-gray-800/50 rounded-xl w-fit">
+                <button
+                  className={`py-2 px-6 rounded-lg text-sm font-bold transition-all ${
+                    activeTab === 'tracks' 
+                      ? 'bg-gray-700 text-white shadow-lg' 
+                      : 'text-gray-500 hover:text-gray-300'
+                  }`}
+                  onClick={() => setActiveTab('tracks')}
+                >
+                  Singles ({getSingles().length})
+                </button>
+                <button
+                  className={`py-2 px-6 rounded-lg text-sm font-bold transition-all ${
+                    activeTab === 'albums' 
+                      ? 'bg-gray-700 text-white shadow-lg' 
+                      : 'text-gray-500 hover:text-gray-300'
+                  }`}
+                  onClick={() => setActiveTab('albums')}
+                >
+                  Albums ({albums.length})
+                </button>
+              </div>
+
+              {/* Search Bar */}
+              <div className="relative flex-1 max-w-xs">
+                <input
+                  type="text"
+                  value={searchFilter}
+                  onChange={(e) => setSearchFilter(e.target.value)}
+                  placeholder="Search in profile..."
+                  className="w-full px-4 py-2.5 pl-10 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] transition-all text-sm"
+                />
+                <div className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-500">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                  </svg>
+                </div>
               </div>
             </div>
-          )}
-        </div>
-        
-        {/* Search Bar */}
-        <div className="mb-6">
-          <div className="relative max-w-md mx-auto">
-            <input
-              type="text"
-              value={searchFilter}
-              onChange={(e) => setSearchFilter(e.target.value)}
-              placeholder="Search tracks or albums..."
-              className="w-full px-4 py-2 pl-10 bg-gray-800 border border-gray-700 rounded-full text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent"
-            />
-            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-              </svg>
-            </div>
-          </div>
-        </div>
-        
-        {/* Tabs */}
-        <div className="flex border-b border-gray-700 mb-6">
-          <button
-            className={`py-2 px-4 font-medium ${activeTab === 'tracks' ? 'text-[#FF4D67] border-b-2 border-[#FF4D67]' : 'text-gray-400 hover:text-white'}`}
-            onClick={() => setActiveTab('tracks')}
-          >
-            Singles ({getSingles().length})
-          </button>
-          <button
-            className={`py-2 px-4 font-medium ${activeTab === 'albums' ? 'text-[#FF4D67] border-b-2 border-[#FF4D67]' : 'text-gray-400 hover:text-white'}`}
-            onClick={() => setActiveTab('albums')}
-          >
-            Albums ({albums.length})
-          </button>
-        </div>
-        
-        {/* Content based on active tab */}
-        {activeTab === 'tracks' ? (
+            
+            {/* Content Display */}
+            {activeTab === 'tracks' ? (
           <>
             {getFilteredTracks().length > 0 ? (
               <div className="grid grid-cols-1 gap-4">
