@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import AdminSidebar from '../../../components/AdminSidebar'
 import { useAuth } from '../../../contexts/AuthContext'
 import { 
   getPendingApplications,

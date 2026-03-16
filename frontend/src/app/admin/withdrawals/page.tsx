@@ -542,5 +542,6 @@ export default function AdminWithdrawals() {
         )}
       </div>
     </div>
+  </div>
   )
 }

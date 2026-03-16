@@ -290,6 +290,9 @@ export const translations = {
     saveTrack: 'Save track',
     removeFromFavorites: 'Remove from favorites',
     createAlbum: 'Create Album',
+    openSoloPlayer: 'Open Solo Player',
+    previousTrack: 'Previous track',
+    nextTrack: 'Next track',
   },
   rw: {
     home: 'Ahabanza',
@@ -582,6 +585,9 @@ export const translations = {
     saveTrack: 'Bika indirimbo',
     removeFromFavorites: 'Ivugurure mu ndirimbo ukunda',
     createAlbum: 'Kora Alubumu',
+    openSoloPlayer: 'Fungura Solo Player',
+    previousTrack: 'Indirimbo ibanza',
+    nextTrack: 'Indirimbo ikurikira',
   }
 };
 
