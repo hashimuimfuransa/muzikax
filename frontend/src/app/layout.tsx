@@ -11,6 +11,8 @@ import PWAInstallPrompt from "../components/PWAInstallPrompt";
 import ContactFloatingButton from "../components/ContactFloatingButton";
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import ConditionalNavbar from "../components/ConditionalNavbar";
+import ConditionalSidebar from "../components/ConditionalSidebar";
+import SidebarLayoutWrapper from "../components/SidebarLayoutWrapper";
 import PushNotificationInitializer from "../components/PushNotificationInitializer";
 
 export const metadata: Metadata = {
@@ -159,9 +161,12 @@ export default function RootLayout({
               <AudioPlayerProvider>
                 <CommunityProvider>
                   <PaymentProvider>
-                    <ConditionalNavbar />
-                    <PushNotificationInitializer />
-                    {children}
+                    <ConditionalSidebar />
+                    <SidebarLayoutWrapper>
+                      <ConditionalNavbar />
+                      <PushNotificationInitializer />
+                      {children}
+                    </SidebarLayoutWrapper>
                     <ModernAudioPlayer />
                     <PWAInstallPrompt />
                     <ContactFloatingButton />

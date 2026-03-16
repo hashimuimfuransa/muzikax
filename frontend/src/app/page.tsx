@@ -239,11 +239,7 @@ export default function Home() {
     }
   }, [trendingTracksData, trendingLoading]);
 
-  const loadMore = useCallback(() => {
-    if (page < (totalPages || 1) && !trendingLoading) {
-      setPage(prev => prev + 1);
-    }
-  }, [page, totalPages, trendingLoading]);
+
 
   // Fetch real popular creators
   const { creators: popularCreatorsData, loading: creatorsLoading } =
@@ -705,247 +701,14 @@ export default function Home() {
       {/* Mobile menu functionality is handled in the Navbar component */}
 
       {/* Main Content */}
-      {/* Sidebar - Hidden on mobile, fixed when scrolling */}
-      <aside className="hidden md:block w-64 bg-gray-900/50 border-r border-gray-800 p-6 overflow-y-auto fixed top-0 left-0 h-screen flex-shrink-0 z-30">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B]">
-            MUZIKAX
-          </h1>
-        </div>
-
-        <nav className="space-y-2">
-          <Link
-            href="/"
-            className="flex items-center gap-3 px-4 py-3 rounded-lg bg-[#FF4D67]/10 text-white"
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-              ></path>
-            </svg>
-            <span>Home</span>
-          </Link>
-
-          <Link
-            href="/explore"
-            className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800/50 transition-colors"
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              ></path>
-            </svg>
-            <span>Explore</span>
-          </Link>
-
-          {/* Conditional rendering based on user role */}
-          {isAuthenticated ? (
-            userRole === "creator" ? (
-              <Link
-                href="/upload"
-                className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800/50 transition-colors"
-              >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                  ></path>
-                </svg>
-                <span>Upload</span>
-              </Link>
-            ) : (
-              <button
-                onClick={() => {
-                  // Redirect to upload page where they can upgrade
-                  router.push("/upload");
-                }}
-                className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800/50 transition-colors w-full text-left"
-              >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                  ></path>
-                </svg>
-                <span>Upload</span>
-              </button>
-            )
-          ) : (
-            <button
-              onClick={() => {
-                // Redirect to login page
-                router.push("/login");
-              }}
-              className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800/50 transition-colors w-full text-left"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                ></path>
-              </svg>
-              <span>Upload</span>
-            </button>
-          )}
+      {/* Main Content Area */}
 
 
-        </nav>
 
-        <div className="mt-8">
-          <h2 className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-3">
-            Categories
-          </h2>
-          <nav className="space-y-1">
-            <Link
-              href="/explore?category=afrobeat"
-              className="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors"
-            >
-              Afrobeat
-            </Link>
-            <Link
-              href="/explore?category=amapiano"
-              className="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors"
-            >
-              Amapiano
-            </Link>
-            <Link
-              href="/explore?category=hiphop"
-              className="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors"
-            >
-              Hip Hop
-            </Link>
-            <Link
-              href="/explore?category=rnb"
-              className="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors"
-            >
-              R&B
-            </Link>
-            <Link
-              href="/explore?category=afropop"
-              className="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors"
-            >
-              Afropop
-            </Link>
-            <Link
-              href="/explore?category=gospel"
-              className="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors"
-            >
-              Gospel
-            </Link>
-            <Link
-              href="/explore?category=dancehall"
-              className="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors"
-            >
-              Dancehall
-            </Link>
-            <Link
-              href="/explore?category=reggae"
-              className="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors"
-            >
-              Reggae
-            </Link>
-            <Link
-              href="/explore?category=soul"
-              className="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors"
-            >
-              Soul
-            </Link>
-          </nav>
-        </div>
 
-        <div className="mt-8">
-          <h2 className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-3">
-            Library
-          </h2>
-          <nav className="space-y-1">
-            <Link
-              href="/favorites"
-              className="flex items-center gap-3 px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors"
-            >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                ></path>
-              </svg>
-              <span>Favorites</span>
-            </Link>
-            <Link
-              href="/recently-played"
-              className="flex items-center gap-3 px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors"
-            >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                ></path>
-              </svg>
-              <span>Recently Played</span>
-            </Link>
-          </nav>
-        </div>
-      </aside>
 
-      {/* Main Content Area - This takes remaining space */}
-      <main className="flex-1 flex flex-col min-h-screen ml-0 md:ml-64 overflow-y-auto">
+      {/* Main Content Area */}
+      <main className="flex-1 flex flex-col min-h-screen ml-0 overflow-y-auto">
         {/* Partner Promotion - Disabled to prevent redirects */}
         {/* <PartnerPromotion 
           variant="rewarded" 
@@ -1088,18 +851,7 @@ export default function Home() {
 
 
 
-        {/* Infinite Scroll Trigger */}
-        {page < (totalPages || 1) && (
-          <div className="flex justify-center py-8">
-            <button
-              onClick={loadMore}
-              disabled={trendingLoading}
-              className="px-6 py-3 bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] text-white rounded-full font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
-            >
-              {trendingLoading ? t('loading') : t('loadMore')}
-            </button>
-          </div>
-        )}
+
 
         {/* For You Section - Monthly Popular Tracks */}
         <HorizontalScrollSection title={t('forYou')} viewAllLink="/tracks?sortBy=monthly">

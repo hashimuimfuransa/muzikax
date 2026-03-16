@@ -1,10 +1,12 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '../contexts/AuthContext'
 
 export default function AdminSidebar() {
+  const [isHovered, setIsHovered] = useState(false)
   const pathname = usePathname()
   const { logout } = useAuth()
 
@@ -23,47 +25,66 @@ export default function AdminSidebar() {
   ]
 
   return (
-    <div className="hidden md:block md:w-64 bg-gray-900/50 border-r border-gray-800 p-6 overflow-y-auto fixed top-0 left-0 h-screen flex-shrink-0 z-30">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B]">
+    <div 
+      className={`hidden md:flex flex-col bg-gray-900/50 border-r border-gray-800 p-4 overflow-y-auto fixed top-0 left-0 h-screen z-30 transition-all duration-300 ease-in-out ${
+        isHovered ? 'w-64' : 'w-20'
+      }`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <div className={`mb-8 flex items-center ${isHovered ? 'px-2' : 'justify-center'}`}>
+        <h1 className={`font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] transition-all duration-300 ${
+          isHovered ? 'text-2xl opacity-100' : 'text-xs opacity-0 hidden'
+        }`}>
           ADMIN PANEL
         </h1>
+        {!isHovered && (
+          <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center text-white font-black text-xl shadow-lg">
+            A
+          </div>
+        )}
       </div>
       
-      <nav className="space-y-2">
+      <nav className="space-y-2 flex-1">
         {navItems.map((item) => (
           <Link
             key={item.name}
             href={item.href}
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+            className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200 ${
               pathname === item.href
                 ? 'bg-[#FF4D67]/10 text-white border-l-4 border-[#FF4D67]'
                 : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
-            }`}
+            } ${!isHovered && 'justify-center border-l-0'}`}
+            title={item.name}
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <svg className="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={item.icon}></path>
             </svg>
-            <span>{item.name}</span>
+            {isHovered && <span className="font-medium text-sm">{item.name}</span>}
           </Link>
         ))}
         
         <button
           onClick={logout}
-          className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800/50 transition-colors w-full text-left mt-8"
+          className={`flex items-center gap-3 px-3 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all duration-200 w-full text-left mt-8 ${!isHovered && 'justify-center'}`}
+          title="Logout"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <svg className="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
           </svg>
-          <span>Logout</span>
+          {isHovered && <span className="font-medium text-sm">Logout</span>}
         </button>
       </nav>
       
-      <div className="absolute bottom-6 left-6 right-6">
-        <div className="text-xs text-gray-500">
-          © {new Date().getFullYear()} MuzikaX Admin
+      {isHovered && (
+        <div className="mt-auto pt-4 border-t border-gray-800">
+          <div className="px-2 py-4">
+            <p className="text-[10px] text-gray-500">
+              © {new Date().getFullYear()} MuzikaX Admin
+            </p>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

@@ -147,57 +147,36 @@ export default function Navbar() {
         </div>
       </div>
       
-      <div className="max-w-7xl mx-auto px-1 sm:px-2 lg:px-3">
+      <div className="w-full px-1 sm:px-3 lg:px-4">
         <div className="flex items-center justify-between h-16 w-full">
           {/* Logo */}
-          <div className="flex-shrink-0 flex items-center">
+          <div className="flex-shrink-0 flex items-center bg-gray-800/40 px-4 py-1.5 rounded-2xl border border-gray-700/50">
             <Link href="/" className="flex items-center group">
               <img src="/muzikax.png" alt="MuzikaX Logo" className="h-9 w-auto transition-transform group-hover:scale-105" />
               <span className="ml-2 text-2xl font-black text-white tracking-tighter">MuzikaX</span>
             </Link>
           </div>
 
-          {/* Desktop Navigation & Search (Center) */}
-          <div className="hidden md:flex flex-1 justify-center px-4">
-            <div className="flex items-center space-x-1 lg:space-x-4 bg-gray-800/30 px-3 py-1.5 rounded-full border border-gray-700/50 backdrop-blur-md">
-              <Link href="/" className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${pathname === '/' ? 'bg-[#FF4D67] text-white shadow-lg shadow-[#FF4D67]/20' : 'text-gray-300 hover:text-white hover:bg-gray-700/50'}`}>
-                {t('home')}
-              </Link>
-              <Link href="/explore" className="px-3 py-1.5 rounded-full text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700/50 transition-all">
-                {t('explore')}
-              </Link>
-              <Link href="/beats" className="px-3 py-1.5 rounded-full text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700/50 transition-all">
-                {t('beats')}
-              </Link>
-              <Link href="/playlists" className="px-3 py-1.5 rounded-full text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700/50 transition-all">
-                {t('playlists')}
-              </Link>
-              
-              <div className="h-4 w-[1px] bg-gray-700 mx-1"></div>
-              
-              {/* Search Bar integrated in center */}
-              <form onSubmit={handleSearch} className="relative">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder={t('searchPlaceholder')}
-                  className="w-40 lg:w-64 px-4 py-1.5 bg-transparent text-white placeholder-gray-500 focus:outline-none text-sm"
-                />
-                <button 
-                  type="submit"
-                  className="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-[#FF4D67] transition-colors"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                  </svg>
-                </button>
-              </form>
-            </div>
+          {/* Desktop Search */}
+          <div className="hidden md:flex flex-1 justify-start px-12 max-w-2xl">
+            <form onSubmit={handleSearch} className="relative w-full">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+              </div>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={t('searchPlaceholder')}
+                className="w-full pl-11 pr-4 py-2.5 bg-gray-800/40 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67]/50 focus:bg-gray-800/60 transition-all rounded-full border border-gray-700/50 text-sm"
+              />
+            </form>
           </div>
 
           {/* Desktop Controls (Right) */}
-          <div className="hidden md:flex items-center space-x-3">
+          <div className="hidden md:flex items-center space-x-3 bg-gray-800/40 px-3 py-1.5 rounded-2xl border border-gray-700/50">
             <button 
               onClick={() => {
                 if (!isAuthenticated) {
@@ -291,7 +270,7 @@ export default function Navbar() {
           </div>
 
           {/* Mobile Controls */}
-          <div className="md:hidden flex items-center space-x-1">
+          <div className="md:hidden flex items-center space-x-1 bg-gray-800/40 px-2 py-1 rounded-2xl border border-gray-700/50">
             {/* Category toggle button for mobile */}
             <button
               onClick={() => setShowCategories(!showCategories)}

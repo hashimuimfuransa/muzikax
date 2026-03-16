@@ -80,7 +80,7 @@ const getUserLocation = async () => {
  * Fetch ML-powered recommended tracks based on user preferences and listening history
  * This implements an advanced ML recommendation algorithm with genre, location, and behavior factors
  */
-export const fetchRecommendedTracks = async (currentTrackId, limit = 10, sortBy = 'recent') => {
+export const fetchRecommendedTracks = async (currentTrackId, limit = 50, sortBy = 'recent') => {
     try {
         // Get user location for location-based recommendations
         const userLocation = await getUserLocation();
@@ -117,7 +117,15 @@ export const fetchRecommendedTracks = async (currentTrackId, limit = 10, sortBy 
         }
         // Try to get ML-powered recommendations
         try {
-            const mlResponse = await fetch(mlApiUrl);
+            let mlResponse;
+            if (accessToken) {
+                // If logged in, make authenticated request to the personalized ML endpoint
+                mlResponse = await makeAuthenticatedRequest(mlApiUrl);
+            } else {
+                // If not logged in, try to call the general ML endpoint instead
+                const generalMlApiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/recommendations/ml-recommendations/general?${params.toString()}`;
+                mlResponse = await fetch(generalMlApiUrl);
+            }
             if (mlResponse.ok) {
                 const mlData = await mlResponse.json();
                 console.log('ML recommendations received:', mlData.count, 'tracks');
@@ -180,7 +188,7 @@ export const fetchRecommendedTracks = async (currentTrackId, limit = 10, sortBy 
 /**
  * Get recommendations based on a specific track (similar tracks)
  */
-export const fetchSimilarTracks = async (trackId, limit = 10, sortBy = 'recent') => {
+export const fetchSimilarTracks = async (trackId, limit = 50, sortBy = 'recent') => {
     try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/recommendations/similar/${trackId}?limit=${limit}&sortBy=${sortBy}`);
         if (!response.ok) {

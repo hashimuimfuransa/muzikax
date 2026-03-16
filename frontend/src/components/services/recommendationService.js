@@ -174,7 +174,7 @@ var fetchRecommendedTracks = function (currentTrackId_1) {
     }
     return __awaiter(void 0, __spreadArray([currentTrackId_1], args_1, true), void 0, function (currentTrackId, limit, sortBy) {
         var userLocation, params, accessToken, userId, tokenParts, payload, mlApiUrl, mlResponse, mlData, errorData, mlError_1, personalizedParams, response_1, data_1, authError_1, fallbackParams, response, data, error_2;
-        if (limit === void 0) { limit = 10; }
+        if (limit === void 0) { limit = 50; }
         if (sortBy === void 0) { sortBy = 'recent'; }
         return __generator(this, function (_a) {
             switch (_a.label) {
@@ -213,7 +213,12 @@ var fetchRecommendedTracks = function (currentTrackId_1) {
                     _a.label = 2;
                 case 2:
                     _a.trys.push([2, 9, , 10]);
-                    return [4 /*yield*/, fetch(mlApiUrl)];
+                    if (accessToken) {
+                        return [4 /*yield*/, makeAuthenticatedRequest(mlApiUrl)];
+                    } else {
+                        const generalMlApiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/recommendations/ml-recommendations/general?${params.toString()}`;
+                        return [4 /*yield*/, fetch(generalMlApiUrl)];
+                    }
                 case 3:
                     mlResponse = _a.sent();
                     if (!mlResponse.ok) return [3 /*break*/, 5];
@@ -299,7 +304,7 @@ var fetchSimilarTracks = function (trackId_1) {
     }
     return __awaiter(void 0, __spreadArray([trackId_1], args_1, true), void 0, function (trackId, limit, sortBy) {
         var response, data, error_3;
-        if (limit === void 0) { limit = 10; }
+        if (limit === void 0) { limit = 50; }
         if (sortBy === void 0) { sortBy = 'recent'; }
         return __generator(this, function (_a) {
             switch (_a.label) {

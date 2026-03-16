@@ -7,9 +7,6 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
 import { usePayment } from '../contexts/PaymentContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import PlaylistSelectionModal from './PlaylistSelectionModal';
-import ReportTrackModal from './ReportTrackModal';
-import PesaPalPayment from './PesaPalPayment';
 
 const ModernAudioPlayer = () => {
   const { t } = useLanguage();
@@ -19,8 +16,6 @@ const ModernAudioPlayer = () => {
     isPlaying,
     isMinimized,
     togglePlayPause,
-    toggleMinimize,
-    closePlayer,
     progress,
     duration,
     setProgress,
@@ -30,16 +25,7 @@ const ModernAudioPlayer = () => {
     removeFromFavorites,
     favorites,
     audioRef,
-    volume,
-    setVolume,
-    playbackRate,
-    setPlaybackRate,
     shareTrack,
-    downloadTrack,
-    shufflePlaylist,
-    shuffleQueue,
-    toggleLoop,
-    isLooping,
     currentPlaylistName
   } = useAudioPlayer();  
   const router = useRouter();
@@ -48,9 +34,7 @@ const ModernAudioPlayer = () => {
   const progressRef = useRef<HTMLDivElement>(null);
   const [isFavorite, setIsFavorite] = useState(false);
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
-  const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-  const [showReportModal, setShowReportModal] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const { showPayment, hidePayment, isPaymentVisible, paymentData } = usePayment();
   
@@ -175,21 +159,6 @@ const ModernAudioPlayer = () => {
     router.push('/player');
   };
 
-  // Handle adding to playlist
-  const handleAddToPlaylist = () => {
-    if (!isAuthenticated) {
-      router.push('/login');
-      return;
-    }
-    
-    setIsPlaylistModalOpen(true);
-  };
-
-  // Handle track added to playlist
-  const handleTrackAdded = () => {
-    setToast({message: t('addedToPlaylist'), type: 'success'});
-  };
-
   // No longer redirect to full player page automatically
   // The player will stay minimized and visible on all pages
   // Users can click the expand button to go to the full player page
@@ -206,12 +175,6 @@ const ModernAudioPlayer = () => {
     return null;
   }
 
-  // Handle volume change
-  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newVolume = parseFloat(e.target.value);
-    setVolume(newVolume);
-  };
-
   return (
     <>
       {/* Toast Notification */}
@@ -220,13 +183,6 @@ const ModernAudioPlayer = () => {
           {toast.message}
         </div>
       )}
-      
-      {/* Playlist Selection Modal */}
-      <PlaylistSelectionModal
-        isOpen={isPlaylistModalOpen}
-        onClose={() => setIsPlaylistModalOpen(false)}
-        onTrackAdded={handleTrackAdded}
-      />
       
       {/* Share Modal */}
       {isShareModalOpen && (
@@ -332,7 +288,8 @@ const ModernAudioPlayer = () => {
         <div className={`
           fixed bottom-20 sm:bottom-6 right-2 sm:right-6 
           left-2 sm:left-auto
-          w-[calc(100vw-1rem)] sm:w-[${isBeat ? '420px' : '380px'}] 
+          w-[calc(100vw-1rem)] sm:w-auto 
+          min-w-[300px] sm:min-w-[340px]
           max-w-[420px]
           rounded-2xl 
           ${isBeat ? 'bg-gradient-to-br from-gray-900 to-black backdrop-blur-xl border border-[#FF4D67]/30 shadow-2xl shadow-[#FF4D67]/20' : 'bg-black/70 backdrop-blur-xl border border-white/10 shadow-[0_10px_40px_rgba(0,0,0,0.6)]'} 
@@ -413,19 +370,39 @@ const ModernAudioPlayer = () => {
               </div>
             </div>
             
-            <div className="flex items-center gap-0">
+            <div className="flex items-center gap-0.5 sm:gap-1">
+              {/* Previous Button */}
+              <button
+                onClick={playPreviousTrack}
+                className="
+                  w-8 h-8 sm:w-9 sm:h-9 rounded-full 
+                  bg-white/5 hover:bg-white/15 
+                  flex items-center justify-center
+                  transition-all
+                  min-w-[32px] min-h-[32px]
+                  sm:min-w-[40px] sm:min-h-[40px]
+                  touch-manipulation
+                  p-1
+                "
+                title={t('previousTrack')}
+              >
+                <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" />
+                </svg>
+              </button>
+
               {/* Play / Pause Button */}
               <button
                 onClick={togglePlayPause}
                 className="
-                  w-10 h-10 sm:w-12 sm:h-12 rounded-full 
+                  w-10 h-10 sm:w-11 sm:h-11 rounded-full 
                   bg-white/10 hover:bg-white/20 
                   flex items-center justify-center
                   transition-all
-                  min-w-[48px] min-h-[48px]
+                  min-w-[44px] min-h-[44px]
+                  sm:min-w-[48px] sm:min-h-[48px]
                   touch-manipulation
                   p-1
-                  -ml-0.5
                 "
               >
                 {isPlaying ? (
@@ -441,67 +418,24 @@ const ModernAudioPlayer = () => {
                   </svg>
                 )}
               </button>
-              
-              {/* Shuffle Button */}
-              <button
-                onClick={shuffleQueue}
-                className="
-                  w-9 h-9 rounded-full
-                  bg-white/5 hover:bg-white/15
-                  flex items-center justify-center
-                  transition
-                  min-w-[48px] min-h-[48px]
-                  touch-manipulation
-                  p-1
-                "
-                title={t('shuffleQueue')}
-              >
-                <svg className="w-3 h-3 text-gray-300" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z" />
-                </svg>
-              </button>
 
-              {/* Create Playlist Button */}
+              {/* Next Button */}
               <button
-                onClick={() => {
-                  if (!isAuthenticated) {
-                    router.push('/login?redirect=/playlists?create=true');
-                    return;
-                  }
-                  router.push('/playlists?create=true');
-                }}
+                onClick={playNextTrack}
                 className="
-                  w-9 h-9 rounded-full
-                  bg-white/5 hover:bg-white/15
+                  w-8 h-8 sm:w-9 sm:h-9 rounded-full 
+                  bg-white/5 hover:bg-white/15 
                   flex items-center justify-center
-                  transition
-                  min-w-[48px] min-h-[48px]
+                  transition-all
+                  min-w-[32px] min-h-[32px]
+                  sm:min-w-[40px] sm:min-h-[40px]
                   touch-manipulation
                   p-1
                 "
-                title="Create Playlist"
+                title={t('nextTrack')}
               >
-                <svg className="w-3.5 h-3.5 text-gray-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                  <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd"></path>
-                </svg>
-              </button>
-
-              {/* View Playlist Button */}
-              <button
-                onClick={() => router.push('/playlists')}
-                className="
-                  w-9 h-9 rounded-full
-                  bg-white/5 hover:bg-white/15
-                  flex items-center justify-center
-                  transition
-                  min-w-[48px] min-h-[48px]
-                  touch-manipulation
-                  p-1
-                "
-                title="View Playlist"
-              >
-                <svg className="w-3.5 h-3.5 text-gray-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                  <path fillRule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V5zm11 1H6v8l4-2 4 2V6z" clipRule="evenodd"></path>
+                <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M6 18l8.5-6L6 6zm9-12h2v12h-2z" />
                 </svg>
               </button>
               
@@ -509,130 +443,29 @@ const ModernAudioPlayer = () => {
               <button
                 onClick={goToFullPlayer}
                 className="
-                  w-10 h-10 sm:w-11 sm:h-11 rounded-full
+                  w-8 h-8 sm:w-9 sm:h-9 rounded-full
                   bg-white/5 hover:bg-white/15
                   flex items-center justify-center
                   transition
-                  min-w-[48px] min-h-[48px]
+                  min-w-[32px] min-h-[32px]
+                  sm:min-w-[40px] sm:min-h-[40px]
                   touch-manipulation
                   p-1
-                  ml-0.5
+                  ml-1
                 "
                 title={t('openFullPlayer')}
               >
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <path d="M12 5v14" />
                   <path d="M5 12l7-7 7 7" />
                 </svg>
               </button>
-              
-              {/* Speed Control */}
-              <div className="flex items-center">
-                <select
-                  value={playbackRate}
-                  onChange={(e) => setPlaybackRate(parseFloat(e.target.value))}
-                  className="bg-black/70 text-white text-xs rounded px-1 py-1 sm:px-2 sm:py-1 focus:outline-none focus:ring-1 focus:ring-[#FF4D67] min-w-[50px] appearance-none touch-manipulation"
-                >
-                  <option value="0.5">0.5x</option>
-                  <option value="0.75">0.75x</option>
-                  <option value="1">1x</option>
-                  <option value="1.25">1.25x</option>
-                  <option value="1.5">1.5x</option>
-                  <option value="2">2x</option>
-                </select>
-              </div>
-              
-              {/* Loop Button */}
-              <button
-                onClick={toggleLoop}
-                className={`
-                  w-9 h-9 rounded-full
-                  flex items-center justify-center
-                  ${isLooping ? 'text-[#FF4D67]' : 'text-gray-400'} hover:text-white
-                  hover:bg-white/10
-                  transition
-                  min-w-[48px] min-h-[48px]
-                  touch-manipulation
-                  p-1
-                `}
-                title={t('loopTrack')}
-              >
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-              </button>
-              
-              {/* Volume Control with Hidden Slider */}
-              <div className="group relative">
-                <button 
-                  className="
-                    w-9 h-9 rounded-full
-                    flex items-center justify-center
-                    text-gray-400 hover:text-white
-                    hover:bg-white/10
-                    transition
-                    min-w-[48px] min-h-[48px]
-                    touch-manipulation
-                    p-1
-                  "
-                  title={t('adjustVolume')}
-                >
-                  <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z" clipRule="evenodd"></path>
-                  </svg>
-                </button>
-                
-                {/* Hidden Volume Slider */}
-                <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.01"
-                  value={volume}
-                  onChange={handleVolumeChange}
-                  className="
-                    absolute -top-12 sm:-top-12 right-0
-                    w-20 sm:w-28 px-2 py-1
-                    bg-black/70 rounded-lg
-                    hidden group-hover:block
-                    accent-[#FF4D67]
-                    touch-manipulation
-                  "
-                />
-              </div>
-              
-              {/* Favorite/Save button for all tracks */}
-              <button
-                onClick={toggleFavorite}
-                className={`
-                  w-9 h-9 rounded-full
-                  flex items-center justify-center
-                  transition-colors ${
-                    isFavorite 
-                      ? 'text-red-400 bg-red-500/20 border border-red-500/30' 
-                      : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
-                  }
-                  min-w-[48px] min-h-[48px]
-                  touch-manipulation
-                  p-1
-                `}
-                title={isFavorite ? t('removeFromFavorites') : t('saveTrack')}
-              >
-                <svg 
-                  className="w-3.5 h-3.5" 
-                  fill={isFavorite ? "currentColor" : "none"}
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                </svg>
-              </button>
+            </div>
               
 
             </div>
           </div>
-        </div>
-      )}
+        )}
       {/* Full Player - Only show when on the player page */}
       {!isMinimized && currentTrack && (
         <div className="hidden">

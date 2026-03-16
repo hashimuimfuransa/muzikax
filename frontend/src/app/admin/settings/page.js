@@ -3,7 +3,6 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../contexts/AuthContext';
-import AdminSidebar from '../../../components/AdminSidebar';
 export default function SettingsPage() {
     const [activeTab, setActiveTab] = useState('general');
     const [loading, setLoading] = useState(true);
@@ -68,7 +67,7 @@ export default function SettingsPage() {
     if (!isAuthenticated || userRole !== 'admin') {
         return null;
     }
-    return (_jsxs("div", { className: "flex min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black", children: [_jsx(AdminSidebar, {}), _jsxs("main", { className: "flex-1 flex flex-col w-full min-h-screen md:ml-64", children: [_jsx("div", { className: "absolute -top-40 -left-40 w-96 h-96 bg-[#FF4D67]/10 rounded-full blur-3xl -z-10" }), _jsx("div", { className: "absolute -bottom-40 -right-40 w-96 h-96 bg-[#FFCB2B]/10 rounded-full blur-3xl -z-10" }), _jsxs("div", { className: "container mx-auto px-4 sm:px-8 py-6 sm:py-8", children: [_jsxs("div", { className: "mb-6 sm:mb-8", children: [_jsx("h1", { className: "text-xl sm:text-2xl md:text-3xl font-bold text-white", children: "System Settings" }), _jsx("p", { className: "text-gray-400 text-sm sm:text-base", children: "Configure platform-wide settings and preferences" })] }), _jsxs("div", { className: "card-bg rounded-2xl p-4 sm:p-6 mb-6", children: [_jsx("div", { className: "border-b border-gray-800", children: _jsx("nav", { className: "-mb-px flex space-x-6 sm:space-x-8", children: [
+    return (_jsxs("div", { className: "flex min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black", children: [_jsxs("main", { className: "flex-1 flex flex-col w-full min-h-screen", children: [_jsx("div", { className: "absolute -top-40 -left-40 w-96 h-96 bg-[#FF4D67]/10 rounded-full blur-3xl -z-10" }), _jsx("div", { className: "absolute -bottom-40 -right-40 w-96 h-96 bg-[#FFCB2B]/10 rounded-full blur-3xl -z-10" }), _jsxs("div", { className: "container mx-auto px-4 sm:px-8 py-6 sm:py-8", children: [_jsxs("div", { className: "mb-6 sm:mb-8", children: [_jsx("h1", { className: "text-xl sm:text-2xl md:text-3xl font-bold text-white", children: "System Settings" }), _jsx("p", { className: "text-gray-400 text-sm sm:text-base", children: "Configure platform-wide settings and preferences" })] }), _jsxs("div", { className: "card-bg rounded-2xl p-4 sm:p-6 mb-6", children: [_jsx("div", { className: "border-b border-gray-800", children: _jsx("nav", { className: "-mb-px flex space-x-6 sm:space-x-8", children: [
                                                 { id: 'general', name: 'General' },
                                                 { id: 'security', name: 'Security' },
                                                 { id: 'notifications', name: 'Notifications' },

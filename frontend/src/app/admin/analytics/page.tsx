@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../../contexts/AuthContext'
-import AdminSidebar from '../../../components/AdminSidebar'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
 
 interface UserGrowthData {
@@ -203,9 +202,7 @@ export default function AnalyticsPage() {
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black">
-      <AdminSidebar />
-      
-      <main className="flex-1 flex flex-col w-full min-h-screen md:ml-64">
+      <main className="flex-1 flex flex-col w-full min-h-screen transition-all duration-300">
         <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#FF4D67]/10 rounded-full blur-3xl -z-10"></div>
         <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-[#FFCB2B]/10 rounded-full blur-3xl -z-10"></div>
         

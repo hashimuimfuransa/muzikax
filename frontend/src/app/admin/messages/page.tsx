@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../contexts/AuthContext';
-import AdminSidebar from '../../../components/AdminSidebar';
 import Link from 'next/link';
 
 interface ContactMessage {
@@ -188,9 +187,7 @@ export default function AdminMessages() {
 
   return (
     <div className="flex min-h-screen bg-gray-900 text-white">
-      <AdminSidebar />
-
-      <div className="flex-1 p-4 sm:p-8 overflow-auto">
+      <div className="flex-1 p-4 sm:p-8 overflow-auto transition-all duration-300">
         <div className="max-w-7xl">
           <div className="flex items-center justify-between mb-8">
             <div>

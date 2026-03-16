@@ -22,7 +22,7 @@ const getPersonalizedRecommendations = (req, res) => __awaiter(void 0, void 0, v
     try {
         console.log('Personalized recommendations route hit');
         const userId = req.user && req.user.id;
-        const limit = parseInt(req.query['limit']) || 5;
+        const limit = parseInt(req.query['limit']) || 200; // Increased default limit
         const excludeTrackId = req.query['excludeTrackId'];
 
         console.log('User ID:', userId);
@@ -144,7 +144,7 @@ exports.getPersonalizedRecommendations = getPersonalizedRecommendations;
 const getGeneralRecommendations = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         console.log('General recommendations route hit');
-        const limit = parseInt(req.query['limit']) || 5;
+        const limit = parseInt(req.query['limit']) || 200; // Increased default limit
         const excludeTrackId = req.query['excludeTrackId'];
 
         console.log('Limit:', limit);
@@ -204,7 +204,7 @@ const getSimilarTracks = (req, res) => __awaiter(void 0, void 0, void 0, functio
     try {
         console.log('Similar tracks route hit');
         const trackId = req.params['trackId'];
-        const limit = parseInt(req.query['limit']) || 5;
+        const limit = parseInt(req.query['limit']) || 200; // Increased default limit
 
         console.log('Track ID:', trackId);
         console.log('Limit:', limit);

@@ -503,7 +503,7 @@ function PlaylistsContent() {
       if (isSelected) {
         return prev.filter(t => t._id !== track._id);
       } else {
-        return [...prev, track];
+        return [...prev, track];  
       }
     });
   };

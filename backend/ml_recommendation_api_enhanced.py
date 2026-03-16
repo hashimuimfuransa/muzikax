@@ -142,7 +142,7 @@ def get_ml_personalized_recommendations():
     try:
         user_id = request.args.get('userId')
         current_track_id = request.args.get('currentTrackId')
-        limit = int(request.args.get('limit', 10))
+        limit = int(request.args.get('limit', 100))
         user_location = request.args.get('location')
         
         logger.info(f"Getting enhanced ML recommendations for user: {user_id}, track: {current_track_id}, limit: {limit}, location: {user_location}")
@@ -232,7 +232,7 @@ def get_location_based_recommendations():
     """
     try:
         location = request.args.get('location')
-        limit = int(request.args.get('limit', 10))
+        limit = int(request.args.get('limit', 100))
         
         if not location:
             return jsonify({'error': 'Location parameter is required'}), 400
@@ -291,7 +291,7 @@ def get_collaborative_recommendations():
     """
     try:
         user_id = request.args.get('userId')
-        limit = int(request.args.get('limit', 10))
+        limit = int(request.args.get('limit', 100))
         
         if not user_id:
             return jsonify({'error': 'User ID parameter is required'}), 400
@@ -350,7 +350,7 @@ def get_content_based_recommendations():
     """
     try:
         seed_track_ids_param = request.args.get('seedTrackIds')
-        limit = int(request.args.get('limit', 10))
+        limit = int(request.args.get('limit', 100))
         
         if not seed_track_ids_param:
             return jsonify({'error': 'seedTrackIds parameter is required'}), 400

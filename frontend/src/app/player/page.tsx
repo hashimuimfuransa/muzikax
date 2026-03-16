@@ -73,6 +73,10 @@ const FullPagePlayer = () => {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false); // Added state for share modal
   const [isReportModalOpen, setIsReportModalOpen] = useState(false); // Added state for report modal
   
+  // Collapse states for Queue and Popular
+  const [isQueueExpanded, setIsQueueExpanded] = useState(false);
+  const [isPopularExpanded, setIsPopularExpanded] = useState(false);
+  
   // Added state for creator profile and tracks
   const [creator, setCreator] = useState<any>(null);
   const [creatorTracks, setCreatorTracks] = useState<any[]>([]);
@@ -1134,195 +1138,245 @@ const FullPagePlayer = () => {
                 </div>
                 
                 {/* Queue Section */}
-                <div className="mt-4 sm:mt-6 bg-gray-800/50 rounded-xl p-3 sm:p-4 w-full max-w-2xl overflow-hidden">
-                  <div className="flex justify-between items-center mb-3 px-1 w-full gap-2">
-                    <h3 className="font-bold text-base sm:text-lg truncate flex-1 min-w-0">Up Next</h3>
-                    <div className="flex gap-1 sm:gap-2">
-                      <button 
-                        onClick={async () => {
-                          // Add recommendations to queue
-                          const addedCount = await addRecommendationsToQueue(10);
-                          if (addedCount > 0) {
-                            setToast({message: `Added ${addedCount} recommendations to queue!`, type: 'success'});
-                          } else {
-                            setToast({message: 'No recommendations available', type: 'error'});
-                          }
-                        }}
-                        className="text-xs sm:text-sm text-gray-400 hover:text-white bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded"
+                <div className={`mt-4 sm:mt-6 bg-gray-800/50 rounded-xl w-full max-w-2xl overflow-hidden transition-all duration-500 border border-white/5 ${isQueueExpanded ? 'p-3 sm:p-4 ring-1 ring-[#FF4D67]/30 shadow-lg shadow-[#FF4D67]/5' : 'p-2'}`}>
+                  <div 
+                    className={`flex justify-between items-center px-1 w-full gap-2 cursor-pointer transition-all duration-300 rounded-lg ${!isQueueExpanded ? 'hover:bg-white/10' : 'mb-3'}`}
+                    onClick={() => setIsQueueExpanded(!isQueueExpanded)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${isQueueExpanded ? 'bg-[#FF4D67]/20 text-[#FF4D67]' : 'bg-gray-700 text-gray-400'}`}>
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h7"></path>
+                        </svg>
+                      </div>
+                      <div className="flex flex-col">
+                        <h3 className="font-bold text-base sm:text-lg truncate">Up Next</h3>
+                        {!isQueueExpanded && <span className="text-[10px] sm:text-xs text-gray-500">{queue?.length || 0} tracks in queue</span>}
+                      </div>
+                      <svg 
+                        className={`w-5 h-5 text-gray-500 transition-transform duration-500 ${isQueueExpanded ? 'rotate-180' : ''}`} 
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"
                       >
-                        <span className="hidden sm:inline">Add Recommendations</span>
-                        <span className="sm:hidden">+ Recs</span>
-                      </button>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                    
+                    {isQueueExpanded && (
+                      <div className="flex gap-1 sm:gap-2" onClick={(e) => e.stopPropagation()}>
+                        <button 
+                          onClick={async () => {
+                            // Add recommendations to queue
+                            const addedCount = await addRecommendationsToQueue(10);
+                            if (addedCount > 0) {
+                              setToast({message: `Added ${addedCount} recommendations to queue!`, type: 'success'});
+                            } else {
+                              setToast({message: 'No recommendations available', type: 'error'});
+                            }
+                          }}
+                          className="text-xs text-gray-400 hover:text-white bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded"
+                        >
+                          <span className="hidden sm:inline">Add Recommendations</span>
+                          <span className="sm:hidden">+ Recs</span>
+                        </button>
+                        <button 
+                          onClick={shuffleQueue}
+                          className="text-xs text-gray-400 hover:text-white bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded flex items-center gap-1"
+                          title="Shuffle Queue"
+                        >
+                          <span className="hidden sm:inline">Shuffle</span>
+                          <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                          </svg>
+                        </button>
+                        <button 
+                          onClick={() => {
+                            // Clear the queue
+                            clearQueue();
+                            setToast({message: 'Queue cleared!', type: 'success'});
+                          }}
+                          className="text-xs text-gray-400 hover:text-white bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded"
+                        >
+                          Clear
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className={`transition-all duration-500 ease-in-out overflow-hidden ${isQueueExpanded ? 'max-h-[500px] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
+                    {queue && queue.length > 0 ? (
+                      <div className="space-y-2 max-h-[300px] sm:max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                        {queue.map((queuedTrack, index) => (
+                          <div 
+                            key={`${queuedTrack.id}-${index}`} 
+                            draggable="true"
+                            onDragStart={(e) => {
+                              e.dataTransfer.setData('index', index.toString());
+                            }}
+                            onDragOver={(e) => {
+                              e.preventDefault();
+                            }}
+                            onDrop={(e) => {
+                              e.preventDefault();
+                              const draggedIndex = parseInt(e.dataTransfer.getData('index'));
+                              if (draggedIndex !== index) {
+                                moveQueueItem(draggedIndex, index);
+                              }
+                            }}
+                            className="flex items-center gap-2 sm:gap-3 p-2 rounded-lg hover:bg-[#FF4D67]/10 cursor-pointer transition-all group bg-gray-700/30 w-full border border-transparent hover:border-[#FF4D67]/20"
+                            onClick={() => {
+                              // Play this track from the queue
+                              playFromQueue(queuedTrack.id);
+                              setToast({message: `Playing ${queuedTrack.title}`, type: 'success'});
+                            }}
+                          >
+                            <div className="flex items-center gap-1 flex-shrink-0">
+                              <span className="text-gray-500 text-xs sm:text-sm w-4 sm:w-5">{index + 1}</span>
+                              <svg className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600 cursor-move group-hover:text-[#FF4D67]/50" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
+                              </svg>
+                            </div>
+                            <img 
+                              src={queuedTrack.coverImage} 
+                              alt={queuedTrack.title} 
+                              className="w-8 h-8 sm:w-10 sm:h-10 rounded-md object-cover flex-shrink-0 shadow-sm"
+                            />
+                            <div className="flex-1 min-w-0 overflow-hidden">
+                              <p className="text-xs sm:text-sm font-medium truncate line-clamp-1 group-hover:text-[#FF4D67] transition-colors">{queuedTrack.title}</p>
+                              <p className="text-[10px] sm:text-xs text-gray-400 truncate">{queuedTrack.artist}</p>
+                            </div>
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeFromQueue(queuedTrack.id);
+                                setToast({message: 'Removed from queue', type: 'success'});
+                              }}
+                              className="text-gray-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity p-1"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                              </svg>
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="p-4">
+                        <p className="text-gray-400 text-center py-2 text-xs sm:text-sm italic">Queue is empty</p>
+                        <button 
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            // Add recommendations to queue
+                            const addedCount = await addRecommendationsToQueue(10);
+                            if (addedCount > 0) {
+                              setToast({message: `Added ${addedCount} recommendations to queue!`, type: 'success'});
+                            } else {
+                              setToast({message: 'No recommendations available', type: 'error'});
+                            }
+                          }}
+                          className="w-full mt-2 py-2.5 bg-gradient-to-r from-[#FF4D67] to-[#8B5CF6] hover:scale-[1.02] active:scale-[0.98] rounded-lg text-white text-sm sm:text-base font-medium transition-all shadow-lg shadow-[#FF4D67]/20 touch-manipulation"
+                        >
+                          Discover & Add Recommendations
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Popular Playlist Section */}
+                <div className={`mt-4 sm:mt-6 bg-gray-800/50 rounded-xl w-full max-w-2xl overflow-hidden transition-all duration-500 border border-white/5 ${isPopularExpanded ? 'p-3 sm:p-4 ring-1 ring-[#FFCB2B]/30 shadow-lg shadow-[#FFCB2B]/5' : 'p-2'}`}>
+                  <div 
+                    className={`flex justify-between items-center px-1 w-full gap-2 cursor-pointer transition-all duration-300 rounded-lg ${!isPopularExpanded ? 'hover:bg-white/10' : 'mb-3'}`}
+                    onClick={() => setIsPopularExpanded(!isPopularExpanded)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${isPopularExpanded ? 'bg-[#FFCB2B]/20 text-[#FFCB2B]' : 'bg-gray-700 text-gray-400'}`}>
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                        </svg>
+                      </div>
+                      <div className="flex flex-col">
+                        <h3 className="font-bold text-base sm:text-lg truncate">Popular This Month</h3>
+                        {!isPopularExpanded && <span className="text-[10px] sm:text-xs text-gray-500">Trending tracks this month</span>}
+                      </div>
+                      <svg 
+                        className={`w-5 h-5 text-gray-500 transition-transform duration-500 ${isPopularExpanded ? 'rotate-180' : ''}`} 
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                    
+                    {isPopularExpanded && (
                       <button 
-                        onClick={shuffleQueue}
-                        className="text-xs sm:text-sm text-gray-400 hover:text-white bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded flex items-center gap-1"
-                        title="Shuffle Queue"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const shuffled = [...popularTracks];
+                          for (let i = shuffled.length - 1; i > 0; i--) {
+                            const j = Math.floor(Math.random() * (i + 1));
+                            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+                          }
+                          setPopularTracks(shuffled);
+                          setToast({message: 'Popular playlist shuffled!', type: 'success'});
+                        }}
+                        className="text-xs text-gray-400 hover:text-white bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded flex items-center gap-1"
+                        title="Shuffle Popular"
                       >
                         <span className="hidden sm:inline">Shuffle</span>
                         <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
                         </svg>
                       </button>
-                      <button 
-                        onClick={() => {
-                          // Clear the queue
-                          clearQueue();
-                          setToast({message: 'Queue cleared!', type: 'success'});
-                        }}
-                        className="text-xs sm:text-sm text-gray-400 hover:text-white bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded"
-                      >
-                        Clear
-                      </button>
-                    </div>
+                    )}
                   </div>
                   
-                  {queue && queue.length > 0 ? (
-                    <div className="space-y-2 max-h-[300px] sm:max-h-[400px] overflow-y-auto pr-2">
-                      {queue.map((queuedTrack, index) => (
-                        <div 
-                          key={`${queuedTrack.id}-${index}`} 
-                          draggable="true"
-                          onDragStart={(e) => {
-                            e.dataTransfer.setData('index', index.toString());
-                          }}
-                          onDragOver={(e) => {
-                            e.preventDefault();
-                          }}
-                          onDrop={(e) => {
-                            e.preventDefault();
-                            const draggedIndex = parseInt(e.dataTransfer.getData('index'));
-                            if (draggedIndex !== index) {
-                              moveQueueItem(draggedIndex, index);
-                            }
-                          }}
-                          className="flex items-center gap-2 sm:gap-3 p-2 rounded-lg hover:bg-gray-700/50 cursor-pointer transition-colors group bg-gray-700/30 w-full"
-                          onClick={() => {
-                            // Play this track from the queue
-                            playFromQueue(queuedTrack.id);
-                            setToast({message: `Playing ${queuedTrack.title}`, type: 'success'});
-                          }}
-                        >
-                          <div className="flex items-center gap-1 flex-shrink-0">
-                            <span className="text-gray-500 text-xs sm:text-sm w-4 sm:w-5">{index + 1}</span>
-                            <svg className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 cursor-move" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
-                            </svg>
-                          </div>
-                          <img 
-                            src={queuedTrack.coverImage} 
-                            alt={queuedTrack.title} 
-                            className="w-8 h-8 sm:w-10 sm:h-10 rounded object-cover flex-shrink-0"
-                          />
-                          <div className="flex-1 min-w-0 overflow-hidden">
-                            <p className="text-xs sm:text-sm font-medium truncate line-clamp-1">{queuedTrack.title}</p>
-                            <p className="text-[10px] sm:text-xs text-gray-400 truncate">{queuedTrack.artist}</p>
-                          </div>
-                          <button 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              removeFromQueue(queuedTrack.id);
-                              setToast({message: 'Removed from queue', type: 'success'});
+                  <div className={`transition-all duration-500 ease-in-out overflow-hidden ${isPopularExpanded ? 'max-h-[600px] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
+                    {loadingPopular ? (
+                      <div className="flex items-center justify-center py-8">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FFCB2B]"></div>
+                      </div>
+                    ) : popularTracks.length > 0 ? (
+                      <div className="space-y-2 max-h-[300px] sm:max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                        {popularTracks.map((track, index) => (
+                          <div 
+                            key={track.id} 
+                            className="flex items-center gap-2 sm:gap-3 p-2 rounded-lg hover:bg-[#FFCB2B]/10 cursor-pointer transition-all group bg-gray-700/30 w-full border border-transparent hover:border-[#FFCB2B]/20"
+                            onClick={() => {
+                              playTrack(track, popularTracks);
+                              setToast({message: `Playing ${track.title}`, type: 'success'});
                             }}
-                            className="text-gray-500 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity p-1"
                           >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div>
-                      <p className="text-gray-400 text-center py-4 text-xs sm:text-sm">Queue is empty</p>
-                      <button 
-                        onClick={async () => {
-                          // Add recommendations to queue
-                          const addedCount = await addRecommendationsToQueue(10);
-                          if (addedCount > 0) {
-                            setToast({message: `Added ${addedCount} recommendations to queue!`, type: 'success'});
-                          } else {
-                            setToast({message: 'No recommendations available', type: 'error'});
-                          }
-                        }}
-                        className="w-full mt-2 py-2 bg-[#FF4D67] hover:bg-[#ff3350] rounded-lg text-white text-sm sm:text-base font-medium transition-colors touch-manipulation"
-                      >
-                        Add Recommendations
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Popular Playlist Section */}
-                <div className="mt-4 sm:mt-6 bg-gray-800/50 rounded-xl p-3 sm:p-4 w-full max-w-2xl overflow-hidden">
-                  <div className="flex justify-between items-center mb-3 px-1 w-full gap-2">
-                    <h3 className="font-bold text-base sm:text-lg truncate flex-1 min-w-0">Popular This Month</h3>
-                    <button 
-                      onClick={() => {
-                        const shuffled = [...popularTracks];
-                        for (let i = shuffled.length - 1; i > 0; i--) {
-                          const j = Math.floor(Math.random() * (i + 1));
-                          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-                        }
-                        setPopularTracks(shuffled);
-                        setToast({message: 'Popular playlist shuffled!', type: 'success'});
-                      }}
-                      className="text-xs sm:text-sm text-gray-400 hover:text-white bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded flex items-center gap-1"
-                      title="Shuffle Popular"
-                    >
-                      <span className="hidden sm:inline">Shuffle</span>
-                      <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
-                      </svg>
-                    </button>
+                            <span className="text-gray-500 text-xs sm:text-sm w-4 sm:w-5 flex-shrink-0">{index + 1}</span>
+                            <img 
+                              src={track.coverImage} 
+                              alt={track.title} 
+                              className="w-8 h-8 sm:w-10 sm:h-10 rounded-md object-cover flex-shrink-0 shadow-sm"
+                            />
+                            <div className="flex-1 min-w-0 overflow-hidden">
+                              <p className="text-xs sm:text-sm font-medium truncate line-clamp-1 group-hover:text-[#FFCB2B] transition-colors">{track.title}</p>
+                              <p className="text-[10px] sm:text-xs text-gray-400 truncate">{track.artist}</p>
+                            </div>
+                            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+                               <button 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    addToQueue(track);
+                                    setToast({message: 'Added to queue', type: 'success'});
+                                  }}
+                                  className="p-1 sm:p-2 text-gray-400 hover:text-[#FFCB2B] transition-colors touch-manipulation opacity-0 group-hover:opacity-100"
+                                  title="Add to Queue"
+                                >
+                                  <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path>
+                                  </svg>
+                                </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-gray-400 text-center py-6 text-sm italic">No popular tracks found</p>
+                    )}
                   </div>
-                  
-                  {loadingPopular ? (
-                    <div className="flex items-center justify-center py-4">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF4D67]"></div>
-                    </div>
-                  ) : popularTracks.length > 0 ? (
-                    <div className="space-y-2 max-h-[300px] sm:max-h-[400px] overflow-y-auto pr-2">
-                      {popularTracks.map((track, index) => (
-                        <div 
-                          key={track.id} 
-                          className="flex items-center gap-2 sm:gap-3 p-2 rounded-lg hover:bg-gray-700/50 cursor-pointer transition-colors group bg-gray-700/30 w-full"
-                          onClick={() => {
-                            playTrack(track, popularTracks);
-                            setToast({message: `Playing ${track.title}`, type: 'success'});
-                          }}
-                        >
-                          <span className="text-gray-500 text-xs sm:text-sm w-4 sm:w-5 flex-shrink-0">{index + 1}</span>
-                          <img 
-                            src={track.coverImage} 
-                            alt={track.title} 
-                            className="w-8 h-8 sm:w-10 sm:h-10 rounded object-cover flex-shrink-0"
-                          />
-                          <div className="flex-1 min-w-0 overflow-hidden">
-                            <p className="text-xs sm:text-sm font-medium truncate line-clamp-1">{track.title}</p>
-                            <p className="text-[10px] sm:text-xs text-gray-400 truncate">{track.artist}</p>
-                          </div>
-                          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-                             <button 
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  addToQueue(track);
-                                  setToast({message: 'Added to queue', type: 'success'});
-                                }}
-                                className="p-1 sm:p-2 text-gray-400 hover:text-white transition-colors touch-manipulation"
-                                title="Add to Queue"
-                              >
-                                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path>
-                                </svg>
-                              </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-gray-400 text-center py-4 text-sm">No popular tracks found</p>
-                  )}
                 </div>
 
                 {/* Recommended Playlists Section */}

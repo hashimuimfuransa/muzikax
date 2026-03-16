@@ -106,7 +106,7 @@ const getUserLocation = async (): Promise<string | null> => {
  * Fetch ML-powered recommended tracks based on user preferences and listening history
  * This implements an advanced ML recommendation algorithm with genre, location, and behavior factors
  */
-export const fetchRecommendedTracks = async (currentTrackId?: string, limit: number = 10, sortBy: 'popular' | 'recent' | 'views' = 'recent'): Promise<ITrack[]> => {
+export const fetchRecommendedTracks = async (currentTrackId?: string, limit: number = 50, sortBy: 'popular' | 'recent' | 'views' = 'recent'): Promise<ITrack[]> => {
   try {
     // Get user location for location-based recommendations
     const userLocation = await getUserLocation();
@@ -147,7 +147,16 @@ export const fetchRecommendedTracks = async (currentTrackId?: string, limit: num
 
     // Try to get ML-powered recommendations
     try {
-      const mlResponse = await fetch(mlApiUrl);
+      let mlResponse: Response;
+      
+      if (accessToken) {
+        // If logged in, make authenticated request to the personalized ML endpoint
+        mlResponse = await makeAuthenticatedRequest(mlApiUrl);
+      } else {
+        // If not logged in, try to call the general ML endpoint instead
+        const generalMlApiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/recommendations/ml-recommendations/general?${params.toString()}`;
+        mlResponse = await fetch(generalMlApiUrl);
+      }
       
       if (mlResponse.ok) {
         const mlData = await mlResponse.json();
@@ -217,7 +226,7 @@ export const fetchRecommendedTracks = async (currentTrackId?: string, limit: num
 /**
  * Get recommendations based on a specific track (similar tracks)
  */
-export const fetchSimilarTracks = async (trackId: string, limit: number = 10, sortBy: 'popular' | 'recent' | 'views' = 'recent'): Promise<ITrack[]> => {
+export const fetchSimilarTracks = async (trackId: string, limit: number = 50, sortBy: 'popular' | 'recent' | 'views' = 'recent'): Promise<ITrack[]> => {
   try {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/api/recommendations/similar/${trackId}?limit=${limit}&sortBy=${sortBy}`
