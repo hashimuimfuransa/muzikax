@@ -79,6 +79,7 @@ var AudioPlayerProvider = function (_a) {
     var _b = (0, react_1.useState)(null), currentTrack = _b[0], setCurrentTrack = _b[1];
     var _c = (0, react_1.useState)(false), isPlaying = _c[0], setIsPlaying = _c[1];
     var _d = (0, react_1.useState)(false), isMinimized = _d[0], setIsMinimized = _d[1];
+    var _u = (0, react_1.useState)(false), isSoloPlayerOpen = _u[0], setIsSoloPlayerOpen = _u[1];
     var _e = (0, react_1.useState)(0), progress = _e[0], setProgress = _e[1];
     var _f = (0, react_1.useState)(0), duration = _f[0], setDuration = _f[1];
     var _g = (0, react_1.useState)([]), playlist = _g[0], setPlaylist = _g[1];
@@ -1455,6 +1456,8 @@ var AudioPlayerProvider = function (_a) {
             currentTrack: currentTrack,
             isPlaying: isPlaying,
             isMinimized: isMinimized,
+            isSoloPlayerOpen: isSoloPlayerOpen,
+            setIsSoloPlayerOpen: setIsSoloPlayerOpen,
             queue: queue,
             currentPlaylistName: currentPlaylistName,
             playTrack: playTrack,

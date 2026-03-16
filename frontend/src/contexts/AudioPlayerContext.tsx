@@ -94,6 +94,8 @@ interface AudioPlayerContextType {
   downloadTrack: () => void; // Add downloadTrack function
   markRedirectCompleted: () => void; // Add function to mark redirect as completed
   clearAllFavorites: () => void; // Add function to clear all favorites
+  isSoloPlayerOpen: boolean; // Add isSoloPlayerOpen property
+  setIsSoloPlayerOpen: (isOpen: boolean) => void; // Add setIsSoloPlayerOpen function
   // Music visualization properties
   audioAnalyser: AnalyserNode | null;
   audioContext: AudioContext | null;
@@ -113,6 +115,7 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
+  const [isSoloPlayerOpen, setIsSoloPlayerOpen] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [playlist, setPlaylist] = useState<Track[]>([]);
@@ -1614,6 +1617,8 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
         currentTrack,
         isPlaying,
         isMinimized,
+        isSoloPlayerOpen,
+        setIsSoloPlayerOpen,
         queue,
         currentPlaylistName,
         playTrack,

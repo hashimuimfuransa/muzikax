@@ -154,7 +154,7 @@ export default function AlbumDetailPage({ params }: { params: Promise<{ id: stri
   }
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black py-8 sm:py-12">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black py-8 sm:py-12 overflow-hidden relative">
       <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#FF4D67]/10 rounded-full blur-3xl -z-10"></div>
       <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-[#FFCB2B]/10 rounded-full blur-3xl -z-10"></div>
       
@@ -172,55 +172,55 @@ export default function AlbumDetailPage({ params }: { params: Promise<{ id: stri
           </a>
 
           {/* Album Header */}
-          <div className="flex flex-col md:flex-row gap-8 mb-12">
-            <div className="md:w-1/3">
-              <div className="relative">
+          <div className="flex flex-col md:flex-row items-center md:items-end gap-8 mb-12">
+            <div className="w-64 sm:w-80 md:w-1/3">
+              <div className="relative aspect-square">
                 {(album.coverURL || album.coverImage) && (album.coverURL || album.coverImage).trim() !== '' ? (
                   <img 
                     src={album.coverURL || album.coverImage} 
                     alt={album.title} 
-                    className="w-full rounded-2xl shadow-2xl"
+                    className="w-full h-full object-cover rounded-2xl shadow-2xl"
                   />
                 ) : (
-                  <div className="w-full aspect-square bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] rounded-2xl flex items-center justify-center">
+                  <div className="w-full h-full bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] rounded-2xl flex items-center justify-center">
                     <svg className="w-24 h-24 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
+                      <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
                     </svg>
                   </div>
                 )}
               </div>
             </div>
             
-            <div className="md:w-2/3">
+            <div className="flex-1 text-center md:text-left">
               <div className="flex flex-col justify-end h-full">
                 <p className="text-[#FFCB2B] text-sm uppercase tracking-wider mb-2">Album</p>
-                <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">{album.title}</h1>
-                <p className="text-xl text-gray-300 mb-6">
+                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 leading-tight">{album.title}</h1>
+                <p className="text-xl sm:text-2xl text-gray-300 mb-6 font-medium">
                   <Link href={`/artist/${album.artist}`} className="hover:text-white transition-colors">
                     {album.artist}
                   </Link>
                 </p>
                 
-                <div className="flex flex-wrap items-center gap-4 text-gray-400 mb-8">
+                <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-gray-400 mb-2">
                   <span>{album.year}</span>
-                  <span>•</span>
+                  <span className="hidden sm:inline">•</span>
                   <span>{album.tracks.length} songs</span>
-                  <span>•</span>
+                  <span className="hidden sm:inline">•</span>
                   <span>{album.genre}</span>
                 </div>
                 
-                {/* Album controls will be handled by the client component */}
-                <AlbumDetailClient album={album} />
-                
                 {album.description && (
-                  <div className="mt-8">
+                  <div className="mt-6 max-w-2xl">
                     <h3 className="text-lg font-semibold text-white mb-2">About</h3>
-                    <p className="text-gray-400">{album.description}</p>
+                    <p className="text-gray-400 text-sm sm:text-base leading-relaxed">{album.description}</p>
                   </div>
                 )}
               </div>
             </div>
           </div>
+
+          {/* Album Detail Client (Buttons and Tracks) */}
+          <AlbumDetailClient album={album} />
         </div>
       </div>
       

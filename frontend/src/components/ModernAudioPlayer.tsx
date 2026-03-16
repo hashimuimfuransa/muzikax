@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
 import { usePayment } from '../contexts/PaymentContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import SoloPlayer from './SoloPlayer';
 
 const ModernAudioPlayer = () => {
   const { t } = useLanguage();
@@ -15,6 +16,8 @@ const ModernAudioPlayer = () => {
     currentTrack,
     isPlaying,
     isMinimized,
+    isSoloPlayerOpen,
+    setIsSoloPlayerOpen,
     togglePlayPause,
     progress,
     duration,
@@ -303,7 +306,11 @@ const ModernAudioPlayer = () => {
           
           {/* Player Content */}
           <div className="relative z-10 flex items-center p-2 sm:p-3">
-            <div className="relative shrink-0">
+            <button 
+              onClick={() => setIsSoloPlayerOpen(true)}
+              className="relative shrink-0 cursor-pointer hover:scale-105 transition-transform duration-300 z-20"
+              title={t('openSoloPlayer')}
+            >
               <img
                 src={currentTrack.coverImage}
                 alt={currentTrack.title}
@@ -319,7 +326,7 @@ const ModernAudioPlayer = () => {
               {!isBeat && (
                 <div className="absolute -inset-1 bg-gradient-to-r from-pink-500 to-purple-500 blur opacity-30 rounded-xl"></div>
               )}
-            </div>
+            </button>
             
             <div className="ml-2 sm:ml-3 flex-1 min-w-0 overflow-hidden">
               {isBeat ? (
@@ -476,6 +483,11 @@ const ModernAudioPlayer = () => {
       
       {/* PesaPal Payment Modal */}
       {/* Global payment modal is handled by PaymentProvider in layout */}
+
+      {/* Solo Player Overlay */}
+      {isSoloPlayerOpen && (
+        <SoloPlayer onClose={() => setIsSoloPlayerOpen(false)} />
+      )}
     </>
   );
 };

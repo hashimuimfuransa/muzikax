@@ -267,39 +267,40 @@ function LoginContent() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-900 to-black p-4 pb-24 overflow-visible relative">
-      <div className="absolute top-1/3 left-0 w-48 h-48 bg-[#FF4D67]/10 rounded-full blur-3xl -z-10 opacity-70 md:w-64 md:h-64 md:top-1/4 md:left-1/4"></div>
-      <div className="absolute bottom-1/3 right-0 w-48 h-48 bg-[#FFCB2B]/10 rounded-full blur-3xl -z-10 opacity-70 md:w-64 md:h-64 md:bottom-1/4 md:right-1/4"></div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-900 to-black p-4 relative">
+      <div className="absolute top-1/3 left-0 w-32 h-32 bg-[#FF4D67]/10 rounded-full blur-3xl -z-10 opacity-70 md:w-48 md:h-48 md:top-1/4 md:left-1/4"></div>
+      <div className="absolute bottom-1/3 right-0 w-32 h-32 bg-[#FFCB2B]/10 rounded-full blur-3xl -z-10 opacity-70 md:w-48 md:h-48 md:bottom-1/4 md:right-1/4"></div>
       
-      <div className="w-full max-w-md space-y-6 sm:space-y-8 card-bg rounded-2xl p-6 sm:p-8 border border-gray-700/50 shadow-2xl shadow-[#FF4D67]/10 relative z-10">
+      <div className="w-full max-w-md space-y-4 sm:space-y-5 card-bg rounded-2xl p-5 sm:p-7 border border-gray-700/50 shadow-2xl shadow-[#FF4D67]/10 relative z-10">
         <div className="text-center animate-fade-in">
-          <div className="flex justify-center mb-4 items-center">
+          <div className="flex justify-center mb-2 items-center">
             <img 
               src="/muzikax.png" 
               alt="MuzikaX - Rwanda's Digital Music Ecosystem" 
-              className="h-20 w-20 sm:h-24 sm:w-24 mx-auto transition-transform duration-300 hover:scale-105 object-contain drop-shadow-2xl rounded-lg"
+              className="h-16 w-16 sm:h-20 sm:w-20 mx-auto transition-transform duration-300 hover:scale-105 object-contain drop-shadow-2xl rounded-lg"
             />
-         
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">
+          <h1 className="text-xl sm:text-2xl font-bold text-white mb-1">
             MuzikaX
           </h1>
-          <h2 className="mt-2 sm:mt-3 text-xl sm:text-2xl font-bold text-white">
+          <h2 className="mt-1 sm:mt-1.5 text-lg sm:text-xl font-bold text-white">
             {isLogin ? 'Welcome back' : 'Create account'}
           </h2>
-          <p className="mt-2 sm:mt-3 text-gray-300 text-sm sm:text-base max-w-md mx-auto">
+          <p className="mt-1 sm:mt-1.5 text-gray-300 text-xs sm:text-sm max-w-md mx-auto">
             {isLogin 
               ? 'Sign in to your account to continue' 
               : 'Join our community of Rwandan music creators and fans'}
           </p>
-          <p className="mt-2 text-gray-400 text-xs sm:text-sm max-w-md mx-auto">
-            {isLogin ? '' : 'All new accounts start as regular users. You can upgrade to a creator account later.'}
-          </p>
+          {!isLogin && (
+            <p className="mt-1 text-gray-400 text-[10px] sm:text-xs max-w-md mx-auto">
+              New accounts start as regular users. Upgrade to creator later.
+            </p>
+          )}
         </div>
 
         <div className="flex bg-gray-800/50 rounded-lg p-1">
           <button
-            className={`flex-1 py-2 px-3 sm:px-4 rounded-md text-sm font-medium transition-colors ${
+            className={`flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition-colors ${
               isLogin 
                 ? 'bg-[#FF4D67] text-white' 
                 : 'text-gray-400 hover:text-white'
@@ -312,7 +313,7 @@ function LoginContent() {
             Login
           </button>
           <button
-            className={`flex-1 py-2 px-3 sm:px-4 rounded-md text-sm font-medium transition-colors ${
+            className={`flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition-colors ${
               !isLogin 
                 ? 'bg-[#FF4D67] text-white' 
                 : 'text-gray-400 hover:text-white'
@@ -328,7 +329,7 @@ function LoginContent() {
 
         {/* Step 1: Email */}
         {step === 1 && (
-          <form className="mt-6 sm:mt-8 space-y-6" onSubmit={handleEmailSubmit}>
+          <form className="mt-4 sm:mt-5 space-y-4" onSubmit={handleEmailSubmit}>
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">
                 Email address
@@ -341,13 +342,13 @@ function LoginContent() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm sm:text-base"
+                className="w-full px-3 py-2 sm:px-4 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm sm:text-base"
                 placeholder="you@example.com"
               />
             </div>
     
             {error && (
-              <div className="text-red-500 text-sm py-2">
+              <div className="text-red-500 text-xs py-1">
                 {error}
               </div>
             )}
@@ -356,7 +357,7 @@ function LoginContent() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-2.5 sm:py-3 px-4 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FF4D67] focus:ring-offset-gray-900 text-sm sm:text-base flex items-center justify-center disabled:opacity-70"
+                className="w-full py-2 sm:py-2.5 px-4 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FF4D67] focus:ring-offset-gray-900 text-sm sm:text-base flex items-center justify-center disabled:opacity-70"
               >
                 {isLoading ? (
                   <>

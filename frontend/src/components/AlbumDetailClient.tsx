@@ -125,9 +125,9 @@ const AlbumDetailClient = ({ album }: AlbumDetailClientProps) => {
   return (
     <>
       {/* Album Header Controls */}
-      <div className="flex gap-4">
+      <div className="flex flex-wrap gap-4 mb-8">
         <button 
-          className="px-8 py-3 gradient-primary rounded-full text-white font-medium hover:opacity-90 transition-opacity flex items-center gap-2"
+          className="flex-1 sm:flex-none px-6 sm:px-8 py-3 gradient-primary rounded-full text-white font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
           onClick={handlePlayAlbum}
         >
           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -135,7 +135,7 @@ const AlbumDetailClient = ({ album }: AlbumDetailClientProps) => {
           </svg>
           {isPlayingAlbum ? (
             <>
-              <svg className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
@@ -147,7 +147,7 @@ const AlbumDetailClient = ({ album }: AlbumDetailClientProps) => {
         </button>
         
         <button 
-          className="px-8 py-3 bg-gray-800 hover:bg-gray-700 rounded-full text-white font-medium transition-colors flex items-center gap-2"
+          className="flex-1 sm:flex-none px-6 sm:px-8 py-3 bg-gray-800 hover:bg-gray-700 rounded-full text-white font-medium transition-colors flex items-center justify-center gap-2"
           onClick={handleAddAlbumToQueue}
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -158,22 +158,22 @@ const AlbumDetailClient = ({ album }: AlbumDetailClientProps) => {
       </div>
       
       {/* Track List */}
-      <div className="card-bg rounded-2xl p-6">
-        <h2 className="text-2xl font-bold text-white mb-6">Tracks</h2>
+      <div className="card-bg rounded-2xl p-4 sm:p-6">
+        <h2 className="text-xl sm:text-2xl font-bold text-white mb-6">Tracks</h2>
         
         <div className="space-y-2">
           {album.tracks.map((track, index) => (
             <div 
               key={track._id || track.id}
-              className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-800/50 transition-colors"
+              className="flex items-center gap-2 sm:gap-4 p-2 sm:p-3 rounded-lg hover:bg-gray-800/50 transition-colors group"
             >
               {/* Track Cover Image */}
-              <div className="w-12 h-12 flex-shrink-0">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0">
                 {(track.coverURL || track.coverImage) && (track.coverURL || track.coverImage).trim() !== '' ? (
                   <img 
                     src={track.coverURL || track.coverImage} 
                     alt={track.title} 
-                    className="w-full h-full rounded object-cover"
+                    className="w-full h-full rounded object-cover shadow-lg"
                   />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] rounded flex items-center justify-center">
@@ -184,13 +184,13 @@ const AlbumDetailClient = ({ album }: AlbumDetailClientProps) => {
                 )}
               </div>
               
-              <div className="w-8 text-center text-gray-500">
+              <div className="hidden sm:block w-8 text-center text-gray-500">
                 <span className="text-sm">{index + 1}</span>
               </div>
               
               <div className="flex-1 min-w-0">
-                <h3 className="font-medium text-white truncate">{track.title}</h3>
-                <p className="text-sm text-gray-400 truncate">
+                <h3 className="font-medium text-white text-sm sm:text-base truncate group-hover:text-[#FFCB2B] transition-colors">{track.title}</h3>
+                <p className="text-xs sm:text-sm text-gray-400 truncate">
                   {typeof track.creatorId === 'object' && track.creatorId !== null 
                     ? (track.creatorId as any).name 
                     : typeof track.creatorId === 'string' 
@@ -199,8 +199,8 @@ const AlbumDetailClient = ({ album }: AlbumDetailClientProps) => {
                 </p>
               </div>
               
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-1 text-gray-500">
+              <div className="flex items-center gap-2 sm:gap-4">
+                <div className="hidden md:flex items-center gap-1 text-gray-500">
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                     <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"></path>
                     <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"></path>
@@ -230,7 +230,7 @@ const AlbumDetailClient = ({ album }: AlbumDetailClientProps) => {
                   variant="secondary"
                 />
                 
-                <button className="text-gray-500 hover:text-white">
+                <button className="text-gray-500 hover:text-white p-1">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"></path>
                   </svg>

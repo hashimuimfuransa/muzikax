@@ -9,6 +9,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import PlaylistSelectionModal from '../../components/PlaylistSelectionModal';
 import ReportTrackModal from '../../components/ReportTrackModal';
 import RecommendedPlaylists from '../../components/RecommendedPlaylists';
+import SoloPlayer from '../../components/SoloPlayer';
 import { fetchCreatorProfile, fetchTracksByCreatorPublic, fetchMonthlyPopularTracks } from '../../services/trackService';
 
 // Define comment interface with replies
@@ -26,6 +27,8 @@ const FullPagePlayer = () => {
   const {
     currentTrack,
     isPlaying,
+    isSoloPlayerOpen,
+    setIsSoloPlayerOpen,
     togglePlayPause,
     closePlayer,
     minimizeAndGoBack,
@@ -622,7 +625,10 @@ const FullPagePlayer = () => {
             <div className="lg:col-span-2 w-full max-w-full overflow-hidden">
               <div className="flex flex-col items-center w-full">
                 {/* Album Art */}
-                <div className="relative mb-6 sm:mb-8 group">
+                <button 
+                  onClick={() => setIsSoloPlayerOpen(true)}
+                  className="relative mb-6 sm:mb-8 group transition-transform hover:scale-105 active:scale-95 duration-300"
+                >
                   <div className="absolute -inset-2 sm:-inset-3 md:-inset-4 bg-gradient-to-r from-[#FF4D67] via-[#8B5CF6] to-[#FFCB2B] rounded-3xl blur-xl opacity-30 group-hover:opacity-50 transition-opacity duration-500 animate-pulse"></div>
                   <img 
                     src={currentTrack.coverImage} 
@@ -630,7 +636,7 @@ const FullPagePlayer = () => {
                     className="relative w-40 h-40 sm:w-52 sm:h-52 md:w-72 md:h-72 lg:w-80 lg:h-80 rounded-3xl object-cover shadow-2xl border-2 sm:border-4 border-white/10"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent rounded-3xl"></div>
-                </div>
+                </button>
                 
                 {/* Track Info */}
                 <div className="text-center mb-6 sm:mb-8 w-full px-4 overflow-hidden">
@@ -1519,6 +1525,11 @@ const FullPagePlayer = () => {
           </div>
         </div>
       </div>
+      
+      {/* Solo Player Overlay */}
+      {isSoloPlayerOpen && (
+        <SoloPlayer onClose={() => setIsSoloPlayerOpen(false)} />
+      )}
     </div>
   );
 };
