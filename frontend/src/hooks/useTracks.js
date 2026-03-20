@@ -24,7 +24,7 @@ export const useAllTracks = (page = 1, limit = 10) => {
     }, [page, limit]);
     return { tracks, loading, error, refresh: fetchTracks };
 };
-export const useTrendingTracks = (limit = 10, page = 1) => {
+export const useTrendingTracks = (limit = 10, page = 1, sortBy) => {
     const [tracks, setTracks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -34,10 +34,14 @@ export const useTrendingTracks = (limit = 10, page = 1) => {
         try {
             setLoading(true);
             setError(null);
-            const data = await fetchAllTracks(page, limit);
-            setTracks(data.tracks);
-            setTotal(data.total);
-            setPages(data.pages);
+            const trendingTracks = await fetchTrendingTracks(limit, sortBy);
+            setTracks(trendingTracks);
+            
+            // For pagination info, we still need to call fetchAllTracks
+            // but we only care about the metadata
+            const paginationData = await fetchAllTracks(page, limit);
+            setTotal(paginationData.total);
+            setPages(paginationData.pages);
         }
         catch (err) {
             setError(err.message || 'Failed to fetch trending tracks');
@@ -49,7 +53,7 @@ export const useTrendingTracks = (limit = 10, page = 1) => {
     };
     useEffect(() => {
         fetchTracks();
-    }, [limit, page]);
+    }, [limit, page, sortBy]);
     return { tracks, loading, error, refresh: fetchTracks, total, page, pages };
 };
 export const usePopularCreators = (limit = 10) => {

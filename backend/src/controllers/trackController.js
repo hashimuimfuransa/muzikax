@@ -64,6 +64,20 @@ const getAllTracks = async (req, res) => {
         // Build the query object
         const query = {};
         
+        // IMPORTANT: Filter out private tracks (STEM processing) unless user is owner
+        // Only show public tracks OR tracks owned by the current user
+        const currentUser = req.user;
+        if (currentUser) {
+            // If user is logged in, show public tracks + their own private tracks
+            query.$or = [
+                { isPublic: { $ne: false } }, // Public tracks
+                { creatorId: currentUser._id } // User's own tracks (even if private)
+            ];
+        } else {
+            // For anonymous users, only show public tracks
+            query.isPublic = { $ne: false };
+        }
+        
         // Search by title
         if (req.query['search']) {
             query.title = { $regex: req.query['search'], $options: 'i' };
@@ -710,11 +724,23 @@ const getTrendingTracks = async (req, res) => {
         try {
             const limitParam = req.query['limit'];
             const limit = limitParam !== undefined ? parseInt(limitParam) : 10;
+            const sortBy = req.query['sortBy'] || 'plays'; // Default to popularity
+            
+            // Build sort object based on query parameter
+            let sortOptions = {};
+            if (sortBy === 'newest' || sortBy === 'recent') {
+                sortOptions = { createdAt: -1 }; // Sort by newest first
+            } else if (sortBy === 'likes') {
+                sortOptions = { likes: -1, createdAt: -1 }; // Sort by likes, then recency
+            } else {
+                sortOptions = { plays: -1, createdAt: -1 }; // Default: sort by plays, then recency
+            }
+            
             // Filter out beat and beta type tracks from trending (case-insensitive)
             const query = Track_1.find({
                 type: { $nin: ['beat', 'BEAT', 'Beat', 'beta', 'BETA', 'Beta'] }  // Case-insensitive exclusion of types
             })
-                .sort({ plays: -1, createdAt: -1 });
+                .sort(sortOptions);
             
             // Only apply limit if limit > 0
             if (limit > 0) {

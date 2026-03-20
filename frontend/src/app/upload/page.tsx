@@ -38,6 +38,7 @@ export default function Upload() {
     description: string;
     genre: string;
     type: 'song' | 'beat' | 'mix';
+    price?: number;
     releaseDate?: string;
     collaborators?: string[];
     copyrightAccepted?: boolean;
@@ -50,6 +51,11 @@ export default function Upload() {
   const [selectedCreatorType, setSelectedCreatorType] = useState<'artist' | 'dj' | 'producer'>('artist')
   const [isUpgrading, setIsUpgrading] = useState(false) // State for upload process
   const [isUploading, setIsUploading] = useState(false)
+  
+  // Stem processing states
+  const [stemProcessingStatus, setStemProcessingStatus] = useState<'idle' | 'queued' | 'processing' | 'completed' | 'failed'>('idle')
+  const [stemProgress, setStemProgress] = useState(0)
+  const [estimatedTime, setEstimatedTime] = useState<string>('')
 
   // Extended list of popular genres
   const genres = [
@@ -358,8 +364,8 @@ export default function Upload() {
       return;
     }
     
-    // Try to make the request with current token
-    let response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upload/track`, {
+    // Try to make the request with current token - USE upload-with-stems endpoint
+    let response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tracks/upload-with-stems`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -386,8 +392,8 @@ export default function Upload() {
       const newToken = await refreshToken();
       
       if (newToken) {
-        // Retry the request with new token
-        response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upload/track`, {
+        // Retry the request with new token - USE upload-with-stems endpoint
+        response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tracks/upload-with-stems`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -433,6 +439,18 @@ export default function Upload() {
     const result = await response.json();
     console.log('Track uploaded successfully:', result);
     
+    // If stem separation is queued, start polling for completion
+    if (result.trackId) {
+      setStemProcessingStatus('queued');
+      setEstimatedTime(result.estimatedTime || '2-3 minutes');
+      alert(`✅ Track uploaded! 🎵 Stem separation started (${result.estimatedTime || '2-3 min'})`);
+      
+      // Start polling for stem completion
+      pollStemCompletion(result.trackId);
+    } else {
+      alert('Track uploaded successfully!');
+    }
+    
     // Reset form
     setTitle('');
     setDescription('');
@@ -440,9 +458,53 @@ export default function Upload() {
     setAudioUrl(null);
     setCoverUrl(null);
     
-    alert('Track uploaded successfully!');
     router.push('/profile'); // Redirect to profile page
   }
+  
+  const pollStemCompletion = async (trackId: string) => {
+    let attempts = 0;
+    const maxAttempts = 60; // 5 minutes max (60 * 5 seconds)
+    
+    const pollInterval = setInterval(async () => {
+      try {
+        attempts++;
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tracks/${trackId}/stems`);
+        const data = await response.json();
+        
+        // Check if backend provides actual progress percentage
+        const backendProgress = data.progress || data.stemProgress || 0;
+        
+        if (data.hasStems || backendProgress >= 100) {
+          // Stems are ready!
+          clearInterval(pollInterval);
+          setStemProcessingStatus('completed');
+          setStemProgress(100);
+          console.log('🎉 Stems ready! Perfect quality available.');
+        } else if (attempts >= maxAttempts) {
+          // Timeout
+          clearInterval(pollInterval);
+          setStemProcessingStatus('failed');
+          console.log('⏱️ Stem processing timeout');
+        } else {
+          // Use backend progress if available, otherwise use time-based estimation
+          if (backendProgress > 0) {
+            setStemProgress(backendProgress);
+            console.log(`📊 Processing progress: ${backendProgress}%`);
+          } else {
+            // Fallback to time-based estimation
+            const progress = Math.min((attempts / maxAttempts) * 100, 95);
+            setStemProgress(progress);
+          }
+        }
+      } catch (error) {
+        console.error('Error polling stem status:', error);
+        if (attempts >= maxAttempts) {
+          clearInterval(pollInterval);
+          setStemProcessingStatus('failed');
+        }
+      }
+    }, 5000); // Poll every 5 seconds
+  };
 
   const handleAlbumUpload = async () => {
     // Validate album
@@ -483,8 +545,8 @@ export default function Upload() {
         return;
       }
       
-      // Try to make the request with current token
-      let response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upload/track`, {
+      // Try to make the request with current token - USE upload-with-stems endpoint
+      let response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tracks/upload-with-stems`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -496,6 +558,7 @@ export default function Upload() {
           genre: track.genre,
           type: track.type,
           paymentType: paymentType,
+          price: track.price || 0,
           audioURL: track.audioUrl,
           coverURL: finalCoverUrl || '',
           releaseDate: new Date().toISOString(),
@@ -510,8 +573,8 @@ export default function Upload() {
         const newToken = await refreshToken();
         
         if (newToken) {
-          // Retry the request with new token
-          response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upload/track`, {
+          // Retry the request with new token - USE upload-with-stems endpoint
+          response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tracks/upload-with-stems`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -523,6 +586,7 @@ export default function Upload() {
               genre: track.genre,
               type: track.type,
               paymentType: paymentType,
+              price: track.price || 0,
               audioURL: track.audioUrl,
               coverURL: finalCoverUrl || '',
               releaseDate: new Date().toISOString(),
@@ -555,7 +619,9 @@ export default function Upload() {
       
       const result = await response.json();
       console.log('Track uploaded successfully:', result);
-      uploadedTrackIds.push(result._id);
+      console.log(`🎵 STEM separation started for track ${result.trackId || result._id}`);
+      console.log('⏱️ Estimated time: 2-3 minutes');
+      uploadedTrackIds.push(result.trackId || result._id);
     }
     
     // Create the album with the uploaded track IDs
@@ -1313,6 +1379,92 @@ export default function Upload() {
                   )}
                 </button>
               </div>
+
+              {/* Stem Processing Status */}
+              {stemProcessingStatus !== 'idle' && (
+                <div className="mt-6 p-4 rounded-xl border bg-gray-800/50">
+                  {stemProcessingStatus === 'queued' && (
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-3">
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[#FF4D67]"></div>
+                        <p className="text-white font-medium">🎵 Stem Separation Queued</p>
+                      </div>
+                      <p className="text-gray-400 text-sm">
+                        Your track is being processed in the background. Estimated time: {estimatedTime}
+                      </p>
+                      <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
+                        <div 
+                          className="h-2 rounded-full bg-gradient-to-r from-[#FF4D67] to-purple-600 transition-all duration-500" 
+                          style={{ width: `${stemProgress}%` }}
+                        ></div>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        You can navigate away - processing will continue automatically
+                      </p>
+                    </div>
+                  )}
+                  
+                  {stemProcessingStatus === 'processing' && (
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-3">
+                        <div className="animate-pulse text-2xl">⚙️</div>
+                        <p className="text-white font-medium">Processing Stems...</p>
+                      </div>
+                      <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
+                        <div 
+                          className="h-2 rounded-full bg-gradient-to-r from-[#FF4D67] to-purple-600 transition-all duration-500" 
+                          style={{ width: `${stemProgress}%` }}
+                        ></div>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        AI is separating your track into 4 stems (vocals, drums, bass, other)
+                      </p>
+                    </div>
+                  )}
+                  
+                  {stemProcessingStatus === 'completed' && (
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-3">
+                        <div className="text-2xl">✅</div>
+                        <p className="text-green-400 font-medium">🎉 Perfect Stems Ready!</p>
+                      </div>
+                      <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
+                        <div 
+                          className="h-2 rounded-full bg-gradient-to-r from-green-500 to-emerald-600" 
+                          style={{ width: '100%' }}
+                        ></div>
+                      </div>
+                      <p className="text-sm text-gray-300">
+                        Your track has been separated into professional quality stems. Users can now:
+                      </p>
+                      <ul className="text-xs text-gray-400 space-y-1 ml-4">
+                        <li>• Enable Karaoke Mode (remove vocals)</li>
+                        <li>• Boost instruments for practice</li>
+                        <li>• Create custom remixes</li>
+                        <li>• Control each stem independently</li>
+                      </ul>
+                    </div>
+                  )}
+                  
+                  {stemProcessingStatus === 'failed' && (
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-3">
+                        <div className="text-2xl">⚠️</div>
+                        <p className="text-yellow-400 font-medium">Stem Processing Incomplete</p>
+                      </div>
+                      <p className="text-sm text-gray-400">
+                        The stem separation took longer than expected. Your track is still available with standard playback.
+                      </p>
+                      <button
+                        onClick={() => setStemProcessingStatus('idle')}
+                        className="text-xs text-[#FF4D67] hover:underline"
+                      >
+                        Dismiss
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </form>
           </div>
         </div>

@@ -11,7 +11,7 @@ interface Notification {
   _id: string
   title: string
   message: string
-  type: 'info' | 'warning' | 'error' | 'success' | 'track_deleted' | 'reply'
+  type: 'info' | 'warning' | 'error' | 'success' | 'track_deleted' | 'reply' | 'stem_processing'
   read: boolean
   createdAt: string
   senderId?: {
@@ -25,6 +25,11 @@ interface Notification {
     originalNotificationId?: string
     replied?: boolean
     repliedAt?: string
+    trackId?: string
+    trackTitle?: string
+    hasStems?: boolean
+    progress?: number
+    status?: string
   }
 }
 
@@ -37,6 +42,9 @@ export default function NotificationsPage() {
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
   const [replyMessage, setReplyMessage] = useState('')
   const [replyLoading, setReplyLoading] = useState(false)
+  
+  // Live stem processing tracking
+  const [processingTracks, setProcessingTracks] = useState<{[key: string]: {progress: number, status: string}}>({})
   const router = useRouter()
   const { isAuthenticated, userRole } = useAuth()
 
@@ -58,6 +66,16 @@ export default function NotificationsPage() {
           const response = await notificationService.getNotifications(currentPage, 20)
           setNotifications(response.notifications)
           setTotalPages(response.totalPages)
+          
+          // Extract tracks that are still processing for live updates
+          const processingTrackIds = response.notifications
+            .filter((n: Notification) => n.type === 'stem_processing' && n.data?.status !== 'completed' && n.data?.status !== 'failed')
+            .map((n: Notification) => n.data?.trackId)
+            .filter((id: string | undefined): id is string => !!id)
+          
+          if (processingTrackIds.length > 0) {
+            startPollingProcessingTracks(processingTrackIds)
+          }
         }
       } catch (err: any) {
         setError(err.message || 'Failed to fetch notifications')
@@ -70,6 +88,50 @@ export default function NotificationsPage() {
       fetchNotifications()
     }
   }, [isAuthenticated, currentPage])
+  
+  // Poll processing tracks for live progress updates
+  const startPollingProcessingTracks = (trackIds: string[]) => {
+    const pollInterval = setInterval(async () => {
+      try {
+        const updates: {[key: string]: {progress: number, status: string}} = {}
+        
+        for (const trackId of trackIds) {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tracks/${trackId}/stems`)
+          const data = await response.json()
+          
+          if (data.hasStems || data.progress >= 100 || data.status === 'completed') {
+            // Processing complete!
+            updates[trackId] = { progress: 100, status: 'completed' }
+          } else if (data.status === 'failed') {
+            // Processing failed
+            updates[trackId] = { progress: 0, status: 'failed' }
+          } else {
+            // Still processing - update progress
+            updates[trackId] = { 
+              progress: data.progress || 0, 
+              status: data.status || 'processing' 
+            }
+          }
+        }
+        
+        setProcessingTracks(prev => ({ ...prev, ...updates }))
+        
+        // Stop polling if all tracks are complete
+        const allComplete = Object.values(updates).every(
+          t => t.status === 'completed' || t.status === 'failed'
+        )
+        if (allComplete) {
+          clearInterval(pollInterval)
+          // Refresh notifications to show completion
+          setTimeout(() => window.location.reload(), 2000)
+        }
+      } catch (error) {
+        console.error('Error polling processing tracks:', error)
+      }
+    }, 5000) // Poll every 5 seconds
+    
+    return () => clearInterval(pollInterval)
+  }
 
   const handleMarkAsRead = async (notificationId: string) => {
     try {
@@ -169,6 +231,12 @@ export default function NotificationsPage() {
 
   const getTypeIcon = (type: string) => {
     switch (type) {
+      case 'stem_processing':
+        return (
+          <svg className="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+          </svg>
+        )
       case 'error':
       case 'track_deleted':
         return (
@@ -292,6 +360,59 @@ export default function NotificationsPage() {
                       <p className={`mt-2 text-gray-300 ${!notification.read ? 'font-medium' : ''}`}>
                         {notification.message}
                       </p>
+                      
+                      {/* Live Progress Bar for Stem Processing */}
+                      {notification.type === 'stem_processing' && notification.data?.trackId && (
+                        <div className="mt-4 space-y-2">
+                          {(() => {
+                            const trackProgress = processingTracks[notification.data!.trackId!]
+                            const progress = trackProgress?.progress || 0
+                            const status = trackProgress?.status || notification.data?.status || 'processing'
+                            
+                            return (
+                              <div className="bg-gray-700/50 rounded-lg p-4 border border-purple-500/30">
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="text-sm font-medium text-purple-300">
+                                    {status === 'completed' ? '✅ Stems Ready!' : 
+                                     status === 'failed' ? '⚠️ Processing Failed' :
+                                     '⚙️ Processing...'}
+                                  </span>
+                                  <span className="text-sm font-bold text-white">{Math.round(progress)}%</span>
+                                </div>
+                                
+                                <div className="w-full bg-gray-800 rounded-full h-3 overflow-hidden">
+                                  <div 
+                                    className={`h-3 rounded-full transition-all duration-500 ${
+                                      status === 'completed' ? 'bg-gradient-to-r from-green-500 to-emerald-600' :
+                                      status === 'failed' ? 'bg-gradient-to-r from-red-500 to-orange-600' :
+                                      'bg-gradient-to-r from-[#FF4D67] to-purple-600 animate-pulse'
+                                    }`}
+                                    style={{ width: `${progress}%` }}
+                                  ></div>
+                                </div>
+                                
+                                {status === 'processing' && (
+                                  <p className="mt-2 text-xs text-gray-400">
+                                    🎵 AI is separating your track into 4 stems (vocals, drums, bass, other)
+                                  </p>
+                                )}
+                                
+                                {status === 'completed' && (
+                                  <p className="mt-2 text-xs text-green-400">
+                                    🎉 Your track is now public with professional quality stems!
+                                  </p>
+                                )}
+                                
+                                {status === 'failed' && (
+                                  <p className="mt-2 text-xs text-red-400">
+                                    ⚠️ Stem processing failed, but your track is still available with standard playback.
+                                  </p>
+                                )}
+                              </div>
+                            )
+                          })()}
+                        </div>
+                      )}
                       
                       {notification.senderId && (
                         <div className="mt-2 text-sm text-gray-400">

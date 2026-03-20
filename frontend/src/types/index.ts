@@ -21,4 +21,5 @@ export interface ITrack {
   albumId?: string | { _id: string; title: string }; // Added for album context
   albumTitle?: string; // Added for album context
   creatorWhatsapp?: string; // Added for creator contact
+  collaborators?: string[]; // Added for track collaborators
 }

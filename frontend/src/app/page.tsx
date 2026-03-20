@@ -202,7 +202,7 @@ export default function Home() {
   const [page, setPage] = useState(1);
   const [allTracks, setAllTracks] = useState<Track[]>([]);
   const { tracks: trendingTracksData, loading: trendingLoading, refresh: refreshTrendingTracks, total: totalTracks, pages: totalPages } =
-    useTrendingTracks(50, page); // Load 50 tracks per page to ensure enough songs after filtering out beats
+    useTrendingTracks(50, page, 'newest'); // Load 50 tracks per page sorted by newest to ensure enough songs after filtering out beats
 
   // Handle infinite scroll
   useEffect(() => {
@@ -648,10 +648,9 @@ export default function Home() {
       track.type === 'song' || track.category === 'song'
     );
     
-    // Since we don't have explicit date information in the Track interface,
-    // we'll reverse the order to show newest tracks first (assuming last in array are newest)
-    const reversedTracks = [...songTracks].reverse();
-    const uniqueSortedTracks = removeDuplicateTracks(reversedTracks);
+    // Tracks are already sorted by newest from the backend (createdAt: -1)
+    // Just remove duplicates and take the first 10
+    const uniqueSortedTracks = removeDuplicateTracks(songTracks);
     return uniqueSortedTracks.slice(0, 10);
   }, [trendingTracks]);
 

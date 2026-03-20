@@ -385,6 +385,117 @@ const createAdminNotification = async (req, res) => {
   }
 };
 
+/**
+ * Create notification for stem processing START (when track is uploaded)
+ * @param {string} trackId - The ID of the track
+ * @param {string} creatorId - The ID of the track creator
+ * @param {string} trackTitle - The title of the track
+ */
+const createStemProcessingNotification = async (trackId, creatorId, trackTitle) => {
+  try {
+    const notification = await Notification.create({
+      recipientId: creatorId,
+      senderId: creatorId, // Self-notification
+      title: '⚙️ AI Stem Separation Started',
+      message: `Your track "${trackTitle}" is being processed with AI stem separation. This will take 2-3 minutes.`,
+      type: 'stem_processing',
+      data: {
+        trackId: track._id || trackId,
+        trackTitle: trackTitle,
+        hasStems: false,
+        progress: 0,
+        status: 'processing'
+      }
+    });
+
+    console.log(`Created stem processing notification for creator ${creatorId} - Track: ${trackTitle}`);
+    return notification;
+  } catch (error) {
+    console.error('Error creating stem processing notification:', error);
+  }
+};
+
+/**
+ * Create notification for stem processing completion
+ * @param {string} trackId - The ID of the track
+ * @param {string} creatorId - The ID of the track creator
+ * @param {boolean} hasStems - Whether stem separation was successful
+ */
+const createStemCompletionNotification = async (trackId, creatorId, hasStems = true) => {
+  try {
+    const track = await Track.findById(trackId).populate('creatorId', 'name');
+    
+    if (!track) {
+      console.error('Track not found for stem completion notification');
+      return;
+    }
+
+    const creator = await User.findById(creatorId).select('name');
+    
+    if (!creator) {
+      console.error('Creator not found for stem completion notification');
+      return;
+    }
+
+    let title, message, type;
+    
+    if (hasStems) {
+      title = '🎵 Stems Ready!';
+      message = `Your track "${track.title}" has been successfully separated into professional quality stems. It's now public and ready for listeners!`;
+      type = 'success';
+    } else {
+      title = '⚠️ Stem Processing Failed';
+      message = `Stem separation failed for "${track.title}", but your track is still available with standard playback.`;
+      type = 'warning';
+    }
+
+    const notification = await Notification.create({
+      recipientId: creatorId,
+      senderId: creatorId, // Self-notification
+      title,
+      message,
+      type,
+      data: {
+        trackId: track._id,
+        trackTitle: track.title,
+        hasStems,
+        progress: hasStems ? 100 : 0,
+        status: hasStems ? 'completed' : 'failed',
+        completedAt: new Date()
+      }
+    });
+
+    // Send push notification
+    const pushResult = await sendPushNotification(creatorId, {
+      title,
+      message,
+      type,
+      data: {
+        trackId: track._id,
+        trackTitle: track.title,
+        hasStems
+      }
+    });
+    
+    // Update notification with push status
+    if (pushResult.success) {
+      notification.pushSent = true;
+      notification.pushDelivered = true;
+      await notification.save();
+    }
+
+    console.log(`Created stem completion notification for creator ${creator.name} - Track: ${track.title}`);
+    return notification;
+  } catch (error) {
+    console.error('Error creating stem completion notification:', error);
+  }
+};
+
+// Export for use in Python script via child process
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports.createStemCompletionNotification = createStemCompletionNotification;
+}
+
 // Get all notifications sent by admins
 const getAdminNotifications = async (req, res) => {
   try {
@@ -472,5 +583,7 @@ module.exports = {
   replyToNotification,
   createTrackDeletionNotification,
   createNewTrackNotification,
-  createPlaylistRecommendationNotification
+  createPlaylistRecommendationNotification,
+  createStemProcessingNotification,
+  createStemCompletionNotification
 };

@@ -1495,6 +1495,49 @@ const FullPagePlayer = () => {
                 )}
               </div>
               
+              {/* Track Description & Collaborators Section */}
+              {(currentTrack.description || (currentTrack.collaborators && currentTrack.collaborators.length > 0)) && (
+                <div className="bg-gray-800/50 rounded-xl p-3 sm:p-4 md:p-6">
+                  <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-[#FF4D67]" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                    Track Info
+                  </h3>
+                  
+                  {/* Track Description */}
+                  {currentTrack.description && (
+                    <div className="mb-4">
+                      <h4 className="text-sm font-semibold text-gray-300 mb-2 uppercase tracking-wider">About This Track</h4>
+                      <p className="text-gray-300 leading-relaxed whitespace-pre-wrap">{currentTrack.description}</p>
+                    </div>
+                  )}
+                  
+                  {/* Collaborators */}
+                  {currentTrack.collaborators && currentTrack.collaborators.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-300 mb-3 uppercase tracking-wider flex items-center gap-2">
+                        <svg className="w-4 h-4 text-[#FFCB2B]" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+                        </svg>
+                        Collaborators
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {currentTrack.collaborators.map((collaborator: string, index: number) => (
+                          <div
+                            key={index}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-600/20 to-pink-600/20 border border-purple-500/30 rounded-full text-sm hover:border-purple-400/50 hover:bg-purple-600/30 transition-all cursor-default group"
+                          >
+                            <span className="w-1.5 h-1.5 bg-purple-400 rounded-full group-hover:bg-purple-300 transition-colors"></span>
+                            <span className="text-purple-200 font-medium">{collaborator.trim()}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+              
               {/* Comments Section */}
               <div className="bg-gray-800/50 rounded-xl p-3 sm:p-4 md:p-6">
                 <h3 className="text-xl font-bold mb-4">Comments</h3>

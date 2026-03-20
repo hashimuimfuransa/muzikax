@@ -146,11 +146,16 @@ export const fetchAllTracks = async (page: number = 1, limit: number = 10): Prom
  * Fetch trending tracks
  * Filters out incomplete tracks (those without audio URLs)
  */
-export const fetchTrendingTracks = async (limit: number = 10): Promise<ITrack[]> => {
+export const fetchTrendingTracks = async (limit: number = 10, sortBy?: 'plays' | 'likes' | 'newest' | 'recent'): Promise<ITrack[]> => {
   try {
-    const url = limit > 0 
+    let url = limit > 0 
       ? `${process.env.NEXT_PUBLIC_API_URL}/api/tracks/trending?limit=${limit}`
       : `${process.env.NEXT_PUBLIC_API_URL}/api/tracks/trending?limit=0`;
+    
+    // Add sortBy parameter if specified
+    if (sortBy) {
+      url += `&sortBy=${sortBy}`;
+    }
     
     const response = await fetch(url);
     

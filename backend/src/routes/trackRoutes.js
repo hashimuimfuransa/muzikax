@@ -16,6 +16,12 @@ const {
   handleInvalidTrack
 } = require('../controllers/trackController');
 const { protect, creator } = require('../utils/jwt');
+const {
+  getTrackStems,
+  streamStem,
+  uploadWithStemSeparation,
+  streamTrackAudio  // ← NEW
+} = require('../controllers/stemController');
 
 const router = express.Router();
 
@@ -36,6 +42,14 @@ router.route('/creator/:creatorId').get(getTracksByCreator);
 
 // Upload route
 router.route('/upload').post(protect, creator, uploadTrack);
+router.route('/upload-with-stems').post(protect, creator, uploadWithStemSeparation);
+
+// Stem routes (MUST come before /:id)
+router.route('/:id/stems').get(getTrackStems);
+router.route('/:id/stems/:stemName').get(streamStem);
+
+// NEW: Audio proxy route to bypass CORS
+router.route('/:id/stream').get(streamTrackAudio);
 
 // Track action routes
 router.route('/:id/play').put(incrementPlayCount);

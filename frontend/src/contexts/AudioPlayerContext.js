@@ -261,39 +261,119 @@ export const AudioPlayerProvider = ({ children }) => {
         }
         console.log('Current playback context after setting:', currentPlaybackContext.current);
         // Create new audio element
-        const audio = new Audio(track.audioUrl);
+        // Determine audio URL - use proxy to bypass CORS (for all tracks in development)
+        let audioUrl = track.audioUrl;
+        
+        // ALWAYS use proxy in development to avoid CORS issues
+        const isDevelopment = process.env.NODE_ENV === 'development' || window.location.hostname === 'localhost';
+        const shouldUseProxy = isDevelopment || 
+                              track.hasStems === false || 
+                              track.stemProcessingStatus === 'processing' ||
+                              track.stemProcessingStatus === 'pending';
+        
+        if (shouldUseProxy) {
+            // Use backend proxy to avoid CORS issues with CloudFront
+            audioUrl = `/api/tracks/${track.id}/stream`;
+            console.log('🔒 Using proxy stream (CORS bypass)');
+        } else {
+            console.log('🎵 Using direct audio URL');
+        }
+        
+        console.log('🎵 Creating audio element for track:', track.title);
+        console.log('🔗 Audio URL:', audioUrl);
+        console.log('📊 URL type:', typeof audioUrl);
+        console.log('📊 URL length:', audioUrl?.length);
+        
+        const audio = new Audio(audioUrl);
         audioRef.current = audio;
+        
+        // Log audio element state
+        console.log('📊 Audio element created');
+        console.log('📊 Audio currentSrc:', audio.currentSrc);
+        console.log('📊 Audio networkState:', audio.networkState);
+        console.log('📊 Audio readyState:', audio.readyState);
         // Set initial volume
         audio.volume = volume;
         // Set initial playback rate
         audio.playbackRate = playbackRate;
         // Set up event listeners
         audio.onplay = () => {
-            console.log('Audio started playing');
+            console.log('✅ Audio started playing');
             setIsPlaying(true);
         };
+        
         audio.onpause = () => {
-            console.log('Audio paused');
+            console.log('⏸️ Audio paused');
             setIsPlaying(false);
         };
-        audio.onended = handleAudioEnded;
-        audio.ontimeupdate = () => {
-            if (audio.duration) {
-                setProgress(audio.currentTime);
-                setDuration(audio.duration);
-            }
-        };
+        
         audio.onloadedmetadata = () => {
+            console.log('📊 Audio metadata loaded:', audio.duration, 'seconds');
             setDuration(audio.duration || 0);
         };
+        
+        audio.oncanplay = () => {
+            console.log('✅ Audio can start playing');
+        };
+        
         audio.onerror = async (error) => {
-            console.error('Audio error occurred:', error);
+            console.error('❌ Audio error occurred:', error);
+            console.error('Error details:', audio.error);
+            
+            // Get error message
+            let errorMessage = 'Unknown audio error';
+            if (audio.error) {
+                switch (audio.error.code) {
+                    case MediaError.MEDIA_ERR_ABORTED:
+                        errorMessage = 'Audio playback aborted by user';
+                        break;
+                    case MediaError.MEDIA_ERR_NETWORK:
+                        errorMessage = 'Network error - audio file not available';
+                        break;
+                    case MediaError.MEDIA_ERR_DECODE:
+                        errorMessage = 'Audio format not supported or corrupted';
+                        break;
+                    case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
+                        errorMessage = 'Audio URL not valid or not accessible';
+                        break;
+                }
+            }
+            
+            console.error('Error message:', errorMessage);
+            console.error('Audio URL:', audio.src);
+            
             // Report invalid track to backend for cleanup
             if (currentTrackRef.current) {
-                console.log(`Reporting invalid track ${currentTrackRef.current.id} for cleanup`);
+                const trackId = currentTrackRef.current.id;
+                console.log(`🔍 Reporting invalid track ${trackId} for cleanup`);
+                
+                // First, check if this might be a STEM track by checking currentTrack properties
+                const track = currentTrackRef.current;
+                const isPotentiallyStemTrack = track.hasStems === false || 
+                                               track.stemProcessingStatus === 'processing' ||
+                                               track.stemProcessingStatus === 'pending';
+                
+                if (isPotentiallyStemTrack) {
+                    console.log('⚠️ This appears to be a STEM track that\'s still processing. Skipping cleanup report.');
+                    alert('🎵 This track is currently being processed with AI stem separation. Please try again in a few moments.\n\nStatus: ' + (track.stemProcessingStatus || 'unknown'));
+                    return; // Don't report to cleanup
+                }
+                
+                console.log(`Reporting invalid track ${trackId} for cleanup`);
                 try {
-                    const cleanupResult = await reportInvalidTrack(currentTrackRef.current.id);
-                    if (cleanupResult.success && cleanupResult.removed) {
+                    const cleanupResult = await reportInvalidTrack(trackId);
+                    
+                    // Check if this is a STEM track or private track
+                    if (cleanupResult.isStemTrack || cleanupResult.isPrivate) {
+                        // Don't remove - just show appropriate message
+                        if (cleanupResult.isStemTrack) {
+                            console.log(`This is a STEM track that's still processing. Playback may not be available yet.`);
+                            alert('🎵 This track is currently being processed with AI stem separation. Please try again in a few moments, or contact the artist if the issue persists.');
+                        } else if (cleanupResult.isPrivate) {
+                            console.log(`This track is not yet public.`);
+                            alert('⏳ This track is not yet available for public playback. The artist has uploaded it for processing.');
+                        }
+                    } else if (cleanupResult.success && cleanupResult.removed) {
                         console.log(`Successfully removed invalid track: ${cleanupResult.trackTitle}`);
                     }
                     else if (cleanupResult.success) {
@@ -308,6 +388,15 @@ export const AudioPlayerProvider = ({ children }) => {
                 }
             }
         };
+        
+        audio.onended = handleAudioEnded;
+        audio.ontimeupdate = () => {
+            if (audio.duration) {
+                setProgress(audio.currentTime);
+                setDuration(audio.duration);
+            }
+        };
+        
         // Set the current track and index immediately
         console.log('Setting current track to:', track);
         setCurrentTrack(track);

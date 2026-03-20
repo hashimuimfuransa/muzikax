@@ -117,6 +117,26 @@ const TrackSchema = new mongoose_1.Schema({
         type: Boolean,
         required: true,
         default: false
+    },
+    // STEM separation fields
+    hasStems: {
+        type: Boolean,
+        default: false
+    },
+    stemProcessingStatus: {
+        type: String,
+        enum: ['pending', 'processing', 'completed', 'failed'],
+        default: 'pending'
+    },
+    stemProgress: {
+        type: Number,
+        default: 0,
+        min: 0,
+        max: 100
+    },
+    isPublic: {
+        type: Boolean,
+        default: true
     }
 }, {
     timestamps: true
@@ -127,6 +147,11 @@ TrackSchema.index({ genre: 1 });
 TrackSchema.index({ type: 1 });
 TrackSchema.index({ albumId: 1 });
 TrackSchema.index({ createdAt: -1 }); // For sorting by newest
+
+// STEM processing indexes
+TrackSchema.index({ hasStems: 1 });
+TrackSchema.index({ stemProcessingStatus: 1 });
+TrackSchema.index({ isPublic: 1 });
 
 const TrackModel = mongoose_1.default.model('Track', TrackSchema);
 module.exports = TrackModel;

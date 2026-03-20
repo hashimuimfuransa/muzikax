@@ -111,9 +111,16 @@ export const fetchAllTracks = async (page = 1, limit = 10) => {
  * Fetch trending tracks
  * Filters out incomplete tracks (those without audio URLs)
  */
-export const fetchTrendingTracks = async (limit = 10) => {
+export const fetchTrendingTracks = async (limit = 10, sortBy) => {
     try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tracks/trending?limit=${limit}`);
+        let url = `${process.env.NEXT_PUBLIC_API_URL}/api/tracks/trending?limit=${limit}`;
+        
+        // Add sortBy parameter if specified
+        if (sortBy) {
+            url += `&sortBy=${sortBy}`;
+        }
+        
+        const response = await fetch(url);
         if (!response.ok) {
             throw new Error(`Failed to fetch trending tracks: ${response.status} ${response.statusText}`);
         }

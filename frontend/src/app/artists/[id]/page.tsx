@@ -40,6 +40,8 @@ interface Track {
   albumId?: string // Added to identify if track belongs to an album
   type?: 'song' | 'beat' | 'mix'; // Add track type for WhatsApp functionality
   creatorWhatsapp?: string; // Add creator's WhatsApp contact
+  description?: string; // Add track description
+  collaborators?: string[]; // Add collaborators
 }
 
 interface Album {
@@ -198,7 +200,9 @@ export default function ArtistProfilePage() {
       type: track.type || 'song', // Include track type for WhatsApp functionality
       paymentType: track.paymentType, // Include payment type
       price: track.price, // Include price
-      creatorWhatsapp: track.creatorWhatsapp // Include creator's WhatsApp contact
+      creatorWhatsapp: track.creatorWhatsapp, // Include creator's WhatsApp contact
+      description: track.description || '', // Include track description
+      collaborators: track.collaborators || [] // Include collaborators
     };
     
     playTrack(playerTrack);

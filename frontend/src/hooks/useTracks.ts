@@ -45,7 +45,7 @@ export const useAllTracks = (page: number = 1, limit: number = 10): UseTracksRes
   return { tracks, loading, error, refresh: fetchTracks };
 };
 
-export const useTrendingTracks = (limit: number = 10, page: number = 1): UseTracksResult => {
+export const useTrendingTracks = (limit: number = 10, page: number = 1, sortBy?: 'plays' | 'likes' | 'newest' | 'recent'): UseTracksResult => {
   const [tracks, setTracks] = useState<ITrack[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -58,7 +58,7 @@ export const useTrendingTracks = (limit: number = 10, page: number = 1): UseTrac
       setError(null);
       
       // Use the dedicated trending tracks endpoint that filters out beats
-      const trendingTracks = await fetchTrendingTracks(limit);
+      const trendingTracks = await fetchTrendingTracks(limit, sortBy);
       setTracks(trendingTracks);
       
       // For pagination info, we still need to call fetchAllTracks
@@ -76,7 +76,7 @@ export const useTrendingTracks = (limit: number = 10, page: number = 1): UseTrac
 
   useEffect(() => {
     fetchTracks();
-  }, [limit, page]);
+  }, [limit, page, sortBy]);
 
   return { tracks, loading, error, refresh: fetchTracks, total, page, pages };
 };

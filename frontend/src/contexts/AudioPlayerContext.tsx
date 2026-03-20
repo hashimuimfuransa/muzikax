@@ -27,6 +27,8 @@ interface Track {
   price?: number; // Add price for paid beats
   currency?: string; // Add currency for paid beats
   creatorWhatsapp?: string; // Add creator's WhatsApp contact for beats
+  description?: string; // Add track description
+  collaborators?: string[]; // Add collaborators array
 }
 interface Playlist {
   id: string;
@@ -133,6 +135,18 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
   const [currentPlaylistName, setCurrentPlaylistName] = useState<string>(''); // Name of the current playlist being played
   const [hasReachedTimeLimit, setHasReachedTimeLimit] = useState<boolean>(false); // State to track if time limit has been reached for paid beats
   
+  // Proxy URL for CloudFront audio (to bypass CORS)
+  const AUDIO_PROXY_URL = process.env.NEXT_PUBLIC_AUDIO_PROXY_URL || 'http://localhost:5000/api/audio-proxy';
+  
+  // Helper function to get proxied URL for CloudFront resources
+  const getProxiedUrl = (url: string): string => {
+    // Use proxy for CloudFront URLs to bypass CORS
+    if (url.includes('cloudfront.net')) {
+      return `${AUDIO_PROXY_URL}?url=${encodeURIComponent(url)}`;
+    }
+    return url;
+  };
+  
   // Initialize redirect status on context creation
   useEffect(() => {
     // Update last active time
@@ -171,6 +185,40 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
   
   // Ref to store the original playlist when switching to single track context
   const originalPlaylistRef = useRef<Track[]>([]);
+  
+  // Initialize audio context and analyser for visualization
+  useEffect(() => {
+    // Only initialize if audio element exists and not already initialized
+    if (audioRef.current && !audioContextRef.current) {
+      try {
+        const AudioContextClass = (window.AudioContext || (window as any).webkitAudioContext);
+        const ctx = new AudioContextClass();
+        audioContextRef.current = ctx;
+        
+        const analyser = ctx.createAnalyser();
+        analyser.fftSize = 256;
+        analyser.smoothingTimeConstant = 0.8;
+        analyserRef.current = analyser;
+        
+        const frequencyData = new Uint8Array(analyser.frequencyBinCount);
+        frequencyDataRef.current = frequencyData;
+        
+        console.log('✅ Audio context and analyser initialized');
+      } catch (error) {
+        console.error('❌ Failed to initialize audio context:', error);
+      }
+    }
+    
+    return () => {
+      // Cleanup audio context on unmount
+      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+        audioContextRef.current.close();
+        audioContextRef.current = null;
+        analyserRef.current = null;
+        frequencyDataRef.current = null;
+      }
+    };
+  }, [audioRef.current]);
   
   // Store the original playlist before switching to single track context
   const storeOriginalPlaylist = () => {
@@ -434,8 +482,12 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     
     console.log('Current playback context after setting:', currentPlaybackContext.current);
     
+    // Use proxy for CloudFront URLs to bypass CORS
+    const audioUrl = getProxiedUrl(track.audioUrl);
+    console.log('Playing audio URL:', audioUrl);
+    
     // Create new audio element
-    const audio = new Audio(track.audioUrl);
+    const audio = new Audio(audioUrl);
     // Add crossorigin attribute to allow Web Audio API to process cross-origin audio
     audio.crossOrigin = 'anonymous';
     audioRef.current = audio;
@@ -476,6 +528,39 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     
     audio.onloadedmetadata = () => {
       setDuration(audio.duration || 0);
+      // Initialize audio context and analyser for visualization
+      if (!audioContextRef.current && audioRef.current) {
+        setTimeout(() => {
+          try {
+            const AudioContextClass = (window.AudioContext || (window as any).webkitAudioContext);
+            const ctx = new AudioContextClass();
+            audioContextRef.current = ctx;
+            
+            const analyser = ctx.createAnalyser();
+            analyser.fftSize = 256;
+            analyser.smoothingTimeConstant = 0.8;
+            analyserRef.current = analyser;
+            
+            const frequencyData = new Uint8Array(analyser.frequencyBinCount);
+            frequencyDataRef.current = frequencyData;
+            
+            // Try to connect audio element to analyser
+            try {
+              const source = ctx.createMediaElementSource(audio);
+              source.connect(analyser);
+              analyser.connect(ctx.destination);
+              console.log('✅ Audio context connected successfully');
+            } catch (connectError: any) {
+              // May fail if already connected or CORS issues
+              console.warn('⚠️ Audio context connection limited:', connectError.message);
+            }
+            
+            console.log('✅ Audio context and analyser initialized in onloadedmetadata');
+          } catch (error) {
+            console.error('❌ Failed to initialize audio context:', error);
+          }
+        }, 100);
+      }
     };
     
     audio.onerror = async (error) => {
@@ -970,8 +1055,12 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
       sourceRef.current = null;
     }
     
+    // Use proxy for CloudFront URLs to bypass CORS
+    const audioUrl = getProxiedUrl(track.audioUrl);
+    console.log('Playing audio URL (proxied):', audioUrl);
+    
     // Create new audio element
-    const audio = new Audio(track.audioUrl);
+    const audio = new Audio(audioUrl);
     // Add crossorigin attribute to allow Web Audio API to process cross-origin audio
     audio.crossOrigin = 'anonymous';
     audioRef.current = audio;

@@ -151,6 +151,44 @@ const handlePlaybackError = async (trackId) => {
       return;
     }
     
+    // IMPORTANT: Check if this is a STEM-separated track
+    // Don't remove tracks that are being processed or have stems
+    // Also check if track has stem-related fields at all (uploaded via upload-with-stems)
+    const isStemTrack = track.hasStems === true || 
+                        track.stemProcessingStatus === 'processing' || 
+                        track.stemProcessingStatus === 'pending' ||
+                        track.stemProcessingStatus === 'completed';
+    
+    console.log(`🔍 STEM Track Check:`);
+    console.log(`   hasStems: ${track.hasStems}`);
+    console.log(`   stemProcessingStatus: ${track.stemProcessingStatus}`);
+    console.log(`   isPublic: ${track.isPublic}`);
+    console.log(`   isStemTrack result: ${isStemTrack}`);
+    
+    if (isStemTrack) {
+      console.log(`✅ Track ${track.title} is a STEM track (hasStems: ${track.hasStems}, status: ${track.stemProcessingStatus}). Skipping removal.`);
+      return {
+        success: false,
+        message: 'STEM track - playback may require stem player',
+        trackTitle: track.title,
+        removed: false,
+        isStemTrack: true
+      };
+    }
+    
+    // ALSO: Check if track is currently private (not yet public)
+    // This prevents removal of tracks that haven't finished processing
+    if (track.isPublic === false) {
+      console.log(`Track ${track.title} is not yet public (isPublic: false). Skipping removal.`);
+      return {
+        success: false,
+        message: 'Track is private - not ready for public playback',
+        trackTitle: track.title,
+        removed: false,
+        isPrivate: true
+      };
+    }
+    
     // Mark as potentially invalid
     const isValid = await validateAudioUrl(track.audioURL);
     
@@ -171,6 +209,7 @@ const handlePlaybackError = async (trackId) => {
     } else {
       // Since user specifically requested to remove tracks with invalid players,
       // we'll remove tracks that cause playback errors even if URL appears valid
+      // BUT ONLY for non-STEM tracks
       console.log(`Removing track ${track.title} due to playback error despite valid URL.`);
       await Track.findByIdAndDelete(trackId);
       console.log(`Successfully removed track with playback error: ${track.title}`);

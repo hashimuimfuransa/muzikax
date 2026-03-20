@@ -20,9 +20,7 @@ const SoloPlayer = ({ onClose }: SoloPlayerProps) => {
     progress,
     duration,
     setProgress,
-    audioRef,
-    audioContext, // Get existing audio context from AudioPlayerContext
-    audioAnalyser // Get existing analyser
+    audioRef
   } = useAudioPlayer();
 
   const progressRef = useRef<HTMLDivElement>(null);
@@ -106,8 +104,6 @@ const SoloPlayer = ({ onClose }: SoloPlayerProps) => {
         <MuzikaXSoundEngine 
           audioElement={audioRef.current}
           onClose={() => setShowSoundEngine(false)}
-          existingAudioContext={audioContext || undefined}
-          existingAnalyser={audioAnalyser || undefined}
         />
       )}
 

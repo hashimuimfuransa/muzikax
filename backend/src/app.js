@@ -65,6 +65,9 @@ const withdrawalRoutes = require('./routes/withdrawalRoutes');
 // Import contact message routes
 const contactMessageRoutes = require('./routes/contactMessageRoutes');
 
+// Import audio proxy routes
+const audioProxyRoutes = require('./routes/audioProxyRoutes');
+
 // Load env vars
 dotenv.config();
 
@@ -317,6 +320,10 @@ console.log('Withdrawal routes registered');
 // Register contact message routes
 app.use('/api/contact-messages', contactMessageRoutes);
 console.log('Contact message routes registered');
+
+// Register audio proxy routes
+app.use('/api/audio-proxy', audioProxyRoutes);
+console.log('Audio proxy routes registered');
 
 // Directly implement profile update route in app.js to avoid 404 issues
 // User route for updating own profile directly in app
