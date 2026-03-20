@@ -164,7 +164,7 @@ export default function Home() {
 
   // Fetch real popular creators
   const { creators: popularCreatorsData, loading: creatorsLoading } =
-    usePopularCreators(6);
+    usePopularCreators(10);
 
   // Listen for track updates (when favorites are added/removed)
   useEffect(() => {
@@ -241,7 +241,7 @@ export default function Home() {
   useEffect(() => {
     const fetchAlbums = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/albums?page=1&limit=6`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/albums?page=1&limit=10`);
         if (response.ok) {
           const data = await response.json();
           const albums: Album[] = data.albums.map((album: any) => ({
@@ -271,7 +271,7 @@ export default function Home() {
   }, [trendingTracksData]);
 
   // For You section - use trending tracks (excluding beats)
-  const forYouTracks: Track[] = trendingTracks.slice(0, 4);
+  const forYouTracks: Track[] = trendingTracks.slice(0, 10);
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black w-full relative overflow-visible">
@@ -816,7 +816,7 @@ export default function Home() {
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {trendingTracks
               .filter((track) => track.category === "mix")
-              .slice(0, 6)
+              .slice(0, 10)
               .map((track) => (
                 <div
                   key={`featured-mixes-${track.id}`}

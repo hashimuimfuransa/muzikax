@@ -8,6 +8,8 @@ import { addRecentlyPlayed } from '../services/recentlyPlayedService';
 import { fetchRecommendedTracks } from '../services/recommendationService';
 import { reportInvalidTrack } from '../services/trackCleanupService';
 
+export type LoopMode = 'none' | 'one' | 'all';
+
 interface Track {
   id: string;
   title: string;
@@ -54,8 +56,8 @@ interface AudioPlayerContextType {
   queue: Track[]; // Queue for upcoming tracks
   currentPlaylistName: string; // Name of the current playlist being played
   playTrack: (track: Track, contextPlaylist?: Track[], albumContext?: { albumId: string, tracks: Track[] }) => void;
-  playNextTrack: () => Promise<void>;
-  playPreviousTrack: () => void;
+  playNextTrack: (isExplicit?: boolean) => Promise<void>;
+  playPreviousTrack: (isExplicit?: boolean) => void;
   pauseTrack: () => void;
   stopTrack: () => void;
   togglePlayPause: () => void;
@@ -74,7 +76,7 @@ interface AudioPlayerContextType {
   shufflePlaylist: () => void; // Add shufflePlaylist function
   shuffleQueue: () => void; // Add shuffleQueue function
   toggleLoop: () => void;
-  isLooping: boolean;
+  loopMode: LoopMode;
   currentTrackIndex: number;
   audioRef: React.RefObject<HTMLAudioElement | null>;
   // Queue management functions
@@ -126,7 +128,7 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [volume, setVolume] = useState(1);
   const [playbackRate, setPlaybackRate] = useState(1);
-  const [isLooping, setIsLooping] = useState(false);
+  const [loopMode, setLoopMode] = useState<LoopMode>('none');
   const [queue, setQueue] = useState<Track[]>([]); // Queue for upcoming tracks
   const [currentPlaylistName, setCurrentPlaylistName] = useState<string>(''); // Name of the current playlist being played
   const [hasReachedTimeLimit, setHasReachedTimeLimit] = useState<boolean>(false); // State to track if time limit has been reached for paid beats
@@ -160,6 +162,12 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
   const currentTrackRef = useRef<Track | null>(null);
   const playlistRef = useRef<Track[]>([]);
   const currentTrackIndexRef = useRef<number>(0);
+  const loopModeRef = useRef<LoopMode>('none');
+
+  // Keep loopModeRef in sync with loopMode state
+  useEffect(() => {
+    loopModeRef.current = loopMode;
+  }, [loopMode]);
   
   // Ref to store the original playlist when switching to single track context
   const originalPlaylistRef = useRef<Track[]>([]);
@@ -428,6 +436,8 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     
     // Create new audio element
     const audio = new Audio(track.audioUrl);
+    // Add crossorigin attribute to allow Web Audio API to process cross-origin audio
+    audio.crossOrigin = 'anonymous';
     audioRef.current = audio;
     
     // Set initial volume
@@ -502,8 +512,8 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     }
     // If explicitlyPlayedRef.current is false, we preserve the current isMinimized state
     
-    // Mark this as an explicit play action
-    explicitlyPlayedRef.current = true;
+    // Mark this as an explicit play action if not cycling (auto-playing next)
+    explicitlyPlayedRef.current = !isCycling;
     
     // Add to recently played (only for authenticated users)
     const accessToken = localStorage.getItem('accessToken');
@@ -531,15 +541,18 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     
     // Start playing the audio
     audio.play().catch(error => {
-      console.error('Error playing track:', error);
+      // Ignore AbortError as it just means the play request was cancelled by a subsequent play/pause call
+      if (error.name !== 'AbortError' && error.name !== 'NotAllowedError') {
+        console.error('Error playing track:', error);
+      }
       // Even if play fails, we still set the track so UI reflects the current state
       setIsPlaying(false);
     });
     console.log('Audio play initiated');
   };
 
-  const playNextTrack = async () => {
-    console.log('PLAY NEXT TRACK CALLED');
+  const playNextTrack = async (isExplicit: boolean = false) => {
+    console.log('PLAY NEXT TRACK CALLED, isExplicit:', isExplicit);
     console.log('Current track:', currentTrackRef.current);
     console.log('Current track index:', currentTrackIndexRef.current);
     console.log('Playlist:', playlistRef.current);
@@ -562,9 +575,12 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
         console.log('Playlist context, playing next track in playlist');
         const nextIndex = currentTrackIndexRef.current + 1;
         
-        // Play the next track without expanding the player
-        explicitlyPlayedRef.current = false; // Mark as auto-played
-        playTrackAtIndex(nextIndex);
+        // Play the next track
+        playTrackAtIndex(nextIndex, isExplicit);
+        return;
+      } else if (loopModeRef.current === 'all') {
+        console.log('Playlist context, reaching end, looping back to start');
+        playTrackAtIndex(0, isExplicit);
         return;
       }
     }
@@ -579,11 +595,9 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
       // Remove the track from the queue
       setQueue(prev => prev.slice(1));
       
-      // Play the track without expanding the player
-      // Use the current playlist context or fall back to a single track context
-      explicitlyPlayedRef.current = false; // Mark as auto-played
+      // Play the track
       const contextToUse = playlistRef.current.length > 0 ? playlistRef.current : [nextTrack];
-      playTrack(nextTrack, contextToUse);
+      playTrack(nextTrack, contextToUse, undefined, !isExplicit);
       return;
     }
     
@@ -609,9 +623,12 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
         const nextIndex = currentTrackIndexRef.current + 1;
         console.log('Playing next track in album at index:', nextIndex);
         
-        // Play the next track without expanding the player
-        explicitlyPlayedRef.current = false; // Mark as auto-played
-        playTrackAtIndex(nextIndex);
+        // Play the next track
+        playTrackAtIndex(nextIndex, isExplicit);
+        return;
+      } else if (loopModeRef.current === 'all') {
+        console.log('Album context, reaching end, looping back to start');
+        playTrackAtIndex(0, isExplicit);
         return;
       } else {
         // We've reached the end of the album
@@ -660,9 +677,8 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
               // Change context to playlist since we're now playing non-album tracks
               currentPlaybackContext.current.type = 'playlist';
               
-              // Play the next track without expanding the player
-              explicitlyPlayedRef.current = false; // Mark as auto-played
-              playTrackAtIndex(nextIndex);
+              // Play the next track
+              playTrackAtIndex(nextIndex, isExplicit);
               return;
             }
           }
@@ -679,6 +695,11 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     
     // Check if we're in a single track context
     if (contextType === 'single') {
+      if (loopModeRef.current === 'all' && currentTrackRef.current) {
+        console.log('Single track context, Loop ALL is enabled, replaying current track');
+        playTrack(currentTrackRef.current, playlistRef.current, undefined, !isExplicit);
+        return;
+      }
       console.log('Single track context, fetching recommendations');
       // For single track, fetch recommendations and play the next recommended track
       try {
@@ -707,10 +728,9 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
             };
             
             // Play the recommended track
-            explicitlyPlayedRef.current = false; // Mark as auto-played
             // For recommended tracks, we maintain the single track context but update the current track
             // We don't create a new playlist as that would break the user's original playlist context
-            playTrack(track, playlistRef.current, undefined, true);
+            playTrack(track, playlistRef.current, undefined, !isExplicit);
             return;
           } else {
             console.log('No recommendations found, checking other songs');
@@ -725,15 +745,13 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
                 const nextTrack = originalPlaylistRef.current[nextIndex];
                 
                 // Play the next track from the original playlist
-                explicitlyPlayedRef.current = false; // Mark as auto-played
-                playTrack(nextTrack, originalPlaylistRef.current, undefined, true);
+                playTrack(nextTrack, originalPlaylistRef.current, undefined, !isExplicit);
                 return;
               } else {
                 // If current track is not in the original playlist, play the first track
                 console.log('Current track not in original playlist, playing first track');
                 const nextTrack = originalPlaylistRef.current[0];
-                explicitlyPlayedRef.current = false; // Mark as auto-played
-                playTrack(nextTrack, originalPlaylistRef.current, undefined, true);
+                playTrack(nextTrack, originalPlaylistRef.current, undefined, !isExplicit);
                 return;
               }
             }
@@ -752,8 +770,7 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
             const nextTrack = originalPlaylistRef.current[nextIndex];
             
             // Play the next track from the original playlist
-            explicitlyPlayedRef.current = false; // Mark as auto-played
-            playTrack(nextTrack, originalPlaylistRef.current, undefined, true);
+            playTrack(nextTrack, originalPlaylistRef.current, undefined, !isExplicit);
             return;
           }
         }
@@ -774,6 +791,11 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     
     // Check if we're at the end of the playlist
     if (currentTrackIndexRef.current + 1 >= playlistRef.current.length) {
+      if (loopModeRef.current === 'all') {
+        console.log('Reached end of playlist, Loop ALL enabled, looping back to start');
+        playTrackAtIndex(0, isExplicit);
+        return;
+      }
       console.log('Reached end of playlist, fetching more recommendations');
       // We've reached the end of the playlist, fetch more recommendations
       try {
@@ -811,11 +833,9 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
             // Play the first new track
             const nextIndex = currentTrackIndexRef.current + 1;
             console.log('Playing next track at index:', nextIndex);
-            const nextTrack = updatedPlaylist[nextIndex];
             
-            // Play the next track without expanding the player
-            explicitlyPlayedRef.current = false; // Mark as auto-played
-            playTrackAtIndex(nextIndex);
+            // Play the next track
+            playTrackAtIndex(nextIndex, isExplicit);
             return;
           } else {
             console.log('No more recommendations available, stopping playback');
@@ -840,19 +860,18 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     console.log('Next track:', nextTrack);
     
     if (nextTrack) {
-      // Play the next track without expanding the player
-      explicitlyPlayedRef.current = false; // Mark as auto-played
+      // Play the next track
       // Preserve the current playlist context when playing the next track
       // Pass the specific index to avoid recalculating it in playTrack
-      playTrackAtIndex(nextIndex);
+      playTrackAtIndex(nextIndex, isExplicit);
     } else {
       console.log('No next track found, stopping playback');
       stopTrack();
     }
   };
 
-  const playPreviousTrack = () => {
-    console.log('PLAY PREVIOUS TRACK CALLED');
+  const playPreviousTrack = (isExplicit: boolean = false) => {
+    console.log('PLAY PREVIOUS TRACK CALLED, isExplicit:', isExplicit);
     console.log('Current track:', currentTrackRef.current);
     console.log('Current track index:', currentTrackIndexRef.current);
     console.log('Playlist:', playlistRef.current);
@@ -885,9 +904,8 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     console.log('Previous track:', prevTrack);
     
     if (prevTrack) {
-      // Play the previous track without expanding the player
-      explicitlyPlayedRef.current = false; // Mark as auto-played
-      playTrackAtIndex(prevIndex);
+      // Play the previous track
+      playTrackAtIndex(prevIndex, isExplicit);
     }
   };
 
@@ -901,7 +919,7 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     console.log('Playback context type in onended:', currentPlaybackContext.current.type);
     console.log('Playback context data in onended:', currentPlaybackContext.current.data);
     console.log('Full context object in onended:', JSON.stringify(currentPlaybackContext.current));
-    console.log('Is looping:', isLooping);
+    console.log('Loop mode:', loopModeRef.current);
     setIsPlaying(false);
     
     // Check if the player has been explicitly stopped
@@ -912,23 +930,25 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     }
     
     // Check if loop is enabled
-    if (isLooping) {
-      console.log('Loop is enabled, replaying current track');
-      // If loop is enabled, replay the current track
-      playTrack(currentTrackRef.current, playlistRef.current);
+    if (loopModeRef.current === 'one') {
+      console.log('Loop ONE is enabled, replaying current track');
+      // If loop one is enabled, replay the current track
+      if (currentTrackRef.current) {
+        playTrack(currentTrackRef.current, playlistRef.current, undefined, true);
+      }
       return;
     }
     
     // According to the specification, we should NOT set currentTrack to null at the end of playback
     // Instead, we should preserve the full track context including currentTrack, currentTrackIndex, and playback state
     // Call playNextTrack first to ensure the context and playlist information is still available
-    await playNextTrack();
+    await playNextTrack(false);
     // Removed the line that sets currentTrack to null to preserve context for seamless resumption
   };
 
   // Helper function to play a track at a specific index in the current playlist
-  const playTrackAtIndex = (index: number) => {
-    console.log('PLAY TRACK AT INDEX CALLED with index:', index);
+  const playTrackAtIndex = (index: number, isExplicit: boolean = false) => {
+    console.log('PLAY TRACK AT INDEX CALLED with index:', index, 'isExplicit:', isExplicit);
     if (index < 0 || index >= playlistRef.current.length) {
       console.error('Invalid index for playTrackAtIndex:', index);
       return;
@@ -952,6 +972,8 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     
     // Create new audio element
     const audio = new Audio(track.audioUrl);
+    // Add crossorigin attribute to allow Web Audio API to process cross-origin audio
+    audio.crossOrigin = 'anonymous';
     audioRef.current = audio;
     
     // Set up event listeners
@@ -989,13 +1011,13 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     
     // Only expand player when new track starts if it was explicitly played by user
     // If it's an automatic playback (next track), preserve the current minimized state
-    if (explicitlyPlayedRef.current) {
+    if (isExplicit) {
       setIsMinimized(false); // Expand player when explicitly played by user
     }
-    // If explicitlyPlayedRef.current is false, we preserve the current isMinimized state
+    // If isExplicit is false, we preserve the current isMinimized state
     
-    // Mark this as an auto-played action (not explicitly played by user)
-    explicitlyPlayedRef.current = false;
+    // Mark this as an explicit play action if requested
+    explicitlyPlayedRef.current = isExplicit;
     
     // Add to recently played (only for authenticated users)
     const accessToken = localStorage.getItem('accessToken');
@@ -1023,7 +1045,10 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     
     // Start playing the audio
     audio.play().catch(error => {
-      console.error('Error playing track:', error);
+      // Ignore AbortError as it just means the play request was cancelled by a subsequent play/pause call
+      if (error.name !== 'AbortError' && error.name !== 'NotAllowedError') {
+        console.error('Error playing track:', error);
+      }
       // Even if play fails, we still set the track so UI reflects the current state
       setIsPlaying(false);
     });
@@ -1419,8 +1444,12 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
   
   // Add toggleLoop function
   const toggleLoop = () => {
-    setIsLooping(prev => !prev);
-    console.log('Loop toggled, isLooping:', !isLooping);
+    setLoopMode(prev => {
+      if (prev === 'none') return 'all';
+      if (prev === 'all') return 'one';
+      return 'none';
+    });
+    console.log('Loop toggled');
   };
   const addComment = async (comment: Omit<Comment, 'id' | 'timestamp'>) => {
     if (!currentTrack?.id) {
@@ -1647,7 +1676,7 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
         shufflePlaylist, // Export shufflePlaylist function
         shuffleQueue, // Export shuffleQueue function
         toggleLoop,
-        isLooping,
+        loopMode,
         currentTrackIndex,
         audioRef,
         addToQueue,

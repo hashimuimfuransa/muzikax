@@ -52,7 +52,7 @@ const FullPagePlayer = () => {
     shufflePlaylist, // Add shufflePlaylist from context
     shuffleQueue, // Add shuffleQueue from context
     toggleLoop,
-    isLooping,
+    loopMode,
     queue, // Add queue from context
     addToQueue, // Add addToQueue from context
     removeFromQueue, // Add removeFromQueue from context
@@ -729,7 +729,7 @@ const FullPagePlayer = () => {
                   <div className="flex justify-center items-center gap-3 sm:gap-4 md:gap-6">
                     {/* Previous */}
                     <button
-                      onClick={playPreviousTrack}
+                      onClick={() => playPreviousTrack(true)}
                       className="
                         w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 rounded-full
                         bg-white/10 backdrop-blur-md
@@ -779,7 +779,7 @@ const FullPagePlayer = () => {
 
                     {/* Next */}
                     <button
-                      onClick={() => playNextTrack()}
+                      onClick={() => playNextTrack(true)}
                       className="
                         w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 rounded-full
                         bg-white/10 backdrop-blur-md
@@ -953,27 +953,34 @@ const FullPagePlayer = () => {
                     className={`
                       group flex flex-col items-center gap-1
                       text-xs sm:text-sm
-                      ${isLooping ? 'text-[#FF4D67]' : 'text-gray-400'}
+                      ${loopMode !== 'none' ? 'text-[#FF4D67]' : 'text-gray-400'}
                       hover:text-white
                       transition-all
                       min-w-[60px]
                     `}
-                    title="Loop track/playlist"
+                    title={loopMode === 'one' ? 'Loop One' : loopMode === 'all' ? 'Loop All' : 'Loop Off'}
                   >
                     <div
-                      className="
+                      className={`
                         w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full
-                        bg-white/10 backdrop-blur-md
+                        ${loopMode !== 'none' ? 'bg-[#FF4D67]/20' : 'bg-white/10'}
+                        backdrop-blur-md
                         flex items-center justify-center
                         group-hover:bg-white/20
                         transition-all
-                      "
+                        relative
+                      `}
                     >
                       <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                       </svg>
+                      {loopMode === 'one' && (
+                        <span className="absolute text-[10px] font-bold">1</span>
+                      )}
                     </div>
-                    <span className="truncate">Loop</span>
+                    <span className="truncate">
+                      {loopMode === 'one' ? 'One' : loopMode === 'all' ? 'All' : 'Loop'}
+                    </span>
                   </button>
                                      
                   

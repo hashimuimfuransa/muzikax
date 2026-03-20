@@ -243,7 +243,7 @@ export default function Home() {
 
   // Fetch real popular creators
   const { creators: popularCreatorsData, loading: creatorsLoading } =
-    usePopularCreators(6);
+    usePopularCreators(10);
 
 // Helper function to remove duplicate tracks by ID
   const removeDuplicateTracks = (tracks: Track[]): Track[] => {
@@ -470,16 +470,30 @@ export default function Home() {
       try {
         setVibesLoading(true);
         const data = await communityPostService.getTrendingPosts('week', 10);
-        let posts = data?.posts || [];
+        let trendingPosts = data?.posts || [];
         
-        // If no trending posts, try to get regular posts
-        if (posts.length === 0) {
-          const regularData = await communityPostService.getPosts({ limit: 10 });
-          posts = regularData?.posts || [];
+        // If few trending posts, augment with regular posts to ensure we show many
+        if (trendingPosts.length < 10) {
+          const regularData = await communityPostService.getPosts({ limit: 15 });
+          const regularPosts = regularData?.posts || [];
+          
+          // Combine and remove duplicates
+          const seenIds = new Set(trendingPosts.map((p: any) => p._id || p.id));
+          const combinedPosts = [...trendingPosts];
+          
+          for (const post of regularPosts) {
+            const id = post._id || post.id;
+            if (!seenIds.has(id)) {
+              combinedPosts.push(post);
+              seenIds.add(id);
+            }
+            if (combinedPosts.length >= 10) break;
+          }
+          trendingPosts = combinedPosts;
         }
         
-        if (posts.length > 0) {
-          const processedVibes: Vibe[] = posts.map((post: any) => ({
+        if (trendingPosts.length > 0) {
+          const processedVibes: Vibe[] = trendingPosts.map((post: any) => ({
             id: post._id || post.id,
             userName: post.userName || 'Unknown User',
             userAvatar: post.userAvatar,
@@ -505,7 +519,7 @@ export default function Home() {
   useEffect(() => {
     const fetchAlbums = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/albums?page=1&limit=6`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/albums?page=1&limit=10`);
         if (response.ok) {
           const data = await response.json();
           const albums: Album[] = data.albums.map((album: any) => ({

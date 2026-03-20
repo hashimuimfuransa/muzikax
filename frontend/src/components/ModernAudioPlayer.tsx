@@ -380,7 +380,7 @@ const ModernAudioPlayer = () => {
             <div className="flex items-center gap-0.5 sm:gap-1">
               {/* Previous Button */}
               <button
-                onClick={playPreviousTrack}
+                onClick={() => playPreviousTrack(true)}
                 className="
                   w-8 h-8 sm:w-9 sm:h-9 rounded-full 
                   bg-white/5 hover:bg-white/15 
@@ -428,7 +428,7 @@ const ModernAudioPlayer = () => {
 
               {/* Next Button */}
               <button
-                onClick={playNextTrack}
+                onClick={() => playNextTrack(true)}
                 className="
                   w-8 h-8 sm:w-9 sm:h-9 rounded-full 
                   bg-white/5 hover:bg-white/15 

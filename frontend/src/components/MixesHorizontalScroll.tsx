@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useAudioPlayer } from '@/contexts/AudioPlayerContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -33,6 +33,44 @@ const MixesHorizontalScroll = ({ title, viewAllLink = '/mixes' }: MixesHorizonta
   const [error, setError] = useState<string | null>(null);
 
   const { currentTrack, isPlaying, playTrack, setCurrentPlaylist, favorites, favoritesLoading, addToFavorites, removeFromFavorites } = useAudioPlayer();
+
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  // Check scroll position and update button states
+  const updateScrollButtons = () => {
+    if (scrollContainerRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
+      setCanScrollLeft(scrollLeft > 0);
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1);
+    }
+  };
+
+  // Initial check and add event listener
+  useEffect(() => {
+    updateScrollButtons();
+    const container = scrollContainerRef.current;
+    if (container) {
+      container.addEventListener('scroll', updateScrollButtons);
+      // Also check on window resize
+      window.addEventListener('resize', updateScrollButtons);
+      return () => {
+        container.removeEventListener('scroll', updateScrollButtons);
+        window.removeEventListener('resize', updateScrollButtons);
+      };
+    }
+  }, [mixes]);
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollContainerRef.current) {
+      const scrollAmount = 320; // Width of typical card + gap
+      scrollContainerRef.current.scrollBy({
+        left: direction === 'right' ? scrollAmount : -scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
 
   // State for tracking which tracks are favorited
   const [favoriteStatus, setFavoriteStatus] = useState<Record<string, boolean>>({});
@@ -188,86 +226,113 @@ const MixesHorizontalScroll = ({ title, viewAllLink = '/mixes' }: MixesHorizonta
           {t('viewAll')}
         </Link>
       </div>
-      <div className="flex overflow-x-auto pb-4 scrollbar-hide">
-        <div className="flex space-x-4">
-          {mixes.map((track) => {
-            const artistName = typeof track.creatorId === 'object' && track.creatorId !== null 
-              ? (track.creatorId as any).name 
-              : 'Unknown Artist';
-            
-            return (
-              <div 
-                key={track._id} 
-                className="flex-shrink-0 w-64 group card-bg rounded-2xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10"
-              >
-                <div className="relative">
-                  {track.coverURL ? (
-                    <img
-                      src={track.coverURL}
-                      alt={track.title}
-                      className="w-full h-40 object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-40 bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center">
-                      <span className="text-2xl font-bold text-white">
-                        {track.title.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                  )}
-                  
-                  {/* Play Button Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <button
-                      onClick={() => handlePlayTrack(track)}
-                      className="w-12 h-12 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300"
-                      disabled={!track.audioURL}
-                    >
-                      {currentTrack?.id === track._id && isPlaying ? (
-                        <FaPause className="w-5 h-5" />
-                      ) : (
-                        <FaPlay className="w-5 h-5 ml-1" />
-                      )}
-                    </button>
-                  </div>
-                  
-                  {/* Favorite Button */}
-                  <div className="absolute top-2 right-2">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleFavorite(track._id, track);
-                      }}
-                      className="p-1.5 rounded-full bg-black/30 backdrop-blur-sm text-white opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110"
-                    >
-                      <FaHeart 
-                        className={`w-4 h-4 ${favoriteStatus[track._id] ? 'text-red-500 fill-current scale-110' : 'text-white'}`}
+      <div className="relative group">
+        <div 
+          ref={scrollContainerRef}
+          className="flex overflow-x-auto pb-4 scrollbar-hide -mx-4 md:-mx-6 px-4 md:px-6 snap-x snap-mandatory scroll-smooth"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
+          <div className="flex space-x-4">
+            {mixes.map((track) => {
+              const artistName = typeof track.creatorId === 'object' && track.creatorId !== null 
+                ? (track.creatorId as any).name 
+                : 'Unknown Artist';
+              
+              return (
+                <div 
+                  key={track._id} 
+                  className="flex-shrink-0 w-64 group card-bg rounded-2xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10"
+                >
+                  <div className="relative">
+                    {track.coverURL ? (
+                      <img
+                        src={track.coverURL}
+                        alt={track.title}
+                        className="w-full h-40 object-cover"
                       />
-                    </button>
+                    ) : (
+                      <div className="w-full h-40 bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center">
+                        <span className="text-2xl font-bold text-white">
+                          {track.title.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {/* Play Button Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <button
+                        onClick={() => handlePlayTrack(track)}
+                        className="w-12 h-12 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300"
+                        disabled={!track.audioURL}
+                      >
+                        {currentTrack?.id === track._id && isPlaying ? (
+                          <FaPause className="w-5 h-5" />
+                        ) : (
+                          <FaPlay className="w-5 h-5 ml-1" />
+                        )}
+                      </button>
+                    </div>
+                    
+                    {/* Favorite Button */}
+                    <div className="absolute top-2 right-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleFavorite(track._id, track);
+                        }}
+                        className="p-1.5 rounded-full bg-black/30 backdrop-blur-sm text-white opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110"
+                      >
+                        <FaHeart 
+                          className={`w-4 h-4 ${favoriteStatus[track._id] ? 'text-red-500 fill-current scale-110' : 'text-white'}`}
+                        />
+                      </button>
+                    </div>
                   </div>
-                </div>
-                
-                {/* Track Info */}
-                <div className="p-4">
-                  <h3 className="font-bold text-white text-lg mb-1 truncate" title={track.title}>
-                    {track.title}
-                  </h3>
-                  <p className="text-gray-400 text-sm mb-1 truncate" title={artistName}>
-                    {artistName}
-                  </p>
                   
-                  {/* Stats */}
-                  <div className="flex justify-between text-xs text-gray-500">
-                    <span>{(track.plays || 0).toLocaleString()} {t('plays')}</span>
-                    <div className="flex items-center gap-1">
-                      <FaHeart className="w-3 h-3" />
-                      <span>{track.likes || 0}</span>
+                  {/* Track Info */}
+                  <div className="p-4">
+                    <h3 className="font-bold text-white text-lg mb-1 truncate" title={track.title}>
+                      {track.title}
+                    </h3>
+                    <p className="text-gray-400 text-sm mb-1 truncate" title={artistName}>
+                      {artistName}
+                    </p>
+                    
+                    {/* Stats */}
+                    <div className="flex justify-between text-xs text-gray-500">
+                      <span>{(track.plays || 0).toLocaleString()} {t('plays')}</span>
+                      <div className="flex items-center gap-1">
+                        <FaHeart className="w-3 h-3" />
+                        <span>{track.likes || 0}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
+
+        {/* Scroll Buttons */}
+        <button 
+          className="absolute left-2 md:left-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-gray-800/80 backdrop-blur-lg flex items-center justify-center text-white shadow-xl hover:bg-gray-700/80 transition-all duration-300 hover:scale-110"
+          onClick={() => scroll('left')}
+          aria-label="Scroll left"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
+          </svg>
+        </button>
+        
+        <button 
+          className="absolute right-2 md:right-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-gray-800/80 backdrop-blur-lg flex items-center justify-center text-white shadow-xl hover:bg-gray-700/80 transition-all duration-300 hover:scale-110"
+          onClick={() => scroll('right')}
+          aria-label="Scroll right"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
+          </svg>
+        </button>
       </div>
     </section>
   );

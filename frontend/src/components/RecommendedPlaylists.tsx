@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAudioPlayer } from '../contexts/AudioPlayerContext'
 import { useRouter } from 'next/navigation'
 
@@ -43,6 +43,43 @@ export default function RecommendedPlaylists({
   const [error, setError] = useState('')
   const { playTrack, setCurrentPlaylist } = useAudioPlayer()
   const router = useRouter()
+
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(false)
+
+  // Check scroll position and update button states
+  const updateScrollButtons = () => {
+    if (scrollContainerRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current
+      setCanScrollLeft(scrollLeft > 0)
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1)
+    }
+  }
+
+  // Initial check and add event listener
+  useEffect(() => {
+    updateScrollButtons()
+    const container = scrollContainerRef.current
+    if (container) {
+      container.addEventListener('scroll', updateScrollButtons)
+      window.addEventListener('resize', updateScrollButtons)
+      return () => {
+        container.removeEventListener('scroll', updateScrollButtons)
+        window.removeEventListener('resize', updateScrollButtons)
+      }
+    }
+  }, [playlists])
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollContainerRef.current) {
+      const scrollAmount = 300 // Custom scroll amount for playlists
+      scrollContainerRef.current.scrollBy({
+        left: direction === 'right' ? scrollAmount : -scrollAmount,
+        behavior: 'smooth'
+      })
+    }
+  }
 
   useEffect(() => {
     fetchRecommendedPlaylists()
@@ -156,12 +193,16 @@ export default function RecommendedPlaylists({
         </button>
       </div>
       
-      <div className="relative">
-        <div className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide">
+      <div className="relative group">
+        <div 
+          ref={scrollContainerRef}
+          className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide -mx-4 md:-mx-8 px-4 md:px-8 snap-x snap-mandatory scroll-smooth"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
           {playlists.map((playlist) => (
             <div 
               key={playlist._id} 
-              className="flex-shrink-0 w-48 group cursor-pointer"
+              className="flex-shrink-0 w-48 group cursor-pointer snap-start"
               onClick={() => handlePlayPlaylist(playlist)}
             >
               {/* Playlist Cover */}
@@ -210,6 +251,27 @@ export default function RecommendedPlaylists({
             </div>
           ))}
         </div>
+
+        {/* Scroll Buttons */}
+        <button 
+          className="absolute left-2 md:left-3 top-[calc(50%-2rem)] -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-gray-800/80 backdrop-blur-lg flex items-center justify-center text-white shadow-xl hover:bg-gray-700/80 transition-all duration-300 hover:scale-110"
+          onClick={() => scroll('left')}
+          aria-label="Scroll left"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
+          </svg>
+        </button>
+        
+        <button 
+          className="absolute right-2 md:right-3 top-[calc(50%-2rem)] -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-gray-800/80 backdrop-blur-lg flex items-center justify-center text-white shadow-xl hover:bg-gray-700/80 transition-all duration-300 hover:scale-110"
+          onClick={() => scroll('right')}
+          aria-label="Scroll right"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
+          </svg>
+        </button>
       </div>
     </section>
   )

@@ -37,7 +37,8 @@ const AddToQueueButton = ({
   // Check if track is already in queue
   const isInQueue = queue.some(qTrack => qTrack.id === track.id);
 
-  const handleClick = async () => {
+  const handleClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (isInQueue || isLoading) return;
     
     setIsLoading(true);

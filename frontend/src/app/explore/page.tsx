@@ -539,7 +539,7 @@ function ExploreContent() {
             {t('all')}
           </button>
           
-          {categories.slice(0, 5).map((category) => (
+          {categories.slice(0, 10).map((category) => (
             <button
               key={category.id}
               className={`px-2.5 py-1.5 xs:px-3 xs:py-2 rounded-full text-xs xs:text-sm font-medium transition-all duration-300 whitespace-nowrap flex-shrink-0 ${
@@ -580,7 +580,7 @@ function ExploreContent() {
                   </div>
                   <div className="p-4 max-h-[60vh] overflow-y-auto">
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      {categories.slice(5).map((category) => (
+                      {categories.slice(10).map((category) => (
                         <button
                           key={category.id}
                           className={`px-3 py-2 rounded-full text-sm font-medium transition-all duration-300 whitespace-nowrap ${
