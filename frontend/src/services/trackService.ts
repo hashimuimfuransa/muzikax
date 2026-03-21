@@ -1,4 +1,5 @@
 import { ITrack } from '../types';
+import { getUserFriendlyError, isNetworkError, formatErrorForToast } from '../utils/errorMessages';
 
 export interface PaginatedTracks {
   tracks: ITrack[];
@@ -123,7 +124,10 @@ export const fetchAllTracks = async (page: number = 1, limit: number = 10): Prom
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tracks?limit=${limit}&page=${page}`);
     
     if (!response.ok) {
-      throw new Error(`Failed to fetch tracks: ${response.status} ${response.statusText}`);
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        errorData.message || `Failed to fetch tracks: ${response.status} ${response.statusText}`
+      );
     }
 
     const data = await response.json();
@@ -136,8 +140,12 @@ export const fetchAllTracks = async (page: number = 1, limit: number = 10): Prom
     }
     
     return data;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching tracks:', error);
+    // Add more context to the error
+    error.userMessage = isNetworkError(error)
+      ? "Unable to connect. Please check your internet connection."
+      : error.message || 'Failed to load tracks';
     throw error;
   }
 };
@@ -160,7 +168,10 @@ export const fetchTrendingTracks = async (limit: number = 10, sortBy?: 'plays' |
     const response = await fetch(url);
     
     if (!response.ok) {
-      throw new Error(`Failed to fetch trending tracks: ${response.status} ${response.statusText}`);
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        errorData.message || `Failed to fetch trending tracks: ${response.status} ${response.statusText}`
+      );
     }
 
     const data = await response.json();
@@ -169,8 +180,11 @@ export const fetchTrendingTracks = async (limit: number = 10, sortBy?: 'plays' |
     return data.filter((track: any) => 
       track.audioURL && track.audioURL.trim() !== ''
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching trending tracks:', error);
+    error.userMessage = isNetworkError(error)
+      ? "Unable to connect. Please check your internet connection."
+      : error.message || 'Failed to load trending tracks';
     throw error;
   }
 };

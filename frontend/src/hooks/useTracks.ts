@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ITrack } from '../types';
 import { fetchAllTracks, fetchTrendingTracks, fetchPopularCreators, fetchTracksByType } from '../services/trackService';
+import { isNetworkError } from '../utils/errorMessages';
 
 interface UseTracksResult {
   tracks: ITrack[];
@@ -31,7 +32,8 @@ export const useAllTracks = (page: number = 1, limit: number = 10): UseTracksRes
       const data = await fetchAllTracks(page, limit);
       setTracks(data.tracks);
     } catch (err: any) {
-      setError(err.message || 'Failed to fetch tracks');
+      const errorMessage = err.userMessage || err.message || 'Failed to fetch tracks';
+      setError(errorMessage);
       console.error('Error fetching tracks:', err);
     } finally {
       setLoading(false);
@@ -67,7 +69,8 @@ export const useTrendingTracks = (limit: number = 10, page: number = 1, sortBy?:
       setTotal(paginationData.total);
       setPages(paginationData.pages);
     } catch (err: any) {
-      setError(err.message || 'Failed to fetch trending tracks');
+      const errorMessage = err.userMessage || err.message || 'Failed to fetch trending tracks';
+      setError(errorMessage);
       console.error('Error fetching trending tracks:', err);
     } finally {
       setLoading(false);
@@ -93,7 +96,8 @@ export const usePopularCreators = (limit: number = 10): UseCreatorsResult => {
       const data = await fetchPopularCreators(limit);
       setCreators(data);
     } catch (err: any) {
-      setError(err.message || 'Failed to fetch popular creators');
+      const errorMessage = err.userMessage || err.message || 'Failed to fetch popular creators';
+      setError(errorMessage);
       console.error('Error fetching popular creators:', err);
     } finally {
       setLoading(false);
@@ -119,7 +123,8 @@ export const useTracksByType = (type: string, limit: number = 10): UseTracksResu
       const data = await fetchTracksByType(type, limit);
       setTracks(data);
     } catch (err: any) {
-      setError(err.message || `Failed to fetch ${type} tracks`);
+      const errorMessage = err.userMessage || err.message || `Failed to fetch ${type} tracks`;
+      setError(errorMessage);
       console.error(`Error fetching ${type} tracks:`, err);
     } finally {
       setLoading(false);

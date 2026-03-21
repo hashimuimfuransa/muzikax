@@ -6,6 +6,8 @@ import { LanguageProvider } from "../contexts/LanguageContext";
 import { AudioPlayerProvider } from "../contexts/AudioPlayerContext";
 import { CommunityProvider } from "../contexts/CommunityContext";
 import { PaymentProvider } from "../contexts/PaymentContext";
+import { ToastProvider } from "../contexts/ToastContext";
+import ErrorBoundary from "../components/ErrorBoundary";
 import ModernAudioPlayer from "../components/ModernAudioPlayer";
 import PWAInstallPrompt from "../components/PWAInstallPrompt";
 import ContactFloatingButton from "../components/ContactFloatingButton";
@@ -117,7 +119,7 @@ export default function RootLayout({
         />
         <link rel="manifest" href="/manifest.json" />
       </head>
-      <body className="pb-20 md:pb-0">
+      <body className="pb-20 md:pb-20">
         {/* Structured Data for Rich Snippets */}
         <Script
           id="root-structured-data"
@@ -152,27 +154,31 @@ export default function RootLayout({
             })
           }}
         />
-        <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"}>
-          <AuthProvider>
-            <LanguageProvider>
-              <AudioPlayerProvider>
-                <CommunityProvider>
-                  <PaymentProvider>
-                    <ConditionalSidebar />
-                    <SidebarLayoutWrapper>
-                      <ConditionalNavbar />
-                      <PushNotificationInitializer />
-                      {children}
-                    </SidebarLayoutWrapper>
-                    <ModernAudioPlayer />
-                    <PWAInstallPrompt />
-                    <ContactFloatingButton />
-                  </PaymentProvider>
-                </CommunityProvider>
-              </AudioPlayerProvider>
-            </LanguageProvider>
-          </AuthProvider>
-        </GoogleOAuthProvider>
+        <ErrorBoundary>
+          <ToastProvider>
+            <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"}>
+              <AuthProvider>
+                <LanguageProvider>
+                  <AudioPlayerProvider>
+                    <CommunityProvider>
+                      <PaymentProvider>
+                        <ConditionalSidebar />
+                        <SidebarLayoutWrapper>
+                          <ConditionalNavbar />
+                          <PushNotificationInitializer />
+                          {children}
+                        </SidebarLayoutWrapper>
+                        <ModernAudioPlayer />
+                        <PWAInstallPrompt />
+                        <ContactFloatingButton />
+                      </PaymentProvider>
+                    </CommunityProvider>
+                  </AudioPlayerProvider>
+                </LanguageProvider>
+              </AuthProvider>
+            </GoogleOAuthProvider>
+          </ToastProvider>
+        </ErrorBoundary>
         <Script
           id="custom-script-1"
           strategy="afterInteractive"
