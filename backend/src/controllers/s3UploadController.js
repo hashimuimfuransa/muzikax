@@ -15,12 +15,8 @@ const getSignedUrl = async (req, res) => {
         const uniqueFileName = `${timestamp}-${fileName}`;
         const signedUrl = await (0, s3_1.getUploadSignedUrl)(uniqueFileName, fileType);
         
-        let fileUrl = `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${uniqueFileName}`;
-        if (process.env.S3_BUCKET_NAME && process.env.S3_BUCKET_NAME.includes('--x-s3')) {
-            const azId = process.env.S3_BUCKET_NAME.split('--')[1];
-            const region = process.env.AWS_REGION || 'eu-north-1';
-            fileUrl = `https://${process.env.S3_BUCKET_NAME}.s3express-${azId}.${region}.amazonaws.com/${uniqueFileName}`;
-        }
+        // Use getFileUrl from s3 utils instead of manually constructing
+        const fileUrl = (0, s3_1.getFileUrl)(uniqueFileName);
         res.json({
             uploadUrl: signedUrl,
             fileUrl: fileUrl,

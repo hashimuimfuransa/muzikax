@@ -6,40 +6,63 @@ const s3_request_presigner = require("@aws-sdk/s3-request-presigner");
 const dotenv = require("dotenv");
 dotenv.config();
 
-const s3Client = new client_s3.S3Client({
-    region: process.env.AWS_REGION || 'eu-north-1',
-    credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID || process.env.Access_Key_ID || '',
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || process.env.Secret_Access_Key || '',
-    },
-});
-
-const BUCKET_NAME = process.env.S3_BUCKET_NAME || 'muzikax--eun1-az1--x-s3';
+// Validate AWS credentials are present
+const awsAccessKeyId = process.env.AWS_ACCESS_KEY_ID || process.env.Access_Key_ID;
+const awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY || process.env.Secret_Access_Key;
+const awsRegion = process.env.AWS_REGION || 'us-east-1';
+const s3BucketName = process.env.S3_BUCKET_NAME || 'muzikax';
 const CLOUDFRONT_DOMAIN = process.env.CLOUDFRONT_DOMAIN;
+
+if (!awsAccessKeyId || !awsSecretAccessKey) {
+    console.error('ERROR: AWS credentials not found in environment variables');
+    console.error('AWS_ACCESS_KEY_ID:', awsAccessKeyId ? '***' : 'MISSING');
+    console.error('AWS_SECRET_ACCESS_KEY:', awsSecretAccessKey ? '***' : 'MISSING');
+}
+
+// Determine if using S3 Express One Zone
+const isS3Express = s3BucketName.includes('--x-s3');
+
+console.log(`Initializing S3 Client with:`);
+console.log(`  - Bucket: ${s3BucketName}`);
+console.log(`  - Region: ${awsRegion}`);
+console.log(`  - CloudFront Domain: ${CLOUDFRONT_DOMAIN || 'Not configured'}`);
+console.log(`  - S3 Express: ${isS3Express ? 'Yes' : 'No'}`);
+console.log(`  - Credentials Present: ${!!awsAccessKeyId && !!awsSecretAccessKey}`);
+
+const s3Client = new client_s3.S3Client({
+    region: awsRegion,
+    credentials: {
+        accessKeyId: awsAccessKeyId || '',
+        secretAccessKey: awsSecretAccessKey || '',
+    },
+    // Add forcePathStyle for better compatibility
+    forcePathStyle: false,
+});
 
 const getFileUrl = (key) => {
     if (CLOUDFRONT_DOMAIN) {
         return `https://${CLOUDFRONT_DOMAIN}/${key}`;
     }
-    if (BUCKET_NAME.includes('--x-s3')) {
+    if (isS3Express) {
         // S3 Express One Zone URL format: https://bucket.s3express-az_id.region.amazonaws.com/key
-        const match = BUCKET_NAME.match(/--([a-z0-9-]+)--x-s3/);
+        const match = s3BucketName.match(/--([a-z0-9-]+)--x-s3/);
         if (match) {
             const azId = match[1];
-            const region = process.env.AWS_REGION || 'eu-north-1';
-            return `https://${BUCKET_NAME}.s3express-${azId}.${region}.amazonaws.com/${key}`;
+            return `https://${s3BucketName}.s3express-${azId}.${awsRegion}.amazonaws.com/${key}`;
         }
-        const region = process.env.AWS_REGION || 'eu-north-1';
-        return `https://${BUCKET_NAME}.s3express-eun1-az1.${region}.amazonaws.com/${key}`;
+        return `https://${s3BucketName}.s3express-eun1-az1.${awsRegion}.amazonaws.com/${key}`;
     }
-    return `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION || 'eu-north-1'}.amazonaws.com/${key}`;
+    return `https://${s3BucketName}.s3.${awsRegion}.amazonaws.com/${key}`;
 };
 exports.getFileUrl = getFileUrl;
 
 const getUploadSignedUrl = async (fileName, fileType) => {
     try {
+        if (!awsAccessKeyId || !awsSecretAccessKey) {
+            throw new Error('AWS credentials not configured. Please check your .env file.');
+        }
         const command = new client_s3.PutObjectCommand({
-            Bucket: BUCKET_NAME,
+            Bucket: s3BucketName,
             Key: fileName,
             ContentType: fileType,
         });
@@ -48,8 +71,20 @@ const getUploadSignedUrl = async (fileName, fileType) => {
     }
     catch (error) {
         console.error('Error generating upload signed URL:', error);
-        if (error.name === 'AccessDenied' && BUCKET_NAME.includes('--x-s3')) {
-            throw new Error(`S3 Express Access Denied: Please ensure your IAM user has 's3express:CreateSession' permission for bucket ${BUCKET_NAME}`);
+        console.error('Error details:', {
+            name: error.name,
+            message: error.message,
+            code: error.code,
+            stack: error.stack
+        });
+        if (error.name === 'AccessDenied' && isS3Express) {
+            throw new Error(`S3 Express Access Denied: Please ensure your IAM user has 's3express:CreateSession' permission for bucket ${s3BucketName}`);
+        }
+        if (error.code === 'InvalidAccessKeyId') {
+            throw new Error('Invalid AWS Access Key ID. Please verify your AWS_ACCESS_KEY_ID in .env');
+        }
+        if (error.code === 'SignatureDoesNotMatch') {
+            throw new Error('Invalid AWS Secret Access Key. Please verify your AWS_SECRET_ACCESS_KEY in .env');
         }
         throw error;
     }
@@ -58,8 +93,11 @@ exports.getUploadSignedUrl = getUploadSignedUrl;
 
 const getDownloadSignedUrl = async (key) => {
     try {
+        if (!awsAccessKeyId || !awsSecretAccessKey) {
+            throw new Error('AWS credentials not configured. Please check your .env file.');
+        }
         const command = new client_s3.GetObjectCommand({
-            Bucket: BUCKET_NAME,
+            Bucket: s3BucketName,
             Key: key,
         });
         const signedUrl = await (0, s3_request_presigner.getSignedUrl)(s3Client, command, { expiresIn: 3600 });
@@ -67,6 +105,14 @@ const getDownloadSignedUrl = async (key) => {
     }
     catch (error) {
         console.error('Error generating download signed URL:', error);
+        console.error('Error details:', {
+            name: error.name,
+            message: error.message,
+            code: error.code
+        });
+        if (error.code === 'InvalidAccessKeyId') {
+            throw new Error('Invalid AWS Access Key ID. Please verify your AWS_ACCESS_KEY_ID in .env');
+        }
         throw error;
     }
 };
@@ -76,6 +122,10 @@ const deleteFromS3 = async (fileUrl) => {
     try {
         if (!fileUrl)
             return;
+        if (!awsAccessKeyId || !awsSecretAccessKey) {
+            console.error('AWS credentials not configured for delete operation');
+            return;
+        }
         let key = '';
         if (fileUrl.includes('.amazonaws.com/')) {
             key = fileUrl.split('.amazonaws.com/')[1];
@@ -86,7 +136,7 @@ const deleteFromS3 = async (fileUrl) => {
         if (!key)
             return;
         const command = new client_s3.DeleteObjectCommand({
-            Bucket: BUCKET_NAME,
+            Bucket: s3BucketName,
             Key: key,
         });
         await s3Client.send(command);
@@ -100,8 +150,11 @@ exports.deleteFromS3 = deleteFromS3;
 
 const uploadToS3Direct = async (file, key, contentType) => {
     try {
+        if (!awsAccessKeyId || !awsSecretAccessKey) {
+            throw new Error('AWS credentials not configured. Please check your .env file.');
+        }
         const command = new client_s3.PutObjectCommand({
-            Bucket: BUCKET_NAME,
+            Bucket: s3BucketName,
             Key: key,
             Body: file,
             ContentType: contentType,
@@ -111,6 +164,17 @@ const uploadToS3Direct = async (file, key, contentType) => {
     }
     catch (error) {
         console.error('Error uploading directly to S3:', error);
+        console.error('Error details:', {
+            name: error.name,
+            message: error.message,
+            code: error.code
+        });
+        if (error.code === 'InvalidAccessKeyId') {
+            throw new Error('Invalid AWS Access Key ID. Please verify your AWS_ACCESS_KEY_ID in .env');
+        }
+        if (error.code === 'SignatureDoesNotMatch') {
+            throw new Error('Invalid AWS Secret Access Key. Please verify your AWS_SECRET_ACCESS_KEY in .env');
+        }
         throw error;
     }
 };
@@ -269,5 +333,6 @@ const signAlbumUrls = async (album) => {
     return albumObj;
 };
 exports.signAlbumUrls = signAlbumUrls;
+exports.BUCKET_NAME = s3BucketName;
 
 exports.default = s3Client;
