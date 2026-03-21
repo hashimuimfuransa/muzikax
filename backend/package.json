@@ -10,7 +10,7 @@
     "start-ml-api": "python start_ml_api.py",
     "cleanup-invalid-tracks": "node cleanup_invalid_tracks.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "postinstall": "echo \"Dependencies installed successfully\""
+    "postinstall": "pip install -r requirements.txt || echo 'Python dependencies installed (or pip not available)'; echo 'Dependencies installed successfully'"
   },
   "keywords": [],
   "author": "",

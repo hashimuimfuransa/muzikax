@@ -42,77 +42,116 @@ class PythonMlManager {
         return;
       }
 
-      // Spawn the Python process
-      this.pythonProcess = spawn('python', [this.mlApiPath], {
+      // Install Python dependencies first
+      console.log('Installing Python dependencies...');
+      const installProcess = spawn('pip', ['install', '-r', 'requirements.txt'], {
         cwd: this.backendDir,
-        stdio: ['pipe', 'pipe', 'pipe'],
-        env: {
-          ...process.env,
-          PYTHONUNBUFFERED: 1
-        }
+        stdio: 'pipe'
       });
 
-      // Handle process events
-      this.pythonProcess.on('spawn', () => {
-        console.log('Python ML process spawned successfully');
-        this.isRunning = true;
-      });
-
-      this.pythonProcess.on('error', (err) => {
-        console.error('Error starting Python ML process:', err);
-        this.isRunning = false;
-        reject(err);
-      });
-
-      this.pythonProcess.on('close', (code) => {
-        console.log(`Python ML process closed with code ${code}`);
-        this.isRunning = false;
-        this.pythonProcess = null;
-      });
-
-      // Log output from Python process
-      this.pythonProcess.stdout.on('data', (data) => {
-        const logMessage = `[PYTHON-ML-STDOUT] ${data.toString()}`;
-        console.log(logMessage.trim());
-        
-        // Write to log file
-        this.writeToLog(logMessage);
-      });
-
-      this.pythonProcess.stderr.on('data', (data) => {
-        const logMessage = `[PYTHON-ML-STDERR] ${data.toString()}`;
-        console.error(logMessage.trim());
-        
-        // Write to log file
-        this.writeToLog(logMessage);
-      });
-
-      // Wait a bit to ensure the server starts properly
-      // Poll the health endpoint to confirm the server is running
-      const checkInterval = setInterval(async () => {
-        try {
-          const response = await fetch(`http://localhost:${this.port}/health`);
-          if (response.ok) {
-            clearInterval(checkInterval);
-            console.log(`Python ML API started successfully on port ${this.port}`);
-            resolve(true);
-          }
-        } catch (error) {
-          // Server not ready yet, continue waiting
-        }
-      }, 1000); // Check every second
-      
-      // Timeout after 15 seconds
-      setTimeout(() => {
-        clearInterval(checkInterval);
-        if (this.isRunning) {
-          console.log(`Python ML API likely started on port ${this.port}`);
-          resolve(true);
+      installProcess.on('close', (code) => {
+        if (code === 0) {
+          console.log('Python dependencies installed successfully');
+          this.spawnPythonProcess(resolve, reject);
         } else {
-          reject(new Error('Python ML process failed to start properly within 15 seconds'));
+          console.log('pip install failed or pip not available, attempting to start anyway...');
+          this.spawnPythonProcess(resolve, reject);
         }
-      }, 15000); // Wait up to 15 seconds for the server to start
+      });
+
+      installProcess.on('error', (err) => {
+        console.error('Error running pip install:', err);
+        console.log('Attempting to start Python process without installing dependencies...');
+        this.spawnPythonProcess(resolve, reject);
+      });
+
+      // Timeout for pip install - proceed anyway after 10 seconds
+      setTimeout(() => {
+        console.log('Dependency installation timeout, proceeding with startup...');
+        this.spawnPythonProcess(resolve, reject);
+      }, 10000);
     });
+  }
+
+  /**
+   * Spawn the actual Python process (helper method)
+   */
+  spawnPythonProcess(resolve, reject) {
+    // Check if already spawned
+    if (this.pythonProcess) {
+      return;
+    }
+
+    // Spawn the Python process
+    this.pythonProcess = spawn('python', [this.mlApiPath], {
+      cwd: this.backendDir,
+      stdio: ['pipe', 'pipe', 'pipe'],
+      env: {
+        ...process.env,
+        PYTHONUNBUFFERED: 1
+      }
+    });
+
+    // Handle process events
+    this.pythonProcess.on('spawn', () => {
+      console.log('Python ML process spawned successfully');
+      this.isRunning = true;
+    });
+
+    this.pythonProcess.on('error', (err) => {
+      console.error('Error starting Python ML process:', err);
+      this.isRunning = false;
+      reject(err);
+    });
+
+    this.pythonProcess.on('close', (code) => {
+      console.log(`Python ML process closed with code ${code}`);
+      this.isRunning = false;
+      this.pythonProcess = null;
+    });
+
+    // Log output from Python process
+    this.pythonProcess.stdout.on('data', (data) => {
+      const logMessage = `[PYTHON-ML-STDOUT] ${data.toString()}`;
+      console.log(logMessage.trim());
+      
+      // Write to log file
+      this.writeToLog(logMessage);
+    });
+
+    this.pythonProcess.stderr.on('data', (data) => {
+      const logMessage = `[PYTHON-ML-STDERR] ${data.toString()}`;
+      console.error(logMessage.trim());
+      
+      // Write to log file
+      this.writeToLog(logMessage);
+    });
+
+    // Wait a bit to ensure the server starts properly
+    // Poll the health endpoint to confirm the server is running
+    const checkInterval = setInterval(async () => {
+      try {
+        const response = await fetch(`http://localhost:${this.port}/health`);
+        if (response.ok) {
+          clearInterval(checkInterval);
+          console.log(`Python ML API started successfully on port ${this.port}`);
+          resolve(true);
+        }
+      } catch (error) {
+        // Server not ready yet, continue waiting
+      }
+    }, 1000); // Check every second
+    
+    // Timeout after 15 seconds
+    setTimeout(() => {
+      clearInterval(checkInterval);
+      if (this.isRunning) {
+        console.log(`Python ML API likely started on port ${this.port}`);
+        resolve(true);
+      } else {
+        reject(new Error('Python ML process failed to start properly within 15 seconds'));
+      }
+    }, 15000); // Wait up to 15 seconds for the server to start
   }
 
   /**
