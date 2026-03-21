@@ -135,14 +135,14 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
   const [currentPlaylistName, setCurrentPlaylistName] = useState<string>(''); // Name of the current playlist being played
   const [hasReachedTimeLimit, setHasReachedTimeLimit] = useState<boolean>(false); // State to track if time limit has been reached for paid beats
   
-  // Proxy URL for CloudFront audio (to bypass CORS)
-  const AUDIO_PROXY_URL = process.env.NEXT_PUBLIC_AUDIO_PROXY_URL || 'http://localhost:5000/api/audio-proxy';
+  // Proxy URL for CloudFront and S3 audio (to bypass CORS)
+  const AUDIO_PROXY_URL = process.env.NEXT_PUBLIC_AUDIO_PROXY_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
   
-  // Helper function to get proxied URL for CloudFront resources
+  // Helper function to get proxied URL for AWS/CloudFront resources
   const getProxiedUrl = (url: string): string => {
-    // Use proxy for CloudFront URLs to bypass CORS
-    if (url.includes('cloudfront.net')) {
-      return `${AUDIO_PROXY_URL}?url=${encodeURIComponent(url)}`;
+    // Use proxy for CloudFront and S3 URLs to bypass CORS
+    if (url.includes('cloudfront.net') || url.includes('amazonaws.com')) {
+      return `${AUDIO_PROXY_URL}/api/audio-proxy?url=${encodeURIComponent(url)}`;
     }
     return url;
   };
