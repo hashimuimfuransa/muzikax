@@ -6,6 +6,12 @@ const { processAudio } = require("../utils/audioProcessor");
 
 const getSignedUrl = async (req, res) => {
     try {
+        console.log('=== Get Signed URL Request ===');
+        console.log('AWS_ACCESS_KEY_ID present:', !!process.env.AWS_ACCESS_KEY_ID);
+        console.log('AWS_SECRET_ACCESS_KEY present:', !!process.env.AWS_SECRET_ACCESS_KEY);
+        console.log('S3_BUCKET_NAME:', process.env.S3_BUCKET_NAME);
+        console.log('AWS_REGION:', process.env.AWS_REGION);
+        
         const { fileName, fileType } = req.body;
         if (!fileName || !fileType) {
             res.status(400).json({ message: 'fileName and fileType are required' });
@@ -25,6 +31,7 @@ const getSignedUrl = async (req, res) => {
     }
     catch (error) {
         console.error('Error generating signed URL:', error);
+        console.error('Error stack:', error.stack);
         res.status(500).json({ message: error.message });
     }
 };
