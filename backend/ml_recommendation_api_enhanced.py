@@ -17,9 +17,10 @@ from datetime import datetime
 import logging
 from threading import Lock
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+# Configure logging with reduced verbosity
+logging.basicConfig(level=logging.WARNING, format='%(levelname)s: %(message)s')
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)  # Only show INFO and above
 
 app = Flask(__name__)
 
@@ -122,9 +123,10 @@ def get_all_users(limit=1000):
         logger.error(f"Error retrieving users from DB: {e}")
         return []
 
-# Initialize the enhanced ML recommendation engine
-engine = AdvancedMLRecommendationEngine(max_tracks_for_training=10000, cache_size=1000)
+# Initialize the enhanced ML recommendation engine with reduced memory footprint
+engine = AdvancedMLRecommendationEngine(max_tracks_for_training=1000, cache_size=100)
 engine_initialized = False
+is_initializing = False
 
 # Global lock for thread safety
 engine_lock = Lock()
@@ -142,61 +144,48 @@ def get_ml_personalized_recommendations():
     try:
         user_id = request.args.get('userId')
         current_track_id = request.args.get('currentTrackId')
-        limit = int(request.args.get('limit', 100))
+        limit = int(request.args.get('limit', 10))
         user_location = request.args.get('location')
         
-        logger.info(f"Getting enhanced ML recommendations for user: {user_id}, track: {current_track_id}, limit: {limit}, location: {user_location}")
+        logger.info(f"Getting enhanced ML recommendations for user: {user_id}, track: {current_track_id}, limit: {limit}")
         
         # Acquire lock to ensure thread safety during engine initialization
-        global engine_initialized
+        global engine_initialized, is_initializing
         with engine_lock:
             # Load data if engine hasn't been initialized
-            if not engine_initialized:
-                logger.info("Initializing recommendation engine with fresh data...")
+            if not engine_initialized and not is_initializing:
+                is_initializing = True
+                logger.info("Initializing recommendation engine with optimized data loading...")
                 
-                # Load tracks in batches to handle massive datasets
-                batch_size = 5000
-                offset = 0
-                all_tracks = []
-                all_interactions = []
-                
-                # Load tracks
-                while True:
-                    tracks_batch = get_tracks_from_db(limit=batch_size, offset=offset)
-                    if not tracks_batch:
-                        break
-                    all_tracks.extend(tracks_batch)
-                    offset += batch_size
+                try:
+                    # Load a smaller sample to reduce memory usage
+                    tracks = get_tracks_from_db(limit=1000, offset=0)
                     
-                    if len(all_tracks) >= engine.max_tracks_for_training:
-                        break
-                
-                # Load interactions if user_id provided
-                if user_id:
-                    interactions_batch = get_user_interactions_from_db(user_id=user_id, limit=5000)
-                    all_interactions.extend(interactions_batch)
-                
-                # Load some general interactions for model training
-                general_users = get_all_users(limit=50)
-                for gen_user_id in general_users:
-                    gen_interactions = get_user_interactions_from_db(user_id=gen_user_id, limit=100)
-                    all_interactions.extend(gen_interactions)
-                
-                # Load data incrementally
-                engine.load_data_incrementally(all_tracks, all_interactions, batch_size=1000)
-                
-                # Train the models
-                engine.train_models()
-                
-                engine_initialized = True
-                logger.info(f"Engine initialized with {len(all_tracks)} tracks and {len(all_interactions)} interactions")
+                    # Only load interactions for the current user if provided
+                    all_interactions = []
+                    if user_id:
+                        all_interactions = get_user_interactions_from_db(user_id=user_id, limit=100)
+                    
+                    # Load data incrementally with small batch size
+                    engine.load_data_incrementally(tracks, all_interactions, batch_size=200)
+                    
+                    # Train the models
+                    engine.train_models()
+                    
+                    engine_initialized = True
+                    logger.info(f"Engine initialized with {len(tracks)} tracks and {len(all_interactions)} interactions")
+                except Exception as init_error:
+                    logger.error(f"Error initializing engine: {init_error}")
+                    is_initializing = False
+                    raise init_error
         
-        # Get recommendations
+        # Get recommendations with reduced limit to save memory
+        max_limit = min(limit, 20)  # Cap at 20 recommendations
         recommendations = engine.get_personalized_recommendations(
             user_id=user_id,
             seed_track_id=current_track_id,
             user_location=user_location,
-            n_recommendations=limit
+            n_recommendations=max_limit
         )
         
         # Get track details for the recommended track IDs
@@ -212,10 +201,9 @@ def get_ml_personalized_recommendations():
                 track_details.append(track)
         
         return jsonify({
-            'tracks': track_details,
-            'count': len(track_details),
-            'algorithm': 'enhanced_ml_personalized',
-            'cache_hit_rate': f"{engine.get_performance_stats()['cache_hits'] / max(engine.get_performance_stats()['requests_served'], 1) * 100:.2f}%"
+            'tracks': track_details[:max_limit],
+            'count': len(track_details[:max_limit]),
+            'algorithm': 'enhanced_ml_personalized'
         }), 200
 
     except Exception as e:
@@ -232,29 +220,35 @@ def get_location_based_recommendations():
     """
     try:
         location = request.args.get('location')
-        limit = int(request.args.get('limit', 100))
+        limit = int(request.args.get('limit', 10))
         
         if not location:
             return jsonify({'error': 'Location parameter is required'}), 400
         
         logger.info(f"Getting enhanced location-based recommendations for: {location}, limit: {limit}")
         
-        # Ensure engine is initialized
-        global engine_initialized
+        # Ensure engine is initialized with minimal data
+        global engine_initialized, is_initializing
         with engine_lock:
-            if not engine_initialized:
-                # Initialize with general data
-                tracks = get_tracks_from_db(limit=5000)
-                interactions = []
-                engine.load_data_incrementally(tracks, interactions, batch_size=1000)
-                engine.train_models()
-                
-                engine_initialized = True
+            if not engine_initialized and not is_initializing:
+                is_initializing = True
+                try:
+                    # Load minimal dataset
+                    tracks = get_tracks_from_db(limit=500)
+                    engine.load_data_incrementally(tracks, [], batch_size=200)
+                    engine.train_models()
+                    engine_initialized = True
+                    logger.info(f"Location engine initialized with {len(tracks)} tracks")
+                except Exception as init_error:
+                    logger.error(f"Error initializing location engine: {init_error}")
+                    is_initializing = False
+                    raise init_error
         
-        # Get location-based recommendations
+        # Get location-based recommendations with capped limit
+        max_limit = min(limit, 20)
         recommendations = engine.get_location_based_recommendations(
             user_location=location,
-            n_recommendations=limit
+            n_recommendations=max_limit
         )
         
         # Get track details for the recommended track IDs
@@ -270,11 +264,10 @@ def get_location_based_recommendations():
                 track_details.append(track)
         
         return jsonify({
-            'tracks': track_details,
-            'count': len(track_details),
+            'tracks': track_details[:max_limit],
+            'count': len(track_details[:max_limit]),
             'algorithm': 'enhanced_location_based',
-            'location': location,
-            'cache_hit_rate': f"{engine.get_performance_stats()['cache_hits'] / max(engine.get_performance_stats()['requests_served'], 1) * 100:.2f}%"
+            'location': location
         }), 200
 
     except Exception as e:
@@ -291,29 +284,37 @@ def get_collaborative_recommendations():
     """
     try:
         user_id = request.args.get('userId')
-        limit = int(request.args.get('limit', 100))
+        limit = int(request.args.get('limit', 10))
         
         if not user_id:
             return jsonify({'error': 'User ID parameter is required'}), 400
         
         logger.info(f"Getting enhanced collaborative recommendations for user: {user_id}, limit: {limit}")
         
-        # Ensure engine is initialized
-        global engine_initialized
+        # Ensure engine is initialized with minimal data
+        global engine_initialized, is_initializing
         with engine_lock:
-            if not engine_initialized:
-                # Initialize with general data
-                tracks = get_tracks_from_db(limit=5000)
-                interactions = []
-                engine.load_data_incrementally(tracks, interactions, batch_size=1000)
-                engine.train_models()
-                
-                engine_initialized = True
+            if not engine_initialized and not is_initializing:
+                is_initializing = True
+                try:
+                    # Load minimal dataset
+                    tracks = get_tracks_from_db(limit=500)
+                    # Only load current user's interactions
+                    interactions = get_user_interactions_from_db(user_id=user_id, limit=100)
+                    engine.load_data_incrementally(tracks, interactions, batch_size=200)
+                    engine.train_models()
+                    engine_initialized = True
+                    logger.info(f"Collaborative engine initialized with {len(tracks)} tracks")
+                except Exception as init_error:
+                    logger.error(f"Error initializing collaborative engine: {init_error}")
+                    is_initializing = False
+                    raise init_error
         
-        # Get collaborative filtering recommendations
+        # Get collaborative filtering recommendations with capped limit
+        max_limit = min(limit, 20)
         recommendations = engine.get_collaborative_filtering_recommendations(
             user_id=user_id,
-            n_recommendations=limit
+            n_recommendations=max_limit
         )
         
         # Get track details for the recommended track IDs
@@ -329,11 +330,10 @@ def get_collaborative_recommendations():
                 track_details.append(track)
         
         return jsonify({
-            'tracks': track_details,
-            'count': len(track_details),
+            'tracks': track_details[:max_limit],
+            'count': len(track_details[:max_limit]),
             'algorithm': 'enhanced_collaborative_filtering',
-            'userId': user_id,
-            'cache_hit_rate': f"{engine.get_performance_stats()['cache_hits'] / max(engine.get_performance_stats()['requests_served'], 1) * 100:.2f}%"
+            'userId': user_id
         }), 200
 
     except Exception as e:
@@ -350,7 +350,7 @@ def get_content_based_recommendations():
     """
     try:
         seed_track_ids_param = request.args.get('seedTrackIds')
-        limit = int(request.args.get('limit', 100))
+        limit = int(request.args.get('limit', 10))
         
         if not seed_track_ids_param:
             return jsonify({'error': 'seedTrackIds parameter is required'}), 400
@@ -359,22 +359,28 @@ def get_content_based_recommendations():
         
         logger.info(f"Getting enhanced content-based recommendations for tracks: {seed_track_ids}, limit: {limit}")
         
-        # Ensure engine is initialized
-        global engine_initialized
+        # Ensure engine is initialized with minimal data
+        global engine_initialized, is_initializing
         with engine_lock:
-            if not engine_initialized:
-                # Initialize with general data
-                tracks = get_tracks_from_db(limit=5000)
-                interactions = []
-                engine.load_data_incrementally(tracks, interactions, batch_size=1000)
-                engine.train_models()
-                
-                engine_initialized = True
+            if not engine_initialized and not is_initializing:
+                is_initializing = True
+                try:
+                    # Load minimal dataset
+                    tracks = get_tracks_from_db(limit=500)
+                    engine.load_data_incrementally(tracks, [], batch_size=200)
+                    engine.train_models()
+                    engine_initialized = True
+                    logger.info(f"Content engine initialized with {len(tracks)} tracks")
+                except Exception as init_error:
+                    logger.error(f"Error initializing content engine: {init_error}")
+                    is_initializing = False
+                    raise init_error
         
-        # Get content-based recommendations
+        # Get content-based recommendations with capped limit
+        max_limit = min(limit, 20)
         recommendations = engine.get_content_based_recommendations(
             seed_track_ids=seed_track_ids,
-            n_recommendations=limit
+            n_recommendations=max_limit
         )
         
         # Get track details for the recommended track IDs
@@ -390,11 +396,10 @@ def get_content_based_recommendations():
                 track_details.append(track)
         
         return jsonify({
-            'tracks': track_details,
-            'count': len(track_details),
+            'tracks': track_details[:max_limit],
+            'count': len(track_details[:max_limit]),
             'algorithm': 'enhanced_content_based',
-            'seedTrackIds': seed_track_ids,
-            'cache_hit_rate': f"{engine.get_performance_stats()['cache_hits'] / max(engine.get_performance_stats()['requests_served'], 1) * 100:.2f}%"
+            'seedTrackIds': seed_track_ids
         }), 200
 
     except Exception as e:
@@ -404,51 +409,39 @@ def get_content_based_recommendations():
 @app.route('/api/ml-recommendations/train-model', methods=['POST'])
 def train_model():
     """
-    Train or retrain the enhanced ML model with fresh data
+    Train or retrain the enhanced ML model with optimized memory usage
     """
     try:
-        logger.info("Training enhanced ML model with fresh data")
+        logger.info("Training enhanced ML model with optimized memory settings")
         
-        global engine_initialized
+        global engine_initialized, is_initializing
         with engine_lock:
-            # Get fresh data from database in batches to handle massive datasets
-            batch_size = 5000
-            offset = 0
-            all_tracks = []
+            is_initializing = True
+            
+            # Get a smaller sample of data to reduce memory usage
+            tracks = get_tracks_from_db(limit=1000, offset=0)
+            
+            # Only load interactions for a few active users
+            active_users = get_all_users(limit=10)
             all_interactions = []
-            
-            # Load tracks
-            while True:
-                tracks_batch = get_tracks_from_db(limit=batch_size, offset=offset)
-                if not tracks_batch:
-                    break
-                all_tracks.extend(tracks_batch)
-                offset += batch_size
-            
-            # Load user interactions for some active users
-            active_users = get_all_users(limit=100)
             for user_id in active_users:
-                user_interactions = get_user_interactions_from_db(user_id=user_id, limit=500)
+                user_interactions = get_user_interactions_from_db(user_id=user_id, limit=50)
                 all_interactions.extend(user_interactions)
             
-            # Initialize and train the enhanced engine
+            # Initialize with reduced capacity
             global engine
-            engine = AdvancedMLRecommendationEngine(max_tracks_for_training=15000, cache_size=2000)
-            engine.load_data_incrementally(all_tracks, all_interactions, batch_size=1000)
+            engine = AdvancedMLRecommendationEngine(max_tracks_for_training=2000, cache_size=200)
+            engine.load_data_incrementally(tracks, all_interactions, batch_size=200)
             engine.train_models()
             
             engine_initialized = True
+            is_initializing = False
             
-            # Save the model
-            try:
-                engine.save_model('enhanced_ml_recommendation_model.pkl')
-                logger.info("Enhanced model saved successfully")
-            except Exception as save_error:
-                logger.warning(f"Could not save enhanced model: {save_error}")
+            logger.info(f"Model trained on {len(tracks)} tracks and {len(all_interactions)} interactions")
         
         return jsonify({
             'message': 'Enhanced model trained successfully',
-            'tracks_processed': len(all_tracks),
+            'tracks_processed': len(tracks),
             'interactions_processed': len(all_interactions),
             'algorithm': 'enhanced_ml_recommendation_engine'
         }), 200
@@ -492,4 +485,5 @@ if __name__ == '__main__':
         logger.error(f"Error loading enhanced model: {e}")
         logger.info("Will load data on first request")
     
-    app.run(debug=True, host='0.0.0.0', port=5001)
+    # Run with debug=False to reduce memory overhead in production
+    app.run(debug=False, host='0.0.0.0', port=5001, threaded=True)
