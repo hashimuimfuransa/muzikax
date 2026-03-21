@@ -1,18 +1,80 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface LoadingOverlayProps {
   message?: string;
   show?: boolean;
+  timeout?: number; // Timeout in milliseconds
+  onTimeout?: () => void; // Callback when timeout occurs
 }
 
 export const LoadingOverlay: React.FC<LoadingOverlayProps> = ({ 
   message = 'Loading...', 
-  show = true 
+  show = true,
+  timeout,
+  onTimeout,
 }) => {
+  const [timedOut, setTimedOut] = useState(false);
+
+  useEffect(() => {
+    if (!show || !timeout) return;
+
+    setTimedOut(false);
+    const timer = setTimeout(() => {
+      setTimedOut(true);
+      if (onTimeout) onTimeout();
+    }, timeout);
+
+    return () => clearTimeout(timer);
+  }, [show, timeout, onTimeout]);
+
   if (!show) return null;
 
+  // Show timeout message
+  if (timedOut) {
+    return (
+      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+        <div className="text-center max-w-md p-6">
+          <svg
+            className="w-16 h-16 text-yellow-400 mx-auto mb-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <p className="text-white text-lg font-medium mb-4">
+            This is taking longer than expected
+          </p>
+          <p className="text-gray-400 text-sm mb-6">
+            The server might be busy. Would you like to wait or try again?
+          </p>
+          <div className="space-y-3">
+            <button
+              onClick={() => setTimedOut(false)}
+              className="w-full bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-all duration-300"
+            >
+              Keep Waiting
+            </button>
+            <button
+              onClick={onTimeout}
+              className="w-full bg-gray-700/50 text-white font-semibold py-3 px-6 rounded-lg hover:bg-gray-700 transition-all duration-300"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Normal loading state
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
       <div className="text-center">
@@ -20,6 +82,11 @@ export const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
           <div className="inline-block w-12 h-12 border-4 border-[#FF4D67] border-t-transparent rounded-full animate-spin"></div>
         </div>
         <p className="text-white text-lg font-medium">{message}</p>
+        {timeout && (
+          <p className="text-gray-500 text-xs mt-2">
+            Please wait...
+          </p>
+        )}
       </div>
     </div>
   );

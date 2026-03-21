@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { ITrack } from '../types';
 import { fetchAllTracks, fetchTrendingTracks, fetchPopularCreators, fetchTracksByType } from '../services/trackService';
 import { isNetworkError } from '../utils/errorMessages';
+import { useLoadingTimeout } from './useLoadingTimeout';
 
 interface UseTracksResult {
   tracks: ITrack[];
@@ -22,8 +23,14 @@ interface UseCreatorsResult {
 
 export const useAllTracks = (page: number = 1, limit: number = 10): UseTracksResult => {
   const [tracks, setTracks] = useState<ITrack[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const { isLoading, setLoading, isTimedOut, dismissTimeout } = useLoadingTimeout({
+    initialLoading: true,
+    timeout: 30000, // 30 seconds timeout
+    onTimeout: () => {
+      console.warn('Loading tracks timed out after 30 seconds');
+    },
+  });
 
   const fetchTracks = async () => {
     try {
@@ -31,6 +38,7 @@ export const useAllTracks = (page: number = 1, limit: number = 10): UseTracksRes
       setError(null);
       const data = await fetchAllTracks(page, limit);
       setTracks(data.tracks);
+      if (isTimedOut) dismissTimeout();
     } catch (err: any) {
       const errorMessage = err.userMessage || err.message || 'Failed to fetch tracks';
       setError(errorMessage);
@@ -44,15 +52,21 @@ export const useAllTracks = (page: number = 1, limit: number = 10): UseTracksRes
     fetchTracks();
   }, [page, limit]);
 
-  return { tracks, loading, error, refresh: fetchTracks };
+  return { tracks, loading: isLoading, error, refresh: fetchTracks };
 };
 
 export const useTrendingTracks = (limit: number = 10, page: number = 1, sortBy?: 'plays' | 'likes' | 'newest' | 'recent'): UseTracksResult => {
   const [tracks, setTracks] = useState<ITrack[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [total, setTotal] = useState<number>(0);
   const [pages, setPages] = useState<number>(0);
+  const { isLoading, setLoading, isTimedOut, dismissTimeout } = useLoadingTimeout({
+    initialLoading: true,
+    timeout: 30000, // 30 seconds timeout
+    onTimeout: () => {
+      console.warn('Loading trending tracks timed out after 30 seconds');
+    },
+  });
 
   const fetchTracks = async () => {
     try {
@@ -68,6 +82,7 @@ export const useTrendingTracks = (limit: number = 10, page: number = 1, sortBy?:
       const paginationData = await fetchAllTracks(page, limit);
       setTotal(paginationData.total);
       setPages(paginationData.pages);
+      if (isTimedOut) dismissTimeout();
     } catch (err: any) {
       const errorMessage = err.userMessage || err.message || 'Failed to fetch trending tracks';
       setError(errorMessage);
@@ -81,13 +96,19 @@ export const useTrendingTracks = (limit: number = 10, page: number = 1, sortBy?:
     fetchTracks();
   }, [limit, page, sortBy]);
 
-  return { tracks, loading, error, refresh: fetchTracks, total, page, pages };
+  return { tracks, loading: isLoading, error, refresh: fetchTracks, total, page, pages };
 };
 
 export const usePopularCreators = (limit: number = 10): UseCreatorsResult => {
   const [creators, setCreators] = useState<any[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const { isLoading, setLoading, isTimedOut, dismissTimeout } = useLoadingTimeout({
+    initialLoading: true,
+    timeout: 30000, // 30 seconds timeout
+    onTimeout: () => {
+      console.warn('Loading popular creators timed out after 30 seconds');
+    },
+  });
 
   const fetchCreators = async () => {
     try {
@@ -95,6 +116,7 @@ export const usePopularCreators = (limit: number = 10): UseCreatorsResult => {
       setError(null);
       const data = await fetchPopularCreators(limit);
       setCreators(data);
+      if (isTimedOut) dismissTimeout();
     } catch (err: any) {
       const errorMessage = err.userMessage || err.message || 'Failed to fetch popular creators';
       setError(errorMessage);
@@ -108,13 +130,19 @@ export const usePopularCreators = (limit: number = 10): UseCreatorsResult => {
     fetchCreators();
   }, [limit]);
 
-  return { creators, loading, error, refresh: fetchCreators };
+  return { creators, loading: isLoading, error, refresh: fetchCreators };
 };
 
 export const useTracksByType = (type: string, limit: number = 10): UseTracksResult => {
   const [tracks, setTracks] = useState<ITrack[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const { isLoading, setLoading, isTimedOut, dismissTimeout } = useLoadingTimeout({
+    initialLoading: true,
+    timeout: 30000, // 30 seconds timeout
+    onTimeout: () => {
+      console.warn(`Loading ${type} tracks timed out after 30 seconds`);
+    },
+  });
 
   const fetchTracks = async () => {
     try {
@@ -122,6 +150,7 @@ export const useTracksByType = (type: string, limit: number = 10): UseTracksResu
       setError(null);
       const data = await fetchTracksByType(type, limit);
       setTracks(data);
+      if (isTimedOut) dismissTimeout();
     } catch (err: any) {
       const errorMessage = err.userMessage || err.message || `Failed to fetch ${type} tracks`;
       setError(errorMessage);
@@ -135,5 +164,5 @@ export const useTracksByType = (type: string, limit: number = 10): UseTracksResu
     fetchTracks();
   }, [type, limit]);
 
-  return { tracks, loading, error, refresh: fetchTracks };
+  return { tracks, loading: isLoading, error, refresh: fetchTracks };
 };
