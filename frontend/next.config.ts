@@ -8,7 +8,7 @@ const withPWA = require("next-pwa")({
 
 const nextConfig: NextConfig = {
   /* config options here */
-  reactCompiler: true,
+  reactCompiler: false,
   // Add turbopack configuration to resolve build error
   turbopack: {},
   
