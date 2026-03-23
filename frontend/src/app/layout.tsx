@@ -201,6 +201,11 @@ export default function RootLayout({
             `
           }}
         />
+        <Script
+          id="custom-script-3"
+          strategy="afterInteractive"
+          src="https://pl28605916.profitablecpmratenetwork.com/a9/c3/dc/a9c3dc3a3a8377732b2d96aa69ab8c62.js"
+        />
       </body>
     </html>
   );
