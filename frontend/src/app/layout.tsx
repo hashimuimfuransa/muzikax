@@ -16,7 +16,6 @@ import ConditionalNavbar from "../components/ConditionalNavbar";
 import ConditionalSidebar from "../components/ConditionalSidebar";
 import SidebarLayoutWrapper from "../components/SidebarLayoutWrapper";
 import PushNotificationInitializer from "../components/PushNotificationInitializer";
-import AdPopup from "../components/AdPopup";
 import Footer from "../components/Footer";
 
 export const metadata: Metadata = {
@@ -175,7 +174,6 @@ export default function RootLayout({
                         <ModernAudioPlayer />
                         <PWAInstallPrompt />
                         <ContactFloatingButton />
-                        <AdPopup isEnabled={true} />
                         <Footer />
                       </PaymentProvider>
                     </CommunityProvider>
