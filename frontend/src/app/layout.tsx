@@ -17,6 +17,7 @@ import ConditionalSidebar from "../components/ConditionalSidebar";
 import SidebarLayoutWrapper from "../components/SidebarLayoutWrapper";
 import PushNotificationInitializer from "../components/PushNotificationInitializer";
 import AdPopup from "../components/AdPopup";
+import Footer from "../components/Footer";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'),
@@ -120,7 +121,7 @@ export default function RootLayout({
         />
         <link rel="manifest" href="/manifest.json" />
       </head>
-      <body className="pb-20 md:pb-20">
+      <body className="min-h-screen flex flex-col overflow-x-hidden">
         {/* Structured Data for Rich Snippets */}
         <Script
           id="root-structured-data"
@@ -167,12 +168,15 @@ export default function RootLayout({
                         <SidebarLayoutWrapper>
                           <ConditionalNavbar />
                           <PushNotificationInitializer />
-                          {children}
+                          <main className="flex-1">
+                            {children}
+                          </main>
                         </SidebarLayoutWrapper>
                         <ModernAudioPlayer />
                         <PWAInstallPrompt />
                         <ContactFloatingButton />
                         <AdPopup isEnabled={true} />
+                        <Footer />
                       </PaymentProvider>
                     </CommunityProvider>
                   </AudioPlayerProvider>
