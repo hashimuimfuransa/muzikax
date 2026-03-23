@@ -16,6 +16,7 @@ import ConditionalNavbar from "../components/ConditionalNavbar";
 import ConditionalSidebar from "../components/ConditionalSidebar";
 import SidebarLayoutWrapper from "../components/SidebarLayoutWrapper";
 import PushNotificationInitializer from "../components/PushNotificationInitializer";
+import AdPopup from "../components/AdPopup";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'),
@@ -118,22 +119,8 @@ export default function RootLayout({
           crossOrigin="anonymous"
         />
         <link rel="manifest" href="/manifest.json" />
-        {/* Profitable CPM Rate Network Scripts */}
-        <Script 
-          async={true} 
-          data-cfasync="false" 
-          src="https://pl28605937.profitablecpmratenetwork.com/31924f27da870fbdf752dfdc1f58c7bc/invoke.js"
-          strategy="afterInteractive"
-        />
-        <Script 
-          src="https://pl28605916.profitablecpmratenetwork.com/a9/c3/dc/a9c3dc3a3a8377732b2d96aa69ab8c62.js"
-          strategy="afterInteractive"
-        />
       </head>
       <body className="pb-20 md:pb-20">
-        {/* Container for Profitable CPM Rate Network */}
-        <div id="container-31924f27da870fbdf752dfdc1f58c7bc"></div>
-        
         {/* Structured Data for Rich Snippets */}
         <Script
           id="root-structured-data"
@@ -185,6 +172,7 @@ export default function RootLayout({
                         <ModernAudioPlayer />
                         <PWAInstallPrompt />
                         <ContactFloatingButton />
+                        <AdPopup isEnabled={true} />
                       </PaymentProvider>
                     </CommunityProvider>
                   </AudioPlayerProvider>
