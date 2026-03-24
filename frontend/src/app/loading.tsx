@@ -2,15 +2,21 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { offlineCacheService, OfflineData } from '@/services/offlineCacheService';
+import { dataPreloaderService, PreloadedData } from '@/services/dataPreloader';
 
 export default function Loading() {
+  const router = useRouter();
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [connectionSpeed, setConnectionSpeed] = useState<'fast' | 'slow' | 'offline'>('fast');
   const [showSlowMessage, setShowSlowMessage] = useState(false);
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
   const [offlineData, setOfflineData] = useState<OfflineData | null>(null);
   const [hasCachedContent, setHasCachedContent] = useState(false);
+  const [preloadData, setPreloadData] = useState<PreloadedData | null>(null);
+  const [isPreloading, setIsPreloading] = useState(true);
+  const [preloadError, setPreloadError] = useState<string | null>(null);
 
   const loadingMessages = [
     'Loading your music experience...',
@@ -54,6 +60,40 @@ export default function Loading() {
         setOfflineData(freshData);
       });
     }
+
+    // PRELOAD DATA FROM BACKEND BEFORE PROCEEDING
+    const initializeApp = async () => {
+      try {
+        console.log('🚀 Preloading critical data before home page...');
+        setIsPreloading(true);
+        
+        // Fetch data from backend with timeout
+        const data = await dataPreloaderService.preloadData(15000); // 15 second timeout
+        setPreloadData(data);
+        setPreloadError(null);
+        
+        console.log('✅ Data preloaded! Proceeding to home page...');
+        
+        // Wait a bit more for smooth UX (optional)
+        setTimeout(() => {
+          setIsPreloading(false);
+          // Navigate to home page with data ready
+          router.push('/');
+        }, 1000);
+        
+      } catch (error) {
+        console.error('❌ Preload failed:', error);
+        setPreloadError(error instanceof Error ? error.message : 'Failed to load data');
+        setIsPreloading(false);
+        
+        // Still proceed to home page even if preload fails (graceful degradation)
+        setTimeout(() => {
+          router.push('/');
+        }, 2000);
+      }
+    };
+
+    initializeApp();
 
     // Simulate loading progress
     const progressInterval = setInterval(() => {
@@ -281,9 +321,39 @@ export default function Loading() {
 
         {/* Loading Message */}
         <div className="space-y-2 min-h-[60px]">
-          <p className="text-gray-300 text-sm md:text-base font-medium animate-fade-in-out transition-opacity duration-500">
-            {loadingMessages[currentMessageIndex]}
-          </p>
+          {isPreloading ? (
+            <>
+              <p className="text-gray-300 text-sm md:text-base font-medium animate-fade-in-out transition-opacity duration-500">
+                {preloadError ? 'Loading failed - trying anyway...' : 'Fetching latest content from server...'}
+              </p>
+              {preloadData && (
+                <div className="flex justify-center gap-2 text-xs text-gray-400 mt-2">
+                  {preloadData.recentTracks.length > 0 && (
+                    <span className="flex items-center gap-1">
+                      <div className="w-2 h-2 bg-[#FF4D67] rounded-full"></div>
+                      {preloadData.recentTracks.length} Tracks
+                    </span>
+                  )}
+                  {preloadData.popularTracks.length > 0 && (
+                    <span className="flex items-center gap-1">
+                      <div className="w-2 h-2 bg-[#FFCB2B] rounded-full"></div>
+                      {preloadData.popularTracks.length} Popular
+                    </span>
+                  )}
+                  {preloadData.trendingCreators.length > 0 && (
+                    <span className="flex items-center gap-1">
+                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                      {preloadData.trendingCreators.length} Artists
+                    </span>
+                  )}
+                </div>
+              )}
+            </>
+          ) : (
+            <p className="text-green-400 text-sm md:text-base font-medium">
+              {preloadError ? 'Proceeding with cached data...' : 'Ready! Taking you to your music...'}
+            </p>
+          )}
         </div>
 
         {/* Sound waves animation */}
