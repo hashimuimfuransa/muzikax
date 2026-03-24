@@ -591,6 +591,7 @@ const incrementPlayCount = async (req, res) => {
         const { validatePlay } = require('../utils/fraudDetection');
         const validation = validatePlay(req, req.query.duration ? parseInt(req.query.duration) : 0);
         
+        // Always increment total plays (includes repeats)
         const track = await Track_1.findByIdAndUpdate(req.params['id'], { $inc: { plays: 1 } }, { new: true });
         if (!track) {
             res.status(404).json({ message: 'Track not found' });
@@ -631,6 +632,23 @@ const incrementPlayCount = async (req, res) => {
         // Track play history for monthly analytics
         const now = new Date();
         const PlayHistory = require('../models/PlayHistory');
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        // Check if this listener has already played this track today BEFORE creating the record
+        let isFirstPlayToday = false;
+        if (validation.shouldCount !== false) {
+            const existingPlay = await PlayHistory.findOne({
+                trackId: track._id,
+                timestamp: { $gte: today },
+                $or: [
+                    { userId: req.user ? req.user._id : null },
+                    { ipAddress: cleanIpAddress }
+                ]
+            }).sort({ timestamp: -1 });
+            
+            isFirstPlayToday = !existingPlay;
+        }
         
         try {
             await PlayHistory.create({
@@ -649,16 +667,19 @@ const incrementPlayCount = async (req, res) => {
             // Don't fail the main play count update if play history fails
         }
         
-        // Log to daily stats if valid
+        // Log to daily stats and track unique plays if valid
         if (validation.shouldCount !== false) {
             const DailyStats = require('../models/DailyStats');
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
+            
+            // Update track with unique plays (only increment once per day per listener)
+            if (isFirstPlayToday) {
+                await Track_1.findByIdAndUpdate(track._id, { $inc: { uniquePlays: 1 } });
+            }
             
             await DailyStats.findOneAndUpdate(
                 { trackId: track._id, date: today },
                 {
-                    $inc: { plays: 1, uniqueListeners: validation.userId ? 1 : 0 },
+                    $inc: { plays: 1, uniqueListeners: isFirstPlayToday ? 1 : 0 },
                     $setOnInsert: { trackId: track._id, date: today }
                 },
                 { upsert: true, new: true }

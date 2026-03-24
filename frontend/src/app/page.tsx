@@ -20,6 +20,7 @@ import { communityPostService } from "../services/communityService";
 import { fetchRecommendedTracks } from "../services/recommendationService";
 import { getRecentlyPlayed } from "../services/recentlyPlayedService";
 import { ITrack } from "../types";
+import { convertImageUrl } from "../utils/imageUtils";
 
 interface Track {
   id: string;
@@ -70,6 +71,30 @@ interface Vibe {
   postType: 'text' | 'image' | 'video' | 'audio';
 }
 
+interface Slide {
+  id: number;
+  title: string;
+  subtitle: string;
+  image: string;
+  cta: string;
+  type: 'explore' | 'upload' | 'vibes' | 'custom';
+  link?: string;
+  isActive?: boolean;
+  order?: number;
+}
+
+interface HomepageContent {
+  slides: Slide[];
+  currentSlide: number;
+  autoPlayInterval: number;
+  sections: {
+    showForYou: boolean;
+    showPopularBeats: boolean;
+    showRecommendedPlaylists: boolean;
+    showTrendingArtists: boolean;
+  };
+}
+
 // Function to generate avatar with first letter of name
 const generateAvatar = (name: string) => {
   const firstLetter = name.charAt(0).toUpperCase()
@@ -97,6 +122,8 @@ export default function Home() {
     "trending" | "new" | "popular" | "beats" | "mixes"
   >("trending");
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [homepageContent, setHomepageContent] = useState<HomepageContent | null>(null);
+  const [loadingHomepage, setLoadingHomepage] = useState(true);
   const { currentTrack, isPlaying, playTrack, setCurrentPlaylist, favorites, favoritesLoading, addToFavorites, removeFromFavorites, addToQueue } =
     useAudioPlayer();
 
@@ -158,8 +185,30 @@ export default function Home() {
     }
   };
 
-  // Hero slider images
-  const heroSlides = [
+  // Fetch homepage content from API
+  useEffect(() => {
+    const fetchHomepageContent = async () => {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/homepage`);
+        if (response.ok) {
+          const data = await response.json();
+          setHomepageContent(data);
+          if (data.currentSlide !== undefined) {
+            setCurrentSlide(data.currentSlide);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching homepage content:', err);
+      } finally {
+        setLoadingHomepage(false);
+      }
+    };
+
+    fetchHomepageContent();
+  }, []);
+
+  // Use static slides as fallback if homepage content is not loaded
+  const heroSlides: Slide[] = homepageContent?.slides || [
     {
       id: 1,
       title: t('discoverRwandanMusic'),
@@ -193,10 +242,10 @@ export default function Home() {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
-    }, 5000);
+    }, homepageContent?.autoPlayInterval || 5000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [heroSlides.length, homepageContent?.autoPlayInterval]);
 
   // Use pagination for lazy loading
   const [page, setPage] = useState(1);
@@ -741,7 +790,7 @@ export default function Home() {
               >
                 <div
                   className="absolute inset-0 bg-cover bg-center"
-                  style={{ backgroundImage: `url(${slide.image})` }}
+                  style={{ backgroundImage: `url(${convertImageUrl(slide.image)})` }}
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-gray-900 via-gray-900/70 to-gray-900/30"></div>
                 </div>
@@ -762,12 +811,15 @@ export default function Home() {
                   className="px-5 py-2.5 sm:px-6 sm:py-3 btn-primary font-medium rounded-lg transition-all hover:scale-105 text-sm sm:text-base"
                   onClick={() => {
                     // Primary CTA button functionality
-                    const slideType = (heroSlides[currentSlide] as any).type;
-                    if (slideType === "explore") {
+                    const slide = heroSlides[currentSlide];
+                    const slideType = slide.type;
+                    const slideLink = slide.link;
+                    
+                    if (slideLink) {
+                      router.push(slideLink);
+                    } else if (slideType === "explore") {
                       router.push("/explore");
-                    } else if (
-                      slideType === "upload"
-                    ) {
+                    } else if (slideType === "upload") {
                       // Check authentication and role before allowing upload
                       if (!isAuthenticated) {
                         router.push("/login");
@@ -867,37 +919,41 @@ export default function Home() {
 
 
         {/* For You Section - Monthly Popular Tracks */}
-        <HorizontalScrollSection title={t('forYou')} viewAllLink="/tracks?sortBy=monthly">
-          {monthlyPopularLoading ? (
-            // Loading skeleton
-            Array.from({ length: 10 }).map((_, index) => (
-              <div
-                key={`loading-${index}`}
-                className="flex-shrink-0 w-48 sm:w-56"
-              >
-                <div className="bg-gray-700 rounded-lg h-48 sm:h-56 animate-pulse mb-3"></div>
-                <div className="bg-gray-700 rounded h-4 w-3/4 animate-pulse mb-2"></div>
-                <div className="bg-gray-700 rounded h-3 w-1/2 animate-pulse"></div>
-              </div>
-            ))
-          ) : (
-            forYouTracks.map((track) => {
-              // Find the full track object to get additional properties
-              // Try to match by _id first (for regular tracks), then by id (for transformed tracks)
-              const fullTrack = trendingTracksData.find(t => t._id === track.id || t._id === (track as any)._id);
-              return (
-                <TrackCard 
-                  key={`for-you-${track.id}`} 
-                  track={track} 
-                  fullTrackData={fullTrack}
-                />
-              );
-            })
-          )}
-        </HorizontalScrollSection>
+        {(homepageContent?.sections.showForYou !== false) && (
+          <HorizontalScrollSection title={t('forYou')} viewAllLink="/tracks?sortBy=monthly">
+            {monthlyPopularLoading ? (
+              // Loading skeleton
+              Array.from({ length: 10 }).map((_, index) => (
+                <div
+                  key={`loading-${index}`}
+                  className="flex-shrink-0 w-48 sm:w-56"
+                >
+                  <div className="bg-gray-700 rounded-lg h-48 sm:h-56 animate-pulse mb-3"></div>
+                  <div className="bg-gray-700 rounded h-4 w-3/4 animate-pulse mb-2"></div>
+                  <div className="bg-gray-700 rounded h-3 w-1/2 animate-pulse"></div>
+                </div>
+              ))
+            ) : (
+              forYouTracks.map((track) => {
+                // Find the full track object to get additional properties
+                // Try to match by _id first (for regular tracks), then by id (for transformed tracks)
+                const fullTrack = trendingTracksData.find(t => t._id === track.id || t._id === (track as any)._id);
+                return (
+                  <TrackCard 
+                    key={`for-you-${track.id}`} 
+                    track={track} 
+                    fullTrackData={fullTrack}
+                  />
+                );
+              })
+            )}
+          </HorizontalScrollSection>
+        )}
 
         {/* Recommended Playlists Section */}
-        <RecommendedPlaylists />
+        {(homepageContent?.sections.showRecommendedPlaylists !== false) && (
+          <RecommendedPlaylists />
+        )}
 
         {/* Trending Vibes Section - Community Posts */}
         <HorizontalScrollSection 
@@ -953,16 +1009,18 @@ export default function Home() {
         </HorizontalScrollSection>
 
         {/* Popular Artists Section */}
-        <HorizontalScrollSection title={t('recommendArtists')} viewAllLink="/artists">
-          {popularCreators.map((creator) => (
-            <ArtistCard 
-              key={creator.id} 
-              creator={creator} 
-              followStatus={followStatus}
-              setFollowStatus={setFollowStatus}
-            />
-          ))}
-        </HorizontalScrollSection>
+        {(homepageContent?.sections.showTrendingArtists !== false) && (
+          <HorizontalScrollSection title={t('recommendArtists')} viewAllLink="/artists">
+            {popularCreators.map((creator) => (
+              <ArtistCard 
+                key={creator.id} 
+                creator={creator} 
+                followStatus={followStatus}
+                setFollowStatus={setFollowStatus}
+              />
+            ))}
+          </HorizontalScrollSection>
+        )}
 
         {/* New Tracks from Followed Artists Section */}
         {isAuthenticated && followedTracks.length > 0 && (
@@ -997,38 +1055,40 @@ export default function Home() {
         </HorizontalScrollSection>
 
         {/* Popular Beats Section - Horizontal Scroll */}
-        <HorizontalScrollSection title={t('popularBeats')} viewAllLink="/beats?sortBy=popularity">
-          {sortedBeatTracks.slice(0, 15).map((track) => {
-            return (
-              <TrackCard 
-                key={`beat-${track._id}`} 
-                track={{
-                  id: track._id,
-                  title: track.title,
-                  artist: typeof track.creatorId === "object" && track.creatorId !== null 
-                    ? (track.creatorId as any).name 
-                    : "Unknown Artist",
-                  coverImage: track.coverURL || '',
-                  plays: track.plays,
-                  likes: track.likes,
-                  duration: track.duration,
-                  audioUrl: track.audioURL || '',
-                  creatorId: typeof track.creatorId === 'object' && track.creatorId !== null 
-                    ? (track.creatorId as any)._id 
-                    : track.creatorId,
-                  type: track.type as 'song' | 'beat' | 'mix' | undefined,
-                  paymentType: track.paymentType as 'free' | 'paid' | undefined,
-                  price: track.price,
-                  currency: track.currency,
-                  creatorWhatsapp: typeof track.creatorId === 'object' && track.creatorId !== null 
-                    ? (track.creatorId as any).whatsappContact 
-                    : undefined
-                }}
-                fullTrackData={track}
-              />
-            );
-          })}
-        </HorizontalScrollSection>
+        {(homepageContent?.sections.showPopularBeats !== false) && (
+          <HorizontalScrollSection title={t('popularBeats')} viewAllLink="/beats?sortBy=popularity">
+            {sortedBeatTracks.slice(0, 15).map((track) => {
+              return (
+                <TrackCard 
+                  key={`beat-${track._id}`} 
+                  track={{
+                    id: track._id,
+                    title: track.title,
+                    artist: typeof track.creatorId === "object" && track.creatorId !== null 
+                      ? (track.creatorId as any).name 
+                      : "Unknown Artist",
+                    coverImage: track.coverURL || '',
+                    plays: track.plays,
+                    likes: track.likes,
+                    duration: track.duration,
+                    audioUrl: track.audioURL || '',
+                    creatorId: typeof track.creatorId === 'object' && track.creatorId !== null 
+                      ? (track.creatorId as any)._id 
+                      : track.creatorId,
+                    type: track.type as 'song' | 'beat' | 'mix' | undefined,
+                    paymentType: track.paymentType as 'free' | 'paid' | undefined,
+                    price: track.price,
+                    currency: track.currency,
+                    creatorWhatsapp: typeof track.creatorId === 'object' && track.creatorId !== null 
+                      ? (track.creatorId as any).whatsappContact 
+                      : undefined
+                  }}
+                  fullTrackData={track}
+                />
+              );
+            })}
+          </HorizontalScrollSection>
+        )}
 
         {/* Rising Tracks Section */}
         <HorizontalScrollSection title={t('risingTracks')} viewAllLink="/tracks?sortBy=engagement">

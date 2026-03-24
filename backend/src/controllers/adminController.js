@@ -276,6 +276,7 @@ const getContentStats = async (_req, res) => {
                 title: track.title,
                 creator: track.creatorId ? track.creatorId.name : 'Unknown',
                 plays: track.plays,
+                uniquePlays: track.uniquePlays || 0,
                 likes: track.likes
             }))
         });
@@ -401,6 +402,284 @@ const deleteUser = async (req, res) => {
 };
 exports.deleteUser = deleteUser;
 
+// Get homepage content (public)
+const getHomepageContent = async (_req, res) => {
+    try {
+        let homepageContent = await require('../models/HomepageContent').findOne();
+        
+        // If no content exists, create default content
+        if (!homepageContent) {
+            const HomepageContent = require('../models/HomepageContent');
+            homepageContent = await HomepageContent.create({
+                slides: [
+                    {
+                        id: 1,
+                        title: 'Discover Rwandan Music',
+                        subtitle: 'Explore the vibrant sounds of Rwanda',
+                        image: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+                        cta: 'Explore Music',
+                        type: 'explore',
+                        link: '/explore',
+                        isActive: true,
+                        order: 0
+                    },
+                    {
+                        id: 2,
+                        title: 'Share Your Talent',
+                        subtitle: 'Upload and connect with fans',
+                        image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+                        cta: 'Upload Track',
+                        type: 'upload',
+                        link: '/upload',
+                        isActive: true,
+                        order: 1
+                    },
+                    {
+                        id: 3,
+                        title: 'Connect With Community',
+                        subtitle: 'Share thoughts and trending vibes',
+                        image: 'https://images.unsplash.com/photo-1524368535928-5b5e00ddc76b?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+                        cta: 'View Vibes',
+                        type: 'vibes',
+                        link: '/community',
+                        isActive: true,
+                        order: 2
+                    }
+                ],
+                currentSlide: 0,
+                autoPlayInterval: 5000,
+                sections: {
+                    showForYou: true,
+                    showPopularBeats: true,
+                    showRecommendedPlaylists: true,
+                    showTrendingArtists: true
+                }
+            });
+        }
+        
+        // Only return active slides, sorted by order
+        const activeSlides = homepageContent.slides
+            .filter(slide => slide.isActive)
+            .sort((a, b) => a.order - b.order);
+        
+        res.json({
+            slides: activeSlides,
+            currentSlide: homepageContent.currentSlide,
+            autoPlayInterval: homepageContent.autoPlayInterval,
+            sections: homepageContent.sections
+        });
+    }
+    catch (error) {
+        console.error('Error in getHomepageContent:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+exports.getHomepageContent = getHomepageContent;
+
+// Update homepage content (admin only)
+const updateHomepageContent = async (req, res) => {
+    try {
+        const { slides, currentSlide, autoPlayInterval, sections } = req.body;
+        
+        let homepageContent = await require('../models/HomepageContent').findOne();
+        
+        if (!homepageContent) {
+            const HomepageContent = require('../models/HomepageContent');
+            homepageContent = new HomepageContent({
+                slides: slides || [],
+                currentSlide: currentSlide || 0,
+                autoPlayInterval: autoPlayInterval || 5000,
+                sections: sections || {}
+            });
+        } else {
+            if (slides) homepageContent.slides = slides;
+            if (currentSlide !== undefined) homepageContent.currentSlide = currentSlide;
+            if (autoPlayInterval !== undefined) homepageContent.autoPlayInterval = autoPlayInterval;
+            if (sections) homepageContent.sections = sections;
+        }
+        
+        await homepageContent.save();
+        
+        res.json({
+            message: 'Homepage content updated successfully',
+            slides: homepageContent.slides,
+            currentSlide: homepageContent.currentSlide,
+            autoPlayInterval: homepageContent.autoPlayInterval,
+            sections: homepageContent.sections
+        });
+    }
+    catch (error) {
+        console.error('Error in updateHomepageContent:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+exports.updateHomepageContent = updateHomepageContent;
+
+// Reorder slides (admin only)
+const reorderSlides = async (req, res) => {
+    try {
+        const { slideIds } = req.body; // Array of slide IDs in new order
+        
+        if (!Array.isArray(slideIds)) {
+            return res.status(400).json({ message: 'slideIds must be an array' });
+        }
+        
+        const homepageContent = await require('../models/HomepageContent').findOne();
+        
+        if (!homepageContent) {
+            return res.status(404).json({ message: 'Homepage content not found' });
+        }
+        
+        // Update order based on new arrangement
+        slideIds.forEach((id, index) => {
+            const slide = homepageContent.slides.find(s => s.id === id);
+            if (slide) {
+                slide.order = index;
+            }
+        });
+        
+        await homepageContent.save();
+        
+        res.json({
+            message: 'Slides reordered successfully',
+            slides: homepageContent.slides.sort((a, b) => a.order - b.order)
+        });
+    }
+    catch (error) {
+        console.error('Error in reorderSlides:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+exports.reorderSlides = reorderSlides;
+
+// Add new slide (admin only)
+const addSlide = async (req, res) => {
+    try {
+        const slideData = req.body;
+        
+        const homepageContent = await require('../models/HomepageContent').findOne();
+        
+        if (!homepageContent) {
+            return res.status(404).json({ message: 'Homepage content not found' });
+        }
+        
+        // Generate new ID
+        const maxId = homepageContent.slides.reduce((max, slide) => Math.max(max, slide.id), 0);
+        slideData.id = maxId + 1;
+        slideData.order = homepageContent.slides.length;
+        slideData.isActive = slideData.isActive !== undefined ? slideData.isActive : true;
+        
+        homepageContent.slides.push(slideData);
+        await homepageContent.save();
+        
+        res.json({
+            message: 'Slide added successfully',
+            slides: homepageContent.slides.sort((a, b) => a.order - b.order)
+        });
+    }
+    catch (error) {
+        console.error('Error in addSlide:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+exports.addSlide = addSlide;
+
+// Update slide (admin only)
+const updateSlide = async (req, res) => {
+    try {
+        const { slideId } = req.params;
+        const updateData = req.body;
+        
+        const homepageContent = await require('../models/HomepageContent').findOne();
+        
+        if (!homepageContent) {
+            return res.status(404).json({ message: 'Homepage content not found' });
+        }
+        
+        const slide = homepageContent.slides.find(s => s.id === parseInt(slideId));
+        
+        if (!slide) {
+            return res.status(404).json({ message: 'Slide not found' });
+        }
+        
+        // Validate that required fields are not being set to empty
+        const requiredFields = ['title', 'subtitle', 'image', 'cta'];
+        const missingFields = [];
+        
+        requiredFields.forEach(field => {
+            if (updateData.hasOwnProperty(field)) {
+                if (!updateData[field] || (typeof updateData[field] === 'string' && !updateData[field].trim())) {
+                    missingFields.push(field);
+                }
+            }
+        });
+        
+        if (missingFields.length > 0) {
+            return res.status(400).json({
+                message: `Missing or empty required fields: ${missingFields.join(', ')}`,
+                requiredFields
+            });
+        }
+        
+        // Update slide properties - only update fields that are provided
+        Object.keys(updateData).forEach(key => {
+            if (key !== 'id' && key !== '_id') {
+                slide[key] = updateData[key];
+            }
+        });
+        
+        // Save with validation only on modified paths
+        await homepageContent.save({ validateModifiedOnly: true });
+        
+        res.json({
+            message: 'Slide updated successfully',
+            slides: homepageContent.slides.sort((a, b) => a.order - b.order)
+        });
+    }
+    catch (error) {
+        console.error('Error in updateSlide:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+exports.updateSlide = updateSlide;
+
+// Delete slide (admin only)
+const deleteSlide = async (req, res) => {
+    try {
+        const { slideId } = req.params;
+        
+        const homepageContent = await require('../models/HomepageContent').findOne();
+        
+        if (!homepageContent) {
+            return res.status(404).json({ message: 'Homepage content not found' });
+        }
+        
+        const initialLength = homepageContent.slides.length;
+        homepageContent.slides = homepageContent.slides.filter(s => s.id !== parseInt(slideId));
+        
+        if (homepageContent.slides.length === initialLength) {
+            return res.status(404).json({ message: 'Slide not found' });
+        }
+        
+        // Reorder remaining slides
+        homepageContent.slides.forEach((slide, index) => {
+            slide.order = index;
+        });
+        
+        await homepageContent.save();
+        
+        res.json({
+            message: 'Slide deleted successfully',
+            slides: homepageContent.slides
+        });
+    }
+    catch (error) {
+        console.error('Error in deleteSlide:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+exports.deleteSlide = deleteSlide;
+
 // Get geographic distribution of listeners
 const getGeographicDistribution = async (_req, res) => {
     try {
@@ -453,5 +732,55 @@ const getGeographicDistribution = async (_req, res) => {
     }
 };
 exports.getGeographicDistribution = getGeographicDistribution;
+
+// Get play history over time
+const getPlayHistory = async (req, res) => {
+    try {
+        const days = parseInt(req.query['days']) || 30;
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - days);
+        
+        // Aggregate plays by date using Track model's plays field
+        // Since we don't have listenergeographies collection yet, we'll use track creation dates
+        const playHistory = await Track_1.aggregate([
+            {
+                $match: {
+                    createdAt: { $gte: startDate }
+                }
+            },
+            {
+                $group: {
+                    _id: {
+                        $dateToString: { format: "%Y-%m-%d", date: "$createdAt" }
+                    },
+                    plays: { $sum: "$plays" },
+                    uniquePlays: { $sum: "$uniquePlays" }
+                }
+            },
+            {
+                $sort: { _id: 1 }
+            }
+        ]);
+        
+        // If no data from aggregate, return empty array with proper format
+        if (!playHistory || playHistory.length === 0) {
+            return res.json([]);
+        }
+        
+        // Format the response
+        const formattedHistory = playHistory.map(item => ({
+            date: item._id,
+            plays: item.plays || 0,
+            uniquePlays: item.uniquePlays || 0
+        }));
+        
+        res.json(formattedHistory);
+    }
+    catch (error) {
+        console.error('Error in getPlayHistory:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+exports.getPlayHistory = getPlayHistory;
 
 //# sourceMappingURL=adminController.js.map

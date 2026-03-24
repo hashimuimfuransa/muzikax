@@ -10,6 +10,12 @@ interface UserGrowthData {
   count: number
 }
 
+interface PlayHistoryData {
+  date: string
+  plays: number
+  uniquePlays: number
+}
+
 interface ContentStat {
   _id: string
   count: number
@@ -52,6 +58,7 @@ interface MostPlayedTrack {
   title: string
   creator: string
   plays: number
+  uniquePlays?: number // Added for unique plays tracking
   likes: number
 }
 
@@ -77,6 +84,7 @@ export default function AnalyticsPage() {
   const [tracksByType, setTracksByType] = useState<TracksByType[]>([])
   const [tracksByGenre, setTracksByGenre] = useState<TracksByGenre[]>([])
   const [mostPlayedTracks, setMostPlayedTracks] = useState<MostPlayedTrack[]>([])
+  const [playHistory, setPlayHistory] = useState<PlayHistoryData[]>([])
   const [totalUsers, setTotalUsers] = useState(0);
   const [totalCreators, setTotalCreators] = useState(0);
   const [totalAdmins, setTotalAdmins] = useState(0);
@@ -112,7 +120,7 @@ export default function AnalyticsPage() {
       setLoading(true)
       
       // Fetch all analytics data
-      const [platformStatsResponse, userStatsResponse, contentStatsResponse, analyticsResponse, geographicResponse] = await Promise.all([
+      const [platformStatsResponse, userStatsResponse, contentStatsResponse, analyticsResponse, geographicResponse, playHistoryResponse] = await Promise.all([
         fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/platform-stats`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
@@ -137,6 +145,11 @@ export default function AnalyticsPage() {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
           }
+        }),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/play-history?days=30`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          }
         })
       ]);
       
@@ -150,6 +163,16 @@ export default function AnalyticsPage() {
       const analyticsData = await analyticsResponse.json();
       const geographicDataRes = await geographicResponse.json();
       
+      // Fetch play history separately (non-critical)
+      let playHistoryData: PlayHistoryData[] = [];
+      try {
+        if (playHistoryResponse.ok) {
+          playHistoryData = await playHistoryResponse.json();
+        }
+      } catch (e) {
+        console.warn('Could not fetch play history:', e);
+      }
+      
       setUserGrowth(platformStats.userGrowth);
       setTopCreators(platformStats.topCreators);
       setContentStats(platformStats.contentStats);
@@ -158,6 +181,7 @@ export default function AnalyticsPage() {
       setTracksByType(contentStatsData.tracksByType);
       setTracksByGenre(contentStatsData.tracksByGenre);
       setMostPlayedTracks(contentStatsData.mostPlayedTracks);
+      setPlayHistory(playHistoryData);
       setTotalUsers(analyticsData.totalUsers);
       setTotalCreators(analyticsData.totalCreators);
       setTotalAdmins(analyticsData.totalAdmins);
@@ -199,6 +223,9 @@ export default function AnalyticsPage() {
     { title: 'Total Tracks', value: totalTracks.toLocaleString(), change: '+15%', icon: 'music', color: 'from-[#6366F1] to-[#6366F1]' },
     { title: 'Total Plays', value: totalPlays.toLocaleString(), change: '+18%', icon: 'play', color: 'from-[#10B981] to-[#10B981]' },
   ];
+
+  // Calculate total unique plays from most played tracks
+  const totalUniquePlays = mostPlayedTracks.reduce((sum, track) => sum + (track.uniquePlays || 0), 0);
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black">
@@ -270,6 +297,89 @@ export default function AnalyticsPage() {
                 </div>
               </div>
             ))}
+            {/* Unique Listeners Card */}
+            <div className="card-bg rounded-2xl p-4 sm:p-6 transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-gray-400 text-xs sm:text-sm mb-1">Unique Listeners</p>
+                  <p className="text-xl sm:text-2xl font-bold text-white">{totalUniquePlays.toLocaleString()}</p>
+                  <p className="text-xs sm:text-sm text-green-500 mt-1">Across top tracks</p>
+                </div>
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] flex items-center justify-center">
+                  <div className="text-white">
+                    <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Plays Over Time Chart */}
+          <div className="card-bg rounded-2xl p-4 sm:p-6 mb-6 sm:mb-8">
+            <h2 className="text-lg sm:text-xl font-bold text-white mb-4 sm:mb-6">Plays & Unique Listeners Over Time</h2>
+            
+            {loading ? (
+              <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF4D67]"></div>
+              </div>
+            ) : error ? (
+              <div className="text-red-500 text-center py-8">{error}</div>
+            ) : playHistory.length > 0 ? (
+              <ResponsiveContainer width="100%" height={350}>
+                <AreaChart data={playHistory}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#444" />
+                  <XAxis 
+                    dataKey="date" 
+                    tick={{ fill: '#9CA3AF', fontSize: 12 }}
+                    tickFormatter={(value: string) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  />
+                  <YAxis 
+                    tick={{ fill: '#9CA3AF', fontSize: 12 }}
+                    tickFormatter={(value: number) => value >= 1000 ? `${(value / 1000).toFixed(1)}k` : value.toString()}
+                  />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', borderRadius: '0.5rem' }}
+                    itemStyle={{ color: 'white' }}
+                    formatter={(value: any, name: any) => {
+                      const label = name === 'plays' ? 'Total Plays' : 'Unique Listeners';
+                      return [(value as number)?.toLocaleString() || '0', label];
+                    }}
+                    labelFormatter={(label: any) => `Date: ${new Date(label as string).toLocaleDateString()}`}
+                  />
+                  <Legend />
+                  <Area 
+                    type="monotone" 
+                    dataKey="plays" 
+                    name="Total Plays"
+                    stroke="#FF4D67" 
+                    fill="url(#colorPlays)" 
+                    strokeWidth={2}
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="uniquePlays" 
+                    name="Unique Listeners"
+                    stroke="#6366F1" 
+                    fill="url(#colorUnique)" 
+                    strokeWidth={2}
+                  />
+                  <defs>
+                    <linearGradient id="colorPlays" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#FF4D67" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#FF4D67" stopOpacity={0.1}/>
+                    </linearGradient>
+                    <linearGradient id="colorUnique" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#6366F1" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#6366F1" stopOpacity={0.1}/>
+                    </linearGradient>
+                  </defs>
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="text-gray-500 text-center py-8">No play history data available</div>
+            )}
           </div>
 
           {/* Charts Row 1 */}
@@ -459,6 +569,7 @@ export default function AnalyticsPage() {
                         <th className="pb-3 font-normal">Track</th>
                         <th className="pb-3 font-normal">Creator</th>
                         <th className="pb-3 font-normal">Plays</th>
+                        <th className="pb-3 font-normal">Unique</th>
                         <th className="pb-3 font-normal">Likes</th>
                       </tr>
                     </thead>
@@ -476,6 +587,9 @@ export default function AnalyticsPage() {
                           </td>
                           <td className="py-3 sm:py-4 text-gray-400 text-sm">
                             {track.plays.toLocaleString()}
+                          </td>
+                          <td className="py-3 sm:py-4 text-gray-400 text-sm">
+                            {track.uniquePlays !== undefined ? track.uniquePlays.toLocaleString() : '-'}
                           </td>
                           <td className="py-3 sm:py-4 text-gray-400 text-sm">
                             {track.likes.toLocaleString()}

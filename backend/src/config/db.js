@@ -63,8 +63,21 @@ const connectDB = async () => {
       maxPoolSize: 10,
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
-      bufferCommands: false  // Disable mongoose buffering
+      bufferCommands: false,  // Disable mongoose buffering
+      // Ensure connection is ready before returning
+      autoCreate: true,
+      autoIndex: true
     });
+    
+    // Wait for connection to be fully ready
+    await new Promise((resolve) => {
+      if (mongoose_1.default.connection.readyState === 1) {
+        resolve(true);
+      } else {
+        mongoose_1.default.connection.once('open', resolve);
+      }
+    });
+    
     console.log(`MongoDB Connected: ${conn.connection.host}`);
     cachedDb = conn;
     return conn;

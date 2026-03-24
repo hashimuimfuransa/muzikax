@@ -8,7 +8,14 @@ const {
   getUserById,
   updateUserRole,
   deleteUser,
-  getGeographicDistribution
+  getGeographicDistribution,
+  getPlayHistory,
+  getHomepageContent,
+  updateHomepageContent,
+  reorderSlides,
+  addSlide,
+  updateSlide,
+  deleteSlide
 } = require('../controllers/adminController');
 
 // Import admin playlist routes
@@ -26,15 +33,22 @@ router.use((_req, _res, next) => {
   next();
 });
 
-// All admin routes require authentication and admin role
-console.log('Applying protect and admin middleware...');
-router.use(protect, (req, res, next) => {
-  console.log('Protect middleware passed');
-  admin(req, res, next);
-});
-
 // Add logging for each route
 console.log('Registering admin routes...');
+
+// Get homepage content (PUBLIC - no auth required) - MUST be BEFORE protect middleware
+router.route('/homepage')
+  .get((_req, res) => {
+    console.log('GET /api/admin/homepage route hit (public)');
+    getHomepageContent(_req, res);
+  });
+
+// All other admin routes require authentication and admin role
+console.log('Applying protect and admin middleware to protected routes...');
+router.use(protect, (req, res, next) => {
+  console.log('Protect middleware passed for protected routes');
+  admin(req, res, next);
+});
 
 // Get admin dashboard analytics
 router.route('/analytics')
@@ -91,6 +105,42 @@ router.route('/geographic-distribution')
   .get((req, res) => {
     console.log('GET /api/admin/geographic-distribution route hit');
     getGeographicDistribution(req, res);
+  });
+
+// Get play history over time
+router.route('/play-history')
+  .get((req, res) => {
+    console.log('GET /api/admin/play-history route hit');
+    getPlayHistory(req, res);
+  });
+
+// Homepage content management routes (protected - admin only)
+router.route('/homepage')
+  .put((req, res) => {
+    console.log('PUT /api/admin/homepage route hit (admin only)');
+    updateHomepageContent(req, res);
+  });
+
+router.route('/homepage/reorder')
+  .put((req, res) => {
+    console.log('PUT /api/admin/homepage/reorder route hit');
+    reorderSlides(req, res);
+  });
+
+router.route('/homepage/slides')
+  .post((req, res) => {
+    console.log('POST /api/admin/homepage/slides route hit');
+    addSlide(req, res);
+  });
+
+router.route('/homepage/slides/:slideId')
+  .put((req, res) => {
+    console.log(`PUT /api/admin/homepage/slides/${req.params.slideId} route hit`);
+    updateSlide(req, res);
+  })
+  .delete((req, res) => {
+    console.log(`DELETE /api/admin/homepage/slides/${req.params.slideId} route hit`);
+    deleteSlide(req, res);
   });
 
 // Admin playlist management routes

@@ -279,36 +279,35 @@ export default function UserManagementPage() {
                 )}
               </>
             )}
-          </div>
-        </div>
 
-      {/* Delete Confirmation Modal */}
-      {showDeleteModal && userToDelete && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="card-bg rounded-2xl p-6 max-w-md w-full">
-            <h3 className="text-xl font-bold text-white mb-2">Confirm Deletion</h3>
-            <p className="text-gray-400 mb-6">
-              Are you sure you want to delete user <span className="text-white font-semibold">{userToDelete?.name}</span>? 
-              This action cannot be undone and will permanently remove all user data.
-            </p>
-            
-            <div className="flex justify-end space-x-3">
-              <button
-                onClick={closeDeleteModal}
-                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDeleteUser}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
-              >
-                Delete User
-              </button>
-            </div>
-          </div>
+            {/* Delete Confirmation Modal */}
+            {showDeleteModal && userToDelete && (
+              <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                <div className="card-bg rounded-2xl p-6 max-w-md w-full">
+                  <h3 className="text-xl font-bold text-white mb-2">Confirm Deletion</h3>
+                  <p className="text-gray-400 mb-6">
+                    Are you sure you want to delete user <span className="text-white font-semibold">{userToDelete?.name}</span>? 
+                    This action cannot be undone and will permanently remove all user data.
+                  </p>
+                  
+                  <div className="flex justify-end space-x-3">
+                    <button
+                      onClick={closeDeleteModal}
+                      className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleDeleteUser}
+                      className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+                    >
+                      Delete User
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
         </div>
-      )}
     </div>
   )
 }

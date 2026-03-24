@@ -19,10 +19,11 @@ export default function ConditionalNavbar() {
     return null;
   }
   
-  // Hide navbar on player page
+  // Hide navbar on player page and admin routes
   const isPlayerPage = pathname === '/player';
+  const isAdminRoute = pathname?.startsWith('/admin');
   
-  if (isPlayerPage) {
+  if (isPlayerPage || isAdminRoute) {
     return null;
   }
   

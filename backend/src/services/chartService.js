@@ -21,6 +21,7 @@ const CHART_WEIGHTS = {
  */
 function calculateTrackScore(track, dailyStats) {
   const totalPlays = track.plays || 0;
+  const uniquePlays = track.uniquePlays || 0;
   const uniqueListeners = dailyStats?.uniqueListeners || 0;
   const likes = track.likes || 0;
   const shares = track.shares || 0;
@@ -28,6 +29,7 @@ function calculateTrackScore(track, dailyStats) {
   
   // Normalize metrics (log scale to prevent extreme outliers)
   const normalizedPlays = Math.log10(totalPlays + 1);
+  const normalizedUniquePlays = Math.log10(uniquePlays + 1);
   const normalizedUnique = Math.log10(uniqueListeners + 1);
   const normalizedLikes = Math.log10(likes + 1);
   const normalizedShares = Math.log10(shares + 1);
@@ -37,20 +39,22 @@ function calculateTrackScore(track, dailyStats) {
   const velocity = dailyStats ? calculateVelocity(dailyStats) : 0;
   const normalizedVelocity = Math.log10(velocity + 1);
   
-  // Apply weights
-  const streamsScore = normalizedPlays * CHART_WEIGHTS.streams * 100;
+  // Apply weights - unique plays gets portion of streams weight
+  const streamsScore = normalizedPlays * CHART_WEIGHTS.streams * 0.7 * 100;
+  const uniquePlaysScore = normalizedUniquePlays * CHART_WEIGHTS.streams * 0.3 * 100;
   const uniqueScore = normalizedUnique * CHART_WEIGHTS.uniqueListeners * 100;
   const likesScore = normalizedLikes * CHART_WEIGHTS.likes * 100;
   const sharesScore = normalizedShares * CHART_WEIGHTS.shares * 100;
   const playlistsScore = normalizedPlaylists * CHART_WEIGHTS.playlists * 100;
   const growthScore = normalizedVelocity * CHART_WEIGHTS.growth * 100;
   
-  const totalScore = streamsScore + uniqueScore + likesScore + sharesScore + playlistsScore + growthScore;
+  const totalScore = streamsScore + uniquePlaysScore + uniqueScore + likesScore + sharesScore + playlistsScore + growthScore;
   
   return {
     totalScore,
     breakdown: {
       streamsScore,
+      uniquePlaysScore,
       uniqueScore,
       likesScore,
       sharesScore,
@@ -59,6 +63,7 @@ function calculateTrackScore(track, dailyStats) {
     },
     metrics: {
       totalPlays,
+      uniquePlays,
       uniqueListeners,
       likes,
       shares,
@@ -204,6 +209,7 @@ async function updateChartScores(timeWindow = 'weekly') {
             [`${timeWindow}Score`]: track.chartScore,
             globalScore: track.chartScore,
             totalPlays: track.chartMetrics.totalPlays,
+            uniquePlays: track.chartMetrics.uniquePlays,
             uniqueListeners: track.chartMetrics.uniqueListeners,
             likes: track.chartMetrics.likes,
             shares: track.chartMetrics.shares,

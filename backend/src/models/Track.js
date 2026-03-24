@@ -94,6 +94,10 @@ const TrackSchema = new mongoose_1.Schema({
         type: Number,
         default: 0
     },
+    uniquePlays: {
+        type: Number,
+        default: 0
+    },
     likes: {
         type: Number,
         default: 0

@@ -33,6 +33,7 @@ interface Track {
   album?: string
   duration: number // in seconds
   plays: number
+  uniquePlays?: number // Added for unique plays tracking
   likes: number // Added likes property
   coverArt?: string
   audioUrl: string
@@ -55,7 +56,9 @@ interface Album {
 }
 interface CreatorStats {
   totalPlays: number
+  totalUniquePlays?: number // Added for unique plays
   monthlyPlays: number
+  monthlyUniquePlays?: number // Added for unique plays
   totalTracks: number
 }
 
@@ -363,6 +366,15 @@ export default function ArtistProfilePage() {
                     <span className="text-white font-bold text-lg">{formatNumber(stats?.totalPlays || 0)}</span>
                     <span className="text-[10px] uppercase tracking-widest font-medium">Total Plays</span>
                   </div>
+                  {stats?.totalUniquePlays !== undefined && (
+                    <>
+                      <div className="w-px h-10 bg-gray-800 hidden md:block"></div>
+                      <div className="flex flex-col">
+                        <span className="text-white font-bold text-lg">{formatNumber(stats.totalUniquePlays)}</span>
+                        <span className="text-[10px] uppercase tracking-widest font-medium">Unique Listeners</span>
+                      </div>
+                    </>
+                  )}
                   <div className="w-px h-10 bg-gray-800 hidden md:block"></div>
                   <div className="flex flex-col">
                     <span className="text-white font-bold text-lg">
@@ -536,6 +548,9 @@ export default function ArtistProfilePage() {
                       
                       <div className="text-right">
                         <p className="text-gray-500 text-xs sm:text-sm">{track.plays.toLocaleString()} plays</p>
+                        {track.uniquePlays !== undefined && (
+                          <p className="text-gray-600 text-[10px] sm:text-xs">{track.uniquePlays.toLocaleString()} unique</p>
+                        )}
                         <div className="flex items-center gap-1 mt-1 justify-end">
                           <svg className="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                             <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd"></path>

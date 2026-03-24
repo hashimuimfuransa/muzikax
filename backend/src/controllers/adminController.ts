@@ -291,6 +291,7 @@ export const getContentStats = async (_req: Request, res: Response): Promise<voi
         title: track.title,
         creator: track.creatorId ? (track.creatorId as any).name : 'Unknown',
         plays: track.plays,
+        uniquePlays: track.uniquePlays || 0,
         likes: track.likes
       }))
     });
@@ -479,4 +480,73 @@ export const getGeographicDistribution = async (_req: Request, res: Response): P
     console.error('Error in getGeographicDistribution:', error);
     res.status(500).json({ message: error.message });
   }
-}
+};
+
+// Get play history over time
+export const getPlayHistory = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const days = parseInt(req.query['days'] as string) || 30;
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    
+    // Aggregate plays by date
+    const playHistory = await Track.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: startDate }
+        }
+      },
+      {
+        $lookup: {
+          from: "listenergeographies",
+          localField: "_id",
+          foreignField: "trackId",
+          as: "plays"
+        }
+      },
+      {
+        $unwind: {
+          path: "$plays",
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $group: {
+          _id: {
+            $dateToString: { format: "%Y-%m-%d", date: "$createdAt" }
+          },
+          plays: { $sum: "$plays.count" },
+          uniquePlays: { $addToSet: "$plays.ipAddress" }
+        }
+      },
+      {
+        $project: {
+          _id: 1,
+          plays: 1,
+          uniquePlays: { $size: "$uniquePlays" }
+        }
+      },
+      {
+        $sort: { _id: 1 }
+      }
+    ]);
+    
+    // If no data from aggregate, return empty array with proper format
+    if (!playHistory || playHistory.length === 0) {
+      res.json([]);
+      return;
+    }
+    
+    // Format the response
+    const formattedHistory = playHistory.map((item: any) => ({
+      date: item._id,
+      plays: item.plays || 0,
+      uniquePlays: item.uniquePlays || 0
+    }));
+    
+    res.json(formattedHistory);
+  } catch (error: any) {
+    console.error('Error in getPlayHistory:', error);
+    res.status(500).json({ message: error.message });
+  }
+};

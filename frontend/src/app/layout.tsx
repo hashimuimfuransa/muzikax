@@ -18,6 +18,9 @@ import SidebarLayoutWrapper from "../components/SidebarLayoutWrapper";
 import PushNotificationInitializer from "../components/PushNotificationInitializer";
 import Footer from "../components/Footer";
 
+// Admin routes that should not have public navbar/footer
+const ADMIN_ROUTES = ['/admin'];
+
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'),
   title: {
@@ -101,6 +104,9 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Check if current route is admin (server-side check won't work, so we'll use client components)
+  // Admin routes will be handled by their own layout without navbar/footer
+  
   return (
     <html lang="en">
       <head>
@@ -163,20 +169,23 @@ export default function RootLayout({
                   <AudioPlayerProvider>
                     <CommunityProvider>
                       <PaymentProvider>
-                        <ConditionalSidebar />
-                        <div className="w-full max-w-[100%] overflow-x-hidden">
-                          <SidebarLayoutWrapper>
-                            <ConditionalNavbar />
-                            <PushNotificationInitializer />
-                            <main className="flex-1 w-full overflow-x-hidden">
-                              {children}
-                            </main>
-                          </SidebarLayoutWrapper>
+                        {/* Conditional rendering - skip for admin routes */}
+                        <div className="admin-layout-wrapper" data-admin-routes={ADMIN_ROUTES.join(',')} style={{ display: 'contents' }}>
+                          <ConditionalSidebar />
+                          <div className="w-full max-w-[100%] overflow-x-hidden">
+                            <SidebarLayoutWrapper>
+                              <ConditionalNavbar />
+                              <PushNotificationInitializer />
+                              <main className="flex-1 w-full overflow-x-hidden">
+                                {children}
+                              </main>
+                            </SidebarLayoutWrapper>
+                          </div>
+                          <ModernAudioPlayer />
+                          <PWAInstallPrompt />
+                          <ContactFloatingButton />
+                          <Footer />
                         </div>
-                        <ModernAudioPlayer />
-                        <PWAInstallPrompt />
-                        <ContactFloatingButton />
-                        <Footer />
                       </PaymentProvider>
                     </CommunityProvider>
                   </AudioPlayerProvider>

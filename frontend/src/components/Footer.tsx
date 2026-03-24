@@ -1,11 +1,21 @@
 'use client'
 
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { useLanguage } from '../contexts/LanguageContext'
 
 export default function Footer() {
+  const pathname = usePathname()
   const currentYear = new Date().getFullYear()
   const { t } = useLanguage()
+  
+  // Hide footer on admin routes and player page
+  const isAdminRoute = pathname?.startsWith('/admin')
+  const isPlayerPage = pathname === '/player'
+  
+  if (isAdminRoute || isPlayerPage) {
+    return null
+  }
 
   // Simplified footer links - only essential ones
   type FooterLink = { name: string; href?: string; icon?: string }
