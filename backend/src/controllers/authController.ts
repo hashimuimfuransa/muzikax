@@ -68,7 +68,23 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Generate tokens
+    // Check if user is an artist - requires 2FA
+    if (user.role === 'creator' && user.creatorType === 'artist') {
+      // For artists, don't complete login yet - send OTP first
+      res.json({
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        creatorType: user.creatorType,
+        requires2FA: true,
+        message: 'OTP sent to your email. Please verify to complete login.',
+        nextStep: 'verify-otp'
+      });
+      return;
+    }
+
+    // For non-artists, complete login normally
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
 
@@ -82,7 +98,8 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       bio: user.bio,
       followersCount: user.followersCount,
       accessToken,
-      refreshToken
+      refreshToken,
+      requires2FA: false
     });
   } catch (error: any) {
     res.status(500).json({ message: error.message });

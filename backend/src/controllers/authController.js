@@ -65,7 +65,22 @@ const login = async (req, res) => {
             res.status(401).json({ message: 'Invalid email or password' });
             return;
         }
-        // Generate tokens
+        // Check if user is an artist - requires 2FA
+        if (user.role === 'creator' && user.creatorType === 'artist') {
+            // For artists, don't complete login yet - send OTP first
+            res.json({
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                creatorType: user.creatorType,
+                requires2FA: true,
+                message: 'OTP sent to your email. Please verify to complete login.',
+                nextStep: 'verify-otp'
+            });
+            return;
+        }
+        // For non-artists, complete login normally
         const accessToken = (0, jwt_1.generateAccessToken)(user);
         const refreshToken = (0, jwt_1.generateRefreshToken)(user);
         res.json({
@@ -78,7 +93,8 @@ const login = async (req, res) => {
             bio: user.bio,
             followersCount: user.followersCount,
             accessToken,
-            refreshToken
+            refreshToken,
+            requires2FA: false
         });
     }
     catch (error) {
@@ -103,6 +119,14 @@ const refreshToken = async (req, res) => {
         const user = await User_1.findById(decoded.id);
         if (!user) {
             res.status(401).json({ message: 'Invalid refresh token' });
+            return;
+        }
+        // Check if user is an artist who needs 2FA
+        if (user.role === 'creator' && user.creatorType === 'artist') {
+            res.status(403).json({ 
+                message: 'Artist account requires 2FA verification. Please login again.',
+                requiresRelogin: true
+            });
             return;
         }
         // Generate new tokens

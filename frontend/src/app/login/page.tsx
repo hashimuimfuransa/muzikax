@@ -21,6 +21,16 @@ function LoginContent() {
   const searchParams = useSearchParams()
   const [redirect, setRedirect] = useState<string | null>(null)
   
+  // 2FA State
+  const [requires2FA, setRequires2FA] = useState(false)
+  const [otp, setOtp] = useState('')
+  const [otpSent, setOtpSent] = useState(false)
+  const [otpError, setOtpError] = useState('')
+  const [userId, setUserId] = useState('')
+  const [userName, setUserName] = useState('')
+  const [userRole, setUserRole] = useState('')
+  const [creatorType, setCreatorType] = useState('')
+  
   useEffect(() => {
     // Manually extract the redirect parameter from the URL to include any query parameters it might have
     const params = new URLSearchParams(window.location.search)
@@ -135,6 +145,7 @@ function LoginContent() {
     
     setIsLoading(true)
     setError('')
+    setOtpError('')
     
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
@@ -153,7 +164,22 @@ function LoginContent() {
       }
 
       const userData = await response.json()
+      
+      // Check if 2FA is required (for artists)
+      if (userData.requires2FA) {
+        // Artist needs to verify OTP
+        setRequires2FA(true)
+        setUserId(userData._id)
+        setUserName(userData.name)
+        setUserRole(userData.role)
+        setCreatorType(userData.creatorType)
+        setOtpSent(true)
+        setIsLoading(false)
+        setError('')
+        return
+      }
     
+      // For non-artists, complete login normally
       // Store access token and refresh token in localStorage
       localStorage.setItem('accessToken', userData.accessToken)
       localStorage.setItem('refreshToken', userData.refreshToken)
@@ -253,6 +279,98 @@ function LoginContent() {
       console.error('Signup error:', error)
       setError('An unexpected error occurred. Please try again.')
     } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Handle OTP verification for artist 2FA
+  const handleOTPVerify = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (otp.length !== 6) {
+      setOtpError('OTP must be 6 digits')
+      return
+    }
+    
+    setIsLoading(true)
+    setOtpError('')
+    
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/2fa/verify`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          email, 
+          otp, 
+          password 
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        setOtpError(errorData.message || 'OTP verification failed')
+        setIsLoading(false)
+        return
+      }
+
+      const userData = await response.json()
+      
+      // Store tokens
+      localStorage.setItem('accessToken', userData.accessToken)
+      localStorage.setItem('refreshToken', userData.refreshToken)
+      
+      // Complete login
+      login({
+        id: userData._id,
+        name: userData.name,
+        email: userData.email,
+        role: userData.role,
+        creatorType: userData.creatorType
+      })
+      
+      // Redirect
+      if (userData.role === 'admin') {
+        router.push('/admin')
+      } else {
+        const redirectPath = redirect || '/';
+        router.push(redirectPath)
+      }
+    } catch (error) {
+      console.error('OTP verification error:', error)
+      setOtpError('An unexpected error occurred. Please try again.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Resend OTP
+  const handleResendOTP = async () => {
+    setIsLoading(true)
+    setOtpError('')
+    
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/2fa/resend`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        setOtpError(errorData.message || 'Failed to resend OTP')
+        setIsLoading(false)
+        return
+      }
+
+      setOtpSent(true)
+      setIsLoading(false)
+    } catch (error) {
+      console.error('Resend OTP error:', error)
+      setOtpError('Failed to resend OTP')
       setIsLoading(false)
     }
   }
@@ -445,6 +563,105 @@ function LoginContent() {
               </button>
             </div>
           </form>
+        )}
+
+        {/* Artist 2FA - OTP Verification */}
+        {requires2FA && (
+          <div className="mt-6 sm:mt-8">
+            <div className="text-center mb-6">
+              <div className="flex justify-center mb-3">
+                <div className="w-16 h-16 bg-gradient-to-r from-[#FF4D67] to-[#FF6B6B] rounded-full flex items-center justify-center">
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                </div>
+              </div>
+              <h2 className="text-xl font-bold text-white mb-2">
+                Two-Factor Authentication
+              </h2>
+              <p className="text-gray-400 text-sm">
+                We've sent a 6-digit code to <strong className="text-white">{email}</strong>
+              </p>
+              <p className="text-gray-500 text-xs mt-2">
+                Check your inbox and spam folder
+              </p>
+            </div>
+
+            <form onSubmit={handleOTPVerify} className="space-y-4">
+              <div>
+                <label htmlFor="otp" className="block text-sm font-medium text-gray-300 mb-2 text-center">
+                  Enter Verification Code
+                </label>
+                <input
+                  id="otp"
+                  name="otp"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="\d{6}"
+                  maxLength={6}
+                  required
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                  className="w-full px-4 py-3 bg-gray-800/50 border-2 border-gray-700 rounded-lg text-white text-center text-2xl tracking-widest focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all"
+                  placeholder="000000"
+                  autoComplete="off"
+                />
+                {otpError && (
+                  <p className="text-red-500 text-xs mt-2 text-center">
+                    {otpError}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <button
+                  type="submit"
+                  disabled={isLoading || otp.length !== 6}
+                  className="w-full py-3 px-4 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FF4D67] focus:ring-offset-gray-900 text-base flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  {isLoading ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Verifying...
+                    </>
+                  ) : (
+                    'Verify & Continue'
+                  )}
+                </button>
+              </div>
+
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={handleResendOTP}
+                  disabled={isLoading}
+                  className="text-sm text-[#FF4D67] hover:text-[#FF6B6B] transition-colors disabled:opacity-50"
+                >
+                  Resend Code
+                </button>
+                <p className="text-gray-500 text-xs mt-2">
+                  Valid for 10 minutes
+                </p>
+              </div>
+            </form>
+
+            <div className="mt-6 pt-6 border-t border-gray-800">
+              <button
+                onClick={() => {
+                  setRequires2FA(false)
+                  setStep(1)
+                  setOtp('')
+                  setOtpError('')
+                }}
+                className="w-full text-sm text-gray-400 hover:text-white transition-colors"
+              >
+                ← Back to Login
+              </button>
+            </div>
+          </div>
         )}
 
         {/* Step 3: Name and Password (Signup) */}

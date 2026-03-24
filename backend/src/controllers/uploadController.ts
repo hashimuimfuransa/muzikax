@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import Track from '../models/Track';
 import User from '../models/User';
 import { protect } from '../utils/jwt';
+import { notifyNewTrackUpload } from './notificationEmailController';
 
 // Helper function to check if user has WhatsApp contact
 const checkUserHasWhatsApp = async (userId: string): Promise<boolean> => {
@@ -89,6 +90,12 @@ export const uploadTrack = async (req: Request, res: Response): Promise<void> =>
     const track = await Track.create(trackData);
 
     console.log('Track created successfully:', track);
+    
+    // Trigger email notifications to followers (non-blocking)
+    notifyNewTrackUpload(track._id.toString(), user._id.toString()).catch(err => {
+      console.error('Error sending new track notification emails:', err);
+    });
+    
     res.status(201).json(track);
   } catch (error: any) {
     console.error('Error uploading track:', error);

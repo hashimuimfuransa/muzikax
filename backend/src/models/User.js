@@ -84,6 +84,44 @@ var UserSchema = new mongoose_1.Schema({
     whatsappContact: {
         type: String,
         default: ''
+    },
+    // Two-Factor Authentication fields
+    is2FAEnabled: {
+        type: Boolean,
+        default: false
+    },
+    twoFactorSecret: {
+        type: String,
+        select: false // Don't return this field by default
+    },
+    // Notification preferences
+    emailNotifications: {
+        newTrackFromFollowing: {
+            type: Boolean,
+            default: true
+        },
+        newPlaylist: {
+            type: Boolean,
+            default: true
+        },
+        trendingOfWeek: {
+            type: Boolean,
+            default: true
+        },
+        recommendedArtists: {
+            type: Boolean,
+            default: true
+        },
+        accountUpdates: {
+            type: Boolean,
+            default: true
+        }
+    },
+    lastEmailSent: {
+        newTrack: Date,
+        playlist: Date,
+        trending: Date,
+        recommendations: Date
     }
 }, {
     timestamps: true,

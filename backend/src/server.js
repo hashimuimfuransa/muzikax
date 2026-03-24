@@ -1,4 +1,7 @@
+require('dotenv').config();
+
 const { initChartAggregator } = require('./jobs/chartAggregator');
+const { initializeScheduledJobs } = require('./jobs/scheduledEmailJobs');
 const redisCache = require('./utils/redisCache');
 const { Server } = require('socket.io');
 const http = require('http');
@@ -78,6 +81,9 @@ const initializeServer = async () => {
     
     // Initialize chart aggregator
     initChartAggregator();
+    
+    // Initialize scheduled email jobs
+    initializeScheduledJobs();
     
   } catch (error) {
     console.error('❌ Failed to initialize server:', error);
