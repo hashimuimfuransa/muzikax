@@ -31,6 +31,86 @@ const register = async (req, res) => {
         // Generate tokens
         const accessToken = (0, jwt_1.generateAccessToken)(user);
         const refreshToken = (0, jwt_1.generateRefreshToken)(user);
+        
+        // Send welcome email to new user
+        try {
+            const emailService = require('../services/emailService');
+            const welcomeHtml = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <div style="background: linear-gradient(135deg, #FF4D67 0%, #FFCB2B 100%); padding: 40px; text-align: center;">
+              <h1 style="color: white; margin: 0; font-size: 32px;">Welcome to MuzikaX! 🎵</h1>
+            </div>
+            
+            <div style="padding: 30px; background-color: #f9f9f9;">
+              <p style="font-size: 18px; color: #333;">Dear ${name},</p>
+              
+              <p style="font-size: 16px; color: #555; line-height: 1.6;">
+                We're thrilled to have you join the MuzikaX community! You've just taken the first step into a world of African music and digital creativity.
+              </p>
+              
+              <div style="background-color: white; padding: 25px; border-radius: 10px; margin: 25px 0;">
+                <h2 style="color: #FF4D67; font-size: 20px; margin-top: 0;">🎉 What's Next?</h2>
+                <ul style="font-size: 16px; color: #555; line-height: 2; padding-left: 20px;">
+                  <li><strong>Complete Your Profile:</strong> Add your photo, bio, and social links</li>
+                  <li><strong>Explore Music:</strong> Discover trending tracks, artists, and albums</li>
+                  <li><strong>Connect:</strong> Follow your favorite artists and creators</li>
+                  <li><strong>Share:</strong> Upload your own tracks, beats, or mixes</li>
+                  <li><strong>Engage:</strong> Like, comment, and share with the community</li>
+                </ul>
+              </div>
+              
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/dashboard" 
+                   style="background: linear-gradient(135deg, #FF4D67 0%, #FFCB2B 100%); 
+                          color: white; 
+                          padding: 15px 40px; 
+                          text-decoration: none; 
+                          border-radius: 30px; 
+                          font-size: 16px; 
+                          font-weight: bold;
+                          display: inline-block;">
+                  Start Exploring →
+                </a>
+              </div>
+              
+              <p style="font-size: 16px; color: #555; line-height: 1.6;">
+                Whether you're here to listen, create, or both, MuzikaX is your platform to shine. Join thousands of other music lovers and creators from Rwanda and across Africa.
+              </p>
+              
+              <p style="font-size: 16px; color: #555;">
+                Need help? Our support team is always here for you.
+              </p>
+              
+              <p style="font-size: 16px; color: #555;">
+                Welcome aboard!<br>
+                <strong style="color: #FF4D67;">The MuzikaX Team</strong>
+              </p>
+            </div>
+            
+            <div style="background-color: #333; padding: 20px; text-align: center; color: #999; font-size: 14px;">
+              <p style="margin: 0;">© ${new Date().getFullYear()} MuzikaX. All rights reserved.</p>
+              <p style="margin: 10px 0 0 0;">Rwanda & African Artists Music Platform</p>
+              <p style="margin: 10px 0 0 0;">
+                <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}" style="color: #FFCB2B; text-decoration: none;">Visit Website</a> | 
+                <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/contact" style="color: #FFCB2B; text-decoration: none;">Contact Support</a>
+              </p>
+            </div>
+          </div>
+        `;
+            
+            await emailService.sendEmail({
+                to: email,
+                subject: 'Welcome to MuzikaX - Your Musical Journey Begins! 🎵',
+                html: welcomeHtml
+            });
+            
+            console.log(`✅ Welcome email sent to ${email}`);
+        }
+        catch (emailError) {
+            console.error('❌ Failed to send welcome email:', emailError);
+            // Don't fail registration if email fails
+        }
+        
         res.status(201).json({
             _id: user._id,
             name: user.name,

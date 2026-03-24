@@ -2,12 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { offlineCacheService, OfflineData } from '@/services/offlineCacheService';
 import { dataPreloaderService, PreloadedData } from '@/services/dataPreloader';
 
 export default function Loading() {
   const router = useRouter();
+  const pathname = usePathname();
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [connectionSpeed, setConnectionSpeed] = useState<'fast' | 'slow' | 'offline'>('fast');
   const [showSlowMessage, setShowSlowMessage] = useState(false);
@@ -64,7 +65,7 @@ export default function Loading() {
     // PRELOAD DATA FROM BACKEND BEFORE PROCEEDING
     const initializeApp = async () => {
       try {
-        console.log('🚀 Preloading critical data before home page...');
+        console.log('🚀 Preloading critical data before proceeding...');
         setIsPreloading(true);
         
         // Fetch data from backend with timeout
@@ -72,13 +73,13 @@ export default function Loading() {
         setPreloadData(data);
         setPreloadError(null);
         
-        console.log('✅ Data preloaded! Proceeding to home page...');
+        console.log('✅ Data preloaded! Proceeding to current page...', pathname);
         
         // Wait a bit more for smooth UX (optional)
         setTimeout(() => {
           setIsPreloading(false);
-          // Navigate to home page with data ready
-          router.push('/');
+          // DON'T redirect - just let the current page render
+          // The loading component will disappear and the actual page will show
         }, 1000);
         
       } catch (error) {
@@ -86,9 +87,10 @@ export default function Loading() {
         setPreloadError(error instanceof Error ? error.message : 'Failed to load data');
         setIsPreloading(false);
         
-        // Still proceed to home page even if preload fails (graceful degradation)
+        // Still proceed without redirect - let the page handle its own data fetching
         setTimeout(() => {
-          router.push('/');
+          setIsPreloading(false);
+          // DON'T redirect - just let the current page render
         }, 2000);
       }
     };

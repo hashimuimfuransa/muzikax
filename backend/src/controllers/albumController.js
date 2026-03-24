@@ -201,23 +201,92 @@ exports.updateAlbum = updateAlbum;
 const deleteAlbum = async (req, res) => {
     try {
         const user = req.user;
-        const album = await Album_1.findById(req.params['id']);
+        const album = await Album_1.findById(req.params['id'])
+            .populate('creatorId', 'email name');
         if (!album) {
             res.status(404).json({ message: 'Album not found' });
             return;
         }
-        // Check if user owns this album
-        if (album.creatorId.toString() !== user._id.toString()) {
+        // Check if user is admin OR owns this album
+        const isAdmin = user.role === 'admin';
+        const isOwner = album.creatorId && album.creatorId._id.toString() === user._id.toString();
+        
+        if (!isAdmin && !isOwner) {
             res.status(401).json({ message: 'Not authorized' });
             return;
         }
+        // Get deletion reason from query params
+        const reason = req.query.reason || 'No reason provided';
         // Remove album reference from tracks
         await Track_1.updateMany({ _id: { $in: album.tracks } }, { $unset: { albumId: "" } });
+        // Delete album cover from S3 if it exists
+        if (album.coverURL) {
+            const { deleteFromS3 } = require('../utils/s3');
+            await deleteFromS3(album.coverURL);
+        }
         await album.deleteOne();
-        res.json({ message: 'Album removed' });
+        // Send email notification to the artist if admin deleted it
+        if (isAdmin && !isOwner && album.creatorId && album.creatorId.email) {
+            try {
+                const emailService = require('../services/emailService');
+                const artistEmail = album.creatorId.email;
+                const artistName = album.creatorId.name || 'Artist';
+                
+                const emailHtml = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <div style="background: linear-gradient(135deg, #FF4D67 0%, #FFCB2B 100%); padding: 30px; text-align: center;">
+              <h1 style="color: white; margin: 0; font-size: 28px;">Album Removal Notice</h1>
+            </div>
+            
+            <div style="padding: 30px; background-color: #f9f9f9;">
+              <p style="font-size: 16px; color: #333;">Dear ${artistName},</p>
+              
+              <p style="font-size: 16px; color: #555; line-height: 1.6;">
+                We regret to inform you that your album <strong>"${album.title}"</strong> has been removed from the MuzikaX platform by our administration team.
+              </p>
+              
+              <div style="background-color: #fff; padding: 20px; border-left: 4px solid #FF4D67; margin: 20px 0;">
+                <p style="font-size: 14px; color: #666; margin: 0;"><strong>Reason for removal:</strong></p>
+                <p style="font-size: 15px; color: #333; margin: 10px 0 0 0;">${reason}</p>
+              </div>
+              
+              <p style="font-size: 16px; color: #555; line-height: 1.6;">
+                If you have any questions or concerns about this decision, please don't hesitate to contact our support team.
+              </p>
+              
+              <p style="font-size: 16px; color: #555;">
+                Best regards,<br>
+                <strong>The MuzikaX Team</strong>
+              </p>
+            </div>
+            
+            <div style="background-color: #333; padding: 20px; text-align: center; color: #999; font-size: 14px;">
+              <p style="margin: 0;">© ${new Date().getFullYear()} MuzikaX. All rights reserved.</p>
+              <p style="margin: 10px 0 0 0;">Rwanda & African Artists Music Platform</p>
+            </div>
+          </div>
+        `;
+                
+                await emailService.sendEmail({
+                    to: artistEmail,
+                    subject: 'Album Removal Notice - MuzikaX',
+                    html: emailHtml
+                });
+                
+                console.log(`✅ Email notification sent to ${artistEmail} about album deletion`);
+            }
+            catch (emailError) {
+                console.error('❌ Failed to send email notification:', emailError);
+                // Don't fail the request if email fails
+            }
+        }
+        res.json({
+            message: 'Album removed successfully',
+            notifiedArtist: isAdmin && !isOwner
+        });
     }
     catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: error.message || 'Failed to delete album' });
     }
 };
 exports.deleteAlbum = deleteAlbum;
