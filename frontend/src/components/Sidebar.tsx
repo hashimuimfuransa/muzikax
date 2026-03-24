@@ -68,6 +68,21 @@ export default function Sidebar() {
         </Link>
 
         <Link
+          href="/charts"
+          className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${
+            pathname === '/charts' 
+              ? 'bg-[#FF4D67] text-white' 
+              : 'text-gray-400 hover:text-white hover:bg-gray-800/40'
+          } ${!isHovered && 'justify-center'}`}
+          title="Charts"
+        >
+          <svg className="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+          {isHovered && <span className="font-semibold tracking-wide">Charts</span>}
+        </Link>
+
+        <Link
           href="/beats"
           className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${
             pathname === '/beats' 

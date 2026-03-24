@@ -15,28 +15,46 @@ exports.getSimilarTracks = exports.getGeneralRecommendations = exports.getPerson
 
 const Track = require("../models/Track");
 const User = require("../models/User");
-const mongoose_1 = require("mongoose");/**
+const mongoose_1 = require("mongoose");
+const redisCache = require("../utils/redisCache");
+
+/**
  * Get personalized recommendations based on user's recently played tracks and preferences
  */
-const getPersonalizedRecommendations = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getPersonalizedRecommendations = async (req, res) => {
     try {
         console.log('Personalized recommendations route hit');
         const userId = req.user && req.user.id;
         const limit = parseInt(req.query['limit']) || 200; // Increased default limit
         const excludeTrackId = req.query['excludeTrackId'];
+        const sortBy = req.query.sortBy || 'popular';
+        const location = req.query.location;
 
         console.log('User ID:', userId);
         console.log('Limit:', limit);
         console.log('Exclude Track ID:', excludeTrackId);
+        console.log('Sort By:', sortBy);
+        console.log('Location:', location);
 
         if (!userId) {
             console.log('No user ID found, returning 401');
-            res.status(401).json({ message: 'Unauthorized' });
-            return;
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+
+        // Try cache first (only for non-location-specific requests)
+        if (!location) {
+            const cacheKey = `recommendations:personalized:${userId}:${limit}:${sortBy}`;
+            const cachedData = await redisCache.get(cacheKey);
+            
+            if (cachedData) {
+                console.log('📦 Cache hit: Personalized recommendations');
+                return res.status(200).json({ ...cachedData, cached: true });
+            }
         }
 
         // Get user's recently played tracks
-        const user = yield User.findById(userId).populate({            path: 'recentlyPlayed.trackId',
+        const user = await User.findById(userId).populate({
+            path: 'recentlyPlayed.trackId',
             model: 'Track',
             populate: {
                 path: 'creatorId',
@@ -47,8 +65,7 @@ const getPersonalizedRecommendations = (req, res) => __awaiter(void 0, void 0, v
 
         if (!user) {
             console.log('User not found, returning 404');
-            res.status(404).json({ message: 'User not found' });
-            return;
+            return res.status(404).json({ message: 'User not found' });
         }
 
         // Extract genres from recently played tracks
@@ -88,6 +105,14 @@ const getPersonalizedRecommendations = (req, res) => __awaiter(void 0, void 0, v
             query._id = { $ne: excludeTrackId };
         }
 
+        // Location-based filtering if provided
+        if (location) {
+            // For location-based requests, prioritize local content
+            // This would require a location field on tracks or creator profiles
+            // For now, we'll use it as a sorting factor
+            console.log('Location-based recommendations requested:', location);
+        }
+
         // Prioritize tracks with preferred genres
         if (sortedGenres.length > 0) {
             query.$or = [
@@ -103,7 +128,6 @@ const getPersonalizedRecommendations = (req, res) => __awaiter(void 0, void 0, v
         console.log('Query:', query);
 
         // Get sort option from query parameters
-        const sortBy = req.query.sortBy || 'popular'; // Default to popular
         let sortOption = { plays: -1 }; // Default sort by popularity
         
         if (sortBy === 'recent') {
@@ -115,27 +139,36 @@ const getPersonalizedRecommendations = (req, res) => __awaiter(void 0, void 0, v
         }
 
         // Get recommended tracks
-        const recommendedTracks = yield Track.find(query)
+        const recommendedTracks = await Track.find(query)
             .populate({
                 path: 'creatorId',
                 model: 'User',
                 select: 'name'
             })
-            .sort(sortOption) // Sort based on selected option
-            .limit(limit * 2) // Get more tracks to filter and shuffle
-            .lean();        console.log('Found tracks:', recommendedTracks.length);
+            .sort(sortOption)
+            .limit(limit * 2)
+            .lean();
+
+        console.log('Found tracks:', recommendedTracks.length);
 
         // Shuffle and limit results
         const shuffledTracks = recommendedTracks
-            .sort(() => 0.5 - Math.random()) // Shuffle
-            .slice(0, limit); // Limit to requested amount
+            .sort(() => 0.5 - Math.random())
+            .slice(0, limit);
 
-        res.status(200).json({ tracks: shuffledTracks });
+        const response = { tracks: shuffledTracks };
+        
+        // Cache the result (only for non-location requests)
+        if (!location) {
+            await redisCache.set(`recommendations:personalized:${userId}:${limit}:${sortBy}`, response, 1800);
+        }
+
+        return res.status(200).json(response);
     } catch (error) {
         console.error('Error getting personalized recommendations:', error);
-        res.status(500).json({ message: 'Internal server error' });
+        return res.status(500).json({ message: 'Internal server error' });
     }
-});
+};
 exports.getPersonalizedRecommendations = getPersonalizedRecommendations;
 
 /**

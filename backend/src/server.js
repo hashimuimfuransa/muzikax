@@ -1,85 +1,78 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
+const app = require('./app');
+const { initChartAggregator } = require('./jobs/chartAggregator');
+const redisCache = require('./utils/redisCache');
+const connectDB = require('./config/db'); // Import DB connection
+const { Server } = require('socket.io');
+const http = require('http');
 
-const app_1 = __importDefault(require("./app"));
-const connectDB = require('./config/db');
-const pythonMlManager = require('./utils/pythonMlManager');
+const PORT = process.env.PORT || 5000;
 
-const startServer = async () => {
-  try {
-    await connectDB();
-    
-    // Start the Python ML recommendation process
-    console.log('Starting Python ML recommendation process...');
-    try {
-      await pythonMlManager.startPythonMlProcess();
-      console.log('Python ML recommendation process started successfully');
-      
-      // Wait a bit to ensure the Python ML API is fully ready
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
-      // Double-check the health of the Python ML service
-      const healthStatus = await pythonMlManager.getMlHealthStatus();
-      if (healthStatus.status === 'online') {
-        console.log('Python ML API is healthy and ready');
-      } else {
-        console.warn('Python ML API may not be fully ready, but continuing with server startup...');
-      }
-    } catch (mlError) {
-      console.error('Failed to start Python ML recommendation process:', mlError);
-      console.log('Continuing with server startup...');
-    }
-    
-    const PORT = process.env['PORT'] || 5000;
-    
-    app_1.default.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-      console.log(`Python ML API should be running on port 5001`);
+// Create HTTP server with Socket.IO
+const httpServer = http.createServer(app);
+const io = new Server(httpServer, {
+  cors: {
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    methods: ['GET', 'POST'],
+    credentials: true
+  }
+});
+
+// Store io instance for use in other modules
+app.io = io;
+
+// Real-time chart updates
+io.on('connection', (socket) => {
+  console.log('🔌 Client connected:', socket.id);
+  
+  socket.on('join-charts', (room) => {
+    socket.join(`charts:${room}`);
+    console.log(`Client ${socket.id} joined charts:${room}`);
+  });
+  
+  socket.on('disconnect', () => {
+    console.log('🔌 Client disconnected:', socket.id);
+  });
+});
+
+// Broadcast chart updates - moved to separate module to avoid circular dependency
+const broadcastChartUpdate = (chartType, data) => {
+  if (io) {
+    io.to(`charts:${chartType}`).emit('chart-updated', {
+      type: chartType,
+      data,
+      timestamp: new Date()
     });
-    
-    // Handle graceful shutdown
-    process.on('SIGINT', async () => {
-      console.log('\nReceived SIGINT, shutting down gracefully...');
-      
-      // Stop the Python ML process
-      try {
-        await pythonMlManager.stopPythonMlProcess();
-        console.log('Python ML process stopped');
-      } catch (error) {
-        console.error('Error stopping Python ML process:', error);
-      }
-      
-      process.exit(0);
-    });
-    
-    process.on('SIGTERM', async () => {
-      console.log('\nReceived SIGTERM, shutting down gracefully...');
-      
-      // Stop the Python ML process
-      try {
-        await pythonMlManager.stopPythonMlProcess();
-        console.log('Python ML process stopped');
-      } catch (error) {
-        console.error('Error stopping Python ML process:', error);
-      }
-      
-      process.exit(0);
-    });
-    
-  } catch (error) {
-    console.error('Failed to start server:', error);
-    
-    // Stop the Python ML process if server fails to start
-    try {
-      await pythonMlManager.stopPythonMlProcess();
-    } catch (mlError) {
-      console.error('Error stopping Python ML process during failure:', mlError);
-    }
   }
 };
 
-startServer();
-//# sourceMappingURL=server.js.map
+// Export for use in other modules
+module.exports = { httpServer, io, broadcastChartUpdate };
+
+httpServer.listen(PORT, async () => {
+  console.log(`✅ Server running on port ${PORT}`);
+  
+  // Connect to MongoDB first
+  try {
+    await connectDB();
+    console.log('✅ MongoDB connected successfully');
+  } catch (error) {
+    console.error('❌ MongoDB connection failed:', error.message);
+  }
+  
+  // Wait a bit to ensure MongoDB is fully ready
+  await new Promise(resolve => setTimeout(resolve, 2000));
+  
+  // Initialize Redis cache (non-blocking)
+  redisCache.connect().catch(err => {
+    console.log('📝 Running without Redis cache - all data will be fetched from database');
+  });
+  
+  // Initialize chart aggregation cron jobs (delayed to ensure DB is connected)
+  setTimeout(() => {
+    initChartAggregator();
+    console.log('✅ Chart aggregator initialized');
+  }, 10000);  // Increased to 10 seconds to ensure MongoDB is fully ready
+  
+  // Log WebSocket status
+  console.log('📡 WebSocket server ready for real-time updates');
+});

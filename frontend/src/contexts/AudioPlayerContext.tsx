@@ -7,6 +7,7 @@ import { getUserFavorites, getUserPlaylists, addTrackToFavorites, removeTrackFro
 import { addRecentlyPlayed } from '../services/recentlyPlayedService';
 import { fetchRecommendedTracks } from '../services/recommendationService';
 import { reportInvalidTrack } from '../services/trackCleanupService';
+import { shareContent } from '../utils/webShare'; // Import modern Web Share API
 
 export type LoopMode = 'none' | 'one' | 'all';
 
@@ -1629,50 +1630,36 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Add shareTrack function
+  // Add shareTrack function using modern Web Share API
   const shareTrack = async (platform: string) => {
     if (!currentTrack) return;
     
-    const trackUrl = `${window.location.origin}/tracks/${currentTrack.id}`;
-    const text = `Check out "${currentTrack.title}" by ${currentTrack.artist} on MuzikaX`;
-    
     try {
-      // Try to use Web Share API first for mobile devices
-      if (navigator.share && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-        await navigator.share({
-          title: currentTrack.title,
-          text: text,
-          url: trackUrl
-        });
-      } else {
-        // For desktop or when Web Share API is not available, use platform-specific sharing
-        switch (platform) {
-          case 'facebook':
-            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(trackUrl)}`, '_blank');
-            break;
-          case 'twitter':
-            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(trackUrl)}`, '_blank');
-            break;
-          case 'whatsapp':
-            window.open(`https://wa.me/?text=${encodeURIComponent(`${text} ${trackUrl}`)}`, '_blank');
-            break;
-          case 'linkedin':
-            window.open(`https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(trackUrl)}&title=${encodeURIComponent(currentTrack.title)}&summary=${encodeURIComponent(text)}`, '_blank');
-            break;
-          case 'copy':
-            await navigator.clipboard.writeText(trackUrl);
-            break;
-          default:
-            // Default to copying link if platform not specified
-            await navigator.clipboard.writeText(trackUrl);
-        }
+      const trackUrl = `${window.location.origin}/tracks/${currentTrack.id}`;
+      
+      // Use the modern Web Share API utility
+      const result = await shareContent(platform, currentTrack.title, trackUrl, currentTrack.coverImage);
+      
+      if (!result.success) {
+        throw new Error('Share failed');
       }
-    } catch (error: any) {
-      // User cancelled share or error occurred
+      
+      // Show appropriate message based on share method
+      if (result.method === 'native') {
+        console.log('✅ Shared via native Web Share API');
+      } else if (result.method === 'copy') {
+        console.log('✅ Link copied to clipboard');
+      } else {
+        console.log(`✅ Shared to ${platform}`);
+      }
+      
+    } catch (error) {
       console.error('Error sharing track:', error);
-      // Fallback to copying link
+      // Final fallback - just copy the URL
       try {
+        const trackUrl = `${window.location.origin}/tracks/${currentTrack.id}`;
         await navigator.clipboard.writeText(trackUrl);
+        console.log('✅ Fallback: Link copied to clipboard');
       } catch (clipboardError) {
         console.error('Failed to copy link:', clipboardError);
       }

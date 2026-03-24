@@ -98,6 +98,18 @@ const TrackSchema = new mongoose_1.Schema({
         type: Number,
         default: 0
     },
+    shares: {
+        type: Number,
+        default: 0
+    },
+    reposts: {
+        type: Number,
+        default: 0
+    },
+    playlistAdditions: {
+        type: Number,
+        default: 0
+    },
     comments: [{
             type: mongoose_1.Schema.Types.ObjectId,
             ref: 'Comment'
@@ -147,6 +159,9 @@ TrackSchema.index({ genre: 1 });
 TrackSchema.index({ type: 1 });
 TrackSchema.index({ albumId: 1 });
 TrackSchema.index({ createdAt: -1 }); // For sorting by newest
+TrackSchema.index({ plays: -1 }); // For chart queries
+TrackSchema.index({ likes: -1 }); // For chart queries
+TrackSchema.index({ shares: -1 }); // For chart queries
 
 // STEM processing indexes
 TrackSchema.index({ hasStems: 1 });

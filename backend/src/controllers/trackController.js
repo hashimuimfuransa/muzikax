@@ -10,6 +10,7 @@ const User_1 = require("../models/User");
 const geoip = require('geoip-lite');
 const { handlePlaybackError } = require("../../cleanup_invalid_tracks");
 const { deleteFromS3, getDownloadSignedUrl, signTrackUrls } = require("../utils/s3");
+const redisCache = require('../utils/redisCache');
 
 // import User from '../models/User'; // Not used in this controller
 // Upload track
@@ -177,6 +178,19 @@ const getAllTracks = async (req, res) => {
                 break;
         }
         
+        // Create cache key (only for simple queries without authentication)
+        const cacheKey = !currentUser && limit > 0 && limit <= 50 ? 
+            `tracks:all:${page}:${limit}:${sortBy}:${sortOrder}` : null;
+        
+        // Try cache first for public requests
+        if (cacheKey) {
+            const cachedData = await redisCache.get(cacheKey);
+            if (cachedData) {
+                console.log('📦 Cache hit: All tracks');
+                return res.json(cachedData);
+            }
+        }
+        
         const trackQuery = Track_1.find(query)
             .populate('creatorId', 'name avatar creatorType')
             .sort(sortObj);
@@ -203,12 +217,19 @@ const getAllTracks = async (req, res) => {
         }));
         
         const total = await Track_1.countDocuments(query);
-        res.json({
+        const response = {
             tracks: tracksWithDefaults,
             page,
             pages: Math.ceil(total / limit),
             total
-        });
+        };
+        
+        // Cache the response for public requests
+        if (cacheKey) {
+            await redisCache.set(cacheKey, response, 900); // 15 minutes
+        }
+        
+        res.json(response);
     }
     catch (error) {
         res.status(500).json({ message: error.message });
@@ -566,6 +587,10 @@ exports.deleteTrack = deleteTrack;
 // Increment play count
 const incrementPlayCount = async (req, res) => {
     try {
+        // Apply fraud detection
+        const { validatePlay } = require('../utils/fraudDetection');
+        const validation = validatePlay(req, req.query.duration ? parseInt(req.query.duration) : 0);
+        
         const track = await Track_1.findByIdAndUpdate(req.params['id'], { $inc: { plays: 1 } }, { new: true });
         if (!track) {
             res.status(404).json({ message: 'Track not found' });
@@ -575,7 +600,7 @@ const incrementPlayCount = async (req, res) => {
         // Update earnings for the creator if they are monetized
         try {
             const { updateEarnings } = require('./monetizationController');
-            await updateEarnings(track.creatorId, 1);
+            await updateEarnings(track.creatorId, validation.shouldCount ? 1 : 0);
         } catch (earningsError) {
             console.error('Error updating earnings:', earningsError);
             // Don't fail the play count update if earnings update fails
@@ -584,7 +609,7 @@ const incrementPlayCount = async (req, res) => {
         // Capture IP address and store geography data
         const ipAddress = req.ip || req.connection.remoteAddress || "";
         const cleanIpAddress = ipAddress.replace("::ffff:", "");
-        if (cleanIpAddress) {
+        if (cleanIpAddress && validation.shouldCount !== false) {
             // Get geography data from IP
             const geo = geoip.lookup(cleanIpAddress);
             if (geo) {
@@ -615,17 +640,43 @@ const incrementPlayCount = async (req, res) => {
                 userAgent: req.get('User-Agent'),
                 timestamp: now,
                 year: now.getFullYear(),
-                month: now.getMonth() + 1 // JavaScript months are 0-indexed
+                month: now.getMonth() + 1, // JavaScript months are 0-indexed
+                isValidated: !validation.filtered,
+                isSuspicious: validation.isSuspicious
             });
         } catch (playHistoryError) {
             console.error('Error recording play history:', playHistoryError);
             // Don't fail the main play count update if play history fails
         }
         
+        // Log to daily stats if valid
+        if (validation.shouldCount !== false) {
+            const DailyStats = require('../models/DailyStats');
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            await DailyStats.findOneAndUpdate(
+                { trackId: track._id, date: today },
+                {
+                    $inc: { plays: 1, uniqueListeners: validation.userId ? 1 : 0 },
+                    $setOnInsert: { trackId: track._id, date: today }
+                },
+                { upsert: true, new: true }
+            );
+        }
+        
         // Sign track URLs
         const signedTrack = await signTrackUrls(track);
         
-        res.json(signedTrack);
+        res.json({
+            ...signedTrack,
+            playValidation: {
+                shouldCount: validation.shouldCount !== false,
+                isSuspicious: validation.isSuspicious,
+                filtered: validation.filtered,
+                reason: validation.reason || 'Valid play'
+            }
+        });
     }
     catch (error) {
         console.error('Error incrementing play count:', error);
@@ -638,6 +689,16 @@ exports.incrementPlayCount = incrementPlayCount;
 const getMonthlyPopularTracks = async (req, res) => {
     try {
         const limit = parseInt(req.query.limit) || 20;
+        
+        // Try cache first
+        const cachedData = await redisCache.getCachedMonthlyPopular(limit);
+        if (cachedData) {
+            console.log('📦 Cache hit: Monthly popular tracks');
+            return res.json(cachedData);
+        }
+        
+        console.log('💾 Cache miss: Fetching from database');
+        
         const now = new Date();
         const currentYear = now.getFullYear();
         const currentMonth = now.getMonth() + 1; // JavaScript months are 0-indexed
@@ -711,6 +772,9 @@ const getMonthlyPopularTracks = async (req, res) => {
         // Sign track URLs
         const signedTopTracks = await Promise.all(topTracks.map(track => signTrackUrls(track)));
         
+        // Cache the result
+        await redisCache.cacheMonthlyPopular(limit, signedTopTracks);
+        
         res.json(signedTopTracks);
     } catch (error) {
         console.error('Error getting monthly popular tracks:', error);
@@ -725,6 +789,18 @@ const getTrendingTracks = async (req, res) => {
             const limitParam = req.query['limit'];
             const limit = limitParam !== undefined ? parseInt(limitParam) : 10;
             const sortBy = req.query['sortBy'] || 'plays'; // Default to popularity
+            
+            // Create cache key params
+            const cacheParams = { limit, sortBy };
+            
+            // Try cache first
+            const cachedData = await redisCache.getCachedTrending(cacheParams);
+            if (cachedData) {
+                console.log('📦 Cache hit: Trending tracks');
+                return res.json(cachedData);
+            }
+            
+            console.log('💾 Cache miss: Fetching from database');
             
             // Build sort object based on query parameter
             let sortOptions = {};
@@ -763,6 +839,9 @@ const getTrendingTracks = async (req, res) => {
                 return await signTrackUrls(trackObj);
             }));
             
+            // Cache the result
+            await redisCache.cacheTrending(cacheParams, tracksWithDefaults);
+            
             res.json(tracksWithDefaults);
         }
     catch (error) {
@@ -780,6 +859,16 @@ const getTracksByType = async (req, res) => {
         if (!type) {
             res.status(400).json({ message: 'Type parameter is required' });
             return;
+        }
+        
+        // Try cache first (only if limit > 0)
+        if (limit > 0) {
+            const cachedData = await redisCache.getCachedTracksByType(type, limit);
+            if (cachedData) {
+                console.log(`📦 Cache hit: Tracks by type ${type}`);
+                return res.json(cachedData);
+            }
+            console.log(`💾 Cache miss: Fetching ${type} tracks from database`);
         }
         
         // Handle the case where 'beat' should return both 'beat' and 'beta' types
@@ -814,6 +903,11 @@ const getTracksByType = async (req, res) => {
             // Sign track URLs
             return await signTrackUrls(trackObj);
         }));
+        
+        // Cache the result (only if limit > 0)
+        if (limit > 0) {
+            await redisCache.cacheTracksByType(type, limit, tracksWithDefaults);
+        }
         
         res.json(tracksWithDefaults);
     }

@@ -68,6 +68,9 @@ const contactMessageRoutes = require('./routes/contactMessageRoutes');
 // Import audio proxy routes
 const audioProxyRoutes = require('./routes/audioProxyRoutes');
 
+// Import chart routes
+const chartRoutes = require('./routes/chartRoutes');
+
 // Load env vars
 dotenv.config();
 
@@ -324,6 +327,13 @@ console.log('Contact message routes registered');
 // Register audio proxy routes
 app.use('/api/audio-proxy', audioProxyRoutes);
 console.log('Audio proxy routes registered');
+
+// Register chart routes
+app.use('/api/charts', chartRoutes);
+console.log('Chart routes registered');
+
+// Register engagement routes (if not already included in chart routes)
+// Note: Engagement tracking is handled within chart routes
 
 // Directly implement profile update route in app.js to avoid 404 issues
 // User route for updating own profile directly in app

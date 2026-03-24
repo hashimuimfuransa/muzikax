@@ -44,8 +44,16 @@ dotenv.config();
 let cachedDb = null;
 
 const connectDB = async () => {
-  if (cachedDb) {
+  // Check if we already have a connection
+  if (cachedDb && cachedDb.connections && cachedDb.connections.length > 0) {
     console.log('Using existing database connection');
+    return cachedDb;
+  }
+  
+  // Check if mongoose is already connected
+  if (mongoose_1.default.connection.readyState === 1) {
+    console.log('MongoDB already connected, using existing connection');
+    cachedDb = mongoose_1.default.connection;
     return cachedDb;
   }
   

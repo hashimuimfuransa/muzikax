@@ -31,8 +31,8 @@ const paymentSchema = new mongoose.Schema({
   },
   momoTransactionId: {
     type: String,
-    unique: true,
     sparse: true
+    // Note: Don't use unique: true here as we create the index below to avoid duplicate index warning
   },
   momoReferenceId: {
     type: String

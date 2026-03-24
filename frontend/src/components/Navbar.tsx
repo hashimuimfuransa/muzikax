@@ -349,6 +349,9 @@ export default function Navbar() {
           <Link href="/explore" className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800" onClick={() => setIsMenuOpen(false)}>
             {t('explore')}
           </Link>
+          <Link href="/charts" className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800" onClick={() => setIsMenuOpen(false)}>
+            🎵 Charts
+          </Link>
           <Link href="/beats" className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800" onClick={() => setIsMenuOpen(false)}>
             {t('beats')}
           </Link>

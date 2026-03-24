@@ -141,6 +141,14 @@ export default function Home() {
       image:
         "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
       cta: "Upload Track",
+    },
+    {
+      id: 3,
+      title: "Top Charts & Trends",
+      subtitle: "Discover the hottest tracks trending in Rwanda",
+      image:
+        "https://images.unsplash.com/photo-1514525253440-b393452e8d26?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1974&q=80",
+      cta: "View Charts",
     }
   ];
 
@@ -343,6 +351,8 @@ export default function Home() {
                         // Fans can upgrade to creator, redirect to upload page
                         router.push("/upload");
                       }
+                    } else if (heroSlides[currentSlide].cta === "View Charts") {
+                      router.push("/charts");
                     } else {
                       router.push("/");
                     }
@@ -351,6 +361,12 @@ export default function Home() {
                   {heroSlides[currentSlide].cta}
                 </button>
 
+                <Link
+                  href="/charts"
+                  className="px-5 py-2.5 sm:px-6 sm:py-3 bg-white/10 backdrop-blur-sm hover:bg-white/20 font-medium rounded-lg transition-all hover:scale-105 text-sm sm:text-base text-white border border-white/20"
+                >
+                  🎵 Charts
+                </Link>
               </div>
             </div>
           </div>
