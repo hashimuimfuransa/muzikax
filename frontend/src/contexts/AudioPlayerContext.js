@@ -137,8 +137,11 @@ export const AudioPlayerProvider = ({ children }) => {
         console.log('currentTrack:', currentTrack);
         console.log('isMinimized:', isMinimized);
         console.log('explicitlyPlayedRef.current:', explicitlyPlayedRef.current);
+        console.log('Playback context:', currentPlaybackContext.current);
+        
+        // Only navigate if we have a track, player is not minimized, and it was explicitly played
         if (currentTrack && !isMinimized && explicitlyPlayedRef.current) {
-            console.log('Navigating to /player');
+            console.log('Navigating to /player from route:', window.location.pathname);
             router.push('/player');
             // Reset the flag after navigation
             explicitlyPlayedRef.current = false;
@@ -203,7 +206,7 @@ export const AudioPlayerProvider = ({ children }) => {
         }
         // Set the playback context
         if (albumContext) {
-            console.log('Setting album context');
+            console.log('🎵 Setting ALBUM context:', albumContext);
             currentPlaybackContext.current = {
                 type: 'album',
                 data: albumContext,
@@ -227,6 +230,7 @@ export const AudioPlayerProvider = ({ children }) => {
                 setQueue(prev => [...prev, ...remainingAlbumTracks]);
                 console.log(`Added ${remainingAlbumTracks.length} remaining album tracks to queue`);
             }
+            console.log('✅ Album context set successfully');
         }
         else if (contextPlaylist && contextPlaylist.length > 0) {
             console.log('Setting playlist context with tracks:', contextPlaylist);

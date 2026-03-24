@@ -52,6 +52,7 @@ const AlbumDetailClient = ({ album }: AlbumDetailClientProps) => {
   const [isPlayingAlbum, setIsPlayingAlbum] = useState(false);
 
   const handlePlayAlbum = () => {
+    console.log('🎵 Playing album:', album.title);
     setIsPlayingAlbum(true);
     if (album.tracks.length > 0) {
       // Play the first track of the album
@@ -92,10 +93,12 @@ const AlbumDetailClient = ({ album }: AlbumDetailClientProps) => {
           : track.creatorWhatsapp
       }));
       
+      console.log('Calling playTrack with album context');
       playTrack(firstTrack, convertedAlbumTracks, { 
         albumId: album._id || album.id, 
         tracks: convertedAlbumTracks
       });
+      console.log('playTrack call completed');
     }
   };
 

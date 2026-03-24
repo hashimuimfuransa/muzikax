@@ -6,6 +6,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { FaPlus, FaMusic, FaUserFriends, FaFire, FaShare } from 'react-icons/fa';
 import { proxyUpload } from '../../services/s3Service';
+import { extractVideoThumbnail, compressImage } from '../../utils/videoThumbnail';
 
 interface Vibe {
   id: string;
@@ -37,7 +38,7 @@ const CommunityContent = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newVibe, setNewVibe] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [mediaFile, setMediaFile] = useState<{cdnUrl: string, isImage: boolean} | null>(null);
+  const [mediaFile, setMediaFile] = useState<{cdnUrl: string, isImage: boolean, thumbnail?: string} | null>(null);
   const [previewUrl, setPreviewUrl] = useState('');
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
@@ -285,6 +286,19 @@ const CommunityContent = () => {
           return;
         }
 
+        // Extract thumbnail for videos BEFORE upload
+        let thumbnailDataUrl: string | undefined;
+        if (file.type.startsWith('video/')) {
+          try {
+            // Extract thumbnail at 1 second mark
+            const rawThumbnail = await extractVideoThumbnail(file, 1);
+            // Compress thumbnail for better performance
+            thumbnailDataUrl = await compressImage(rawThumbnail, 640, 360, 0.75);
+          } catch (error) {
+            console.warn('Failed to extract video thumbnail, will use default:', error);
+          }
+        }
+
         const { fileUrl } = (await proxyUpload(file, accessToken, (progress) => {
           setUploadProgress(progress);
         })) as any;
@@ -292,7 +306,8 @@ const CommunityContent = () => {
         const isImage = file.type.startsWith('image/');
         setMediaFile({
           cdnUrl: fileUrl,
-          isImage: isImage
+          isImage: isImage,
+          thumbnail: thumbnailDataUrl
         });
         setPreviewUrl(fileUrl);
       } catch (error) {
@@ -323,6 +338,10 @@ const CommunityContent = () => {
 
       if (mediaFile) {
         postData.mediaUrl = mediaFile.cdnUrl;
+        // Send thumbnail if available (for videos)
+        if (mediaFile.thumbnail) {
+          postData.mediaThumbnail = mediaFile.thumbnail;
+        }
       }
       
       const response = await makeApiRequest(`${process.env.NEXT_PUBLIC_API_URL}/api/community/posts`, {
@@ -813,13 +832,71 @@ const CommunityContent = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="relative rounded-lg overflow-hidden border border-gray-700">
-                    {mediaFile?.isImage ? (
-                      <img src={previewUrl} className="max-h-48 w-full object-contain bg-black/20" />
-                    ) : (
-                      <video src={previewUrl} className="max-h-48 w-full object-contain bg-black" />
+                  <div className="space-y-3">
+                    <div className="relative rounded-lg overflow-hidden border border-gray-700">
+                      {mediaFile?.isImage ? (
+                        <img src={previewUrl} className="max-h-48 w-full object-contain bg-black/20" />
+                      ) : (
+                        <>
+                          <video src={previewUrl} className="max-h-48 w-full object-contain bg-black" />
+                          {/* Show auto-extracted thumbnail preview */}
+                          {mediaFile?.thumbnail && (
+                            <div className="mt-2 p-2 bg-gray-900/50 rounded-lg">
+                              <p className="text-xs text-gray-400 mb-2">Auto-generated Thumbnail:</p>
+                              <img src={mediaFile.thumbnail} alt="Video thumbnail" className="w-full h-24 object-cover rounded" />
+                            </div>
+                          )}
+                        </>
+                      )}
+                      <button onClick={removeMedia} className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center">×</button>
+                    </div>
+                    
+                    {/* Optional custom thumbnail upload for videos */}
+                    {!mediaFile?.isImage && (
+                      <div className="relative border-2 border-dashed border-gray-600 rounded-xl p-3 text-center hover:border-[#FF4D67] transition-colors">
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          onChange={async (e) => {
+                            if (e.target.files && e.target.files[0]) {
+                              const thumbFile = e.target.files[0];
+                              try {
+                                // Upload custom thumbnail
+                                let accessToken = localStorage.getItem('accessToken');
+                                if (!accessToken) {
+                                  const refreshToken = localStorage.getItem('refreshToken');
+                                  if (refreshToken) {
+                                    const refreshResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh-token`, {
+                                      method: 'POST',
+                                      headers: { 'Content-Type': 'application/json' },
+                                      body: JSON.stringify({ refreshToken })
+                                    });
+                                    if (refreshResponse.ok) {
+                                      const refreshData = await refreshResponse.json();
+                                      accessToken = refreshData.accessToken;
+                                      localStorage.setItem('accessToken', refreshData.accessToken);
+                                      localStorage.setItem('refreshToken', refreshData.refreshToken);
+                                    }
+                                  }
+                                }
+                                
+                                if (accessToken) {
+                                  const { fileUrl } = (await proxyUpload(thumbFile, accessToken)) as any;
+                                  setMediaFile(prev => prev ? { ...prev, thumbnail: fileUrl } : null);
+                                }
+                              } catch (error) {
+                                console.error('Error uploading custom thumbnail:', error);
+                              }
+                            }
+                          }}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
+                        />
+                        <div className="flex flex-col items-center">
+                          <span className="text-xs text-gray-400">📷 Upload Custom Thumbnail</span>
+                          <span className="text-[10px] text-gray-500 mt-1">Optional - Replace auto-generated thumbnail</span>
+                        </div>
+                      </div>
                     )}
-                    <button onClick={removeMedia} className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center">×</button>
                   </div>
                 )}
                 {isUploading && uploadProgress > 0 && uploadProgress < 100 && (

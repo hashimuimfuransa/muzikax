@@ -19,6 +19,24 @@ interface VibeCardProps {
 const VibeCard: React.FC<VibeCardProps> = ({ vibe }) => {
   const firstLetter = vibe.userName ? vibe.userName.charAt(0).toUpperCase() : '?';
 
+  // Generate a gradient thumbnail for videos without mediaThumbnail
+  const getVideoFallbackThumbnail = () => {
+    const gradients = [
+      'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+      'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+      'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+      'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+      'linear-gradient(135deg, #30cfd0 0%, #330867 100%)',
+      'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+      'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
+    ];
+    
+    // Use a consistent gradient based on vibe ID
+    const index = vibe.id.charCodeAt(vibe.id.length - 1) % gradients.length;
+    return gradients[index];
+  };
+
   return (
     <Link 
       href={`/community?postId=${vibe.id}`} 
@@ -71,6 +89,23 @@ const VibeCard: React.FC<VibeCardProps> = ({ vibe }) => {
                       alt="Video thumbnail" 
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                     />
+                  ) : vibe.mediaUrl ? (
+                    // Show video with poster generated from first frame or fallback gradient
+                    <div 
+                      className="w-full h-full relative"
+                      style={{ background: getVideoFallbackThumbnail() }}
+                    >
+                      {/* Overlay play icon to indicate it's a video */}
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                          <svg className="w-8 h-8 fill-current text-white" viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z" />
+                          </svg>
+                        </div>
+                      </div>
+                      {/* Gradient overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+                    </div>
                   ) : (
                     <div className="w-full h-full bg-gray-700 flex items-center justify-center">
                       <span className="text-4xl">🎥</span>

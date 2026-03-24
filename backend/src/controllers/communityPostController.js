@@ -5,11 +5,12 @@ const Track = require('../models/Track');
 const Message = require('../models/Message');
 const Chat = require('../models/Chat');
 const { deleteFromS3 } = require('../utils/s3');
+const { extractVideoThumbnail, getOptimalThumbnailTime } = require('../utils/videoThumbnail');
 
 // Create a new community post
 exports.createCommunityPost = async (req, res) => {
   try {
-    const { content, postType, circleId, mediaUrl, language, location, genre, tags, relatedTrackId, relatedArtistId } = req.body;
+    const { content, postType, circleId, mediaUrl, mediaThumbnail, language, location, genre, tags, relatedTrackId, relatedArtistId } = req.body;
     const userId = req.user._id;
 
     // Validate required fields
@@ -48,6 +49,30 @@ exports.createCommunityPost = async (req, res) => {
     }
     
     if (mediaUrl) postData.mediaUrl = mediaUrl;
+    if (mediaThumbnail) postData.mediaThumbnail = mediaThumbnail;
+    
+    // Auto-extract thumbnail for videos if not provided
+    if (postType === 'video' && mediaUrl && !mediaThumbnail) {
+      try {
+        console.log('Auto-extracting thumbnail for video:', mediaUrl);
+        // Note: For S3 URLs, you'd need to download the video first or use a stream
+        // This is a simplified example - in production, you might want to use a queue system
+        const optimalTime = getOptimalThumbnailTime(30); // Default 30s assumption
+        // Thumbnail extraction happens asynchronously
+        extractVideoThumbnail(mediaUrl, optimalTime)
+          .then(async (thumbnailUrl) => {
+            // Update the post with the extracted thumbnail
+            await CommunityPost.findByIdAndUpdate(savedPost._id, {
+              mediaThumbnail: thumbnailUrl
+            });
+            console.log('Thumbnail extracted and post updated:', thumbnailUrl);
+          })
+          .catch(err => console.error('Thumbnail extraction failed:', err));
+      } catch (err) {
+        console.warn('Failed to extract thumbnail, will use fallback:', err);
+      }
+    }
+    
     if (language) postData.language = language;
     if (location) postData.location = location;
     if (genre) postData.genre = genre;

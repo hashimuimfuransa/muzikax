@@ -201,6 +201,31 @@ export default function Home() {
     };
   }, [refreshTrendingTracks]);
 
+  // Initialize reveal on scroll animations
+  useEffect(() => {
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px',
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, observerOptions);
+
+    // Observe all reveal-on-scroll elements
+    const revealElements = document.querySelectorAll('.reveal-on-scroll');
+    revealElements.forEach((el) => observer.observe(el));
+
+    return () => {
+      revealElements.forEach((el) => observer.unobserve(el));
+    };
+  }, []);
+
   // Transform tracks data to match existing interface
   const allTracks: Track[] = trendingTracksData
     .map((track) => ({
@@ -285,13 +310,15 @@ export default function Home() {
     <div className="flex flex-col md:flex-row min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black w-full relative overflow-visible">
       {/* Loading overlay for initial data fetch */}
       {trendingLoading && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-          <div className="text-white text-xl">Loading...</div>
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 backdrop-blur-sm">
+          <div className="text-white text-xl gradient-text-animated font-bold">Loading...</div>
         </div>
       )}
       {/* Background decorative elements - repositioned to avoid overflow */}
-      <div className="absolute top-10 left-10 w-64 h-64 bg-[#FF4D67]/10 rounded-full blur-3xl -z-10 hidden md:block"></div>
-      <div className="absolute bottom-10 right-10 w-64 h-64 bg-[#FFCB2B]/10 rounded-full blur-3xl -z-10 hidden md:block"></div>
+      <div className="absolute top-10 left-10 w-64 h-64 bg-[#FF4D67]/10 rounded-full blur-3xl -z-10 hidden md:block animate-pulse"></div>
+      <div className="absolute bottom-10 right-10 w-64 h-64 bg-[#FFCB2B]/10 rounded-full blur-3xl -z-10 hidden md:block animate-pulse animation-delay-2000"></div>
+      {/* Additional modern background effects */}
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-[#FF4D67]/5 to-[#FFCB2B]/5 rounded-full blur-3xl -z-10 hidden lg:block"></div>
 
       {/* Mobile menu functionality is handled in the Navbar component */}
 
@@ -305,7 +332,7 @@ export default function Home() {
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col w-full min-h-screen">
         {/* Enhanced Hero Section with Image Slider */}
-        <section className="relative py-8 md:py-12 lg:py-16 overflow-hidden w-full">
+        <section className="relative py-4 md:py-6 lg:py-8 overflow-hidden w-full">
           <div className="absolute inset-0">
             {heroSlides.map((slide, index) => (
               <div
@@ -315,7 +342,7 @@ export default function Home() {
                 }`}
               >
                 <div
-                  className="absolute inset-0 bg-cover bg-center"
+                  className="absolute inset-0 bg-cover bg-center scale-105"
                   style={{ backgroundImage: `url(${slide.image})` }}
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-gray-900 via-gray-900/70 to-gray-900/30"></div>
@@ -326,15 +353,15 @@ export default function Home() {
 
           <div className="w-full px-4 md:px-8 relative z-10">
             <div className="max-w-3xl mx-auto text-center">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] mb-4 sm:mb-6 animate-fade-in">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] mb-4 sm:mb-6 animate-fade-in gradient-text-animated drop-shadow-lg">
                 {heroSlides[currentSlide].title}
               </h1>
-              <p className="text-lg sm:text-xl md:text-2xl text-gray-200 mb-6 sm:mb-8 animate-fade-in-delay">
+              <p className="text-lg sm:text-xl md:text-2xl text-gray-200 mb-6 sm:mb-8 animate-fade-in-delay drop-shadow-md">
                 {heroSlides[currentSlide].subtitle}
               </p>
-              <div className="flex flex-wrap gap-3 sm:gap-4 justify-center animate-fade-in-delay-2">
+              <div className="flex flex-wrap gap-2 sm:gap-3 justify-center animate-fade-in-delay-2">
                 <button
-                  className="px-5 py-2.5 sm:px-6 sm:py-3 btn-primary font-medium rounded-lg transition-all hover:scale-105 text-sm sm:text-base"
+                  className="px-4 py-2 sm:px-6 sm:py-3 btn-primary font-semibold rounded-xl transition-all hover:scale-105 text-sm sm:text-base shadow-lg hover:shadow-2xl hover:shadow-[#FF4D67]/30 fab-spring glassmorphism-advanced"
                   onClick={() => {
                     // Primary CTA button functionality
                     if (heroSlides[currentSlide].cta === "Explore Music") {
@@ -363,7 +390,7 @@ export default function Home() {
 
                 <Link
                   href="/charts"
-                  className="px-5 py-2.5 sm:px-6 sm:py-3 bg-white/10 backdrop-blur-sm hover:bg-white/20 font-medium rounded-lg transition-all hover:scale-105 text-sm sm:text-base text-white border border-white/20"
+                  className="px-4 py-2 sm:px-6 sm:py-3 bg-white/10 backdrop-blur-md hover:bg-white/20 font-semibold rounded-xl transition-all hover:scale-105 text-sm sm:text-base text-white border border-white/30 shadow-lg hover:shadow-xl fab-spring glassmorphism-advanced"
                 >
                   🎵 Charts
                 </Link>
@@ -372,15 +399,15 @@ export default function Home() {
           </div>
 
           {/* Slider Indicators */}
-          <div className="absolute bottom-4 sm:bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-2">
+          <div className="absolute bottom-4 sm:bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-2 glassmorphism-advanced px-4 py-2 rounded-full">
             {heroSlides.map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentSlide(index)}
-                className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all ${
+                className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all duration-300 fab-spring ${
                   index === currentSlide
-                    ? "bg-[#FF4D67] w-4 sm:w-6"
-                    : "bg-white/50 hover:bg-white"
+                    ? "bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] w-6 sm:w-8 neon-glow"
+                    : "bg-white/50 hover:bg-white hover:scale-125"
                 }`}
               />
             ))}
@@ -393,7 +420,7 @@ export default function Home() {
                 (prev) => (prev - 1 + heroSlides.length) % heroSlides.length,
               )
             }
-            className="hidden sm:flex absolute left-4 top-1/2 transform -translate-y-1/2 p-2 rounded-full bg-black/30 backdrop-blur-sm text-white hover:bg-black/50 transition-all"
+            className="hidden sm:flex absolute left-4 top-1/2 transform -translate-y-1/2 p-3 rounded-full glassmorphism-advanced text-white hover:bg-white/20 transition-all fab-spring border border-white/30 shadow-lg hover:shadow-xl"
           >
             <svg
               className="w-5 h-5 sm:w-6 sm:h-6"
@@ -405,7 +432,7 @@ export default function Home() {
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth="2"
+                strokeWidth="2.5"
                 d="M15 19l-7-7 7-7"
               ></path>
             </svg>
@@ -415,7 +442,7 @@ export default function Home() {
             onClick={() =>
               setCurrentSlide((prev) => (prev + 1) % heroSlides.length)
             }
-            className="hidden sm:flex absolute right-4 top-1/2 transform -translate-y-1/2 p-2 rounded-full bg-black/30 backdrop-blur-sm text-white hover:bg-black/50 transition-all"
+            className="hidden sm:flex absolute right-4 top-1/2 transform -translate-y-1/2 p-3 rounded-full glassmorphism-advanced text-white hover:bg-white/20 transition-all fab-spring border border-white/30 shadow-lg hover:shadow-xl"
           >
             <svg
               className="w-5 h-5 sm:w-6 sm:h-6"
@@ -427,7 +454,7 @@ export default function Home() {
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth="2"
+                strokeWidth="2.5"
                 d="M9 5l7 7-7 7"
               ></path>
             </svg>
@@ -435,155 +462,164 @@ export default function Home() {
         </section>
 
         {/* For You Section */}
-        <section className="w-full px-4 md:px-8 py-8 sm:py-10">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl sm:text-2xl font-bold text-white">
+        <section className="w-full px-4 md:px-8 py-4 sm:py-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl sm:text-2xl font-bold text-white gradient-text-animated">
               For You
             </h2>
             <a
               href="/foryou"
-              className="text-[#FF4D67] hover:text-[#FFCB2B] text-sm sm:text-base transition-colors"
+              className="text-[#FF4D67] hover:text-[#FFCB2B] text-sm sm:text-base transition-colors font-semibold hover:underline"
             >
-              View All
+              View All →
             </a>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {forYouTracks.map((track) => (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+            {forYouTracks.map((track, index) => (
               <div
                 key={`for-you-${track.id}`}
-                className="group card-bg rounded-xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10"
+                className={`group relative gradient-border-animated overflow-hidden reveal-on-scroll holographic-shimmer card-lift-3d particle-float light-leak chromatic-aberration`}
+                style={{ animationDelay: `${index * 0.05}s` }}
               >
-                <div className="relative">
-                  {track.coverImage && track.coverImage.trim() !== '' ? (
-                    <img
-                      src={track.coverImage}
-                      alt={track.title}
-                      className="w-full aspect-square object-cover"
-                    />
-                  ) : (
-                    <div className="w-full aspect-square bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center">
-                      <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
-                      </svg>
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                    <button
-                      onClick={() => {
-                        // Find the full track object to get the audioURL
-                        const fullTrack = trendingTracksData.find(
-                          (t) => t._id === track.id,
-                        );
-                        if (fullTrack && fullTrack.audioURL) {
-                          playTrack({
-                            id: track.id,
-                            title: track.title,
-                            artist: track.artist,
-                            coverImage: track.coverImage,
-                            audioUrl: fullTrack.audioURL,
-                            plays: fullTrack.plays || 0,
-                            likes: fullTrack.likes || 0,
-                            creatorId: typeof fullTrack.creatorId === 'object' && fullTrack.creatorId !== null ? (fullTrack.creatorId as any)._id : fullTrack.creatorId,
-                            type: fullTrack.type, // Include track type for WhatsApp functionality
-                            creatorWhatsapp: (typeof fullTrack.creatorId === 'object' && fullTrack.creatorId !== null 
-                              ? (fullTrack.creatorId as any).whatsappContact 
-                              : undefined) // Include creator's WhatsApp contact
-                          });
-                          // Set the current playlist to all trending tracks
-                          const playlistTracks = trendingTracksData
-                            .filter((t) => t.audioURL) // Only tracks with audio
-                            .map((t) => ({
-                              id: t._id,
-                              title: t.title,
-                              artist:
-                                typeof t.creatorId === "object" &&
-                                t.creatorId !== null
-                                  ? (t.creatorId as any).name
-                                  : "Unknown Artist",
-                              coverImage:
-                                t.coverURL ||
-                                "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
-                              audioUrl: t.audioURL,
-                              creatorId: typeof t.creatorId === 'object' && t.creatorId !== null ? (t.creatorId as any)._id : t.creatorId,
-                              type: t.type, // Include track type for WhatsApp functionality
-                              creatorWhatsapp: (typeof t.creatorId === 'object' && t.creatorId !== null 
-                                ? (t.creatorId as any).whatsappContact 
+                <div className="relative rounded-[14px] overflow-hidden bg-gray-900/90 backdrop-blur-md p-0.5">
+                  <div className="relative">
+                    {track.coverImage && track.coverImage.trim() !== '' ? (
+                      <img
+                        src={track.coverImage}
+                        alt={track.title}
+                        className="w-full aspect-square object-cover transition-transform duration-500 group-hover:scale-110 scanline-overlay"
+                      />
+                    ) : (
+                      <div className="w-full aspect-square bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center neon-glow">
+                        <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
+                        </svg>
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/40 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-center justify-center gap-2 backdrop-blur-sm">
+                      <button
+                        onClick={() => {
+                          // Find the full track object to get the audioURL
+                          const fullTrack = trendingTracksData.find(
+                            (t) => t._id === track.id,
+                          );
+                          if (fullTrack && fullTrack.audioURL) {
+                            playTrack({
+                              id: track.id,
+                              title: track.title,
+                              artist: track.artist,
+                              coverImage: track.coverImage,
+                              audioUrl: fullTrack.audioURL,
+                              plays: fullTrack.plays || 0,
+                              likes: fullTrack.likes || 0,
+                              creatorId: typeof fullTrack.creatorId === 'object' && fullTrack.creatorId !== null ? (fullTrack.creatorId as any)._id : fullTrack.creatorId,
+                              type: fullTrack.type, // Include track type for WhatsApp functionality
+                              creatorWhatsapp: (typeof fullTrack.creatorId === 'object' && fullTrack.creatorId !== null 
+                                ? (fullTrack.creatorId as any).whatsappContact 
                                 : undefined) // Include creator's WhatsApp contact
-                            }));
-                          setCurrentPlaylist(playlistTracks);
-                        }
-                      }}
-                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300"
-                    >
-                      {currentTrack?.id === track.id && isPlaying ? (
-                        <svg
-                          className="w-4 h-4 sm:w-5 sm:h-5"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z"
-                            clipRule="evenodd"
-                          ></path>
-                        </svg>
-                      ) : (
-                        <svg
-                          className="w-4 h-4 sm:w-5 sm:h-5"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
-                            clipRule="evenodd"
-                          ></path>
-                        </svg>
-                      )}
-                    </button>
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Find the full track object
-                        const fullTrack = trendingTracksData.find(t => t._id === track.id);
-                        if (fullTrack) {
-                          toggleFavorite(track.id, fullTrack);
-                        }
-                      }}
-                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 hover:scale-110"
-                    >
-                      <svg 
-                        className={`w-4 h-4 sm:w-5 sm:h-5 transition-all duration-200 ${favoriteStatus[track.id] ? 'text-red-500 fill-current scale-110' : 'stroke-current'}`}
-                        fill={favoriteStatus[track.id] ? "currentColor" : "none"}
-                        stroke="currentColor"
-                        viewBox="0 0 24 24" 
-                        xmlns="http://www.w3.org/2000/svg"
+                            });
+                            // Set the current playlist to all trending tracks
+                            const playlistTracks = trendingTracksData
+                              .filter((t) => t.audioURL) // Only tracks with audio
+                              .map((t) => ({
+                                id: t._id,
+                                title: t.title,
+                                artist:
+                                  typeof t.creatorId === "object" &&
+                                  t.creatorId !== null
+                                    ? (t.creatorId as any).name
+                                    : "Unknown Artist",
+                                coverImage:
+                                  t.coverURL ||
+                                  "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
+                                audioUrl: t.audioURL,
+                                creatorId: typeof t.creatorId === 'object' && t.creatorId !== null ? (t.creatorId as any)._id : t.creatorId,
+                                type: t.type, // Include track type for WhatsApp functionality
+                                creatorWhatsapp: (typeof t.creatorId === 'object' && t.creatorId !== null 
+                                  ? (t.creatorId as any).whatsappContact 
+                                  : undefined) // Include creator's WhatsApp contact
+                              }));
+                            setCurrentPlaylist(playlistTracks);
+                          }
+                        }}
+                        className="w-12 h-12 sm:w-14 sm:h-14 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 fab-spring shadow-2xl hover:shadow-[#FF4D67]/50 pulse-ring"
                       >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                      </svg>
-                    </button>
+                        {currentTrack?.id === track.id && isPlaying ? (
+                          <svg
+                            className="w-5 h-5 sm:w-6 sm:h-6"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z"
+                              clipRule="evenodd"
+                            ></path>
+                          </svg>
+                        ) : (
+                          <svg
+                            className="w-5 h-5 sm:w-6 sm:h-6"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+                              clipRule="evenodd"
+                            ></path>
+                          </svg>
+                        )}
+                      </button>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Find the full track object
+                          const fullTrack = trendingTracksData.find(t => t._id === track.id);
+                          if (fullTrack) {
+                            toggleFavorite(track.id, fullTrack);
+                          }
+                        }}
+                        className="w-12 h-12 sm:w-14 sm:h-14 rounded-full glassmorphism-advanced flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 fab-spring hover:scale-110 border border-white/40"
+                      >
+                        <svg 
+                          className={`w-5 h-5 sm:w-6 sm:h-6 transition-all duration-300 ${favoriteStatus[track.id] ? 'text-red-500 fill-current scale-110 neon-glow' : 'stroke-current'}`}
+                          fill={favoriteStatus[track.id] ? "currentColor" : "none"}
+                          stroke="currentColor"
+                          viewBox="0 0 24 24" 
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                        </svg>
+                      </button>
 
+                    </div>
                   </div>
-                </div>
 
-                <div className="p-3">
-                  <h3 className="font-bold text-white text-sm sm:text-base mb-1 truncate">
-                    {track.title}
-                  </h3>
-                  <p className="text-gray-400 text-xs sm:text-sm truncate">
-                    {track.artist}
-                  </p>
-                  
-                  <div className="flex justify-between text-xs text-gray-500 mt-2">
-                    <span>{track.plays?.toLocaleString() || '0'} plays</span>
-                    <div className="flex items-center gap-1">
-                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                        <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd"></path>
-                      </svg>
-                      <span>{track.likes || 0}</span>
+                  <div className="p-3 pt-3.5">
+                    <h3 className="font-bold text-white text-xs sm:text-sm mb-1 truncate tracking-wide drop-shadow-md">
+                      {track.title}
+                    </h3>
+                    <p className="text-gray-300 text-xs sm:text-sm truncate font-medium">
+                      {track.artist}
+                    </p>
+                    
+                    <div className="flex justify-between items-center mt-2.5 pt-2 border-t border-white/10">
+                      <div className="flex items-center gap-1.5">
+                        <svg className="w-3 h-3 text-[#FF4D67]" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                          <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                        </svg>
+                        <span className="text-gray-400 text-xs font-semibold">{track.plays?.toLocaleString() || '0'}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <svg className="w-3.5 h-3.5 text-[#FFCB2B]" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                          <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd"></path>
+                        </svg>
+                        <span className="text-gray-400 text-xs font-semibold">{track.likes || 0}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -593,145 +629,152 @@ export default function Home() {
         </section>
 
         {/* Popular Artists Section */}
-        <section className="w-full px-4 md:px-8 py-8 sm:py-10">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl sm:text-2xl font-bold text-white">
+        <section className="w-full px-4 md:px-8 py-4 sm:py-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl sm:text-2xl font-bold text-white gradient-text-animated">
               Popular Artists
             </h2>
             <a
               href="/artists"
-              className="text-[#FF4D67] hover:text-[#FFCB2B] text-sm sm:text-base transition-colors"
+              className="text-[#FF4D67] hover:text-[#FFCB2B] text-sm sm:text-base transition-colors font-semibold hover:underline"
             >
-              View All
+              View All →
             </a>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {popularCreators.map((creator) => (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+            {popularCreators.map((creator, index) => (
               <div
                 key={creator.id}
-                className="group card-bg rounded-xl p-4 transition-all duration-300 hover:border-[#FFCB2B]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FFCB2B]/10"
+                className={`group relative gradient-border-animated rounded-2xl p-0.5 reveal-on-scroll holographic-shimmer card-lift-3d particle-float light-leak`}
+                style={{ animationDelay: `${index * 0.05}s` }}
               >
-                <div 
-                  className="flex flex-col items-center text-center cursor-pointer"
-                  onClick={() => router.push(`/artists/${creator.id}`)}
-                >
-                  <div className="relative mb-3">
-                    {creator.avatar && creator.avatar.trim() !== '' ? (
-                      <img
-                        src={creator.avatar}
-                        alt={creator.name}
-                        className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover mx-auto"
-                      />
-                    ) : (
-                      generateAvatar(creator.name)
-                    )}
-                    {creator.verified && (
-                      <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[#FF4D67] border-2 border-gray-900 flex items-center justify-center">
-                        <svg
-                          className="w-3 h-3 text-white"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                            clipRule="evenodd"
-                          ></path>
-                        </svg>
-                      </div>
-                    )}
-                  </div>                  <h3 className="font-bold text-white text-sm sm:text-base truncate w-full">
-                    {creator.name}
-                  </h3>
-                  <p className="text-[#FFCB2B] text-xs sm:text-sm mb-2">
-                    {creator.type}
-                  </p>
-                  <p className="text-gray-500 text-xs">
-                    {creator.followers.toLocaleString()} followers
-                  </p>
-                  <button 
-                    className="mt-2 w-full px-3 py-1.5 bg-transparent border border-[#FFCB2B] text-[#FFCB2B] hover:bg-[#FFCB2B]/10 rounded-full text-xs font-medium transition-colors"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (!isAuthenticated) {
-                        router.push('/login');
-                      } else {
-                        // Handle follow action here
-                        console.log('Following', creator.name);
-                        // In a real implementation, you would make an API call to follow the creator
-                      }
-                    }}
+                <div className="rounded-[14px] glassmorphism-advanced p-4 backdrop-blur-xl">
+                  <div 
+                    className="flex flex-col items-center text-center cursor-pointer group"
+                    onClick={() => router.push(`/artists/${creator.id}`)}
                   >
-                    Follow
-                  </button>
+                    <div className="relative mb-3 pulse-ring">
+                      {creator.avatar && creator.avatar.trim() !== '' ? (
+                        <img
+                          src={creator.avatar}
+                          alt={creator.name}
+                          className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover mx-auto border-4 border-gray-900/50 shadow-2xl transition-transform duration-500 group-hover:scale-110"
+                        />
+                      ) : (
+                        generateAvatar(creator.name)
+                      )}
+                      {creator.verified && (
+                        <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] border-4 border-gray-900 flex items-center justify-center neon-glow shadow-lg">
+                          <svg
+                            className="w-3 h-3 text-white"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                              clipRule="evenodd"
+                            ></path>
+                          </svg>
+                        </div>
+                      )}
+                    </div>                  <h3 className="font-bold text-white text-sm sm:text-base truncate w-full tracking-wide drop-shadow-md">
+                      {creator.name}
+                    </h3>
+                    <p className="text-[#FFCB2B] text-xs sm:text-sm mb-2 font-semibold gradient-text-animated">
+                      {creator.type}
+                    </p>
+                    <p className="text-gray-400 text-xs mb-2 font-medium">
+                      {creator.followers.toLocaleString()} followers
+                    </p>
+                    <button 
+                      className="mt-2 w-full px-3 py-1.5 gradient-primary text-white hover:shadow-lg hover:shadow-[#FF4D67]/40 rounded-full text-xs font-bold transition-all fab-spring border-0 shadow-md"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!isAuthenticated) {
+                          router.push('/login');
+                        } else {
+                          // Handle follow action here
+                          console.log('Following', creator.name);
+                          // In a real implementation, you would make an API call to follow the creator
+                        }
+                      }}
+                    >
+                      Follow ✨
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         </section>
         {/* Popular Albums Section */}
-        <section className="w-full px-4 md:px-8 py-8 sm:py-10">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl sm:text-2xl font-bold text-white">
+        <section className="w-full px-4 md:px-8 py-4 sm:py-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl sm:text-2xl font-bold text-white gradient-text-animated">
               Popular Albums
             </h2>
             <a
               href="/albums"
-              className="text-[#FF4D67] hover:text-[#FFCB2B] text-sm sm:text-base transition-colors"
+              className="text-[#FF4D67] hover:text-[#FFCB2B] text-sm sm:text-base transition-colors font-semibold hover:underline"
             >
-              View All
+              View All →
             </a>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
             {albumsLoading ? (
               // Loading skeleton
               Array.from({ length: 6 }).map((_, index) => (
                 <div
                   key={index}
-                  className="group card-bg rounded-xl overflow-hidden transition-all duration-300"
+                  className="group gradient-border-animated rounded-2xl overflow-hidden transition-all duration-500 card-lift-3d"
                 >
-                  <div className="relative">
-                    <div className="w-full aspect-square bg-gray-700 animate-pulse"></div>
-                  </div>
-                  
-                  <div className="p-3">
-                    <div className="h-4 bg-gray-700 rounded mb-2 animate-pulse"></div>
-                    <div className="h-3 bg-gray-700 rounded w-3/4 animate-pulse"></div>
+                  <div className="rounded-[14px] glassmorphism-advanced p-0.5 backdrop-blur-xl">
+                    <div className="relative">
+                      <div className="w-full aspect-square bg-gray-700 animate-pulse"></div>
+                    </div>
                     
-                    <div className="flex justify-between items-center mt-2">
-                      <div className="h-3 bg-gray-700 rounded w-1/3 animate-pulse"></div>
-                      <div className="h-3 bg-gray-700 rounded w-1/3 animate-pulse"></div>
+                    <div className="p-3 pt-3.5">
+                      <div className="h-4 bg-gray-700 rounded mb-2 animate-pulse"></div>
+                      <div className="h-3 bg-gray-700 rounded w-3/4 animate-pulse"></div>
+                      
+                      <div className="flex justify-between items-center mt-2">
+                        <div className="h-3 bg-gray-700 rounded w-1/3 animate-pulse"></div>
+                        <div className="h-3 bg-gray-700 rounded w-1/3 animate-pulse"></div>
+                      </div>
                     </div>
                   </div>
                 </div>
               ))
             ) : (
-              popularAlbums.map((album) => (
+              popularAlbums.map((album, index) => (
                 <div
                   key={album.id}
-                  className="group card-bg rounded-xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10 cursor-pointer"
+                  className={`group relative gradient-border-animated rounded-2xl overflow-hidden reveal-on-scroll holographic-shimmer card-lift-3d particle-float light-leak`}
+                  style={{ animationDelay: `${index * 0.05}s` }}
                   onClick={() => router.push(`/album/${album.id}`)}
                 >
-                <div className="relative">
+                <div className="rounded-[14px] glassmorphism-advanced p-0.5 backdrop-blur-xl cursor-pointer">
+                <div className="relative scanline-overlay">
                   {album.coverImage && album.coverImage.trim() !== '' ? (
                     <img
                       src={album.coverImage}
                       alt={album.title}
-                      className="w-full aspect-square object-cover"
+                      className="w-full aspect-square object-cover transition-transform duration-500 group-hover:scale-110 reflective-surface"
                     />
                   ) : (
-                    <div className="w-full aspect-square bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center">
+                    <div className="w-full aspect-square bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center neon-glow">
                       <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                         <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
                       </svg>
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/40 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-center justify-center backdrop-blur-sm">
                     <button 
-                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300"
+                      className="w-12 h-12 sm:w-14 sm:h-14 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 fab-spring shadow-2xl hover:shadow-[#FF4D67]/50 pulse-ring"
                       onClick={async (e) => {
                         e.stopPropagation();
                         setPlayingAlbumId(album.id);
@@ -772,13 +815,13 @@ export default function Home() {
                       aria-label={`Play album ${album.title}`}
                     >
                       {playingAlbumId === album.id ? (
-                        <svg className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <svg className="w-5 h-5 sm:w-6 sm:h-6 animate-spin" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
                       ) : (
                         <svg
-                          className="w-4 h-4 sm:w-5 sm:h-5"
+                          className="w-5 h-5 sm:w-6 sm:h-6"
                           fill="currentColor"
                           viewBox="0 0 20 20"
                           xmlns="http://www.w3.org/2000/svg"
@@ -794,20 +837,24 @@ export default function Home() {
                   </div>
                 </div>
 
-                <div className="p-3">
-                  <h3 className="font-bold text-white text-sm sm:text-base mb-1 truncate">
+                <div className="p-3 pt-3.5">
+                  <h3 className="font-bold text-white text-xs sm:text-sm mb-1 truncate tracking-wide drop-shadow-md">
                     {album.title}
                   </h3>
-                  <p className="text-gray-400 text-xs sm:text-sm truncate">
+                  <p className="text-gray-300 text-xs sm:text-sm truncate font-medium">
                     {album.artist}
                   </p>
-                  <div className="flex justify-between items-center mt-2">
-                    <span className="text-gray-500 text-xs">{album.year}</span>
-                    <span className="text-gray-500 text-xs">
+                  <div className="flex justify-between items-center mt-2.5 pt-2 border-t border-white/10">
+                    <span className="text-gray-400 text-xs font-semibold">{album.year}</span>
+                    <span className="text-gray-400 text-xs font-semibold flex items-center gap-1">
+                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
+                      </svg>
                       {album.tracks} tracks
                     </span>
                   </div>
                 </div>
+              </div>
               </div>
             ))
             )}
@@ -816,43 +863,45 @@ export default function Home() {
 
         {/* Popular Beats Section */}
         {/* Popular Mixes Section */}
-        <section className="w-full px-4 md:px-8 py-8 sm:py-10">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl sm:text-2xl font-bold text-white">
+        <section className="w-full px-4 md:px-8 py-4 sm:py-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl sm:text-2xl font-bold text-white gradient-text-animated">
               Popular Mixes
             </h2>
             <a
               href="/tracks?category=mixes"
-              className="text-[#FF4D67] hover:text-[#FFCB2B] text-sm sm:text-base transition-colors"
+              className="text-[#FF4D67] hover:text-[#FFCB2B] text-sm sm:text-base transition-colors font-semibold hover:underline"
             >
-              View All
+              View All →
             </a>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
             {trendingTracks
               .filter((track) => track.category === "mix")
               .slice(0, 10)
-              .map((track) => (
+              .map((track, index) => (
                 <div
                   key={`featured-mixes-${track.id}`}
-                  className="group card-bg rounded-xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10"
+                  className={`group relative gradient-border-animated rounded-2xl overflow-hidden reveal-on-scroll holographic-shimmer card-lift-3d particle-float light-leak`}
+                  style={{ animationDelay: `${index * 0.05}s` }}
                 >
-                  <div className="relative">
+                  <div className="rounded-[14px] glassmorphism-advanced p-0.5 backdrop-blur-xl">
+                  <div className="relative scanline-overlay">
                     {track.coverImage && track.coverImage.trim() !== '' ? (
                       <img
                         src={track.coverImage}
                         alt={track.title}
-                        className="w-full aspect-square object-cover"
+                        className="w-full aspect-square object-cover transition-transform duration-500 group-hover:scale-110 reflective-surface"
                       />
                     ) : (
-                      <div className="w-full aspect-square bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center">
+                      <div className="w-full aspect-square bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center neon-glow">
                         <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                           <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
                         </svg>
                       </div>
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/40 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-center justify-center backdrop-blur-sm">
                       <button
                         onClick={() => {
                           // Find the full track object to get the audioURL
@@ -889,11 +938,11 @@ export default function Home() {
                             setCurrentPlaylist(playlistTracks);
                           }
                         }}
-                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300"
+                        className="w-12 h-12 sm:w-14 sm:h-14 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 fab-spring shadow-2xl hover:shadow-[#FF4D67]/50 pulse-ring"
                       >
                         {currentTrack?.id === track.id && isPlaying ? (
                           <svg
-                            className="w-4 h-4 sm:w-5 sm:h-5"
+                            className="w-5 h-5 sm:w-6 sm:h-6"
                             fill="currentColor"
                             viewBox="0 0 20 20"
                             xmlns="http://www.w3.org/2000/svg"
@@ -906,7 +955,7 @@ export default function Home() {
                           </svg>
                         ) : (
                           <svg
-                            className="w-4 h-4 sm:w-5 sm:h-5"
+                            className="w-5 h-5 sm:w-6 sm:h-6"
                             fill="currentColor"
                             viewBox="0 0 20 20"
                             xmlns="http://www.w3.org/2000/svg"
@@ -922,20 +971,20 @@ export default function Home() {
                     </div>
                   </div>
 
-                  <div className="p-3">
-                    <h3 className="font-bold text-white text-sm sm:text-base mb-1 truncate">
+                  <div className="p-3 pt-3.5">
+                    <h3 className="font-bold text-white text-xs sm:text-sm mb-1 truncate tracking-wide drop-shadow-md">
                       {track.title}
                     </h3>
-                    <p className="text-gray-400 text-xs sm:text-sm truncate">
+                    <p className="text-gray-300 text-xs sm:text-sm truncate font-medium">
                       {track.artist}
                     </p>
-                    <div className="flex justify-between items-center mt-2">
-                      <span className="text-gray-500 text-xs">
+                    <div className="flex justify-between items-center mt-2.5 pt-2 border-t border-white/10">
+                      <span className="text-gray-400 text-xs font-semibold">
                         {track.duration}
                       </span>
                       <div className="flex items-center gap-1">
                         <svg
-                          className="w-3 h-3 sm:w-4 sm:h-4 text-[#FF4D67]"
+                          className="w-3.5 h-3.5 text-[#FFCB2B]"
                           fill="currentColor"
                           viewBox="0 0 20 20"
                           xmlns="http://www.w3.org/2000/svg"
@@ -946,47 +995,48 @@ export default function Home() {
                             clipRule="evenodd"
                           ></path>
                         </svg>
-                        <span className="text-gray-500 text-xs">
+                        <span className="text-gray-400 text-xs font-semibold">
                           {track.likes}
                         </span>
                       </div>
                     </div>
                   </div>
                 </div>
-              ))}
+              </div>
+            ))}
           </div>
         </section>
 
         {/* Music Lists */}
-        <section className="w-full px-4 md:px-8 py-8 sm:py-10 pb-8">
+        <section className="w-full px-4 md:px-8 py-4 sm:py-6 pb-4">
           {/* Tabs */}
-          <div className="flex overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide mb-6" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-            <div className="flex border-b border-gray-800 min-w-max">
+          <div className="flex overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide mb-4 glassmorphism-advanced rounded-xl mx-0" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            <div className="flex border-b border-gray-800 min-w-max gap-2">
               <button
-                className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors whitespace-nowrap ${
+                className={`py-2.5 px-4 sm:px-5 font-bold text-sm sm:text-base transition-all duration-300 whitespace-nowrap rounded-lg fab-spring ${
                   activeTab === "trending"
-                    ? "text-[#FF4D67] border-b-2 border-[#FF4D67]"
-                    : "text-gray-500 hover:text-gray-300"
+                    ? "gradient-primary text-white shadow-lg shadow-[#FF4D67]/30"
+                    : "text-gray-400 hover:text-white hover:bg-white/10"
                 }`}
                 onClick={() => setActiveTab("trending")}
               >
                 Trending Now
               </button>
               <button
-                className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors whitespace-nowrap ${
+                className={`py-2.5 px-4 sm:px-5 font-bold text-sm sm:text-base transition-all duration-300 whitespace-nowrap rounded-lg fab-spring ${
                   activeTab === "new"
-                    ? "text-[#FF4D67] border-b-2 border-[#FF4D67]"
-                    : "text-gray-500 hover:text-gray-300"
+                    ? "gradient-primary text-white shadow-lg shadow-[#FF4D67]/30"
+                    : "text-gray-400 hover:text-white hover:bg-white/10"
                 }`}
                 onClick={() => setActiveTab("new")}
               >
                 New Releases
               </button>
               <button
-                className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors whitespace-nowrap ${
+                className={`py-2.5 px-4 sm:px-5 font-bold text-sm sm:text-base transition-all duration-300 whitespace-nowrap rounded-lg fab-spring ${
                   activeTab === "popular"
-                    ? "text-[#FF4D67] border-b-2 border-[#FF4D67]"
-                    : "text-gray-500 hover:text-gray-300"
+                    ? "gradient-primary text-white shadow-lg shadow-[#FF4D67]/30"
+                    : "text-gray-400 hover:text-white hover:bg-white/10"
                 }`}
                 onClick={() => setActiveTab("popular")}
               >
@@ -994,10 +1044,10 @@ export default function Home() {
               </button>
 
               <button
-                className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors whitespace-nowrap ${
+                className={`py-2.5 px-4 sm:px-5 font-bold text-sm sm:text-base transition-all duration-300 whitespace-nowrap rounded-lg fab-spring ${
                   activeTab === "mixes"
-                    ? "text-[#FF4D67] border-b-2 border-[#FF4D67]"
-                    : "text-gray-500 hover:text-gray-300"
+                    ? "gradient-primary text-white shadow-lg shadow-[#FF4D67]/30"
+                    : "text-gray-400 hover:text-white hover:bg-white/10"
                 }`}
                 onClick={() => setActiveTab("mixes")}
               >
