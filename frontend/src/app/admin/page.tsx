@@ -112,13 +112,8 @@ export default function AdminDashboard() {
   ] : []
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black">
-      <main className="flex-1 flex flex-col w-full min-h-screen transition-all duration-300">
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#FF4D67]/10 rounded-full blur-3xl -z-10"></div>
-        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-[#FFCB2B]/10 rounded-full blur-3xl -z-10"></div>
-        
-        <div className="container mx-auto px-4 sm:px-8 py-6 sm:py-8">
-          <div className="mb-6 sm:mb-8">
+    <div>
+      <div className="mb-6 sm:mb-8">
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white">Admin Dashboard</h1>
             <p className="text-gray-400 text-sm sm:text-base">Manage platform users and monitor system performance</p>
           </div>
@@ -294,8 +289,6 @@ export default function AdminDashboard() {
               </div>
             ) : null}
           </div>
-        </div>
-      </main>
     </div>
   )
 }

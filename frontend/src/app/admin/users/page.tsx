@@ -136,20 +136,14 @@ export default function UserManagementPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black">
-      
-      <main className="flex-1 flex flex-col w-full min-h-screen transition-all duration-300">
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#FF4D67]/10 rounded-full blur-3xl -z-10"></div>
-        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-[#FFCB2B]/10 rounded-full blur-3xl -z-10"></div>
-        
-        <div className="container mx-auto px-4 sm:px-8 py-6 sm:py-8">
-          <div className="mb-6 sm:mb-8">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white">User Management</h1>
-            <p className="text-gray-400 text-sm sm:text-base">Manage platform users and their roles</p>
-          </div>
+    <div className="w-full">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white">User Management</h1>
+        <p className="text-gray-400 text-sm sm:text-base">Manage platform users and their roles</p>
+      </div>
 
-          {/* Search and Filter Controls */}
-          <div className="card-bg rounded-2xl p-4 sm:p-6 mb-6">
+      {/* Search and Filter Controls */}
+      <div className="card-bg rounded-2xl p-4 sm:p-6 mb-6">
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1">
                 <label htmlFor="search" className="block text-sm font-medium text-gray-400 mb-1">
@@ -287,7 +281,6 @@ export default function UserManagementPage() {
             )}
           </div>
         </div>
-      </main>
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && userToDelete && (
@@ -295,7 +288,7 @@ export default function UserManagementPage() {
           <div className="card-bg rounded-2xl p-6 max-w-md w-full">
             <h3 className="text-xl font-bold text-white mb-2">Confirm Deletion</h3>
             <p className="text-gray-400 mb-6">
-              Are you sure you want to delete user <span className="text-white font-semibold">{userToDelete.name}</span>? 
+              Are you sure you want to delete user <span className="text-white font-semibold">{userToDelete?.name}</span>? 
               This action cannot be undone and will permanently remove all user data.
             </p>
             
