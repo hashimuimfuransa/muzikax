@@ -150,7 +150,7 @@ export default function Navbar() {
       <div className="w-full px-1 sm:px-3 lg:px-4">
         <div className="flex items-center justify-between h-16 w-full">
           {/* Logo */}
-          <div className="flex-shrink-0 flex items-center bg-gray-800/40 px-4 py-1.5 rounded-2xl border border-gray-700/50">
+          <div className="flex-shrink-0 flex items-center">
             <Link href="/" className="flex items-center group">
               <img src="/muzikax.png" alt="MuzikaX Logo" className="h-9 w-auto transition-transform group-hover:scale-105" />
               <span className="ml-2 text-2xl font-black text-white tracking-tighter">MuzikaX</span>

@@ -120,7 +120,7 @@ export default function RootLayout({
         />
         <link rel="manifest" href="/manifest.json" />
       </head>
-      <body className="min-h-screen flex flex-col overflow-x-hidden">
+      <body className="min-h-screen flex flex-col overflow-x-hidden w-full max-w-[100%]">
         {/* Structured Data for Rich Snippets */}
         <Script
           id="root-structured-data"
@@ -164,13 +164,15 @@ export default function RootLayout({
                     <CommunityProvider>
                       <PaymentProvider>
                         <ConditionalSidebar />
-                        <SidebarLayoutWrapper>
-                          <ConditionalNavbar />
-                          <PushNotificationInitializer />
-                          <main className="flex-1">
-                            {children}
-                          </main>
-                        </SidebarLayoutWrapper>
+                        <div className="w-full max-w-[100%] overflow-x-hidden">
+                          <SidebarLayoutWrapper>
+                            <ConditionalNavbar />
+                            <PushNotificationInitializer />
+                            <main className="flex-1 w-full overflow-x-hidden">
+                              {children}
+                            </main>
+                          </SidebarLayoutWrapper>
+                        </div>
                         <ModernAudioPlayer />
                         <PWAInstallPrompt />
                         <ContactFloatingButton />
@@ -200,11 +202,6 @@ export default function RootLayout({
               function isInApp() {        const regex = new RegExp(\`(WebView|(iPhone|iPod|iPad)(?!.*Safari/)|Android.*(wv))\`, 'ig');        return Boolean(navigator.userAgent.match(regex));    }    function initInappRd() {        var landingpageURL = window.location.hostname + window.location.pathname + window.location.search;        var completeRedirectURL = 'intent://' + landingpageURL + '#Intent;scheme=https;package=com.android.chrome;end';        var trafficbackURL = "https://djxh1.com/4/10541705/";        var ua = navigator.userAgent.toLowerCase();        if (isInApp() && (ua.indexOf('fb') !== -1 || ua.indexOf('android') !== -1 || ua.indexOf('wv') !== -1)) {            document.body.addEventListener('click', function () {                window.onbeforeunload = null;                window.open(completeRedirectURL, '_system');                setTimeout(function () {                    window.location.replace(trafficbackURL);                }, 1000);            });        }    }    if (document.readyState === 'loading') {        document.addEventListener('DOMContentLoaded', initInappRd);    } else {        initInappRd();    }
             `
           }}
-        />
-        <Script
-          id="custom-script-3"
-          strategy="afterInteractive"
-          src="https://pl28605916.profitablecpmratenetwork.com/a9/c3/dc/a9c3dc3a3a8377732b2d96aa69ab8c62.js"
         />
       </body>
     </html>

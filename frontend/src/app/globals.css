@@ -31,6 +31,13 @@ button {
   -webkit-tap-highlight-color: transparent;
 }
 
+html {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
 body {
   color: var(--foreground);
   background: var(--background);
@@ -41,6 +48,49 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Prevent all elements from causing horizontal overflow */
+* {
+  box-sizing: border-box;
+}
+
+*, *::before, *::after {
+  max-width: 100%;
+}
+
+img, video, canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Container utilities */
+.container {
+  width: 100%;
+  margin: 0 auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+  .container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+/* Debugging utility - uncomment to see element boundaries */
+/* 
+* {
+  outline: 1px solid red;
+}
+*/
+
+/* Utility class for debugging overflow issues */
+.debug-overflow * {
+  outline: 1px solid red;
 }
 
 @layer utilities {

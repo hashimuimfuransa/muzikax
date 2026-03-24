@@ -228,11 +228,11 @@ function SearchResultsContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black py-8 sm:py-12">
+    <div className="relative overflow-hidden min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black py-8 sm:py-12">
       <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#FF4D67]/10 rounded-full blur-3xl -z-10"></div>
       <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-[#FFCB2B]/10 rounded-full blur-3xl -z-10"></div>
       
-      <div className="container mx-auto px-4 sm:px-8">
+      <div className="w-full max-w-full px-4 sm:px-8">
         <div className="max-w-4xl mx-auto">
           {/* Search Header */}
           <div className="text-center mb-8 sm:mb-12">
@@ -241,7 +241,7 @@ function SearchResultsContent() {
             </h1>
             
             {/* Search Bar */}
-            <form onSubmit={handleSearch} className="max-w-2xl mx-auto">
+            <form onSubmit={handleSearch} className="max-w-xl mx-auto">
               <div className="relative">
                 <input
                   type="text"
@@ -265,8 +265,8 @@ function SearchResultsContent() {
             </form>
             
             {/* Genre Filter */}
-            <div className="mt-6 max-w-4xl mx-auto">
-              <div className="flex flex-wrap gap-2 justify-center">
+            <div className="mt-6">
+              <div className="flex flex-wrap gap-2 justify-center max-w-4xl mx-auto">
                 <button
                   className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-colors ${
                     selectedGenre === null
@@ -315,7 +315,7 @@ function SearchResultsContent() {
                       <summary className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium bg-gray-800/50 text-gray-300 hover:bg-gray-700/50 cursor-pointer list-none">
                         {t('moreGenres')}
                       </summary>
-                      <div className="absolute z-10 mt-2 p-2 bg-gray-800 rounded-lg shadow-lg grid grid-cols-2 sm:grid-cols-3 gap-2 w-64">
+                      <div className="absolute z-10 mt-2 p-2 bg-gray-800 rounded-lg shadow-lg grid grid-cols-2 sm:grid-cols-3 gap-2 w-full max-w-64">
                         {genres.slice(10).map((genre) => (
                           <button
                             key={genre.id}
@@ -343,7 +343,7 @@ function SearchResultsContent() {
           </div>
           
           {/* Results Info */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 w-full">
             <p className="text-gray-400">
               {loading ? t('searching') : selectedGenre 
                 ? t('foundResultsInGenre', {

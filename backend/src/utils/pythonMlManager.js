@@ -44,7 +44,8 @@ class PythonMlManager {
 
       // Install Python dependencies first
       console.log('Installing Python dependencies...');
-      const installProcess = spawn('pip', ['install', '-r', 'requirements.txt'], {
+      // Use 'python -m pip' for cross-platform compatibility (especially Windows)
+      const installProcess = spawn('python', ['-m', 'pip', 'install', '-r', 'requirements.txt'], {
         cwd: this.backendDir,
         stdio: 'pipe'
       });

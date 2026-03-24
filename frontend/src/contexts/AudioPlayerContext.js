@@ -1245,29 +1245,54 @@ export const AudioPlayerProvider = ({ children }) => {
         }
     };
     // Add shareTrack function
-    const shareTrack = (platform) => {
+    const shareTrack = async (platform) => {
         if (!currentTrack)
             return;
         const trackUrl = `${window.location.origin}/tracks/${currentTrack.id}`;
         const text = `Check out "${currentTrack.title}" by ${currentTrack.artist} on MuzikaX`;
-        switch (platform) {
-            case 'facebook':
-                window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(trackUrl)}`, '_blank');
-                break;
-            case 'twitter':
-                window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(trackUrl)}`, '_blank');
-                break;
-            case 'whatsapp':
-                window.open(`https://wa.me/?text=${encodeURIComponent(`${text} ${trackUrl}`)}`, '_blank');
-                break;
-            case 'linkedin':
-                window.open(`https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(trackUrl)}&title=${encodeURIComponent(currentTrack.title)}&summary=${encodeURIComponent(text)}`, '_blank');
-                break;
-            case 'copy':
-                navigator.clipboard.writeText(trackUrl);
-                break;
-            default:
-                console.warn('Unsupported sharing platform:', platform);
+        try {
+            // Try to use Web Share API first for mobile devices
+            if (navigator.share && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+                await navigator.share({
+                    title: currentTrack.title,
+                    text: text,
+                    url: trackUrl
+                });
+            }
+            else {
+                // For desktop or when Web Share API is not available, use platform-specific sharing
+                switch (platform) {
+                    case 'facebook':
+                        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(trackUrl)}`, '_blank');
+                        break;
+                    case 'twitter':
+                        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(trackUrl)}`, '_blank');
+                        break;
+                    case 'whatsapp':
+                        window.open(`https://wa.me/?text=${encodeURIComponent(`${text} ${trackUrl}`)}`, '_blank');
+                        break;
+                    case 'linkedin':
+                        window.open(`https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(trackUrl)}&title=${encodeURIComponent(currentTrack.title)}&summary=${encodeURIComponent(text)}`, '_blank');
+                        break;
+                    case 'copy':
+                        await navigator.clipboard.writeText(trackUrl);
+                        break;
+                    default:
+                        // Default to copying link if platform not specified
+                        await navigator.clipboard.writeText(trackUrl);
+                }
+            }
+        }
+        catch (error) {
+            // User cancelled share or error occurred
+            console.error('Error sharing track:', error);
+            // Fallback to copying link
+            try {
+                await navigator.clipboard.writeText(trackUrl);
+            }
+            catch (clipboardError) {
+                console.error('Failed to copy link:', clipboardError);
+            }
         }
     };
     // Add downloadTrack function
