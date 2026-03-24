@@ -93,6 +93,13 @@ export const addRecentlyPlayed = async (trackId: string): Promise<boolean> => {
  */
 export const getRecentlyPlayed = async (): Promise<any[]> => {
   try {
+    // Check if user is authenticated before making request
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) {
+      console.log('No access token found, returning empty recently played');
+      return [];
+    }
+
     const response = await makeAuthenticatedRequest(`${process.env.NEXT_PUBLIC_API_URL}/api/recently-played`);
     
     if (!response.ok) {
@@ -103,6 +110,10 @@ export const getRecentlyPlayed = async (): Promise<any[]> => {
     const data = await response.json();
     return data.tracks;
   } catch (error) {
+    // Don't throw error if user is not authenticated - just return empty array
+    if (error instanceof Error && error.message === 'No access token found') {
+      return [];
+    }
     console.error('Error fetching recently played tracks:', error);
     throw error;
   }

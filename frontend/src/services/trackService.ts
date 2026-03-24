@@ -640,6 +640,13 @@ export const incrementTrackPlayCount = async (trackId: string): Promise<boolean>
  */
 export const fetchTracksFromFollowedArtists = async (limit: number = 20): Promise<any[]> => {
   try {
+    // Check if user is authenticated before making request
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) {
+      console.log('No access token found, returning empty followed tracks');
+      return [];
+    }
+
     const response = await makeAuthenticatedRequest(`${process.env.NEXT_PUBLIC_API_URL}/api/tracks/following?limit=${limit}`);
     
     if (!response.ok) {
@@ -669,6 +676,10 @@ export const fetchTracksFromFollowedArtists = async (limit: number = 20): Promis
       creatorWhatsapp: track.creatorId?.whatsappContact || undefined
     }));
   } catch (error) {
+    // Don't throw error if user is not authenticated - just return empty array
+    if (error instanceof Error && error.message === 'No access token found') {
+      return [];
+    }
     console.error('Error fetching followed artists tracks:', error);
     return [];
   }

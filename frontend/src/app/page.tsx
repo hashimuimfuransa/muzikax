@@ -450,19 +450,25 @@ export default function Home() {
   
   useEffect(() => {
     const fetchFollowedTracks = async () => {
-      if (isAuthenticated) {
-        try {
-          setFollowedTracksLoading(true);
-          const { fetchTracksFromFollowedArtists } = await import('@/services/trackService');
-          const tracks = await fetchTracksFromFollowedArtists(15);
-          setFollowedTracks(tracks);
-        } catch (error) {
-          console.error('Error fetching followed tracks:', error);
-        } finally {
-          setFollowedTracksLoading(false);
-        }
-      } else {
+      // Double-check authentication before proceeding
+      const accessToken = localStorage.getItem('accessToken');
+      if (!isAuthenticated || !accessToken) {
         setFollowedTracks([]);
+        return;
+      }
+
+      try {
+        setFollowedTracksLoading(true);
+        const { fetchTracksFromFollowedArtists } = await import('@/services/trackService');
+        const tracks = await fetchTracksFromFollowedArtists(15);
+        setFollowedTracks(tracks);
+      } catch (error) {
+        // Silently handle errors - don't show to user unless it's a critical error
+        if (!(error instanceof Error && error.message === 'No access token found')) {
+          console.error('Error fetching followed tracks:', error);
+        }
+      } finally {
+        setFollowedTracksLoading(false);
       }
     };
     
@@ -472,42 +478,48 @@ export default function Home() {
   // Fetch recommendations based on user listening history
   useEffect(() => {
     const fetchRecommendations = async () => {
-      if (isAuthenticated) {
-        setRecommendationsLoading(true);
-        try {
-          // Fetch recently played tracks to check if the user has history
-          const history = await getRecentlyPlayed();
-          setRecentlyPlayedTracks(history || []);
-          
-          if (history && history.length > 0) {
-            // Fetch personalized recommendations
-            const recommended = await fetchRecommendedTracks(undefined, 10);
-            const transformedTracks: Track[] = recommended.map((track: ITrack) => ({
-              id: track._id,
-              title: track.title,
-              artist: typeof track.creatorId === 'object' && track.creatorId !== null ? (track.creatorId as any).name : (typeof track.creatorId === 'string' ? 'Artist' : 'Unknown Artist'),
-              album: typeof track.albumId === 'object' && track.albumId !== null ? (track.albumId as any).title : (track.albumTitle || ''),
-              plays: track.plays || 0,
-              likes: track.likes || 0,
-              coverImage: track.coverURL || '',
-              duration: track.duration || '',
-              category: track.type,
-              type: track.type,
-              paymentType: track.paymentType,
-              price: track.price,
-              currency: track.currency,
-              creatorId: typeof track.creatorId === 'object' && track.creatorId !== null ? (track.creatorId as any)._id : track.creatorId as string
-            }));
-            setRecommendedTracks(transformedTracks);
-          }
-        } catch (error) {
-          console.error('Error fetching recommendations:', error);
-        } finally {
-          setRecommendationsLoading(false);
-        }
-      } else {
+      // Double-check authentication before proceeding
+      const accessToken = localStorage.getItem('accessToken');
+      if (!isAuthenticated || !accessToken) {
         setRecommendedTracks([]);
         setRecentlyPlayedTracks([]);
+        return;
+      }
+
+      setRecommendationsLoading(true);
+      try {
+        // Fetch recently played tracks to check if the user has history
+        const history = await getRecentlyPlayed();
+        setRecentlyPlayedTracks(history || []);
+        
+        if (history && history.length > 0) {
+          // Fetch personalized recommendations
+          const recommended = await fetchRecommendedTracks(undefined, 10);
+          const transformedTracks: Track[] = recommended.map((track: ITrack) => ({
+            id: track._id,
+            title: track.title,
+            artist: typeof track.creatorId === 'object' && track.creatorId !== null ? (track.creatorId as any).name : (typeof track.creatorId === 'string' ? 'Artist' : 'Unknown Artist'),
+            album: typeof track.albumId === 'object' && track.albumId !== null ? (track.albumId as any).title : (track.albumTitle || ''),
+            plays: track.plays || 0,
+            likes: track.likes || 0,
+            coverImage: track.coverURL || '',
+            duration: track.duration || '',
+            category: track.type,
+            type: track.type,
+            paymentType: track.paymentType,
+            price: track.price,
+            currency: track.currency,
+            creatorId: typeof track.creatorId === 'object' && track.creatorId !== null ? (track.creatorId as any)._id : track.creatorId as string
+          }));
+          setRecommendedTracks(transformedTracks);
+        }
+      } catch (error) {
+        // Silently handle errors - don't show to user unless it's a critical error
+        if (!(error instanceof Error && error.message === 'No access token found')) {
+          console.error('Error fetching recommendations:', error);
+        }
+      } finally {
+        setRecommendationsLoading(false);
       }
     };
 
