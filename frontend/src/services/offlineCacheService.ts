@@ -21,9 +21,16 @@ const CACHE_PREFIX = 'muzikax_cache_';
 const DEFAULT_EXPIRY = 5 * 60 * 1000; // 5 minutes in milliseconds
 
 class OfflineCacheService {
-  private isOnline: boolean = navigator.onLine;
+  private isOnline: boolean = true;
 
   constructor() {
+    // Only run in browser environment
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    this.isOnline = navigator.onLine;
+
     // Listen for online/offline events
     window.addEventListener('online', () => {
       this.isOnline = true;
@@ -194,8 +201,8 @@ class OfflineCacheService {
 // Export singleton instance
 export const offlineCacheService = new OfflineCacheService();
 
-// Auto-sync on initial load if online
-if (navigator.onLine) {
+// Auto-sync on initial load if online (client-side only)
+if (typeof window !== 'undefined' && navigator.onLine) {
   setTimeout(() => {
     offlineCacheService.syncData();
   }, 1000); // Wait 1 second after page load

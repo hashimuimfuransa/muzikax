@@ -31,6 +31,9 @@ export default function Loading() {
   };
 
   useEffect(() => {
+    // Only run on client side
+    if (typeof window === 'undefined') return;
+
     // Check for cached offline data immediately
     const cachedData = offlineCacheService.getOfflineData();
     setOfflineData(cachedData);
