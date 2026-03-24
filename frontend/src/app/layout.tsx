@@ -8,6 +8,7 @@ import { CommunityProvider } from "../contexts/CommunityContext";
 import { PaymentProvider } from "../contexts/PaymentContext";
 import { ToastProvider } from "../contexts/ToastContext";
 import ErrorBoundary from "../components/ErrorBoundary";
+import LoadingErrorBoundary from "../components/LoadingErrorBoundary";
 import ModernAudioPlayer from "../components/ModernAudioPlayer";
 import PWAInstallPrompt from "../components/PWAInstallPrompt";
 import ContactFloatingButton from "../components/ContactFloatingButton";
@@ -161,39 +162,41 @@ export default function RootLayout({
             })
           }}
         />
-        <ErrorBoundary>
-          <ToastProvider>
-            <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"}>
-              <AuthProvider>
-                <LanguageProvider>
-                  <AudioPlayerProvider>
-                    <CommunityProvider>
-                      <PaymentProvider>
-                        {/* Conditional rendering - skip for admin routes */}
-                        <div className="admin-layout-wrapper" data-admin-routes={ADMIN_ROUTES.join(',')} style={{ display: 'contents' }}>
-                          <ConditionalSidebar />
-                          <div className="w-full max-w-[100%] overflow-x-hidden">
-                            <SidebarLayoutWrapper>
-                              <ConditionalNavbar />
-                              <PushNotificationInitializer />
-                              <main className="flex-1 w-full overflow-x-hidden">
-                                {children}
-                              </main>
-                            </SidebarLayoutWrapper>
+        <LoadingErrorBoundary>
+          <ErrorBoundary>
+            <ToastProvider>
+              <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"}>
+                <AuthProvider>
+                  <LanguageProvider>
+                    <AudioPlayerProvider>
+                      <CommunityProvider>
+                        <PaymentProvider>
+                          {/* Conditional rendering - skip for admin routes */}
+                          <div className="admin-layout-wrapper" data-admin-routes={ADMIN_ROUTES.join(',')} style={{ display: 'contents' }}>
+                            <ConditionalSidebar />
+                            <div className="w-full max-w-[100%] overflow-x-hidden">
+                              <SidebarLayoutWrapper>
+                                <ConditionalNavbar />
+                                <PushNotificationInitializer />
+                                <main className="flex-1 w-full overflow-x-hidden">
+                                  {children}
+                                </main>
+                              </SidebarLayoutWrapper>
+                            </div>
+                            <ModernAudioPlayer />
+                            <PWAInstallPrompt />
+                            <ContactFloatingButton />
+                            <Footer />
                           </div>
-                          <ModernAudioPlayer />
-                          <PWAInstallPrompt />
-                          <ContactFloatingButton />
-                          <Footer />
-                        </div>
-                      </PaymentProvider>
-                    </CommunityProvider>
-                  </AudioPlayerProvider>
-                </LanguageProvider>
-              </AuthProvider>
-            </GoogleOAuthProvider>
-          </ToastProvider>
-        </ErrorBoundary>
+                        </PaymentProvider>
+                      </CommunityProvider>
+                    </AudioPlayerProvider>
+                  </LanguageProvider>
+                </AuthProvider>
+              </GoogleOAuthProvider>
+            </ToastProvider>
+          </ErrorBoundary>
+        </LoadingErrorBoundary>
         <Script
           id="custom-script-1"
           strategy="afterInteractive"
