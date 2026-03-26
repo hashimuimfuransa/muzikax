@@ -21,6 +21,7 @@ type ActiveTab = 'profile' | 'favorites' | 'analytics' | 'tracks' | 'albums' | '
 interface CreatorAnalytics {
   totalTracks: number
   totalPlays: number
+  totalUniquePlays?: number // Added for unique plays tracking
   totalLikes: number
   tracks: number
   topCountries?: Array<{ country: string; count: number }>
@@ -1433,7 +1434,7 @@ export default function Profile() {
                 </div>
               ) : analytics ? (
                 <>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                     <div className="card-bg rounded-xl p-5 border border-gray-700/30 text-center">
                       <div className="text-2xl sm:text-3xl font-bold text-[#FF4D67] mb-2">{analytics.totalTracks}</div>
                       <div className="text-gray-400 text-sm">{t('totalTracks')}</div>
@@ -1442,6 +1443,12 @@ export default function Profile() {
                       <div className="text-2xl sm:text-3xl font-bold text-[#FFCB2B] mb-2">{analytics.totalPlays.toLocaleString()}</div>
                       <div className="text-gray-400 text-sm">{t('totalPlays')}</div>
                     </div>
+                    {analytics.totalUniquePlays !== undefined && (
+                      <div className="card-bg rounded-xl p-5 border border-gray-700/30 text-center">
+                        <div className="text-2xl sm:text-3xl font-bold text-[#10B981] mb-2">{analytics.totalUniquePlays.toLocaleString()}</div>
+                        <div className="text-gray-400 text-sm">Unique Plays</div>
+                      </div>
+                    )}
                     <div className="card-bg rounded-xl p-5 border border-gray-700/30 text-center">
                       <div className="text-2xl sm:text-3xl font-bold text-[#6C63FF] mb-2">{analytics.totalLikes.toLocaleString()}</div>
                       <div className="text-gray-400 text-sm">{t('totalLikes')}</div>

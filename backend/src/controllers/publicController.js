@@ -105,22 +105,32 @@ const getPublicCreatorStats = async (req, res) => {
         console.log('Fetching tracks for creator ID:', creatorId);
         const tracks = await Track_1.find({ creatorId: creator._id }).maxTimeMS(5000);
         console.log('Found', tracks.length, 'tracks for creator ID:', creatorId);
-        // Calculate total plays
-        const totalPlays = tracks.reduce((sum, track) => sum + track.plays, 0);
+        
+        // Calculate total plays and unique plays
+        const totalPlays = tracks.reduce((sum, track) => sum + (track.plays || 0), 0);
+        const totalUniquePlays = tracks.reduce((sum, track) => sum + (track.uniquePlays || 0), 0);
+        
         // Calculate monthly plays (last 30 days)
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         // For simplicity, we'll assume all plays happened evenly over time
         // In a real application, you'd have play records with timestamps
         const monthlyPlays = totalPlays; // Placeholder - would need actual play history
+        const monthlyUniquePlays = totalUniquePlays; // Placeholder
+        
         console.log('Returning stats for creator ID:', creatorId, {
             totalPlays,
+            totalUniquePlays,
             monthlyPlays,
+            monthlyUniquePlays,
             totalTracks: tracks.length
         });
+        
         res.json({
             totalPlays,
+            totalUniquePlays,
             monthlyPlays,
+            monthlyUniquePlays,
             totalTracks: tracks.length
         });
     }

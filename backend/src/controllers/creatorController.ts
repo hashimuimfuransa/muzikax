@@ -33,10 +33,15 @@ export const getCreatorAnalytics = async (req: Request, res: Response): Promise<
     const totalTracks = await Track.countDocuments({ creatorId });
     console.log('Creator Analytics - Total tracks:', totalTracks);
 
-    // Get total plays for all tracks
+    // Get all tracks for this creator
     const tracks = await Track.find({ creatorId });
-    const totalPlays = tracks.reduce((sum, track) => sum + track.plays, 0);
+    
+    // Calculate total plays and unique plays
+    const totalPlays = tracks.reduce((sum, track) => sum + (track.plays || 0), 0);
+    const totalUniquePlays = tracks.reduce((sum, track) => sum + (track.uniquePlays || 0), 0);
+    
     console.log('Creator Analytics - Total plays:', totalPlays);
+    console.log('Creator Analytics - Total unique plays:', totalUniquePlays);
 
     // Get total likes for all tracks
     const totalLikes = tracks.reduce((sum, track) => sum + track.likes, 0);
@@ -63,6 +68,7 @@ export const getCreatorAnalytics = async (req: Request, res: Response): Promise<
     const response = {
       totalTracks,
       totalPlays,
+      totalUniquePlays,
       totalLikes,
       tracks: tracks.length,
       topCountries
