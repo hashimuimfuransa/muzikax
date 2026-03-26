@@ -24,10 +24,10 @@ const requestOTP = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Check if user is an artist (creator with artist type)
-    if (user.role !== 'creator' || user.creatorType !== 'artist') {
+    // Check if user is an artist or admin (both require 2FA)
+    if ((user.role !== 'creator' || user.creatorType !== 'artist') && user.role !== 'admin') {
       return res.status(403).json({ 
-        message: '2FA is only required for artist accounts',
+        message: '2FA is only required for artist and admin accounts',
         requires2FA: false
       });
     }
@@ -86,9 +86,9 @@ const verifyOTPAndLogin = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Check if user is an artist
-    if (user.role !== 'creator' || user.creatorType !== 'artist') {
-      return res.status(403).json({ message: '2FA login is only for artist accounts' });
+    // Check if user is an artist or admin
+    if ((user.role !== 'creator' || user.creatorType !== 'artist') && user.role !== 'admin') {
+      return res.status(403).json({ message: '2FA login is only for artist and admin accounts' });
     }
 
     // First verify password
@@ -159,8 +159,8 @@ const resendOTP = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    if (user.role !== 'creator' || user.creatorType !== 'artist') {
-      return res.status(403).json({ message: '2FA is only for artist accounts' });
+    if ((user.role !== 'creator' || user.creatorType !== 'artist') && user.role !== 'admin') {
+      return res.status(403).json({ message: '2FA is only for artist and admin accounts' });
     }
 
     // Generate new OTP

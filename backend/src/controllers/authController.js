@@ -7,6 +7,8 @@ exports.updateUserProfile = exports.getUserProfile = exports.refreshToken = expo
 const bcryptjs_1 = require("bcryptjs");
 const User_1 = require("../models/User");
 const jwt_1 = require("../utils/jwt");
+const OTP = require("../models/OTP");
+const emailService_1 = require("../services/emailService");
 // Register user
 const register = async (req, res) => {
     try {
@@ -145,9 +147,26 @@ const login = async (req, res) => {
             res.status(401).json({ message: 'Invalid email or password' });
             return;
         }
-        // Check if user is an artist - requires 2FA
-        if (user.role === 'creator' && user.creatorType === 'artist') {
-            // For artists, don't complete login yet - send OTP first
+        // Check if user is an artist or admin - requires 2FA
+        if ((user.role === 'creator' && user.creatorType === 'artist') || user.role === 'admin') {
+            // For artists and admins, don't complete login yet - send OTP first
+            const otpRecord = await OTP.createOTP({
+                email: user.email,
+                purpose: 'login',
+                expiresInMinutes: 10
+            });
+            
+            // Send OTP via email
+            const emailResult = await (0, emailService_1.sendOTPEmail)(user.email, otpRecord.otp, user.name);
+            
+            if (!emailResult.success) {
+                console.error('Failed to send OTP email:', emailResult);
+                return res.status(500).json({ 
+                    message: 'Failed to send verification code. Please try again.',
+                    error: emailResult.error
+                });
+            }
+            
             res.json({
                 _id: user._id,
                 name: user.name,
@@ -156,7 +175,8 @@ const login = async (req, res) => {
                 creatorType: user.creatorType,
                 requires2FA: true,
                 message: 'OTP sent to your email. Please verify to complete login.',
-                nextStep: 'verify-otp'
+                nextStep: 'verify-otp',
+                expiresInSeconds: 600
             });
             return;
         }
@@ -201,10 +221,10 @@ const refreshToken = async (req, res) => {
             res.status(401).json({ message: 'Invalid refresh token' });
             return;
         }
-        // Check if user is an artist who needs 2FA
-        if (user.role === 'creator' && user.creatorType === 'artist') {
+        // Check if user is an artist or admin who needs 2FA
+        if ((user.role === 'creator' && user.creatorType === 'artist') || user.role === 'admin') {
             res.status(403).json({ 
-                message: 'Artist account requires 2FA verification. Please login again.',
+                message: 'This account requires 2FA verification. Please login again.',
                 requiresRelogin: true
             });
             return;

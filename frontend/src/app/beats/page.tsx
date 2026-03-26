@@ -42,6 +42,7 @@ export default function BeatsPage() {
   // Filter states
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'free' | 'paid'>('all')
   const [selectedGenre, setSelectedGenre] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState<string>('')
   
   // Genre list for filtering
   const genres = [
@@ -73,6 +74,18 @@ export default function BeatsPage() {
   
   // Filter tracks based on selected criteria
   const filteredTracks = allBeatTracks.filter(track => {
+    // Search query filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      const titleMatch = track.title.toLowerCase().includes(query);
+      const artistMatch = typeof track.creatorId === 'object' && track.creatorId !== null 
+        ? (track.creatorId as any).name.toLowerCase().includes(query)
+        : false;
+      const genreMatch = track.genre?.toLowerCase().includes(query);
+      
+      if (!titleMatch && !artistMatch && !genreMatch) return false;
+    }
+    
     // Payment type filter - handle missing paymentType field
     if (selectedFilter !== 'all') {
       // If paymentType is missing, treat as 'free' for backward compatibility
@@ -241,7 +254,38 @@ export default function BeatsPage() {
       {/* Filter Section */}
       <div className="container mx-auto px-4 sm:px-8 py-6">
         <div className="mb-6">
-          <h2 className="text-xl font-bold text-white mb-4 text-center">Filter Beats</h2>
+          <h2 className="text-xl font-bold text-white mb-4 text-center">Filter & Search Beats</h2>
+          
+          {/* Search Bar */}
+          <div className="max-w-2xl mx-auto mb-6">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search by beat name, producer, or genre..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full px-4 py-3 pl-12 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all"
+              />
+              <svg
+                className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                >
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"></path>
+                  </svg>
+                </button>
+              )}
+            </div>
+          </div>
           
           {/* Payment Type Filters */}
           <div className="flex flex-wrap gap-2 justify-center mb-6">
@@ -340,6 +384,7 @@ export default function BeatsPage() {
         {/* Results info */}
         <div className="text-center text-gray-400 text-sm mb-4">
           Showing {filteredTracks.length} of {allBeatTracks.length} beats
+          {searchQuery && ` • Searching "${searchQuery}"`}
           {selectedFilter !== 'all' && ` • ${selectedFilter.charAt(0).toUpperCase() + selectedFilter.slice(1)}`}
           {selectedGenre && ` • ${genres.find(g => g.id === selectedGenre)?.name}`}
         </div>
@@ -376,9 +421,250 @@ export default function BeatsPage() {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredTracks.map((track: ITrack) => (
-              <div key={track._id} className="group card-bg rounded-2xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10">
+          /* Mobile List View / Desktop Grid View */
+          <>
+            {/* Mobile List View (hidden on md and up) */}
+            <div className="block md:hidden space-y-4">
+              {filteredTracks.map((track: ITrack) => (
+                <div key={track._id} className="group bg-gray-800/50 backdrop-blur-sm rounded-xl overflow-hidden border border-gray-700 transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10">
+                  <div className="flex flex-col items-stretch">
+                    {/* Cover Image */}
+                    <div className="relative w-full h-48 flex-shrink-0">
+                      <img 
+                        src={track.coverURL || '/placeholder-cover.jpg'} 
+                        alt={track.title} 
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = '/placeholder-cover.jpg';
+                        }}
+                      />
+                      <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
+                        <span className="px-2 py-1 bg-purple-600 text-white text-xs font-bold rounded-full flex items-center gap-1 shadow-lg">
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
+                          </svg>
+                          BEAT
+                        </span>
+                        {(track.paymentType || 'free') === 'paid' ? (
+                          <span className="px-2 py-1 bg-green-600 text-white text-xs font-bold rounded-full shadow-lg">
+                            PAID
+                          </span>
+                        ) : (track.paymentType || 'free') === 'free' ? (
+                          <span className="px-2 py-1 bg-blue-600 text-white text-xs font-bold rounded-full shadow-lg">
+                            FREE
+                          </span>
+                        ) : null}
+                      </div>
+                      <button 
+                        onClick={() => {
+                          if (track.audioURL) {
+                            playTrack({
+                              id: track._id,
+                              title: track.title,
+                              artist: typeof track.creatorId === 'object' && track.creatorId !== null 
+                                ? (track.creatorId as any).name 
+                                : 'Unknown Artist',
+                              coverImage: track.coverURL || '',
+                              audioUrl: track.audioURL,
+                              creatorId: typeof track.creatorId === 'object' && track.creatorId !== null 
+                                ? (track.creatorId as any)._id 
+                                : track.creatorId,
+                              type: track.type,
+                              paymentType: track.paymentType,
+                              price: track.price,
+                              creatorWhatsapp: (typeof track.creatorId === 'object' && track.creatorId !== null 
+                                ? (track.creatorId as any).whatsappContact 
+                                : undefined)
+                            });
+                            const playlistTracks = filteredTracks.map((t: ITrack) => ({
+                              id: t._id,
+                              title: t.title,
+                              artist: typeof t.creatorId === 'object' && t.creatorId !== null 
+                                ? (t.creatorId as any).name 
+                                : 'Unknown Artist',
+                              coverImage: t.coverURL || '',
+                              audioUrl: t.audioURL,
+                              creatorId: typeof t.creatorId === 'object' && t.creatorId !== null 
+                                ? (t.creatorId as any)._id 
+                                : t.creatorId,
+                              type: t.type,
+                              paymentType: t.paymentType,
+                              price: t.price,
+                              creatorWhatsapp: (typeof t.creatorId === 'object' && t.creatorId !== null 
+                                ? (t.creatorId as any).whatsappContact 
+                                : undefined)
+                            }));
+                            setCurrentPlaylist(playlistTracks);
+                          }
+                        }}
+                        className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                      >
+                        <svg className="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
+                        </svg>
+                      </button>
+                    </div>
+                    
+                    {/* Content */}
+                    <div className="flex-1 p-4 flex flex-col justify-between">
+                      <div>
+                        <div className="flex justify-between items-start mb-2">
+                          <h3 className="font-bold text-white text-lg truncate flex-1 pr-2">{track.title}</h3>
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const mockTrack = {
+                                _id: track._id,
+                                title: track.title,
+                                creatorId: { name: typeof track.creatorId === 'object' && track.creatorId !== null ? (track.creatorId as any).name : 'Unknown Artist' },
+                                coverURL: track.coverURL,
+                                audioURL: track.audioURL,
+                                type: track.type,
+                                paymentType: track.paymentType,
+                                creatorWhatsapp: (typeof track.creatorId === 'object' && track.creatorId !== null ? (track.creatorId as any).whatsappContact : undefined)
+                              };
+                              toggleFavorite(track._id, mockTrack);
+                            }}
+                            className="p-2 rounded-full bg-gray-700 hover:bg-gray-600 transition-all flex-shrink-0"
+                          >
+                            <svg 
+                              className={`w-5 h-5 transition-all ${favoriteStatus[track._id] ? 'text-red-500 fill-current scale-110' : 'text-gray-400 hover:text-white'}`}
+                              fill={favoriteStatus[track._id] ? "currentColor" : "none"}
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                            </svg>
+                          </button>
+                        </div>
+                        <p className="text-gray-400 text-sm mb-2 truncate">
+                          {typeof track.creatorId === 'object' && track.creatorId !== null 
+                            ? (track.creatorId as any).name 
+                            : 'Unknown Artist'}
+                        </p>
+                        {track.genre && (
+                          <span className="inline-block px-2 py-1 bg-yellow-600/20 text-yellow-400 text-xs font-medium rounded mb-2 capitalize">
+                            {track.genre}
+                          </span>
+                        )}
+                        <div className="flex items-center gap-4 text-xs sm:text-sm text-gray-500">
+                          <span>{track.plays?.toLocaleString() || '0'} plays</span>
+                          <div className="flex items-center gap-1">
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd"></path>
+                            </svg>
+                            <span>{track.likes}</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-2 mt-4">
+                        {track.paymentType === 'paid' ? (
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (!track.price || track.price <= 0) {
+                                alert('Price not available for this beat');
+                                return;
+                              }
+                              showPayment({
+                                trackId: track._id,
+                                trackTitle: track.title,
+                                price: track.price,
+                                audioUrl: track.audioURL
+                              });
+                            }}
+                            className="flex-1 py-2 px-4 btn-primary text-white rounded-lg text-sm flex items-center justify-center gap-2 transition-colors font-semibold"
+                          >
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                            </svg>
+                            Buy - {track.price?.toLocaleString()} RWF
+                          </button>
+                        ) : (
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (track.audioURL) {
+                                const link = document.createElement('a');
+                                link.href = track.audioURL;
+                                link.download = `${track.title}.mp3`;
+                                link.target = '_blank';
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                              } else {
+                                alert('Download link not available');
+                              }
+                            }}
+                            className="flex-1 py-2 px-4 btn-secondary text-white rounded-lg text-sm flex items-center justify-center gap-2 transition-colors"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                            </svg>
+                            Download
+                          </button>
+                        )}
+                        <button 
+                          onClick={() => {
+                            if (track.audioURL) {
+                              playTrack({
+                                id: track._id,
+                                title: track.title,
+                                artist: typeof track.creatorId === 'object' && track.creatorId !== null 
+                                  ? (track.creatorId as any).name 
+                                  : 'Unknown Artist',
+                                coverImage: track.coverURL || '',
+                                audioUrl: track.audioURL,
+                                creatorId: typeof track.creatorId === 'object' && track.creatorId !== null 
+                                  ? (track.creatorId as any)._id 
+                                  : track.creatorId,
+                                type: track.type,
+                                paymentType: track.paymentType,
+                                price: track.price,
+                                creatorWhatsapp: (typeof track.creatorId === 'object' && track.creatorId !== null 
+                                  ? (track.creatorId as any).whatsappContact 
+                                  : undefined)
+                              });
+                              const playlistTracks = filteredTracks.map((t: ITrack) => ({
+                                id: t._id,
+                                title: t.title,
+                                artist: typeof t.creatorId === 'object' && t.creatorId !== null 
+                                  ? (t.creatorId as any).name 
+                                  : 'Unknown Artist',
+                                coverImage: t.coverURL || '',
+                                audioUrl: t.audioURL,
+                                creatorId: typeof t.creatorId === 'object' && t.creatorId !== null 
+                                  ? (t.creatorId as any)._id 
+                                  : t.creatorId,
+                                type: t.type,
+                                paymentType: t.paymentType,
+                                price: t.price,
+                                creatorWhatsapp: (typeof t.creatorId === 'object' && t.creatorId !== null 
+                                  ? (t.creatorId as any).whatsappContact 
+                                  : undefined)
+                              }));
+                              setCurrentPlaylist(playlistTracks);
+                            }
+                          }}
+                          className="p-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors flex-shrink-0"
+                        >
+                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            {/* Desktop Grid View (hidden on mobile, visible from md and up) */}
+            <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredTracks.map((track: ITrack) => (
+                <div key={track._id} className="group card-bg rounded-2xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10">
                 <div className="relative">
                   {/* Beat indicator badge */}
                   <div className="absolute top-3 left-3 z-10 flex gap-1">
@@ -639,6 +925,7 @@ export default function BeatsPage() {
               </div>
             ))}
           </div>
+          </>
         )}
       </div>
       

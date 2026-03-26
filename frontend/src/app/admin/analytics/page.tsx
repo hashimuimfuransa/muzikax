@@ -320,14 +320,15 @@ export default function AnalyticsPage() {
           <div className="card-bg rounded-2xl p-4 sm:p-6 mb-6 sm:mb-8">
             <h2 className="text-lg sm:text-xl font-bold text-white mb-4 sm:mb-6">Plays & Unique Listeners Over Time</h2>
             
-            {loading ? (
-              <div className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF4D67]"></div>
-              </div>
-            ) : error ? (
-              <div className="text-red-500 text-center py-8">{error}</div>
-            ) : playHistory.length > 0 ? (
-              <ResponsiveContainer width="100%" height={350}>
+            <div className="chart-container">
+              {loading ? (
+                <div className="flex justify-center items-center h-64">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF4D67]"></div>
+                </div>
+              ) : error ? (
+                <div className="text-red-500 text-center py-8">{error}</div>
+              ) : playHistory.length > 0 ? (
+                <ResponsiveContainer width="100%" height={350}>
                 <AreaChart data={playHistory}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#444" />
                   <XAxis 
@@ -380,6 +381,7 @@ export default function AnalyticsPage() {
             ) : (
               <div className="text-gray-500 text-center py-8">No play history data available</div>
             )}
+            </div>
           </div>
 
           {/* Charts Row 1 */}
@@ -388,7 +390,8 @@ export default function AnalyticsPage() {
             <div className="card-bg rounded-2xl p-4 sm:p-6">
               <h2 className="text-lg sm:text-xl font-bold text-white mb-4 sm:mb-6">User Growth</h2>
               
-              {loading ? (
+              <div className="chart-container">
+                {loading ? (
                 <div className="flex justify-center items-center h-64">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF4D67]"></div>
                 </div>
@@ -429,13 +432,15 @@ export default function AnalyticsPage() {
                   </AreaChart>
                 </ResponsiveContainer>
               )}
+              </div>
             </div>
 
             {/* User Roles Distribution */}
             <div className="card-bg rounded-2xl p-4 sm:p-6">
               <h2 className="text-lg sm:text-xl font-bold text-white mb-4 sm:mb-6">User Roles Distribution</h2>
               
-              {loading ? (
+              <div className="chart-container">
+                {loading ? (
                 <div className="flex justify-center items-center h-64">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF4D67]"></div>
                 </div>
@@ -469,6 +474,7 @@ export default function AnalyticsPage() {
                   </PieChart>
                 </ResponsiveContainer>
               )}
+              </div>
             </div>
           </div>
 
@@ -478,7 +484,8 @@ export default function AnalyticsPage() {
             <div className="card-bg rounded-2xl p-4 sm:p-6">
               <h2 className="text-lg sm:text-xl font-bold text-white mb-4 sm:mb-6">Content Distribution by Type</h2>
               
-              {loading ? (
+              <div className="chart-container">
+                {loading ? (
                 <div className="flex justify-center items-center h-64">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF4D67]"></div>
                 </div>
@@ -505,13 +512,15 @@ export default function AnalyticsPage() {
                   </BarChart>
                 </ResponsiveContainer>
               )}
+              </div>
             </div>
 
             {/* Top Creators */}
             <div className="card-bg rounded-2xl p-4 sm:p-6">
               <h2 className="text-lg sm:text-xl font-bold text-white mb-4 sm:mb-6">Top Creators by Plays</h2>
               
-              {loading ? (
+              <div className="chart-container">
+                {loading ? (
                 <div className="flex justify-center items-center h-64">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF4D67]"></div>
                 </div>
@@ -545,6 +554,7 @@ export default function AnalyticsPage() {
                   </BarChart>
                 </ResponsiveContainer>
               )}
+              </div>
             </div>
           </div>
 
@@ -562,36 +572,36 @@ export default function AnalyticsPage() {
                 <div className="text-red-500 text-center py-8">{error}</div>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full">
+                  <table className="w-full min-w-[700px]">
                     <thead>
                       <tr className="text-left text-gray-500 text-xs sm:text-sm border-b border-gray-800">
-                        <th className="pb-3 font-normal">Rank</th>
-                        <th className="pb-3 font-normal">Track</th>
-                        <th className="pb-3 font-normal">Creator</th>
-                        <th className="pb-3 font-normal">Plays</th>
-                        <th className="pb-3 font-normal">Unique</th>
-                        <th className="pb-3 font-normal">Likes</th>
+                        <th className="pb-3 font-normal whitespace-nowrap">Rank</th>
+                        <th className="pb-3 font-normal whitespace-nowrap">Track</th>
+                        <th className="pb-3 font-normal whitespace-nowrap">Creator</th>
+                        <th className="pb-3 font-normal whitespace-nowrap">Plays</th>
+                        <th className="pb-3 font-normal whitespace-nowrap">Unique</th>
+                        <th className="pb-3 font-normal whitespace-nowrap">Likes</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-800">
                       {mostPlayedTracks.slice(0, 10).map((track, index) => (
                         <tr key={track.id} className="hover:bg-gray-800/30 transition-colors">
-                          <td className="py-3 sm:py-4">
+                          <td className="py-3 sm:py-4 whitespace-nowrap">
                             <div className="font-medium text-white text-sm sm:text-base">{index + 1}</div>
                           </td>
-                          <td className="py-3 sm:py-4">
-                            <div className="font-medium text-white text-sm sm:text-base">{track.title}</div>
+                          <td className="py-3 sm:py-4 pr-4">
+                            <div className="font-medium text-white text-sm sm:text-base max-w-xs truncate">{track.title}</div>
                           </td>
-                          <td className="py-3 sm:py-4 text-gray-400 text-sm">
+                          <td className="py-3 sm:py-4 text-gray-400 text-sm whitespace-nowrap">
                             {track.creator}
                           </td>
-                          <td className="py-3 sm:py-4 text-gray-400 text-sm">
+                          <td className="py-3 sm:py-4 text-gray-400 text-sm whitespace-nowrap">
                             {track.plays.toLocaleString()}
                           </td>
-                          <td className="py-3 sm:py-4 text-gray-400 text-sm">
+                          <td className="py-3 sm:py-4 text-gray-400 text-sm whitespace-nowrap">
                             {track.uniquePlays !== undefined ? track.uniquePlays.toLocaleString() : '-'}
                           </td>
-                          <td className="py-3 sm:py-4 text-gray-400 text-sm">
+                          <td className="py-3 sm:py-4 text-gray-400 text-sm whitespace-nowrap">
                             {track.likes.toLocaleString()}
                           </td>
                         </tr>
@@ -606,7 +616,8 @@ export default function AnalyticsPage() {
             <div className="card-bg rounded-2xl p-4 sm:p-6">
               <h2 className="text-lg sm:text-xl font-bold text-white mb-4 sm:mb-6">Creator Types Distribution</h2>
               
-              {loading ? (
+              <div className="chart-container">
+                {loading ? (
                 <div className="flex justify-center items-center h-64">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF4D67]"></div>
                 </div>
@@ -640,6 +651,7 @@ export default function AnalyticsPage() {
                   </PieChart>
                 </ResponsiveContainer>
               )}
+              </div>
             </div>
           </div>
 
@@ -647,7 +659,8 @@ export default function AnalyticsPage() {
           <div className="card-bg rounded-2xl p-4 sm:p-6">
             <h2 className="text-lg sm:text-xl font-bold text-white mb-4 sm:mb-6">Geographic Distribution of Listeners</h2>
             
-            {loading ? (
+            <div className="chart-container">
+              {loading ? (
               <div className="flex justify-center items-center h-64">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF4D67]"></div>
               </div>
@@ -695,13 +708,13 @@ export default function AnalyticsPage() {
                 
                 {/* Additional geographic metrics table */}
                 <div className="mt-6 overflow-x-auto">
-                  <table className="w-full">
+                  <table className="w-full min-w-[600px]">
                     <thead>
                       <tr className="text-left text-gray-500 text-xs sm:text-sm border-b border-gray-800">
-                        <th className="pb-3 font-normal">Country</th>
-                        <th className="pb-3 font-normal">Plays</th>
-                        <th className="pb-3 font-normal">Unique Listeners</th>
-                        <th className="pb-3 font-normal">Percentage</th>
+                        <th className="pb-3 font-normal whitespace-nowrap">Country</th>
+                        <th className="pb-3 font-normal whitespace-nowrap">Plays</th>
+                        <th className="pb-3 font-normal whitespace-nowrap">Unique Listeners</th>
+                        <th className="pb-3 font-normal whitespace-nowrap">Percentage</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-800">
@@ -728,6 +741,7 @@ export default function AnalyticsPage() {
             ) : (
               <div className="text-gray-500 text-center py-8">No geographic data available</div>
             )}
+            </div>
           </div>
         </div>
       </main>

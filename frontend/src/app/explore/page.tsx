@@ -7,6 +7,7 @@ import { useAudioPlayer } from '@/contexts/AudioPlayerContext'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { Suspense } from 'react'
 import { followCreator, unfollowCreator, checkFollowStatus } from '@/services/trackService'
+import { FaMusic, FaHeadphones, FaCompactDisc, FaListUl, FaUsers } from 'react-icons/fa'
 
 interface Album {
   _id: string
@@ -609,57 +610,65 @@ function ExploreContent() {
 
       {/* Content Tabs */}
       <div className="container mx-auto px-4 sm:px-8 py-8 sm:py-12 md:py-16 pb-32 flex-1">
-        <div className="flex border-b border-gray-800 mb-8 sm:mb-10">
-          <button
-            className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors ${
-              activeTab === 'tracks'
-                ? 'text-[#FF4D67] border-b-2 border-[#FF4D67]'
-                : 'text-gray-500 hover:text-gray-300'
-            }`}
-            onClick={() => setActiveTab('tracks')}
-          >
-            {t('trendingTracks')}
-          </button>
-          <button
-            className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors ${
-              activeTab === 'beats'
-                ? 'text-[#FF4D67] border-b-2 border-[#FF4D67]'
-                : 'text-gray-500 hover:text-gray-300'
-            }`}
-            onClick={() => setActiveTab('beats')}
-          >
-            {t('beats')}
-          </button>
-          <button
-            className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors ${
-              activeTab === 'albums'
-                ? 'text-[#FF4D67] border-b-2 border-[#FF4D67]'
-                : 'text-gray-500 hover:text-gray-300'
-            }`}
-            onClick={() => setActiveTab('albums')}
-          >
-            {t('albums')}
-          </button>
-          <button
-            className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors ${
-              activeTab === 'playlists'
-                ? 'text-[#FF4D67] border-b-2 border-[#FF4D67]'
-                : 'text-gray-500 hover:text-gray-300'
-            }`}
-            onClick={() => setActiveTab('playlists')}
-          >
-            {t('playlists')}
-          </button>
-          <button
-            className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors ${
-              activeTab === 'creators'
-                ? 'text-[#FFCB2B] border-b-2 border-[#FFCB2B]'
-                : 'text-gray-500 hover:text-gray-300'
-            }`}
-            onClick={() => setActiveTab('creators')}
-          >
-            {t('topCreators')}
-          </button>
+        {/* Mobile-friendly Tab Navigation */}
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-1 mb-8 sm:mb-10 border border-gray-700 overflow-x-auto scrollbar-hide">
+          <div className="flex justify-between min-w-max">
+            <button
+              className={`flex items-center gap-2 py-3 px-4 sm:px-6 rounded-lg transition-all duration-300 font-medium text-sm sm:text-base whitespace-nowrap ${
+                activeTab === 'tracks'
+                  ? 'bg-gradient-to-r from-[#FF4D67] to-[#FF6B8B] text-white shadow-lg'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+              }`}
+              onClick={() => setActiveTab('tracks')}
+            >
+              <FaMusic className={activeTab === 'tracks' ? 'text-white' : ''} />
+              <span>{t('trendingTracks')}</span>
+            </button>
+            <button
+              className={`flex items-center gap-2 py-3 px-4 sm:px-6 rounded-lg transition-all duration-300 font-medium text-sm sm:text-base whitespace-nowrap ${
+                activeTab === 'beats'
+                  ? 'bg-gradient-to-r from-[#FF4D67] to-[#FF6B8B] text-white shadow-lg'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+              }`}
+              onClick={() => setActiveTab('beats')}
+            >
+              <FaHeadphones className={activeTab === 'beats' ? 'text-white' : ''} />
+              <span>{t('beats')}</span>
+            </button>
+            <button
+              className={`flex items-center gap-2 py-3 px-4 sm:px-6 rounded-lg transition-all duration-300 font-medium text-sm sm:text-base whitespace-nowrap ${
+                activeTab === 'albums'
+                  ? 'bg-gradient-to-r from-[#FF4D67] to-[#FF6B8B] text-white shadow-lg'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+              }`}
+              onClick={() => setActiveTab('albums')}
+            >
+              <FaCompactDisc className={activeTab === 'albums' ? 'text-white' : ''} />
+              <span>{t('albums')}</span>
+            </button>
+            <button
+              className={`flex items-center gap-2 py-3 px-4 sm:px-6 rounded-lg transition-all duration-300 font-medium text-sm sm:text-base whitespace-nowrap ${
+                activeTab === 'playlists'
+                  ? 'bg-gradient-to-r from-[#FF4D67] to-[#FF6B8B] text-white shadow-lg'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+              }`}
+              onClick={() => setActiveTab('playlists')}
+            >
+              <FaListUl className={activeTab === 'playlists' ? 'text-white' : ''} />
+              <span>{t('playlists')}</span>
+            </button>
+            <button
+              className={`flex items-center gap-2 py-3 px-4 sm:px-6 rounded-lg transition-all duration-300 font-medium text-sm sm:text-base whitespace-nowrap ${
+                activeTab === 'creators'
+                  ? 'bg-gradient-to-r from-[#FFCB2B] to-[#FFD700] text-white shadow-lg'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+              }`}
+              onClick={() => setActiveTab('creators')}
+            >
+              <FaUsers className={activeTab === 'creators' ? 'text-white' : ''} />
+              <span>{t('topCreators')}</span>
+            </button>
+          </div>
         </div>
 
         {/* Beats Grid */}

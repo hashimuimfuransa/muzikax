@@ -116,10 +116,10 @@ class OfflineCacheService {
       
       // Fetch critical data in parallel
       const endpoints = [
-        { key: 'recent_tracks', url: '/api/tracks/recent', limit: 10 },
-        { key: 'popular_tracks', url: '/api/tracks/popular', limit: 10 },
-        { key: 'trending_creators', url: '/api/users/creators', limit: 5 },
-        { key: 'homepage_slides', url: '/api/homepage/slides', limit: 5 },
+        { key: 'recent_tracks', url: '/api/tracks/trending', limit: 10 },
+        { key: 'popular_tracks', url: '/api/tracks/monthly-popular', limit: 10 },
+        { key: 'trending_creators', url: '/api/public/creators', limit: 5 },
+        { key: 'homepage_slides', url: '/api/admin/homepage', limit: 5 },
       ];
 
       const promises = endpoints.map(async (endpoint) => {
@@ -131,7 +131,17 @@ class OfflineCacheService {
 
           if (response.ok) {
             const data = await response.json();
-            await this.cacheData(endpoint.key, data, DEFAULT_EXPIRY);
+            // Handle different response structures
+            let dataToCache: any;
+            if (Array.isArray(data)) {
+              dataToCache = data;
+            } else if (endpoint.key === 'homepage_slides') {
+              // Special handling for homepage slides which returns { slides: [...] }
+              dataToCache = data.slides || [];
+            } else {
+              dataToCache = data.data || data.tracks || data.creators || [];
+            }
+            await this.cacheData(endpoint.key, dataToCache, DEFAULT_EXPIRY);
           }
         } catch (error) {
           console.warn(`Failed to sync ${endpoint.key}:`, error);

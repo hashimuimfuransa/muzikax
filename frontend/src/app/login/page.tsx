@@ -565,7 +565,7 @@ function LoginContent() {
           </form>
         )}
 
-        {/* Artist 2FA - OTP Verification */}
+        {/* 2FA - OTP Verification for Artists and Admins */}
         {requires2FA && (
           <div className="mt-6 sm:mt-8">
             <div className="text-center mb-6">
@@ -580,10 +580,10 @@ function LoginContent() {
                 Two-Factor Authentication
               </h2>
               <p className="text-gray-400 text-sm">
-                We've sent a 6-digit code to <strong className="text-white">{email}</strong>
+                We've sent a 6-digit verification code to <strong className="text-white">{email}</strong>
               </p>
               <p className="text-gray-500 text-xs mt-2">
-                Check your inbox and spam folder
+                Check your inbox and spam folder. Code expires in 10 minutes.
               </p>
             </div>
 

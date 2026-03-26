@@ -164,7 +164,7 @@ export default function AlbumsManagementPage() {
 
           {/* Search and Filter Controls */}
           <div className="card-bg rounded-2xl p-4 sm:p-6 mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="search" className="block text-sm font-medium text-gray-400 mb-1">
                   Search Albums
@@ -203,14 +203,14 @@ export default function AlbumsManagementPage() {
                 </select>
               </div>
 
-              <div className="flex items-end">
+              <div className="sm:col-span-2 flex items-end">
                 <button
                   onClick={() => {
                     setSearchQuery('')
                     setGenreFilter('all')
                     setCurrentPage(1)
                   }}
-                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+                  className="w-full sm:w-auto px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
                 >
                   Reset Filters
                 </button>
@@ -229,22 +229,22 @@ export default function AlbumsManagementPage() {
             ) : (
               <>
                 <div className="overflow-x-auto">
-                  <table className="w-full">
+                  <table className="w-full min-w-[800px]">
                     <thead>
                       <tr className="text-left text-gray-500 text-sm border-b border-gray-800">
-                        <th className="pb-4 font-normal">Album</th>
-                        <th className="pb-4 font-normal">Creator</th>
-                        <th className="pb-4 font-normal">Genre</th>
-                        <th className="pb-4 font-normal">Tracks</th>
-                        <th className="pb-4 font-normal">Plays</th>
-                        <th className="pb-4 font-normal">Created</th>
-                        <th className="pb-4 font-normal">Actions</th>
+                        <th className="pb-4 font-normal whitespace-nowrap">Album</th>
+                        <th className="pb-4 font-normal whitespace-nowrap">Creator</th>
+                        <th className="pb-4 font-normal whitespace-nowrap">Genre</th>
+                        <th className="pb-4 font-normal whitespace-nowrap">Tracks</th>
+                        <th className="pb-4 font-normal whitespace-nowrap">Plays</th>
+                        <th className="pb-4 font-normal whitespace-nowrap">Created</th>
+                        <th className="pb-4 font-normal whitespace-nowrap">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-800">
                       {albums.filter(a => a.id).map((album) => (
                         <tr key={album.id} className="hover:bg-gray-800/30 transition-colors">
-                          <td className="py-4">
+                          <td className="py-4 pr-4">
                             <div className="flex items-center gap-3">
                               {album.coverURL && (
                                 <img 
@@ -252,21 +252,21 @@ export default function AlbumsManagementPage() {
                                   alt={album.title} 
                                   width="50" 
                                   height="50" 
-                                  className="rounded-lg object-cover"
+                                  className="rounded-lg object-cover flex-shrink-0"
                                 />
                               )}
-                              <div className="font-medium text-white">{album.title}</div>
+                              <div className="font-medium text-white truncate">{album.title}</div>
                             </div>
                           </td>
-                          <td className="py-4 text-gray-400">{album.creatorId?.name || 'Unknown'}</td>
-                          <td className="py-4 text-gray-400 capitalize">{album.genre}</td>
-                          <td className="py-4 text-gray-400">{album.tracks?.length || 0}</td>
-                          <td className="py-4 text-gray-400">{album.plays.toLocaleString()}</td>
-                          <td className="py-4 text-gray-400">
+                          <td className="py-4 text-gray-400 max-w-xs truncate">{album.creatorId?.name || 'Unknown'}</td>
+                          <td className="py-4 text-gray-400 capitalize whitespace-nowrap">{album.genre}</td>
+                          <td className="py-4 text-gray-400 whitespace-nowrap">{album.tracks?.length || 0}</td>
+                          <td className="py-4 text-gray-400 whitespace-nowrap">{album.plays.toLocaleString()}</td>
+                          <td className="py-4 text-gray-400 whitespace-nowrap">
                             {new Date(album.createdAt).toLocaleDateString()}
                           </td>
                           <td className="py-4">
-                            <div className="flex space-x-2">
+                            <div className="flex flex-wrap gap-2">
                               <button
                                 onClick={() => {
                                   if (album.id) {
@@ -274,14 +274,14 @@ export default function AlbumsManagementPage() {
                                   }
                                 }}
                                 disabled={!album.id}
-                                className={`px-3 py-1 rounded-lg text-sm transition-colors ${album.id ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-500 text-gray-300 cursor-not-allowed'}`}
+                                className={`px-3 py-1 rounded-lg text-sm transition-colors whitespace-nowrap ${album.id ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-500 text-gray-300 cursor-not-allowed'}`}
                               >
                                 View
                               </button>
                               <button
                                 onClick={() => openDeleteModal(album)}
                                 disabled={!album.id}
-                                className={`px-3 py-1 rounded-lg text-sm transition-colors ${album.id ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-gray-500 text-gray-300 cursor-not-allowed'}`}
+                                className={`px-3 py-1 rounded-lg text-sm transition-colors whitespace-nowrap ${album.id ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-gray-500 text-gray-300 cursor-not-allowed'}`}
                               >
                                 Delete
                               </button>
@@ -295,11 +295,11 @@ export default function AlbumsManagementPage() {
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                  <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-800">
+                  <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 pt-4 border-t border-gray-800">
                     <button
                       onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                       disabled={currentPage === 1}
-                      className={`px-4 py-2 rounded-lg ${
+                      className={`w-full sm:w-auto px-4 py-2 rounded-lg ${
                         currentPage === 1 
                           ? 'bg-gray-800 text-gray-500 cursor-not-allowed' 
                           : 'bg-gray-700 hover:bg-gray-600 text-white'
@@ -315,7 +315,7 @@ export default function AlbumsManagementPage() {
                     <button
                       onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                       disabled={currentPage === totalPages}
-                      className={`px-4 py-2 rounded-lg ${
+                      className={`w-full sm:w-auto px-4 py-2 rounded-lg ${
                         currentPage === totalPages 
                           ? 'bg-gray-800 text-gray-500 cursor-not-allowed' 
                           : 'bg-gray-700 hover:bg-gray-600 text-white'
@@ -334,14 +334,14 @@ export default function AlbumsManagementPage() {
       {/* Delete Confirmation Modal */}
       {showDeleteModal && albumToDelete && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="card-bg rounded-2xl p-6 max-w-md w-full">
+          <div className="card-bg rounded-2xl p-6 max-w-md w-full mx-4">
             <h3 className="text-xl font-bold text-white mb-2">Confirm Deletion</h3>
             <p className="text-gray-400 mb-4">
               Are you sure you want to delete the album{' '}
-              <span className="text-white font-semibold">{albumToDelete.title}</span>?{' '}
+              <span className="text-white font-semibold">{albumToDelete.title}</span>{' '}
               This action cannot be undone and will permanently remove the album from the platform.
             </p>
-            
+                  
             <div className="mb-6">
               <label htmlFor="deletion-reason" className="block text-sm font-medium text-gray-400 mb-2">
                 Reason for Deletion
@@ -354,21 +354,21 @@ export default function AlbumsManagementPage() {
                 className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FFCB2B] min-h-[100px]"
               />
             </div>
-            
-            <div className="flex justify-end space-x-3">
+                  
+            <div className="flex flex-col sm:flex-row gap-3">
               <button
                 onClick={() => {
                   setShowDeleteModal(false)
                   setAlbumToDelete(null)
                   setDeletionReason('')
                 }}
-                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+                className="w-full sm:flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDeleteAlbum}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+                className="w-full sm:flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
                 disabled={!deletionReason.trim()}
               >
                 Delete Album

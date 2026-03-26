@@ -95,10 +95,10 @@ class DataPreloaderService {
 
       // Fetch all endpoints in parallel
       const endpoints = [
-        { key: 'recentTracks', url: '/api/tracks/recent', limit: 12 },
-        { key: 'popularTracks', url: '/api/tracks/popular', limit: 12 },
-        { key: 'trendingCreators', url: '/api/users/creators', limit: 6 },
-        { key: 'homepageSlides', url: '/api/homepage/slides', limit: 5 },
+        { key: 'recentTracks', url: '/api/tracks/trending', limit: 12 },
+        { key: 'popularTracks', url: '/api/tracks/monthly-popular', limit: 12 },
+        { key: 'trendingCreators', url: '/api/public/creators', limit: 6 },
+        { key: 'homepageSlides', url: '/api/admin/homepage', limit: 5 },
       ];
 
       const promises = endpoints.map(async (endpoint) => {
@@ -112,8 +112,15 @@ class DataPreloaderService {
           if (response.ok) {
             const result = await response.json();
             // Handle different response structures
-            const dataArray: any[] = Array.isArray(result) ? result : 
-                             result.data || result.tracks || result.creators || result.slides || [];
+            let dataArray: any[];
+            if (Array.isArray(result)) {
+              dataArray = result;
+            } else if (endpoint.key === 'homepageSlides') {
+              // Special handling for homepage slides which returns { slides: [...] }
+              dataArray = result.slides || [];
+            } else {
+              dataArray = result.data || result.tracks || result.creators || [];
+            }
             
             (this.data as any)[endpoint.key] = dataArray.slice(0, endpoint.limit);
             console.log(`✅ Loaded ${dataArray.length} ${endpoint.key}`);

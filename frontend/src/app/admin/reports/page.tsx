@@ -150,10 +150,10 @@ export default function AdminReportsPage() {
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black">
-      <div className="flex-1 p-8 transition-all duration-300">
-        <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-white">Report Management</h1>
+      <div className="flex-1 p-4 sm:p-8 transition-all duration-300">
+        <div className="max-w-7xl mx-auto w-full">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white">Report Management</h1>
           <div className="text-white">
             Total Reports: <span className="text-[#FF4D67]">{totalReports}</span>
           </div>
@@ -161,7 +161,7 @@ export default function AdminReportsPage() {
 
         {/* Filters */}
         <div className="card-bg rounded-2xl p-6 mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">Status</label>
               <select
@@ -227,26 +227,26 @@ export default function AdminReportsPage() {
           ) : (
             <>
               <div className="overflow-x-auto">
-                <table className="w-full">
+                <table className="w-full min-w-[900px]">
                   <thead className="bg-gray-800/50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Reporter</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Track</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Reason</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Status</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Date</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Actions</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider whitespace-nowrap">Reporter</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider whitespace-nowrap">Track</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider whitespace-nowrap">Reason</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider whitespace-nowrap">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider whitespace-nowrap">Date</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider whitespace-nowrap">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-700/50">
                     {reports.map((report) => (
                       <tr key={report._id} className="hover:bg-gray-800/30">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-white">{report.reporterId.name}</div>
-                          <div className="text-sm text-gray-400">{report.reporterId.email}</div>
+                        <td className="px-6 py-4 whitespace-nowrap pr-4">
+                          <div className="text-sm text-white max-w-xs truncate">{report.reporterId.name}</div>
+                          <div className="text-sm text-gray-400 max-w-xs truncate">{report.reporterId.email}</div>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="text-sm text-white">{report.trackId.title}</div>
+                          <div className="text-sm text-white max-w-xs truncate">{report.trackId.title}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-white capitalize">{report.reason}</div>
@@ -277,7 +277,7 @@ export default function AdminReportsPage() {
               </div>
 
               {/* Pagination */}
-              <div className="px-6 py-4 bg-gray-800/30 flex items-center justify-between">
+              <div className="px-6 py-4 bg-gray-800/30 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="text-sm text-gray-400">
                   Showing {(currentPage - 1) * filters.limit + 1} to {Math.min(currentPage * filters.limit, totalReports)} of {totalReports} reports
                 </div>

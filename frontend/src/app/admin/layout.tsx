@@ -22,9 +22,23 @@ interface UserInfo {
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
   const pathname = usePathname()
   const { logout } = useAuth()
+
+  // Auto-collapse on mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      if (window.innerWidth < 768) {
+        setIsCollapsed(true)
+        setIsMobileMenuOpen(false)
+      }
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   const navItems: NavItem[] = [
     { name: 'Dashboard', href: '/admin', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6', category: 'main' },
@@ -43,12 +57,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   ]
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black">
+    <div className="flex min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black overflow-hidden">
       {/* Modern Sidebar */}
       <aside 
         className={`fixed top-0 left-0 z-40 h-screen transition-all duration-300 ease-in-out ${
           isCollapsed ? 'w-20' : 'w-72'
-        } bg-gradient-to-b from-gray-900/95 via-gray-900/90 to-black/95 backdrop-blur-xl border-r border-gray-800/50 shadow-2xl`}
+        } bg-gradient-to-b from-gray-900/95 via-gray-900/90 to-black/95 backdrop-blur-xl border-r border-gray-800/50 shadow-2xl ${
+          // Hide sidebar completely on mobile when collapsed
+          'hidden md:block'
+        }`}
       >
         <div className="flex flex-col h-full">
           {/* Logo Section */}
@@ -147,15 +164,101 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Main Content Area */}
       <main 
-        className={`flex-1 transition-all duration-300 ease-in-out min-h-screen ${
+        className={`flex-1 transition-all duration-300 ease-in-out min-h-screen overflow-x-hidden ${
           isCollapsed ? 'md:ml-20' : 'md:ml-72'
         }`}
       >
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#FF4D67]/10 rounded-full blur-3xl -z-10"></div>
-        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-[#FFCB2B]/10 rounded-full blur-3xl -z-10"></div>
+        {/* Mobile Menu Toggle */}
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="md:hidden fixed top-4 left-4 z-50 p-3 bg-gray-900/90 backdrop-blur-xl border border-gray-800 rounded-xl text-white shadow-lg hover:bg-gray-800 transition-colors"
+          aria-label="Toggle menu"
+        >
+          <svg 
+            className="w-6 h-6" 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            {isMobileMenuOpen ? (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            ) : (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+            )}
+          </svg>
+        </button>
+
+        {/* Mobile Menu Overlay */}
+        {isMobileMenuOpen && (
+          <div 
+            className="md:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+        )}
+
+        {/* Mobile Sidebar */}
+        <aside 
+          className={`md:hidden fixed top-0 left-0 z-50 h-screen w-72 bg-gradient-to-b from-gray-900/95 via-gray-900/90 to-black/95 backdrop-blur-xl border-r border-gray-800/50 shadow-2xl transform transition-transform duration-300 ease-in-out ${
+            isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
+        >
+          <div className="flex flex-col h-full pt-20">
+            {/* Navigation */}
+            <nav className="flex-1 overflow-y-auto px-4 py-6 space-y-1 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
+              {navItems.map((item) => (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`group flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-200 relative overflow-hidden ${
+                    pathname === item.href
+                      ? 'bg-gradient-to-r from-[#FF4D67]/20 to-[#FFCB2B]/10 text-white border border-[#FF4D67]/30 shadow-lg shadow-[#FF4D67]/10'
+                      : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
+                  }`}
+                >
+                  <svg 
+                    className={`w-6 h-6 flex-shrink-0 transition-transform duration-200 ${
+                      pathname === item.href ? 'scale-110' : 'group-hover:scale-110'
+                    }`} 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={item.icon}></path>
+                  </svg>
+                  <span className={`font-medium text-sm ${pathname === item.href ? 'text-white' : ''}`}>
+                    {item.name}
+                  </span>
+                </Link>
+              ))}
+            </nav>
+
+            {/* Logout Button */}
+            <div className="p-4 border-t border-gray-800/50">
+              <button
+                onClick={() => {
+                  logout();
+                  setIsMobileMenuOpen(false);
+                }}
+                className="flex items-center gap-3 px-4 py-3.5 rounded-xl text-gray-400 hover:text-white hover:bg-red-500/10 hover:border-red-500/30 border border-transparent transition-all duration-200 w-full"
+              >
+                <svg className="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                </svg>
+                <span className="font-medium text-sm">Logout</span>
+              </button>
+            </div>
+          </div>
+        </aside>
         
-        <div className="container mx-auto px-4 sm:px-8 py-6 sm:py-8">
-          {children}
+        {/* Background Decorative Elements - Fixed positioning to prevent overflow */}
+        <div className="relative w-full overflow-hidden">
+          <div className="absolute top-0 left-0 w-64 h-64 sm:w-96 sm:h-96 bg-[#FF4D67]/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+          <div className="absolute bottom-0 right-0 w-64 h-64 sm:w-96 sm:h-96 bg-[#FFCB2B]/10 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
+          
+          <div className="container mx-auto px-4 sm:px-8 py-6 sm:py-8 relative z-10">
+            {children}
+          </div>
         </div>
       </main>
     </div>
