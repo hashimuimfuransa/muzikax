@@ -330,9 +330,48 @@ export default function Home() {
 
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col w-full min-h-screen">
-        {/* Enhanced Hero Section with Image Slider */}
-        <section className="relative py-4 md:py-6 lg:py-8 overflow-hidden w-full">
+      <main className="flex-1 flex flex-col w-full min-h-screen overflow-x-hidden">
+        {/* Mobile Categories Scroll - Native App Style */}
+        <section className="md:hidden w-full px-0 py-1 bg-gradient-to-r from-gray-900 via-gray-900/95 to-black border-b border-gray-800/50 sticky top-[3.6rem] z-40">
+          <div className="flex items-center space-x-1.5 overflow-x-auto scrollbar-hide pb-0" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
+            {[
+              { id: 'trending', name: 'Trending' },
+              { id: 'new', name: 'New' },
+              { id: 'popular', name: 'Popular' },
+              { id: 'afrobeat', name: 'Afrobeat' },
+              { id: 'hiphop', name: 'Hip Hop' },
+              { id: 'rnb', name: 'R&B' },
+              { id: 'afropop', name: 'Afropop' },
+              { id: 'gospel', name: 'Gospel' },
+              { id: 'dancehall', name: 'Dancehall' },
+              { id: 'reggae', name: 'Reggae' },
+              { id: 'pop', name: 'Pop' },
+              { id: 'rock', name: 'Rock' },
+              { id: 'electronic', name: 'Electronic' },
+            ].map((category) => (
+              <button
+                key={category.id}
+                onClick={() => {
+                  if (['trending', 'new', 'popular'].includes(category.id)) {
+                    setActiveTab(category.id as any);
+                  } else {
+                    router.push(`/explore?genre=${category.id}`);
+                  }
+                }}
+                className={`px-3 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap flex-shrink-0 transition-all duration-200 active:scale-95 ${
+                  activeTab === category.id
+                    ? 'bg-white text-black'
+                    : 'bg-gray-800/60 text-gray-300 hover:bg-gray-700/80'
+                }`}
+              >
+                {category.name}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* Desktop Hero Section with Image Slider - Hidden on Mobile */}
+        <section className="hidden md:block relative py-4 lg:py-6 overflow-hidden w-full">
           <div className="absolute inset-0">
             {heroSlides.map((slide, index) => (
               <div
@@ -353,10 +392,10 @@ export default function Home() {
 
           <div className="w-full px-4 md:px-8 relative z-10">
             <div className="max-w-3xl mx-auto text-center">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] mb-4 sm:mb-6 animate-fade-in gradient-text-animated drop-shadow-lg">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] mb-3 sm:mb-4 animate-fade-in gradient-text-animated drop-shadow-lg">
                 {heroSlides[currentSlide].title}
               </h1>
-              <p className="text-lg sm:text-xl md:text-2xl text-gray-200 mb-6 sm:mb-8 animate-fade-in-delay drop-shadow-md">
+              <p className="text-lg sm:text-xl md:text-2xl text-gray-200 mb-4 sm:mb-6 animate-fade-in-delay drop-shadow-md">
                 {heroSlides[currentSlide].subtitle}
               </p>
               <div className="flex flex-wrap gap-2 sm:gap-3 justify-center animate-fade-in-delay-2">
@@ -462,8 +501,8 @@ export default function Home() {
         </section>
 
         {/* For You Section */}
-        <section className="w-full px-4 md:px-8 py-4 sm:py-6">
-          <div className="flex items-center justify-between mb-4">
+        <section className="w-full px-4 md:px-8 py-2 sm:py-4 overflow-x-hidden">
+          <div className="flex items-center justify-between mb-2">
             <h2 className="text-xl sm:text-2xl font-bold text-white gradient-text-animated">
               For You
             </h2>
@@ -475,7 +514,126 @@ export default function Home() {
             </a>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+          {/* Mobile List View - Vertical */}
+          <div className="md:hidden flex flex-col space-y-1.5 overflow-x-hidden">
+            {forYouTracks.map((track, index) => (
+              <div
+                key={`for-you-mobile-${track.id}`}
+                className="group relative flex items-center gap-2 p-1.5 rounded-xl bg-gray-800/40 backdrop-blur-sm border border-gray-700/50 hover:bg-gray-800/60 transition-all active:scale-[0.98]"
+              >
+                {/* Track Cover */}
+                <div className="relative w-14 h-14 flex-shrink-0 rounded-lg overflow-hidden">
+                  {track.coverImage && track.coverImage.trim() !== '' ? (
+                    <img
+                      src={track.coverImage}
+                      alt={track.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center">
+                      <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
+                      </svg>
+                    </div>
+                  )}
+                  {/* Play Button Overlay */}
+                  <button
+                    onClick={() => {
+                      const fullTrack = trendingTracksData.find(
+                        (t) => t._id === track.id,
+                      );
+                      if (fullTrack && fullTrack.audioURL) {
+                        playTrack({
+                          id: track.id,
+                          title: track.title,
+                          artist: track.artist,
+                          coverImage: track.coverImage,
+                          audioUrl: fullTrack.audioURL,
+                          plays: fullTrack.plays || 0,
+                          likes: fullTrack.likes || 0,
+                          creatorId: typeof fullTrack.creatorId === 'object' && fullTrack.creatorId !== null ? (fullTrack.creatorId as any)._id : fullTrack.creatorId,
+                          type: fullTrack.type,
+                          creatorWhatsapp: (typeof fullTrack.creatorId === 'object' && fullTrack.creatorId !== null 
+                            ? (fullTrack.creatorId as any).whatsappContact 
+                            : undefined)
+                        });
+                        const playlistTracks = trendingTracksData
+                          .filter((t) => t.audioURL)
+                          .map((t) => ({
+                            id: t._id,
+                            title: t.title,
+                            artist: typeof t.creatorId === "object" && t.creatorId !== null ? (t.creatorId as any).name : "Unknown Artist",
+                            coverImage: t.coverURL || "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
+                            audioUrl: t.audioURL,
+                            creatorId: typeof t.creatorId === 'object' && t.creatorId !== null ? (t.creatorId as any)._id : t.creatorId,
+                            type: t.type,
+                            creatorWhatsapp: (typeof t.creatorId === 'object' && t.creatorId !== null 
+                              ? (t.creatorId as any).whatsappContact 
+                              : undefined)
+                          }));
+                        setCurrentPlaylist(playlistTracks);
+                      }
+                    }}
+                    className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Track Info */}
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-bold text-white text-sm truncate tracking-wide">
+                    {track.title}
+                  </h3>
+                  <p className="text-gray-300 text-xs truncate font-medium mt-0.5">
+                    {track.artist}
+                  </p>
+                  
+                  {/* Stats */}
+                  <div className="flex items-center gap-3 mt-1.5">
+                    <div className="flex items-center gap-1">
+                      <svg className="w-3 h-3 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                        <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                      </svg>
+                      <span className="text-xs text-gray-400">{track.plays >= 1000 ? `${(track.plays / 1000).toFixed(1)}k` : track.plays}</span>
+                    </div>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const fullTrack = trendingTracksData.find(t => t._id === track.id);
+                        if (fullTrack) {
+                          toggleFavorite(track.id, fullTrack);
+                        }
+                      }}
+                      className="flex items-center gap-1"
+                    >
+                      <svg 
+                        className={`w-3.5 h-3.5 ${favoriteStatus[track.id] ? 'text-red-500 fill-current' : 'text-gray-400'}`}
+                        fill={favoriteStatus[track.id] ? "currentColor" : "none"}
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                {/* More Options */}
+                <button className="p-2 text-gray-400 hover:text-white">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM16 10a2 2 0 11-4 0 2 2 0 014 0zM6 16a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop Grid View - Hidden on Mobile */}
+          <div className="hidden md:grid grid-cols-2 lg:grid-cols-5 gap-3">
             {forYouTracks.map((track, index) => (
               <div
                 key={`for-you-${track.id}`}
@@ -598,15 +756,15 @@ export default function Home() {
                     </div>
                   </div>
 
-                  <div className="p-3 pt-3.5">
-                    <h3 className="font-bold text-white text-xs sm:text-sm mb-1 truncate tracking-wide drop-shadow-md">
+                  <div className="p-2 pt-2.5">
+                    <h3 className="font-bold text-white text-xs sm:text-sm mb-0.5 truncate tracking-wide drop-shadow-md">
                       {track.title}
                     </h3>
                     <p className="text-gray-300 text-xs sm:text-sm truncate font-medium">
                       {track.artist}
                     </p>
                     
-                    <div className="flex justify-between items-center mt-2.5 pt-2 border-t border-white/10">
+                    <div className="flex justify-between items-center mt-2 pt-1.5 border-t border-white/10">
                       <div className="flex items-center gap-1.5">
                         <svg className="w-3 h-3 text-[#FF4D67]" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                           <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
@@ -629,8 +787,8 @@ export default function Home() {
         </section>
 
         {/* Popular Artists Section */}
-        <section className="w-full px-4 md:px-8 py-4 sm:py-6">
-          <div className="flex items-center justify-between mb-4">
+        <section className="w-full px-4 md:px-8 py-2 sm:py-4">
+          <div className="flex items-center justify-between mb-2">
             <h2 className="text-xl sm:text-2xl font-bold text-white gradient-text-animated">
               Popular Artists
             </h2>
@@ -642,19 +800,19 @@ export default function Home() {
             </a>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
             {popularCreators.map((creator, index) => (
               <div
                 key={creator.id}
                 className={`group relative gradient-border-animated rounded-2xl p-0.5 reveal-on-scroll holographic-shimmer card-lift-3d particle-float light-leak`}
                 style={{ animationDelay: `${index * 0.05}s` }}
               >
-                <div className="rounded-[14px] glassmorphism-advanced p-4 backdrop-blur-xl">
+                <div className="rounded-[14px] glassmorphism-advanced p-3 sm:p-4 backdrop-blur-xl">
                   <div 
                     className="flex flex-col items-center text-center cursor-pointer group"
                     onClick={() => router.push(`/artists/${creator.id}`)}
                   >
-                    <div className="relative mb-3 pulse-ring">
+                    <div className="relative mb-2 pulse-ring">
                       {creator.avatar && creator.avatar.trim() !== '' ? (
                         <img
                           src={creator.avatar}
@@ -711,8 +869,8 @@ export default function Home() {
           </div>
         </section>
         {/* Popular Albums Section */}
-        <section className="w-full px-4 md:px-8 py-4 sm:py-6">
-          <div className="flex items-center justify-between mb-4">
+        <section className="w-full px-4 md:px-8 py-2 sm:py-4">
+          <div className="flex items-center justify-between mb-2">
             <h2 className="text-xl sm:text-2xl font-bold text-white gradient-text-animated">
               Popular Albums
             </h2>
@@ -724,7 +882,7 @@ export default function Home() {
             </a>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
             {albumsLoading ? (
               // Loading skeleton
               Array.from({ length: 6 }).map((_, index) => (
@@ -837,14 +995,14 @@ export default function Home() {
                   </div>
                 </div>
 
-                <div className="p-3 pt-3.5">
-                  <h3 className="font-bold text-white text-xs sm:text-sm mb-1 truncate tracking-wide drop-shadow-md">
+                <div className="p-2 pt-2.5">
+                  <h3 className="font-bold text-white text-xs sm:text-sm mb-0.5 truncate tracking-wide drop-shadow-md">
                     {album.title}
                   </h3>
                   <p className="text-gray-300 text-xs sm:text-sm truncate font-medium">
                     {album.artist}
                   </p>
-                  <div className="flex justify-between items-center mt-2.5 pt-2 border-t border-white/10">
+                  <div className="flex justify-between items-center mt-2 pt-1.5 border-t border-white/10">
                     <span className="text-gray-400 text-xs font-semibold">{album.year}</span>
                     <span className="text-gray-400 text-xs font-semibold flex items-center gap-1">
                       <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -863,8 +1021,8 @@ export default function Home() {
 
         {/* Popular Beats Section */}
         {/* Popular Mixes Section */}
-        <section className="w-full px-4 md:px-8 py-4 sm:py-6">
-          <div className="flex items-center justify-between mb-4">
+        <section className="w-full px-4 md:px-8 py-2 sm:py-4">
+          <div className="flex items-center justify-between mb-2">
             <h2 className="text-xl sm:text-2xl font-bold text-white gradient-text-animated">
               Popular Mixes
             </h2>
@@ -876,7 +1034,7 @@ export default function Home() {
             </a>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
             {trendingTracks
               .filter((track) => track.category === "mix")
               .slice(0, 10)
@@ -971,14 +1129,14 @@ export default function Home() {
                     </div>
                   </div>
 
-                  <div className="p-3 pt-3.5">
-                    <h3 className="font-bold text-white text-xs sm:text-sm mb-1 truncate tracking-wide drop-shadow-md">
+                  <div className="p-2 pt-2.5">
+                    <h3 className="font-bold text-white text-xs sm:text-sm mb-0.5 truncate tracking-wide drop-shadow-md">
                       {track.title}
                     </h3>
                     <p className="text-gray-300 text-xs sm:text-sm truncate font-medium">
                       {track.artist}
                     </p>
-                    <div className="flex justify-between items-center mt-2.5 pt-2 border-t border-white/10">
+                    <div className="flex justify-between items-center mt-2 pt-1.5 border-t border-white/10">
                       <span className="text-gray-400 text-xs font-semibold">
                         {track.duration}
                       </span>
@@ -1008,10 +1166,10 @@ export default function Home() {
         </section>
 
         {/* Music Lists */}
-        <section className="w-full px-4 md:px-8 py-4 sm:py-6 pb-4">
+        <section className="w-full px-4 md:px-8 py-2 sm:py-4 overflow-x-hidden">
           {/* Tabs */}
-          <div className="flex overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide mb-4 glassmorphism-advanced rounded-xl mx-0" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-            <div className="flex border-b border-gray-800 min-w-max gap-2">
+          <div className="flex overflow-x-auto pb-0 -mx-4 px-4 scrollbar-hide mb-0 glassmorphism-advanced rounded-xl mx-0" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            <div className="flex border-b border-gray-800 min-w-max gap-1.5">
               <button
                 className={`py-2.5 px-4 sm:px-5 font-bold text-sm sm:text-base transition-all duration-300 whitespace-nowrap rounded-lg fab-spring ${
                   activeTab === "trending"
@@ -1079,7 +1237,7 @@ export default function Home() {
 
           {/* Trending Tracks */}
           {activeTab === "trending" && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 overflow-x-hidden">
               {trendingTracks.map((track) => (
                 <div
                   key={`trending-${track.id}`}
@@ -1192,7 +1350,7 @@ export default function Home() {
                     </div>
                   </div>
 
-                  <div className="p-4 sm:p-5">
+                  <div className="p-3 sm:p-4">
                     <h3 className="font-bold text-white text-lg mb-1 truncate">
                       {track.title}
                     </h3>
@@ -1200,7 +1358,7 @@ export default function Home() {
                       {track.artist}
                     </p>
                     {track.album && (
-                      <p className="text-gray-500 text-xs sm:text-sm mb-3 truncate">
+                      <p className="text-gray-500 text-xs sm:text-sm mb-2 truncate">
                         {track.album}
                       </p>
                     )}
@@ -1231,7 +1389,7 @@ export default function Home() {
 
           {/* New Releases */}
           {activeTab === "new" && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 overflow-x-hidden">
               {newTracks.map((track) => (
                 <div
                   key={`new-release-${track.id}`}
@@ -1344,7 +1502,7 @@ export default function Home() {
                     </div>
                   </div>
 
-                  <div className="p-4 sm:p-5">
+                  <div className="p-3 sm:p-4">
                     <h3 className="font-bold text-white text-lg mb-1 truncate">
                       {track.title}
                     </h3>
@@ -1352,7 +1510,7 @@ export default function Home() {
                       {track.artist}
                     </p>
                     {track.album && (
-                      <p className="text-gray-500 text-xs sm:text-sm mb-3 truncate">
+                      <p className="text-gray-500 text-xs sm:text-sm mb-2 truncate">
                         {track.album}
                       </p>
                     )}
@@ -1383,7 +1541,7 @@ export default function Home() {
 
           {/* Popular Creators */}
           {activeTab === "popular" && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 overflow-x-hidden">
               {popularCreators.map((creator) => (
                 <div
                   key={creator.id}
@@ -1449,7 +1607,7 @@ export default function Home() {
 
           {/* Mixes */}
           {activeTab === "mixes" && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 overflow-x-hidden">
               {trendingTracks
                 .filter((track) => track.category === "mix")
                 .map((track) => (
@@ -1564,7 +1722,7 @@ export default function Home() {
                       </div>
                     </div>
 
-                    <div className="p-4 sm:p-5">
+                    <div className="p-3 sm:p-4">
                       <h3 className="font-bold text-white text-lg mb-1 truncate">
                         {track.title}
                       </h3>
@@ -1572,11 +1730,11 @@ export default function Home() {
                         {track.artist}
                       </p>
                       {track.album && (
-                        <p className="text-gray-500 text-xs sm:text-sm mb-3 truncate">
+                        <p className="text-gray-500 text-xs sm:text-sm mb-2 truncate">
                           {track.album}
                         </p>
                       )}
-
+                    
                       <div className="flex justify-between text-xs sm:text-sm text-gray-500">
                         <span>{track.plays?.toLocaleString() || '0'} plays</span>
                         <div className="flex items-center gap-1">

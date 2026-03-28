@@ -29,7 +29,9 @@ export default function ConditionalNavbar() {
   
   return (
     <>
-      <Navbar />
+      <div className="hidden md:block">
+        <Navbar />
+      </div>
       <MobileNavbar />
     </>
   );

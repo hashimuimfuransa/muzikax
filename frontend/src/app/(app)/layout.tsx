@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "../../globals.css";
-import Navbar from "../../components/Navbar";
-import MobileNavbar from "../../components/MobileNavbar";
+import ConditionalNavbar from "../../components/ConditionalNavbar";
 import { AuthProvider } from "../../contexts/AuthContext";
 import { AudioPlayerProvider } from "../../contexts/AudioPlayerContext";
 import ModernAudioPlayer from "../../components/ModernAudioPlayer";
@@ -50,11 +49,10 @@ export default function AppLayout({
         <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"}>
           <AuthProvider>
             <AudioPlayerProvider>
-              <Navbar />
+              <ConditionalNavbar />
               {children}
               <Footer />
               <ModernAudioPlayer />
-              <MobileNavbar />
               <PWAInstallPrompt />
             </AudioPlayerProvider>
           </AuthProvider>

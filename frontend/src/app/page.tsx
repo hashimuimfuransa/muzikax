@@ -10,6 +10,7 @@ import { useAudioPlayer } from "../contexts/AudioPlayerContext";
 import { getAlbumById } from "../services/albumService";
 import { followCreator, unfollowCreator, checkFollowStatus } from "../services/trackService";
 import HorizontalScrollSection from "../components/HorizontalScrollSection";
+import ListCard from "../components/ListCard";
 import TrackCard from "../components/TrackCard";
 import ArtistCard from "../components/ArtistCard";
 import RecommendedPlaylists from "../components/RecommendedPlaylists";
@@ -644,7 +645,8 @@ export default function Home() {
   }, [trendingTracks]);
   
   // For You section - use monthly popular tracks
-  const forYouTracks: Track[] = monthlyPopularTracks.slice(0, 10);
+  const forYouTracks: Track[] = monthlyPopularTracks.slice(0, 5);
+  const forYouTracksAll: Track[] = monthlyPopularTracks; // Keep all tracks for view all page
 
   // Utility function to shuffle an array
   const shuffleArray = (array: any[]) => {
@@ -790,8 +792,51 @@ export default function Home() {
           autoHideTimeout={30}
           rewardText="🎵 Support us by watching a quick video!"
         /> */}
-        {/* Enhanced Hero Section with Image Slider */}
-        <section className="relative py-8 md:py-12 lg:py-16 overflow-hidden">
+        {/* Mobile Categories Scroll - Enhanced Native App Style */}
+        <section className="md:hidden w-full px-0 py-2 bg-gradient-to-r from-gray-900 via-gray-900/95 to-black border-b border-gray-800/50 shadow-lg sticky top-[3.6rem] z-40 mb-4">
+          <div className="flex items-center space-x-2 overflow-x-auto scrollbar-hide px-3 pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
+            {[
+              { id: 'trending', name: '🔥 Trending' },
+              { id: 'new', name: '✨ New' },
+              { id: 'popular', name: '⭐ Popular' },
+              { id: 'afrobeat', name: 'Afrobeat' },
+              { id: 'amapiano', name: 'Amapiano' },
+              { id: 'hiphop', name: 'Hip Hop' },
+              { id: 'rnb', name: 'R&B' },
+              { id: 'afropop', name: 'Afropop' },
+              { id: 'gospel', name: 'Gospel' },
+              { id: 'dancehall', name: 'Dancehall' },
+              { id: 'reggae', name: 'Reggae' },
+              { id: 'pop', name: 'Pop' },
+              { id: 'rock', name: 'Rock' },
+              { id: 'electronic', name: 'Electronic' },
+              { id: 'gakondo', name: 'Gakondo' },
+              { id: 'drill', name: 'Drill' },
+              { id: 'trap', name: 'Trap' },
+            ].map((category) => (
+              <button
+                key={category.id}
+                onClick={() => {
+                  if (['trending', 'new', 'popular'].includes(category.id)) {
+                    setActiveTab(category.id as any);
+                  } else {
+                    router.push(`/explore?category=${category.id}`);
+                  }
+                }}
+                className={`px-4 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap flex-shrink-0 transition-all duration-200 active:scale-95 ${
+                  activeTab === category.id
+                    ? 'bg-gradient-to-r from-[#FF4D67] to-[#FF6B8B] text-white shadow-lg shadow-[#FF4D67]/30'
+                    : 'bg-gray-800/60 text-gray-300 hover:bg-gray-700/80 border border-gray-700/50'
+                }`}
+              >
+                {category.name}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* Desktop Hero Section with Image Slider - Hidden on Mobile */}
+        <section className="hidden md:block relative py-12 lg:py-16 overflow-hidden">
           <div className="absolute inset-0">
             {heroSlides.map((slide, index) => (
               <div
@@ -932,34 +977,49 @@ export default function Home() {
 
         {/* For You Section - Monthly Popular Tracks */}
         {(homepageContent?.sections.showForYou !== false) && (
-          <HorizontalScrollSection title={t('forYou')} viewAllLink="/tracks?sortBy=monthly">
-            {monthlyPopularLoading ? (
-              // Loading skeleton
-              Array.from({ length: 10 }).map((_, index) => (
-                <div
-                  key={`loading-${index}`}
-                  className="flex-shrink-0 w-48 sm:w-56"
-                >
-                  <div className="bg-gray-700 rounded-lg h-48 sm:h-56 animate-pulse mb-3"></div>
-                  <div className="bg-gray-700 rounded h-4 w-3/4 animate-pulse mb-2"></div>
-                  <div className="bg-gray-700 rounded h-3 w-1/2 animate-pulse"></div>
-                </div>
-              ))
-            ) : (
-              forYouTracks.map((track) => {
-                // Find the full track object to get additional properties
-                // Try to match by _id first (for regular tracks), then by id (for transformed tracks)
-                const fullTrack = trendingTracksData.find(t => t._id === track.id || t._id === (track as any)._id);
-                return (
-                  <TrackCard 
-                    key={`for-you-${track.id}`} 
-                    track={track} 
-                    fullTrackData={fullTrack}
-                  />
-                );
-              })
-            )}
-          </HorizontalScrollSection>
+          <div className="mb-6 md:mb-8 mt-4 md:mt-0 pt-12 md:pt-0">
+            <HorizontalScrollSection 
+              title={t('forYou')} 
+              viewAllLink="/tracks?sortBy=monthly" 
+              variant="list"
+              showRecommendedBadge={true}
+            >
+              {monthlyPopularLoading ? (
+                // Loading skeleton
+                Array.from({ length: 5 }).map((_, index) => (
+                  <div
+                    key={`loading-${index}`}
+                    className="w-full mb-2"
+                  >
+                    <div className="bg-gray-800/40 backdrop-blur-sm border border-gray-700/50 rounded-xl p-2 animate-pulse">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-4 bg-gray-700 rounded"></div>
+                        <div className="w-12 h-12 bg-gray-700 rounded-lg"></div>
+                        <div className="flex-1 space-y-2">
+                          <div className="h-3 bg-gray-700 rounded w-3/4"></div>
+                          <div className="h-2 bg-gray-700 rounded w-1/2"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                forYouTracks.map((track, index) => {
+                  // Find the full track object to get additional properties
+                  // Try to match by _id first (for regular tracks), then by id (for transformed tracks)
+                  const fullTrack = trendingTracksData.find(t => t._id === track.id || t._id === (track as any)._id);
+                  return (
+                    <ListCard 
+                      key={`for-you-${track.id}`} 
+                      track={track} 
+                      fullTrackData={fullTrack}
+                      index={index}
+                    />
+                  );
+                })
+              )}
+            </HorizontalScrollSection>
+          </div>
         )}
 
         {/* Recommended Playlists Section */}

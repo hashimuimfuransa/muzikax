@@ -227,6 +227,64 @@ export default function BeatsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black">
+      {/* Mobile Search & Category Scroll - Native App Style */}
+      <div className="md:hidden sticky top-[3.6rem] z-40 bg-gradient-to-r from-gray-900 via-gray-900/95 to-black border-b border-gray-800/50 shadow-lg">
+        {/* Search Bar */}
+        <div className="px-3 py-2 border-b border-gray-800/50">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search beats..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full py-2.5 px-4 pl-10 bg-gray-800/80 backdrop-blur-sm border border-gray-700/50 rounded-full text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm shadow-md"
+            />
+            <div className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-400">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+            </div>
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+              >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                </svg>
+              </button>
+            )}
+          </div>
+        </div>
+        
+        {/* Genre Scroll */}
+        <div className="flex items-center space-x-2 overflow-x-auto scrollbar-hide py-2 px-3" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
+          <button
+            onClick={() => setSelectedGenre(null)}
+            className={`px-4 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap flex-shrink-0 transition-all duration-200 active:scale-95 ${
+              selectedGenre === null
+                ? 'bg-gradient-to-r from-[#FF4D67] to-[#FF6B8B] text-white shadow-lg shadow-[#FF4D67]/30'
+                : 'bg-gray-800/60 text-gray-300 hover:bg-gray-700/80 border border-gray-700/50'
+            }`}
+          >
+            All
+          </button>
+          {genres.map((genre) => (
+            <button
+              key={genre.id}
+              onClick={() => setSelectedGenre(genre.id)}
+              className={`px-4 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap flex-shrink-0 transition-all duration-200 active:scale-95 ${
+                selectedGenre === genre.id
+                  ? 'bg-gradient-to-r from-[#FFCB2B] to-[#FFA726] text-gray-900 shadow-lg shadow-[#FFCB2B]/30'
+                  : 'bg-gray-800/60 text-gray-300 hover:bg-gray-700/80 border border-gray-700/50'
+              }`}
+            >
+              {genre.name}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Hero Section */}
       <div className="relative py-8 sm:py-12 lg:py-16 overflow-hidden">
         {/* Background image with gradient overlay */}
@@ -251,8 +309,8 @@ export default function BeatsPage() {
         </div>
       </div>
 
-      {/* Filter Section */}
-      <div className="container mx-auto px-4 sm:px-8 py-6">
+      {/* Desktop Filter Section - Hidden on Mobile */}
+      <div className="hidden md:block container mx-auto px-4 sm:px-8 py-6">
         <div className="mb-6">
           <h2 className="text-xl font-bold text-white mb-4 text-center">Filter & Search Beats</h2>
           

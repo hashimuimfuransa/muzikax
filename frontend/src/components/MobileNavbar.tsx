@@ -3,20 +3,43 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
 import { useAudioPlayer } from '../contexts/AudioPlayerContext';
 import { useLanguage } from '../contexts/LanguageContext';
 
 export default function MobileNavbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const { isAuthenticated: actualAuth, userRole: actualRole } = useAuth();
   const { currentTrack, isPlaying, togglePlayPause } = useAudioPlayer();
-  const { t, language: actualLanguage } = useLanguage();
+  const { t, language: actualLanguage, setLanguage } = useLanguage();
+  const [showHeader, setShowHeader] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Handle scroll to show/hide header
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      // Show header when scrolling up, hide when scrolling down
+      if (currentScrollY < lastScrollY || currentScrollY < 10) {
+        setShowHeader(true);
+      } else {
+        setShowHeader(false);
+      }
+      
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
 
   const isAuthenticated = mounted ? actualAuth : false;
   const userRole = mounted ? actualRole : null;
@@ -105,10 +128,55 @@ export default function MobileNavbar() {
   };
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 mobile-navbar-container" style={{ paddingBottom: 'env(safe-area-inset-bottom)', zIndex: 9999 }} data-testid="mobile-navbar">
+    <>
+      {/* Native App-Style Top Header for Mobile */}
+      <div 
+        className={`md:hidden fixed top-0 left-0 right-0 z-50 bg-gray-900/95 backdrop-blur-xl border-b border-gray-800 shadow-lg transition-transform duration-300 ease-in-out ${
+          showHeader ? 'translate-y-0' : '-translate-y-full'
+        }`} 
+        style={{ paddingTop: 'env(safe-area-inset-top)', zIndex: 9999 }} 
+        data-testid="mobile-header"
+      >
+        <div className="flex items-center justify-between h-14 px-3">
+          {/* Left: Logo */}
+          <Link href="/" className="flex items-center group flex-shrink-0">
+            <img src="/muzikax.png" alt="MuzikaX Logo" className="h-8 w-auto transition-transform group-hover:scale-105" />
+            <span className="ml-2 text-xl font-black text-white tracking-tighter">MuzikaX</span>
+          </Link>
+
+          {/* Right: Search and Language */}
+          <div className="flex items-center space-x-2">
+            {/* Search Button */}
+            <button
+              onClick={() => router.push('/search')}
+              className="inline-flex items-center justify-center p-2 rounded-full text-gray-400 hover:text-white hover:bg-gray-800 focus:outline-none transition-all active:scale-95"
+              aria-label="Search"
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+            </button>
+            
+            {/* Language Switcher */}
+            <button
+              onClick={() => setLanguage(language === 'en' ? 'rw' : 'en')}
+              className="inline-flex items-center justify-center p-2 rounded-full text-gray-400 hover:text-white hover:bg-gray-800 focus:outline-none transition-all active:scale-95 relative"
+              aria-label="Switch Language"
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <span className="absolute -top-0.5 -right-0.5 text-[8px] font-black uppercase bg-[#FF4D67] text-white px-1 rounded-sm border border-gray-900 shadow-sm leading-none py-0.5 min-w-[16px] text-center">
+                {language}
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* Player bar when track is playing - Enhanced with gradient */}
       {currentTrack && (
-        <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-t border-gray-700/50 shadow-lg backdrop-blur-sm">
+        <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-t border-gray-700/50 shadow-lg backdrop-blur-sm" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
           <Link 
             href="/player" 
             className="flex items-center p-2.5 gap-3 active:scale-[0.98] transition-all duration-150 min-h-[60px]"
@@ -142,9 +210,9 @@ export default function MobileNavbar() {
           </Link>
         </div>
       )}
-      
-      {/* Modern Navigation bar with glassmorphism */}
-      <div className="bg-gray-900/95 backdrop-blur-xl border-t border-gray-700/50 shadow-2xl">
+
+      {/* Modern Bottom Navigation bar with glassmorphism */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-gray-900/95 backdrop-blur-xl border-t border-gray-700/50 shadow-2xl" style={{ paddingBottom: 'env(safe-area-inset-bottom)', zIndex: currentTrack ? 51 : 9999 }} data-testid="mobile-navbar">
         <div className="flex justify-around items-stretch">
           {navItems.map((item, index) => {
             const active = isActive(item.href);
@@ -186,7 +254,6 @@ export default function MobileNavbar() {
           })}
         </div>
       </div>
-      
-    </div>
+    </>
   );
 }

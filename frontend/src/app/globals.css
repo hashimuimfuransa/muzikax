@@ -477,10 +477,16 @@ img, video, canvas {
     height: calc(50px + env(safe-area-inset-bottom));
   }
   
-  /* Ensure mobile navbar is visible above all content */
+  /* Ensure mobile navbar and header are visible above all content */
   .mobile-navbar-container,
-  [data-testid="mobile-navbar"] {
+  [data-testid="mobile-navbar"],
+  [data-testid="mobile-header"] {
     z-index: 9999 !important;
+  }
+  
+  /* Force hide desktop navbar on mobile */
+  [data-testid="desktop-navbar"] {
+    display: none !important;
   }
   
   /* Prevent form elements from overflowing */

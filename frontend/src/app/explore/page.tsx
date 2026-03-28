@@ -487,8 +487,67 @@ function ExploreContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black">
-      {/* Hero Section */}
-      <div className="relative py-8 sm:py-12 lg:py-16 overflow-hidden">
+      {/* Mobile Category Filter - Horizontal Scroll */}
+      <section className="md:hidden w-full px-0 py-2 bg-gradient-to-r from-gray-900 via-gray-900/95 to-black border-b border-gray-800/50 shadow-lg sticky top-[3.6rem] z-40 mb-2">
+        <div className="flex items-center space-x-2 overflow-x-auto scrollbar-hide px-3 pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
+          <button
+            onClick={() => handleCategoryClick('')}
+            className={`px-4 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap flex-shrink-0 transition-all duration-200 active:scale-95 ${
+              selectedCategory === null
+                ? 'bg-gradient-to-r from-[#FF4D67] to-[#FF6B8B] text-white shadow-lg shadow-[#FF4D67]/30'
+                : 'bg-gray-800/60 text-gray-300 hover:bg-gray-700/80 border border-gray-700/50'
+            }`}
+          >
+            All
+          </button>
+          {categories.slice(0, 15).map((category) => (
+            <button
+              key={category.id}
+              onClick={() => handleCategoryClick(category.id)}
+              className={`px-4 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap flex-shrink-0 transition-all duration-200 active:scale-95 ${
+                selectedCategory === category.id
+                  ? 'bg-gradient-to-r from-[#FFCB2B] to-[#FFA726] text-gray-900 shadow-lg shadow-[#FFCB2B]/30'
+                  : 'bg-gray-800/60 text-gray-300 hover:bg-gray-700/80 border border-gray-700/50'
+              }`}
+            >
+              {category.name}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* Mobile Search Bar - Native App Style */}
+      <div className="md:hidden sticky top-[7.5rem] z-40 bg-gradient-to-r from-gray-900 via-gray-900/95 to-black border-b border-gray-800/50 shadow-lg">
+        <div className="px-3 py-2">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder={t('searchPlaceholder')}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full py-2.5 px-4 pl-10 bg-gray-800/80 backdrop-blur-sm border border-gray-700/50 rounded-full text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm shadow-md"
+            />
+            <div className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-400">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+            </div>
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+              >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                </svg>
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Hero Section - Hidden on Mobile */}
+      <div className="hidden md:block relative py-8 sm:py-12 lg:py-16 overflow-hidden">
         {/* Background image with gradient overlay */}
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80)' }}></div>
@@ -526,8 +585,8 @@ function ExploreContent() {
         </div>
       </div>
 
-      {/* Category Filters */}
-      <div className="container mx-auto px-4 sm:px-8 py-4">
+      {/* Category Filters - Hidden on Mobile */}
+      <div className="hidden md:block container mx-auto px-4 sm:px-8 py-4">
         <div className="flex flex-wrap gap-1.5 xs:gap-2 justify-center max-w-full overflow-x-auto pb-2">
           <button
             className={`px-2.5 py-1.5 xs:px-3 xs:py-2 rounded-full text-xs xs:text-sm font-medium transition-colors flex-shrink-0 ${
@@ -608,10 +667,10 @@ function ExploreContent() {
         </div>
       </div>
 
-      {/* Content Tabs */}
+      {/* Content Tabs - Desktop Only */}
       <div className="container mx-auto px-4 sm:px-8 py-8 sm:py-12 md:py-16 pb-32 flex-1">
-        {/* Mobile-friendly Tab Navigation */}
-        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-1 mb-8 sm:mb-10 border border-gray-700 overflow-x-auto scrollbar-hide">
+        {/* Mobile-friendly Tab Navigation - Hidden on Mobile */}
+        <div className="hidden md:block bg-gray-800/50 backdrop-blur-sm rounded-xl p-1 mb-8 sm:mb-10 border border-gray-700 overflow-x-auto scrollbar-hide">
           <div className="flex justify-between min-w-max">
             <button
               className={`flex items-center gap-2 py-3 px-4 sm:px-6 rounded-lg transition-all duration-300 font-medium text-sm sm:text-base whitespace-nowrap ${
