@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">MuzikaX</string>
+    <string name="title_activity_main">MuzikaX</string>
+    <string name="package_name">com.muzikax.app</string>
+    <string name="custom_url_scheme">com.muzikax.app</string>
+</resources>

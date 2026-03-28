@@ -19,6 +19,7 @@ import ConditionalSidebar from "../components/ConditionalSidebar";
 import SidebarLayoutWrapper from "../components/SidebarLayoutWrapper";
 import PushNotificationInitializer from "../components/PushNotificationInitializer";
 import Footer from "../components/Footer";
+import CapacitorProvider from "../components/CapacitorProvider";
 
 // Admin routes that should not have public navbar/footer
 const ADMIN_ROUTES = ['/admin'];
@@ -163,43 +164,45 @@ export default function RootLayout({
             })
           }}
         />
-        <LoadingErrorBoundary>
-          <PreloadProvider>
-            <ErrorBoundary>
-              <ToastProvider>
-                <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"}>
-                  <AuthProvider>
-                    <LanguageProvider>
-                      <AudioPlayerProvider>
-                        <CommunityProvider>
-                          <PaymentProvider>
-                            {/* Conditional rendering - skip for admin routes */}
-                            <div className="admin-layout-wrapper" data-admin-routes={ADMIN_ROUTES.join(',')} style={{ display: 'contents' }}>
-                              <ConditionalSidebar />
-                              <div className="w-full max-w-[100%] overflow-x-hidden">
-                                <SidebarLayoutWrapper>
-                                  <ConditionalNavbar />
-                                  <PushNotificationInitializer />
-                                  <main className="flex-1 w-full overflow-x-hidden">
-                                    {children}
-                                  </main>
-                                </SidebarLayoutWrapper>
+        <CapacitorProvider>
+          <LoadingErrorBoundary>
+            <PreloadProvider>
+              <ErrorBoundary>
+                <ToastProvider>
+                  <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"}>
+                    <AuthProvider>
+                      <LanguageProvider>
+                        <AudioPlayerProvider>
+                          <CommunityProvider>
+                            <PaymentProvider>
+                              {/* Conditional rendering - skip for admin routes */}
+                              <div className="admin-layout-wrapper" data-admin-routes={ADMIN_ROUTES.join(',')} style={{ display: 'contents' }}>
+                                <ConditionalSidebar />
+                                <div className="w-full max-w-[100%] overflow-x-hidden">
+                                  <SidebarLayoutWrapper>
+                                    <ConditionalNavbar />
+                                    <PushNotificationInitializer />
+                                    <main className="flex-1 w-full overflow-x-hidden">
+                                      {children}
+                                    </main>
+                                  </SidebarLayoutWrapper>
+                                </div>
+                                <ModernAudioPlayer />
+                                <PWAInstallPrompt />
+                                <ContactFloatingButton />
+                                <Footer />
                               </div>
-                              <ModernAudioPlayer />
-                              <PWAInstallPrompt />
-                              <ContactFloatingButton />
-                              <Footer />
-                            </div>
-                          </PaymentProvider>
-                        </CommunityProvider>
-                      </AudioPlayerProvider>
-                    </LanguageProvider>
-                  </AuthProvider>
-                </GoogleOAuthProvider>
-              </ToastProvider>
-            </ErrorBoundary>
-          </PreloadProvider>
-        </LoadingErrorBoundary>
+                            </PaymentProvider>
+                          </CommunityProvider>
+                        </AudioPlayerProvider>
+                      </LanguageProvider>
+                    </AuthProvider>
+                  </GoogleOAuthProvider>
+                </ToastProvider>
+              </ErrorBoundary>
+            </PreloadProvider>
+          </LoadingErrorBoundary>
+        </CapacitorProvider>
         <Script
           id="custom-script-1"
           strategy="afterInteractive"

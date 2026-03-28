@@ -11,7 +11,15 @@ const nextConfig = {
     reactCompiler: true,
     // Add turbopack configuration to resolve build error
     turbopack: {},
-    // Proxy API requests to backend server
+    // Note: Using default behavior (not 'export') to support dynamic routes
+    // Capacitor will load from dev server during development
+    // For production, you can either:
+    // 1. Use 'output: export' and add generateStaticParams to all dynamic routes
+    // 2. Or bundle with a backend API
+    images: {
+        unoptimized: true
+    },
+    // Proxy API requests to backend server (for development only)
     async rewrites() {
         return [
             {
