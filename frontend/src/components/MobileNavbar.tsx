@@ -144,7 +144,7 @@ export default function MobileNavbar() {
             <span className="ml-2 text-xl font-black text-white tracking-tighter">MuzikaX</span>
           </Link>
 
-          {/* Right: Search and Language */}
+          {/* Right: Search, Profile (if logged in), and Language */}
           <div className="flex items-center space-x-2">
             {/* Search Button */}
             <button
@@ -156,6 +156,19 @@ export default function MobileNavbar() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
               </svg>
             </button>
+            
+            {/* Profile Icon (only when logged in) */}
+            {isAuthenticated && (
+              <Link
+                href="/profile"
+                className="inline-flex items-center justify-center p-2 rounded-full text-gray-400 hover:text-white hover:bg-gray-800 focus:outline-none transition-all active:scale-95"
+                aria-label="Profile"
+              >
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg>
+              </Link>
+            )}
             
             {/* Language Switcher */}
             <button

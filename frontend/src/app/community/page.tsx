@@ -527,17 +527,18 @@ const CommunityContent = () => {
     return t('daysAgo', { count: Math.floor(seconds / 86400) });
   };
 
+  useEffect(() => {
+    if (!user) {
+      const currentPath = typeof window !== 'undefined' ? window.location.pathname + window.location.search : '/community';
+      window.location.href = `/login?redirect=${encodeURIComponent(currentPath)}`;
+    }
+  }, [user]);
+
+  // Show loading spinner while redirecting
   if (!user) {
-    const currentPath = typeof window !== 'undefined' ? window.location.pathname + window.location.search : '/community';
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">{t('accessDenied')}</h2>
-          <p className="text-gray-400 mb-6">{t('loginToAccessCommunity')}</p>
-          <a href={`/login?redirect=${encodeURIComponent(currentPath)}`} className="inline-block bg-gradient-to-r from-[#FF4D67] to-[#FF6B8B] text-white py-2 px-6 rounded-lg font-medium hover:from-[#FF6B8B] hover:to-[#FF8FA3] transition-all">
-            {t('logIn')}
-          </a>
-        </div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#FF4D67]"></div>
       </div>
     );
   }

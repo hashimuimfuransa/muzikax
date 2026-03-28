@@ -228,14 +228,14 @@ function SearchResultsContent() {
   }
 
   return (
-    <div className="relative overflow-hidden min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black py-8 sm:py-12">
+    <div className="relative overflow-hidden min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black pt-24 pb-8 sm:pt-28 sm:pb-12">
       <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#FF4D67]/10 rounded-full blur-3xl -z-10"></div>
       <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-[#FFCB2B]/10 rounded-full blur-3xl -z-10"></div>
       
       <div className="w-full max-w-full px-4 sm:px-8">
         <div className="max-w-4xl mx-auto">
           {/* Search Header */}
-          <div className="text-center mb-8 sm:mb-12">
+          <div className="hidden sm:block text-center mb-8 sm:mb-12">
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] mb-4">
               {t('searchResults')}
             </h1>
@@ -340,6 +340,32 @@ function SearchResultsContent() {
                 </div>
               </div>
             </div>
+          </div>
+          
+          {/* Mobile Search Bar - Simplified */}
+          <div className="sm:hidden mb-6">
+            <form onSubmit={handleSearch} className="w-full">
+              <div className="relative">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder={t('searchPlaceholder')}
+                  className="w-full px-4 py-3 pl-10 pr-16 bg-gray-800/50 border border-gray-700 rounded-full text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent text-sm transition-all"
+                />
+                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                  </svg>
+                </div>
+                <button 
+                  type="submit"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 px-3 py-1.5 bg-[#FF4D67] hover:bg-[#FF4D67]/80 text-white rounded-full text-xs font-medium transition-colors"
+                >
+                  {t('search')}
+                </button>
+              </div>
+            </form>
           </div>
           
           {/* Results Info */}
