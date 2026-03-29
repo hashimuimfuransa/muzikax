@@ -18,6 +18,7 @@ import AppLauncher from "../components/AppLauncher";
 import OfflineIndicator from "../components/OfflineIndicator";
 import AIMusicAssistant from "../components/AIMusicAssistant";
 import AIPopup from "../components/AIPopup";
+import LanguageModal from "../components/LanguageModal";
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import ConditionalNavbar from "../components/ConditionalNavbar";
 import ConditionalSidebar from "../components/ConditionalSidebar";
@@ -204,6 +205,9 @@ export default function RootLayout({
                             <CommunityProvider>
                               <PaymentProvider>
                                 <OfflineProvider>
+                                  {/* Language Selection Modal - Shows on first visit */}
+                                  <LanguageModal />
+                                  
                                   {/* App Launcher Animation */}
                                   <AppLauncher />
                                   

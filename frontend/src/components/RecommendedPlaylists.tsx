@@ -183,7 +183,7 @@ export default function RecommendedPlaylists({
       <div className="flex justify-between items-center mb-6">
         <h2 className={`font-bold text-white ${
             titleSize === 'sm' ? 'text-base sm:text-lg' : 
-            titleSize === 'md' ? 'text-xl' : 'text-2xl'
+            titleSize === 'md' ? 'text-xl' : 'text-xl sm:text-2xl'
           } ${titleClassName}`}>Recommended Playlists</h2>
         <button 
           onClick={handleViewAll}

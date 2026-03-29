@@ -1200,7 +1200,7 @@ export default function Home() {
         {/* Popular Albums Section */}
         <section className="px-4 md:px-6 py-8 sm:py-10">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl sm:text-2xl font-bold text-white">
+            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white">
               {t('popularAlbums')}
             </h2>
             <a
