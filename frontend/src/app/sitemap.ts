@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 // Helper function to fetch with timeout
-async function fetchWithTimeout(url: string, timeout: number = 10000) {
+async function fetchWithTimeout(url: string, timeout: number = 30000) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
 
@@ -11,8 +11,12 @@ async function fetchWithTimeout(url: string, timeout: number = 10000) {
     });
     clearTimeout(timeoutId);
     return response;
-  } catch (error) {
+  } catch (error: any) {
     clearTimeout(timeoutId);
+    // Don't log abort errors as they're expected during timeouts
+    if (error.name !== 'AbortError') {
+      console.error(`Fetch failed for ${url}:`, error.message || error);
+    }
     throw error;
   }
 }
@@ -145,9 +149,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       if (trackResponse.ok) {
         const trackData = await trackResponse.json();
         allTracks = Array.isArray(trackData.tracks) ? trackData.tracks : [];
+      } else {
+        console.warn(`Tracks API returned status ${trackResponse.status}`);
       }
-    } catch (trackError) {
-      console.error('Error fetching tracks for sitemap:', trackError);
+    } catch (trackError: any) {
+      // Silently handle abort errors for tracks
+      if (trackError.name !== 'AbortError') {
+        console.error('Error fetching tracks for sitemap:', trackError.message || trackError);
+      }
       // Add a placeholder for tracks if API fails
       allTracks = [];
     }
@@ -160,9 +169,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       if (albumResponse.ok) {
         const albumData = await albumResponse.json();
         allAlbums = Array.isArray(albumData.albums) ? albumData.albums : [];
+      } else {
+        console.warn(`Albums API returned status ${albumResponse.status}`);
       }
-    } catch (albumError) {
-      console.error('Error fetching albums for sitemap:', albumError);
+    } catch (albumError: any) {
+      // Silently handle abort errors for albums
+      if (albumError.name !== 'AbortError') {
+        console.error('Error fetching albums for sitemap:', albumError.message || albumError);
+      }
       // Add a placeholder for albums if API fails
       allAlbums = [];
     }
