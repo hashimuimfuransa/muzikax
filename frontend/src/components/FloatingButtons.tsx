@@ -33,7 +33,7 @@ export default function FloatingButtons() {
   }, []);
 
   return (
-    <div className={`fixed right-6 bottom-24 z-50 transition-all duration-300 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+    <div className={`fixed right-4 sm:right-6 bottom-20 sm:bottom-24 z-[9994] transition-all duration-300 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
       {/* Main Button */}
       <div className="relative">
         <button

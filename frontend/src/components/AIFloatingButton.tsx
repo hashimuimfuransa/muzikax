@@ -42,19 +42,13 @@ export default function AIFloatingButton() {
   }, [showTooltip]);
 
   const handleAIClick = () => {
-    // Open AI chat interface or modal
+    // Toggle expanded options menu
     setIsOpen(!isOpen);
     setShowTooltip(false);
-    
-    // Here you can integrate with your AI service
-    // For now, opening WhatsApp as example
-    if (!isOpen) {
-      window.open('https://wa.me/250793828834?text=Hi,%20I%20need%20help%20with%20MuzikaX', '_blank');
-    }
   };
 
   return (
-    <div className={`fixed right-6 bottom-[180px] z-[10001] transition-all duration-300 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+    <div className={`fixed right-4 sm:right-6 bottom-32 sm:bottom-40 z-[9995] transition-all duration-300 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
       <div className="relative">
         {/* Main AI Button */}
         <button
@@ -88,12 +82,17 @@ export default function AIFloatingButton() {
         {/* Expanded AI Options */}
         {isOpen && (
           <div className="absolute bottom-16 right-0 mb-2 space-y-3 animate-slideUp">
-            {/* Chat Option */}
+            {/* Chat Option - Opens AI Assistant */}
             <div className="transition-all duration-200 transform hover:scale-105">
               <button
-                onClick={() => {
-                  window.open('https://wa.me/250793828834?text=Hi,%20I%20want%20to%20chat%20with%20AI%20assistant', '_blank');
+                onClick={(e) => {
+                  e.stopPropagation();
+                  // Close this menu first
                   setIsOpen(false);
+                  // Open WhatsApp for AI chat
+                  setTimeout(() => {
+                    window.open('https://wa.me/250793828834?text=Hi,%20I%20want%20to%20chat%20with%20AI%20assistant', '_blank');
+                  }, 100);
                 }}
                 className="flex items-center bg-white text-gray-800 px-4 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-200"
               >
@@ -109,10 +108,11 @@ export default function AIFloatingButton() {
             {/* FAQ Option */}
             <div className="transition-all duration-200 transform hover:scale-105">
               <button
-                onClick={() => {
-                  // You can link to FAQ page or show FAQ modal
-                  console.log('Opening FAQ');
+                onClick={(e) => {
+                  e.stopPropagation();
                   setIsOpen(false);
+                  // Link to FAQ/help page or open modal
+                  alert('FAQ feature coming soon! For now, use Chat Now to contact us.');
                 }}
                 className="flex items-center bg-white text-gray-800 px-4 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-200"
               >
@@ -128,9 +128,12 @@ export default function AIFloatingButton() {
             {/* Support Option */}
             <div className="transition-all duration-200 transform hover:scale-105">
               <button
-                onClick={() => {
-                  window.open('https://wa.me/250793828834?text=I%20need%20technical%20support', '_blank');
+                onClick={(e) => {
+                  e.stopPropagation();
                   setIsOpen(false);
+                  setTimeout(() => {
+                    window.open('https://wa.me/250793828834?text=I%20need%20technical%20support', '_blank');
+                  }, 100);
                 }}
                 className="flex items-center bg-white text-gray-800 px-4 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-200"
               >

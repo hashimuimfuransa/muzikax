@@ -587,12 +587,22 @@ exports.deleteTrack = deleteTrack;
 // Increment play count
 const incrementPlayCount = async (req, res) => {
     try {
+        // Validate track ID parameter
+        const trackId = req.params['id'];
+        if (!trackId || trackId === 'undefined') {
+            console.error('Invalid track ID received:', trackId);
+            return res.status(400).json({ 
+                message: 'Invalid track ID',
+                error: 'Track ID is required and must be a valid ObjectId'
+            });
+        }
+        
         // Apply fraud detection
         const { validatePlay } = require('../utils/fraudDetection');
         const validation = validatePlay(req, req.query.duration ? parseInt(req.query.duration) : 0);
         
         // Always increment total plays (includes repeats)
-        const track = await Track_1.findByIdAndUpdate(req.params['id'], { $inc: { plays: 1 } }, { new: true });
+        const track = await Track_1.findByIdAndUpdate(trackId, { $inc: { plays: 1 } }, { new: true });
         if (!track) {
             res.status(404).json({ message: 'Track not found' });
             return;

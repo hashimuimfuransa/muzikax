@@ -71,6 +71,9 @@ const audioProxyRoutes = require('./routes/audioProxyRoutes');
 // Import chart routes
 const chartRoutes = require('./routes/chartRoutes');
 
+// Import AI music assistant routes
+const aiRoutes = require('./routes/aiRoutes');
+
 // Load env vars
 dotenv.config();
 
@@ -331,6 +334,10 @@ console.log('Audio proxy routes registered');
 // Register chart routes
 app.use('/api/charts', chartRoutes);
 console.log('Chart routes registered');
+
+// Register AI music assistant routes
+app.use('/api/ai', aiRoutes);
+console.log('AI music assistant routes registered');
 
 // Register engagement routes (if not already included in chart routes)
 // Note: Engagement tracking is handled within chart routes

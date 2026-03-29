@@ -9,13 +9,15 @@ import { PaymentProvider } from "../contexts/PaymentContext";
 import { ToastProvider } from "../contexts/ToastContext";
 import { PreloadProvider } from "../contexts/PreloadContext";
 import { OfflineProvider } from "../contexts/OfflineContext";
+import { AIAssistantProvider } from "../contexts/AIAssistantContext";
 import ErrorBoundary from "../components/ErrorBoundary";
 import LoadingErrorBoundary from "../components/LoadingErrorBoundary";
 import ModernAudioPlayer from "../components/ModernAudioPlayer";
 import PWAInstallPrompt from "../components/PWAInstallPrompt";
-import ContactFloatingButton from "../components/ContactFloatingButton";
 import AppLauncher from "../components/AppLauncher";
 import OfflineIndicator from "../components/OfflineIndicator";
+import AIMusicAssistant from "../components/AIMusicAssistant";
+import AIPopup from "../components/AIPopup";
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import ConditionalNavbar from "../components/ConditionalNavbar";
 import ConditionalSidebar from "../components/ConditionalSidebar";
@@ -191,49 +193,52 @@ export default function RootLayout({
         />
         <CapacitorProvider>
           <LoadingErrorBoundary>
-            <PreloadProvider>
-              <ErrorBoundary>
-                <ToastProvider>
-                  <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"}>
-                    <AuthProvider>
-                      <LanguageProvider>
-                        <AudioPlayerProvider>
-                          <CommunityProvider>
-                            <PaymentProvider>
-                              <OfflineProvider>
-                                {/* App Launcher Animation */}
-                                <AppLauncher />
-                                
-                                {/* Offline Status Indicator */}
-                                <OfflineIndicator />
-                                
-                                {/* Conditional rendering - skip for admin routes */}
-                                <div className="admin-layout-wrapper" data-admin-routes={ADMIN_ROUTES.join(',')} style={{ display: 'contents' }}>
-                                  <ConditionalSidebar />
-                                  <div className="w-full max-w-[100%] overflow-x-hidden">
-                                    <SidebarLayoutWrapper>
-                                      <ConditionalNavbar />
-                                      <PushNotificationInitializer />
-                                      <main className="flex-1 w-full overflow-x-hidden">
-                                        {children}
-                                      </main>
-                                    </SidebarLayoutWrapper>
+            <AIAssistantProvider>
+              <PreloadProvider>
+                <ErrorBoundary>
+                  <ToastProvider>
+                    <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"}>
+                      <AuthProvider>
+                        <LanguageProvider>
+                          <AudioPlayerProvider>
+                            <CommunityProvider>
+                              <PaymentProvider>
+                                <OfflineProvider>
+                                  {/* App Launcher Animation */}
+                                  <AppLauncher />
+                                  
+                                  {/* Offline Status Indicator */}
+                                  <OfflineIndicator />
+                                  
+                                  {/* Conditional rendering - skip for admin routes */}
+                                  <div className="admin-layout-wrapper" data-admin-routes={ADMIN_ROUTES.join(',')} style={{ display: 'contents' }}>
+                                    <ConditionalSidebar />
+                                    <div className="w-full max-w-[100%] overflow-x-hidden">
+                                      <SidebarLayoutWrapper>
+                                        <ConditionalNavbar />
+                                        <PushNotificationInitializer />
+                                        <main className="flex-1 w-full overflow-x-hidden">
+                                          {children}
+                                        </main>
+                                      </SidebarLayoutWrapper>
+                                    </div>
+                                    <ModernAudioPlayer />
+                                    <PWAInstallPrompt />
+                                    <AIMusicAssistant />
+                                    <AIPopup />
+                                    <Footer />
                                   </div>
-                                  <ModernAudioPlayer />
-                                  <PWAInstallPrompt />
-                                  <ContactFloatingButton />
-                                  <Footer />
-                                </div>
-                              </OfflineProvider>
-                            </PaymentProvider>
-                          </CommunityProvider>
-                        </AudioPlayerProvider>
-                      </LanguageProvider>
-                    </AuthProvider>
-                  </GoogleOAuthProvider>
-                </ToastProvider>
-              </ErrorBoundary>
-            </PreloadProvider>
+                                </OfflineProvider>
+                              </PaymentProvider>
+                            </CommunityProvider>
+                          </AudioPlayerProvider>
+                        </LanguageProvider>
+                      </AuthProvider>
+                    </GoogleOAuthProvider>
+                  </ToastProvider>
+                </ErrorBoundary>
+              </PreloadProvider>
+            </AIAssistantProvider>
           </LoadingErrorBoundary>
         </CapacitorProvider>
         <Script
