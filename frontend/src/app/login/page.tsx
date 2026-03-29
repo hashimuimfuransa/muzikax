@@ -392,11 +392,13 @@ function LoginContent() {
       <div className="w-full max-w-md space-y-4 sm:space-y-5 card-bg rounded-2xl p-5 sm:p-7 border border-gray-700/50 shadow-2xl shadow-[#FF4D67]/10 relative z-10">
         <div className="text-center animate-fade-in">
           <div className="flex justify-center mb-2 items-center">
-            <img 
-              src="/muzikax.png" 
-              alt="MuzikaX - Rwanda's Digital Music Ecosystem" 
-              className="h-16 w-16 sm:h-20 sm:w-20 mx-auto transition-transform duration-300 hover:scale-105 object-contain drop-shadow-2xl rounded-lg"
-            />
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden shadow-xl bg-black">
+              <img 
+                src="/muzikax.png" 
+                alt="MuzikaX - Rwanda's Digital Music Ecosystem" 
+                className="w-full h-full object-cover rounded-xl transition-transform duration-300 hover:scale-105"
+              />
+            </div>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold text-white mb-1">
             MuzikaX

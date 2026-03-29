@@ -60,7 +60,9 @@ export default function Footer() {
           {/* Brand Section - Full width on mobile */}
           <div className="md:col-span-2 lg:col-span-1">
             <Link href="/" className="flex items-center mb-4">
-              <img src="/muzikax.png" alt="MuzikaX Logo" className="h-10 w-auto" />
+              <div className="w-10 h-10 rounded-lg overflow-hidden shadow-md">
+                <img src="/muzikax.png" alt="MuzikaX Logo" className="w-full h-full object-cover rounded-lg" />
+              </div>
               <span className="ml-3 text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B]">MuzikaX</span>
             </Link>
             <p className="text-gray-300 text-sm leading-relaxed mb-6">

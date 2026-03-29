@@ -140,7 +140,9 @@ export default function MobileNavbar() {
         <div className="flex items-center justify-between h-14 px-3">
           {/* Left: Logo */}
           <Link href="/" className="flex items-center group flex-shrink-0">
-            <img src="/muzikax.png" alt="MuzikaX Logo" className="h-8 w-auto transition-transform group-hover:scale-105" />
+            <div className="w-8 h-8 rounded-lg overflow-hidden shadow-md">
+              <img src="/muzikax.png" alt="MuzikaX Logo" className="w-full h-full object-cover rounded-lg transition-transform group-hover:scale-105" />
+            </div>
             <span className="ml-2 text-xl font-black text-white tracking-tighter">MuzikaX</span>
           </Link>
 

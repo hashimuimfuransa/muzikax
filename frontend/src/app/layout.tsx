@@ -8,11 +8,14 @@ import { CommunityProvider } from "../contexts/CommunityContext";
 import { PaymentProvider } from "../contexts/PaymentContext";
 import { ToastProvider } from "../contexts/ToastContext";
 import { PreloadProvider } from "../contexts/PreloadContext";
+import { OfflineProvider } from "../contexts/OfflineContext";
 import ErrorBoundary from "../components/ErrorBoundary";
 import LoadingErrorBoundary from "../components/LoadingErrorBoundary";
 import ModernAudioPlayer from "../components/ModernAudioPlayer";
 import PWAInstallPrompt from "../components/PWAInstallPrompt";
 import ContactFloatingButton from "../components/ContactFloatingButton";
+import AppLauncher from "../components/AppLauncher";
+import OfflineIndicator from "../components/OfflineIndicator";
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import ConditionalNavbar from "../components/ConditionalNavbar";
 import ConditionalSidebar from "../components/ConditionalSidebar";
@@ -55,7 +58,7 @@ export const metadata: Metadata = {
     description: "Connecting Rwandan and African music creators with fans worldwide. Discover unique African music, artist resources, and industry insights.",
     images: [
       {
-        url: "/og-image.jpg",
+        url: "/app.png",
         width: 1200,
         height: 630,
         alt: "MuzikaX - Rwanda's Digital Music Ecosystem",
@@ -66,7 +69,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "MuzikaX - Rwanda & African Artists Music Platform",
     description: "Connecting Rwandan and African music creators with fans worldwide. Free music streaming with artist resources and industry news.",
-    images: ["/og-image.jpg"],
+    images: ["/app.png"],
     creator: "@muzikax",
   },
   robots: {
@@ -85,12 +88,15 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: '/favicon.ico' },
-      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
-      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/app.png' },
+      { url: '/app.png', sizes: '16x16', type: 'image/png' },
+      { url: '/app.png', sizes: '32x32', type: 'image/png' },
+      { url: '/app.png', sizes: '192x192', type: 'image/png' },
+      { url: '/app.png', sizes: '512x512', type: 'image/png' },
     ],
     apple: [
-      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+      { url: '/app.png', sizes: '180x180', type: 'image/png' },
+      { url: '/app.png', sizes: '512x512', type: 'image/png' },
     ],
   },
 };
@@ -128,6 +134,25 @@ export default function RootLayout({
           crossOrigin="anonymous"
         />
         <link rel="manifest" href="/manifest.json" />
+        
+        {/* Enhanced Service Worker for Offline Mode */}
+        <Script
+          id="register-sw"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/sw-muzikax.js').then(function(registration) {
+                    console.log('ServiceWorker registration successful:', registration.scope);
+                  }, function(err) {
+                    console.log('ServiceWorker registration failed:', err);
+                  });
+                });
+              }
+            `
+          }}
+        />
       </head>
       <body className="min-h-screen flex flex-col overflow-x-hidden w-full max-w-[100%]">
         {/* Structured Data for Rich Snippets */}
@@ -175,23 +200,31 @@ export default function RootLayout({
                         <AudioPlayerProvider>
                           <CommunityProvider>
                             <PaymentProvider>
-                              {/* Conditional rendering - skip for admin routes */}
-                              <div className="admin-layout-wrapper" data-admin-routes={ADMIN_ROUTES.join(',')} style={{ display: 'contents' }}>
-                                <ConditionalSidebar />
-                                <div className="w-full max-w-[100%] overflow-x-hidden">
-                                  <SidebarLayoutWrapper>
-                                    <ConditionalNavbar />
-                                    <PushNotificationInitializer />
-                                    <main className="flex-1 w-full overflow-x-hidden">
-                                      {children}
-                                    </main>
-                                  </SidebarLayoutWrapper>
+                              <OfflineProvider>
+                                {/* App Launcher Animation */}
+                                <AppLauncher />
+                                
+                                {/* Offline Status Indicator */}
+                                <OfflineIndicator />
+                                
+                                {/* Conditional rendering - skip for admin routes */}
+                                <div className="admin-layout-wrapper" data-admin-routes={ADMIN_ROUTES.join(',')} style={{ display: 'contents' }}>
+                                  <ConditionalSidebar />
+                                  <div className="w-full max-w-[100%] overflow-x-hidden">
+                                    <SidebarLayoutWrapper>
+                                      <ConditionalNavbar />
+                                      <PushNotificationInitializer />
+                                      <main className="flex-1 w-full overflow-x-hidden">
+                                        {children}
+                                      </main>
+                                    </SidebarLayoutWrapper>
+                                  </div>
+                                  <ModernAudioPlayer />
+                                  <PWAInstallPrompt />
+                                  <ContactFloatingButton />
+                                  <Footer />
                                 </div>
-                                <ModernAudioPlayer />
-                                <PWAInstallPrompt />
-                                <ContactFloatingButton />
-                                <Footer />
-                              </div>
+                              </OfflineProvider>
                             </PaymentProvider>
                           </CommunityProvider>
                         </AudioPlayerProvider>

@@ -152,7 +152,9 @@ export default function Navbar() {
           {/* Logo */}
           <div className="flex-shrink-0 flex items-center">
             <Link href="/" className="flex items-center group">
-              <img src="/muzikax.png" alt="MuzikaX Logo" className="h-9 w-auto transition-transform group-hover:scale-105" />
+              <div className="w-9 h-9 rounded-lg overflow-hidden shadow-md">
+                <img src="/muzikax.png" alt="MuzikaX Logo" className="w-full h-full object-cover rounded-lg transition-transform group-hover:scale-105" />
+              </div>
               <span className="ml-2 text-2xl font-black text-white tracking-tighter">MuzikaX</span>
             </Link>
           </div>

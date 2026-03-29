@@ -173,11 +173,6 @@ const ModernAudioPlayer = () => {
   // Don't render if there's no current track or if not mounted
   if (!mounted || !currentTrack) return null;
 
-  // Don't render minimized player on mobile devices (handled by MobileNavbar)
-  if (isMinimized && isMobile) {
-    return null;
-  }
-
   return (
     <>
       {/* Toast Notification */}

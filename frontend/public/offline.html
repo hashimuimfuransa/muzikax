@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Offline - MuzikaX</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+      color: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .container {
+      text-align: center;
+      max-width: 500px;
+    }
+    
+    .icon {
+      width: 120px;
+      height: 120px;
+      margin: 0 auto 30px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+      50% {
+        transform: scale(1.05);
+        opacity: 0.8;
+      }
+    }
+    
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 15px;
+      background: linear-gradient(90deg, #FF4D67, #FF6B8A);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    p {
+      font-size: 1.1rem;
+      line-height: 1.6;
+      color: #a0a0a0;
+      margin-bottom: 30px;
+    }
+    
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 24px;
+      background: rgba(255, 77, 103, 0.1);
+      border: 1px solid rgba(255, 77, 103, 0.3);
+      border-radius: 50px;
+      font-size: 0.95rem;
+      color: #FF4D67;
+    }
+    
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: #FF4D67;
+      border-radius: 50%;
+      animation: blink 1.5s ease-in-out infinite;
+    }
+    
+    @keyframes blink {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.3;
+      }
+    }
+    
+    .retry-button {
+      margin-top: 30px;
+      padding: 15px 40px;
+      background: linear-gradient(90deg, #FF4D67, #FF6B8A);
+      color: white;
+      border: none;
+      border-radius: 50px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(255, 77, 103, 0.3);
+    }
+    
+    .retry-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(255, 77, 103, 0.4);
+    }
+    
+    .retry-button:active {
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-3.244m16.942-12.73a9 9 0 00-12.728 0m0 0l2.829 2.829m-2.829-2.829L3 3m5.658 16.942a9 9 0 01-2.83-1.414" />
+    </svg>
+    
+    <h1>You're Offline</h1>
+    <p>
+      Don't worry! Your downloaded tracks are still available. 
+      Connect to the internet to access all features.
+    </p>
+    
+    <div class="status">
+      <span class="status-dot"></span>
+      <span>Offline Mode Active</span>
+    </div>
+    
+    <button class="retry-button" onclick="window.location.reload()">
+      Try Again
+    </button>
+  </div>
+  
+  <script>
+    // Auto-retry when connection is restored
+    window.addEventListener('online', () => {
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    });
+    
+    // Check connection status periodically
+    setInterval(() => {
+      if (navigator.onLine) {
+        window.location.reload();
+      }
+    }, 5000);
+  </script>
+</body>
+</html>

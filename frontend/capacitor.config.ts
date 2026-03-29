@@ -16,11 +16,14 @@ const config: CapacitorConfig = {
       backgroundColor: '#000000'
     },
     SplashScreen: {
-      launchShowDuration: 2000,
+      launchShowDuration: 3000,
+      launchAutoHide: false,
       backgroundColor: '#000000',
-      showSpinner: true,
-      spinnerColor: '#FF4D67',
-      splashImmersive: true
+      androidSplashResourceName: 'splash',
+      androidScaleType: 'CENTER_CROP',
+      showSpinner: false,
+      splashImmersive: false,
+      splashFullScreen: true
     },
     Keyboard: {
       // @ts-ignore - Keyboard resize mode
