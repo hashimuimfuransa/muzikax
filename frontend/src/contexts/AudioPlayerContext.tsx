@@ -510,6 +510,17 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     };
     audio.onended = handleAudioEnded;
     
+    // Add seeked event listener to ensure playback continues after seeking
+    audio.onseeked = () => {
+      console.log('Audio seeked to:', audio.currentTime);
+      // Ensure audio continues playing after seek if it was playing before
+      if (isPlaying && audio.paused) {
+        audio.play().catch(error => {
+          console.error('Error resuming playback after seek:', error);
+        });
+      }
+    };
+    
     audio.ontimeupdate = () => {
       if (audio.duration) {
         setProgress(audio.currentTime);
@@ -1076,6 +1087,17 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
       setIsPlaying(false);
     };
     audio.onended = handleAudioEnded;
+    
+    // Add seeked event listener to ensure playback continues after seeking
+    audio.onseeked = () => {
+      console.log('Audio seeked to:', audio.currentTime);
+      // Ensure audio continues playing after seek if it was playing before
+      if (isPlaying && audio.paused) {
+        audio.play().catch(error => {
+          console.error('Error resuming playback after seek:', error);
+        });
+      }
+    };
     
     audio.ontimeupdate = () => {
       if (audio.duration) {

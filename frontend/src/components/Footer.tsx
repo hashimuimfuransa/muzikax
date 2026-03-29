@@ -9,7 +9,7 @@ export default function Footer() {
   const currentYear = new Date().getFullYear()
   const { t } = useLanguage()
   
-  // Hide footer on admin routes and player page
+  // Hide footer on admin routes, player page, and mobile devices
   const isAdminRoute = pathname?.startsWith('/admin')
   const isPlayerPage = pathname === '/player'
   
@@ -52,7 +52,7 @@ export default function Footer() {
   ]
 
   return (
-    <footer className="bg-gradient-to-r from-gray-900 to-gray-800 border-t border-gray-700 w-full flex-shrink-0">
+    <footer className="hidden md:block bg-gradient-to-r from-gray-900 to-gray-800 border-t border-gray-700 w-full flex-shrink-0">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Main Footer Content */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">

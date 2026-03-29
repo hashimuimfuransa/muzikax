@@ -60,8 +60,15 @@ const SoloPlayer = ({ onClose }: SoloPlayerProps) => {
     
     setProgress(newProgress);
     
+    // Seek in audio element and ensure playback continues
     if (audioRef && audioRef.current) {
       audioRef.current.currentTime = newProgress;
+      // Ensure playback continues after seeking
+      if (isPlaying && audioRef.current.paused) {
+        audioRef.current.play().catch(error => {
+          console.error('Error resuming playback after seek:', error);
+        });
+      }
     }
   };
 

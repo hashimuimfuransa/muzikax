@@ -16,22 +16,25 @@ export default function MobileNavbar() {
   const { currentTrack, isPlaying, togglePlayPause } = useAudioPlayer();
   const { t, language: actualLanguage, setLanguage } = useLanguage();
   const [showHeader, setShowHeader] = useState(true);
+  const [showBottomNav, setShowBottomNav] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Handle scroll to show/hide header
+  // Handle scroll to show/hide header and bottom navigation
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       
-      // Show header when scrolling up, hide when scrolling down
+      // Show header and bottom nav when scrolling up or at top, hide when scrolling down
       if (currentScrollY < lastScrollY || currentScrollY < 10) {
         setShowHeader(true);
+        setShowBottomNav(true);
       } else {
         setShowHeader(false);
+        setShowBottomNav(false);
       }
       
       setLastScrollY(currentScrollY);
@@ -227,7 +230,13 @@ export default function MobileNavbar() {
       )}
 
       {/* Modern Bottom Navigation bar with glassmorphism */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-gray-900/95 backdrop-blur-xl border-t border-gray-700/50 shadow-2xl" style={{ paddingBottom: 'env(safe-area-inset-bottom)', zIndex: currentTrack ? 51 : 9999 }} data-testid="mobile-navbar">
+      <div 
+        className={`md:hidden fixed bottom-0 left-0 right-0 z-50 bg-gray-900/95 backdrop-blur-xl border-t border-gray-700/50 shadow-2xl transition-transform duration-300 ease-in-out ${
+          showBottomNav ? 'translate-y-0' : 'translate-y-full'
+        }`} 
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)', zIndex: currentTrack ? 51 : 9999 }} 
+        data-testid="mobile-navbar"
+      >
         <div className="flex justify-around items-stretch">
           {navItems.map((item, index) => {
             const active = isActive(item.href);
