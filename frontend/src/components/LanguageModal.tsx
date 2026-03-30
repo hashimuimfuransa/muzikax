@@ -37,7 +37,7 @@ export default function LanguageModal() {
     }
   }, []);
 
-  const handleLanguageSelect = (lang: 'en' | 'rw') => {
+  const handleLanguageSelect = (lang: 'en' | 'rw' | 'sw') => {
     setLanguage(lang);
     // Save to localStorage so user won't be asked again
     localStorage.setItem('languageSelected', 'true');
@@ -86,7 +86,10 @@ export default function LanguageModal() {
           >
             <div className="flex items-center space-x-4">
               <span className="text-3xl">🇬🇧</span>
-              <span className="text-base font-semibold text-white">English</span>
+              <div className="flex flex-col">
+                <span className="text-base font-semibold text-white">English</span>
+                <span className="text-xs opacity-60">United Kingdom</span>
+              </div>
             </div>
             <svg className="w-6 h-6 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -103,9 +106,32 @@ export default function LanguageModal() {
           >
             <div className="flex items-center space-x-4">
               <span className="text-3xl">🇷🇼</span>
-              <span className="text-base font-semibold text-white">Kinyarwanda</span>
+              <div className="flex flex-col">
+                <span className="text-base font-semibold text-white">Kinyarwanda</span>
+                <span className="text-xs opacity-60">Rwanda</span>
+              </div>
             </div>
             <svg className="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+            </svg>
+          </button>
+
+          {/* Kiswahili Option */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleLanguageSelect('sw');
+            }}
+            className="w-full flex items-center justify-between px-5 py-4 rounded-xl bg-gradient-to-r from-green-600/20 to-blue-600/10 border border-green-500/30 hover:border-green-400 transition-all duration-200 group active:scale-[0.98]"
+          >
+            <div className="flex items-center space-x-4">
+              <span className="text-3xl">🇹🇿</span>
+              <div className="flex flex-col">
+                <span className="text-base font-semibold text-white">Kiswahili</span>
+                <span className="text-xs opacity-60">Tanzania/Kenya</span>
+              </div>
+            </div>
+            <svg className="w-6 h-6 text-green-400" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
             </svg>
           </button>
