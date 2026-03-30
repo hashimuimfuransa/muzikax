@@ -15,25 +15,23 @@ export default function LanguageModal() {
     
     // Show modal only if user hasn't selected a language yet
     if (!hasSelectedLanguage) {
-      // Delay longer to avoid conflict with AI popup (appears at 2s)
-      // Language modal will appear at 2.5s if AI popup is not blocking
+      // Quick appearance - no delay
       const timer = setTimeout(() => {
-        // Check if AI popup was already seen (if not, AI popup will show first)
+        // Check if AI popup was already seen
         const hasSeenAIPopup = localStorage.getItem('aiAssistantPopupSeen');
         
         if (hasSeenAIPopup) {
           // AI popup already shown before, show language modal now
           setIsVisible(true);
         } else {
-          // Wait for AI popup to finish (it shows at 2s, closes after user action)
-          // Check again after additional 3 seconds
+          // Wait for AI popup to finish
           const secondTimer = setTimeout(() => {
             setIsVisible(true);
-          }, 3000);
+          }, 500); // Reduced from 3000ms to 500ms
           
           return () => clearTimeout(secondTimer);
         }
-      }, 2500);
+      }, 500); // Reduced from 2500ms to 500ms
       
       return () => clearTimeout(timer);
     }
@@ -50,110 +48,76 @@ export default function LanguageModal() {
   if (!mounted || !isVisible) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+    <div 
+      className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm"
+      onClick={() => setIsVisible(false)}
+    >
       <div 
-        className="bg-gray-900 border border-gray-800 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full max-w-sm transform transition-all animate-slide-up sm:animate-scale-up"
+        className="bg-gray-900/95 backdrop-blur-xl border-t sm:border border-gray-700/50 rounded-t-3xl sm:rounded-2xl shadow-2xl w-full max-w-sm transform transition-all duration-200 overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
       >
-        {/* Minimalist Header */}
-        <div className="px-6 py-4 border-b border-gray-800">
-          <h2 className="text-lg font-semibold text-white text-center">
+        {/* Header with Close Button */}
+        <div className="px-6 py-4 border-b border-gray-800/50 flex items-center justify-between">
+          <h2 className="text-base font-semibold text-white">
             Select Language
           </h2>
+          <button
+            onClick={() => setIsVisible(false)}
+            className="p-1.5 rounded-full text-gray-400 hover:bg-gray-800 transition-colors"
+            aria-label="Close"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
 
-        {/* Language Options - Simple & Clean */}
-        <div className="p-4 space-y-2">
+        {/* Language Options - Large & Touch-Friendly */}
+        <div className="p-4 space-y-3 pb-6">
           {/* English Option */}
           <button
-            onClick={() => handleLanguageSelect('en')}
-            className="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-gray-800/50 hover:bg-[#FF4D67]/10 border border-gray-700 hover:border-[#FF4D67] transition-all duration-200 group"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleLanguageSelect('en');
+            }}
+            className="w-full flex items-center justify-between px-5 py-4 rounded-xl bg-gradient-to-r from-blue-600/20 to-blue-600/10 border border-blue-500/30 hover:border-blue-400 transition-all duration-200 group active:scale-[0.98]"
           >
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
-                <span className="text-xs font-bold text-white">EN</span>
-              </div>
-              <span className="text-sm font-medium text-white group-hover:text-[#FF4D67] transition-colors">
-                English
-              </span>
+            <div className="flex items-center space-x-4">
+              <span className="text-3xl">🇬🇧</span>
+              <span className="text-base font-semibold text-white">English</span>
             </div>
-            <svg className="w-5 h-5 text-gray-500 group-hover:text-[#FF4D67] transition-colors" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+            <svg className="w-6 h-6 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
             </svg>
           </button>
 
           {/* Kinyarwanda Option */}
           <button
-            onClick={() => handleLanguageSelect('rw')}
-            className="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-gray-800/50 hover:bg-[#FFCB2B]/10 border border-gray-700 hover:border-[#FFCB2B] transition-all duration-200 group"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleLanguageSelect('rw');
+            }}
+            className="w-full flex items-center justify-between px-5 py-4 rounded-xl bg-gradient-to-r from-yellow-500/20 to-red-500/10 border border-yellow-500/30 hover:border-yellow-400 transition-all duration-200 group active:scale-[0.98]"
           >
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-500 to-red-500 flex items-center justify-center">
-                <span className="text-xs font-bold text-white">RW</span>
-              </div>
-              <span className="text-sm font-medium text-white group-hover:text-[#FFCB2B] transition-colors">
-                Kinyarwanda
-              </span>
+            <div className="flex items-center space-x-4">
+              <span className="text-3xl">🇷🇼</span>
+              <span className="text-base font-semibold text-white">Kinyarwanda</span>
             </div>
-            <svg className="w-5 h-5 text-gray-500 group-hover:text-[#FFCB2B] transition-colors" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+            <svg className="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
             </svg>
           </button>
         </div>
 
         {/* Info Text */}
-        <div className="px-6 pb-4 text-center">
-          <p className="text-xs text-gray-500">
+        <div className="px-6 pb-5 text-center border-t border-gray-800/50 pt-4">
+          <p className="text-xs text-gray-400">
             You can change this later in settings
           </p>
         </div>
       </div>
-
-      <style jsx>{`
-        @keyframes fade-in {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
-        }
-
-        @keyframes slide-up {
-          from {
-            transform: translateY(100%);
-            opacity: 0;
-          }
-          to {
-            transform: translateY(0);
-            opacity: 1;
-          }
-        }
-
-        @keyframes scale-up {
-          from {
-            transform: scale(0.95);
-            opacity: 0;
-          }
-          to {
-            transform: scale(1);
-            opacity: 1;
-          }
-        }
-
-        .animate-fade-in {
-          animation: fade-in 0.2s ease-out;
-        }
-
-        .animate-slide-up {
-          animation: slide-up 0.3s ease-out;
-        }
-
-        .animate-scale-up {
-          animation: scale-up 0.3s ease-out;
-        }
-      `}</style>
     </div>
   );
 }

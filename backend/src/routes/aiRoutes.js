@@ -34,8 +34,13 @@ router.post('/chat', async (req, res) => {
         userId
       );
 
-      console.log('🤖 AI Raw Response:', aiResponse);
-
+      console.log('🤖 AI Raw Response:', {
+        message: aiResponse.message?.substring(0, 100) + '...',
+        action: aiResponse.action,
+        hasRecommendations: !!aiResponse.recommendations,
+        trackCount: aiResponse.recommendations?.tracks?.length || 0
+      });
+      
       // Save to memory (if user is authenticated or guest session)
       if (userId) {
         await geminiAIService.saveConversationToMemory(userId, {
@@ -63,10 +68,12 @@ router.post('/chat', async (req, res) => {
       };
     }
 
-    // CRITICAL: Always search for tracks on music requests
-    const isMusicRequest = message.toLowerCase().match(/play|song|track|music|listen|afrobeat|rwandan|genre|mood|vibe/i);
+    // CRITICAL: Always search for tracks on music requests (but not mood/personal questions)
+    const isMusicRequest = message.toLowerCase().match(/play|song|track|music|listen|afrobeat|rwandan|genre/i);
+    const isMoodOrPersonal = message.toLowerCase().match(/mood|feel|emotion|personal|about me|my state/i);
     
-    if (isMusicRequest && (!aiResponse.recommendations?.foundTracks || aiResponse.recommendations.foundTracks.length === 0)) {
+    // Only search for tracks if it's a music request AND AI didn't already provide tracks
+    if (isMusicRequest && !isMoodOrPersonal && (!aiResponse.recommendations?.foundTracks || aiResponse.recommendations.foundTracks.length === 0)) {
       console.log('🔍 Music request detected, searching for tracks...');
       
       // Try to extract search terms from user message
@@ -117,6 +124,7 @@ router.post('/chat', async (req, res) => {
         aiResponse.action = 'play';
         aiResponse.message = `🎵 I found ${foundTracks.length} great ${searchTerms.join('/')} tracks for you!`;
       } else {
+        console.log('⚠️ No tracks found matching criteria, trying popular tracks...');
         // Last resort: get any popular tracks
         const popularTracks = await Track.find({})
           .populate('creatorId', 'name avatar coverArt')
@@ -134,8 +142,14 @@ router.post('/chat', async (req, res) => {
           }));
           aiResponse.action = 'play';
           aiResponse.message = '🎵 Here are some popular tracks you might enjoy!';
+        } else {
+          console.log('⚠️ No popular tracks available either');
         }
       }
+    } else if (isMoodOrPersonal) {
+      console.log('💭 Mood/personal question detected - skipping track search');
+    } else if (aiResponse.recommendations?.foundTracks?.length > 0) {
+      console.log('✅ AI already provided tracks - skipping search');
     }
 
     // If AI suggests specific tracks, search for them in database
@@ -208,7 +222,8 @@ router.post('/chat', async (req, res) => {
     console.log('Final Response:', {
       action: aiResponse.action,
       hasTracks: !!aiResponse.recommendations?.foundTracks,
-      trackCount: aiResponse.recommendations?.foundTracks?.length
+      trackCount: aiResponse.recommendations?.foundTracks?.length || 0,
+      messagePreview: aiResponse.message?.substring(0, 80) + '...'
     });
 
     res.json(aiResponse);

@@ -227,11 +227,12 @@ CRITICAL RULES:
 2. NEVER just talk about music - ALWAYS provide playable tracks
 3. Use REAL Rwandan/African artists (The Ben, Knowless, Bruce Melody, King James, etc.)
 4. Return ONLY valid JSON - no markdown, no explanations outside JSON
+5. For mood/personal questions, still provide music recommendations that match the mood
 
-Example response when user asks for music:
+Example response when user asks about mood:
 {
-  "message": "Here are some great tracks for you!",
-  "action": "play",
+  "message": "Based on your interest in trending Afrobeat, you seem to be in an energetic mood! Here are some tracks to match that vibe.",
+  "action": "recommend",
   "loginRequired": false,
   "recommendations": {
     "tracks": [
@@ -239,7 +240,7 @@ Example response when user asks for music:
       {"title": "Ibyishimo", "artist": "Knowless"}
     ]
   },
-  "mood": "happy",
+  "mood": "energetic",
   "confidence": 0.9
 }
 
@@ -265,7 +266,9 @@ Respond ONLY with valid JSON in this exact format:
     try {
       const result = await this.model.generateContent(prompt);
       const response = await result.response;
-      const text = response.text();
+      let text = response.text();
+      
+      console.log('🤖 AI Raw Response:', { text: text.substring(0, 200) + '...' });
       
       // More robust JSON extraction with better error handling
       let parsedJSON;
@@ -278,34 +281,73 @@ Respond ONLY with valid JSON in this exact format:
         // Found JSON in markdown code block
         jsonMatch = [markdownJsonMatch[1]];
       } else {
-        // Try standard JSON pattern
+        // Try standard JSON pattern - look for complete JSON object
         jsonMatch = text.match(/\{[\s\S]*\}/);
       }
       
-      if (jsonMatch) {
+      if (jsonMatch && jsonMatch[0]) {
         try {
           parsedJSON = JSON.parse(jsonMatch[0]);
+          console.log('✅ Successfully parsed AI JSON response');
         } catch (parseError) {
           console.error('Failed to parse AI JSON response:', parseError.message);
-          console.error('Raw AI response:', text);
+          console.error('Problematic JSON:', jsonMatch[0].substring(0, 500));
           
-          // Return a safe default response
-          return {
-            message: "I'm here to help you discover amazing music! What would you like to listen to?",
-            action: 'none',
-            loginRequired: false,
-            mood: 'neutral',
-            confidence: 0.5
-          };
+          // Try to fix common issues
+          const fixedJSON = this.attemptJSONFix(jsonMatch[0]);
+          if (fixedJSON) {
+            try {
+              parsedJSON = JSON.parse(fixedJSON);
+              console.log('✅ Successfully fixed and parsed AI JSON response');
+            } catch (fixError) {
+              console.error('JSON fix failed:', fixError.message);
+            }
+          }
         }
-      } else {
-        console.warn('No JSON structure found in AI response:', text);
+      }
+      
+      // If we still don't have valid JSON, check if the response seems cut off
+      if (!parsedJSON) {
+        console.warn('No valid JSON structure found in AI response');
+        
+        // Check if response was likely truncated (no closing brace)
+        const hasClosingBrace = text.trim().endsWith('}');
+        const hasOpeningBrace = text.includes('{');
+        
+        if (hasOpeningBrace && !hasClosingBrace) {
+          console.log('⚠️ Response appears to be truncated, requesting retry...');
+          // Retry with instruction to return only JSON
+          const retryPrompt = `IMPORTANT: Your previous response was cut off. Please resend the EXACT same response but ensure it's COMPLETE valid JSON only. No explanations, just the JSON object.
+
+User's original message: ${userMessage}`;
+          
+          const retryResult = await this.model.generateContent(retryPrompt);
+          const retryResponse = await retryResult.response;
+          text = retryResponse.text();
+          
+          // Try to parse retry response
+          const retryJsonMatch = text.match(/\{[\s\S]*\}/);
+          if (retryJsonMatch && retryJsonMatch[0]) {
+            try {
+              parsedJSON = JSON.parse(retryJsonMatch[0]);
+              console.log('✅ Retry successful - parsed AI JSON response');
+            } catch (retryError) {
+              console.error('Retry also failed:', retryError.message);
+            }
+          }
+        }
+      }
+      
+      // If still no valid JSON after retry, use safe fallback
+      if (!parsedJSON) {
+        console.log('⚠️ Using safe fallback response');
         return {
-          message: text || "I'm ready to help you find great music!",
+          message: "I'm having trouble connecting right now. Let me search for some great tracks for you!",
           action: 'none',
           loginRequired: false,
           mood: 'neutral',
-          confidence: 0.5
+          confidence: 0.5,
+          recommendations: { tracks: [], query: '' }
         };
       }
       
@@ -322,6 +364,36 @@ Respond ONLY with valid JSON in this exact format:
     } catch (error) {
       console.error('Error in AI chat:', error.message);
       throw error;
+    }
+  }
+
+  /**
+   * Attempt to fix common JSON parsing issues
+   */
+  attemptJSONFix(jsonString) {
+    try {
+      // Remove any trailing commas before closing braces
+      let fixed = jsonString.replace(/,\s*}/g, '}').replace(/,\s*]/g, ']');
+      
+      // Add missing closing braces if needed
+      const openBraces = (fixed.match(/{/g) || []).length;
+      const closeBraces = (fixed.match(/}/g) || []).length;
+      if (openBraces > closeBraces) {
+        fixed += '}'.repeat(openBraces - closeBraces);
+      }
+      
+      // Remove markdown formatting if present
+      fixed = fixed.replace(/```json/g, '').replace(/```/g, '');
+      
+      // Fix unescaped quotes in strings
+      fixed = fixed.replace(/"([^"\\]*(\\.[^"\\]*)*)"/g, (match, p1) => {
+        return '"' + p1.replace(/"/g, '\\"') + '"';
+      });
+      
+      return fixed;
+    } catch (error) {
+      console.error('JSON fix attempt failed:', error.message);
+      return null;
     }
   }
 

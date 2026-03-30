@@ -10,6 +10,7 @@ import notificationService from '../services/notificationService'
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [showLanguagePopup, setShowLanguagePopup] = useState(false)
   const { isAuthenticated: actualAuth, userRole: actualRole, logout } = useAuth()
   const { t, language: actualLanguage, setLanguage } = useLanguage()
   const router = useRouter()
@@ -196,29 +197,75 @@ export default function Navbar() {
             </button>
 
             {/* Language Switcher */}
-            <div className="relative group">
-              <button className="p-2 text-gray-300 hover:text-white transition-colors rounded-full hover:bg-gray-800 flex items-center space-x-1">
+            <div className="relative">
+              <button 
+                onClick={() => setShowLanguagePopup(!showLanguagePopup)}
+                className="p-2 text-gray-300 hover:text-white transition-colors rounded-full hover:bg-gray-800 flex items-center space-x-1"
+              >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
                 <span className="text-xs font-bold uppercase">{language}</span>
               </button>
-              <div className="absolute right-0 mt-2 w-40 bg-gray-900 border border-gray-800 rounded-2xl shadow-2xl py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 overflow-hidden">
-                <button 
-                  onClick={() => setLanguage('en')}
-                  className={`flex items-center justify-between w-full px-4 py-2.5 text-sm ${language === 'en' ? 'text-[#FF4D67] bg-[#FF4D67]/10' : 'text-gray-300 hover:text-white hover:bg-gray-800'} transition-colors`}
-                >
-                  <span>English</span>
-                  {language === 'en' && <div className="w-1.5 h-1.5 rounded-full bg-[#FF4D67]"></div>}
-                </button>
-                <button 
-                  onClick={() => setLanguage('rw')}
-                  className={`flex items-center justify-between w-full px-4 py-2.5 text-sm ${language === 'rw' ? 'text-[#FF4D67] bg-[#FF4D67]/10' : 'text-gray-300 hover:text-white hover:bg-gray-800'} transition-colors`}
-                >
-                  <span>Kinyarwanda</span>
-                  {language === 'rw' && <div className="w-1.5 h-1.5 rounded-full bg-[#FF4D67]"></div>}
-                </button>
-              </div>
+              
+              {/* Language Popup */}
+              {showLanguagePopup && (
+                <>
+                  {/* Backdrop */}
+                  <div 
+                    className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm"
+                    onClick={() => setShowLanguagePopup(false)}
+                  />
+                  
+                  {/* Popup Menu */}
+                  <div 
+                    className="absolute right-0 mt-2 w-48 bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl py-2 z-50 overflow-hidden"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="px-3 py-2 border-b border-gray-800/50">
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Select Language</p>
+                    </div>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setLanguage('en');
+                        setShowLanguagePopup(false);
+                      }}
+                      className={`flex items-center w-full px-4 py-3 transition-all duration-150 ${
+                        language === 'en' 
+                          ? 'bg-[#FF4D67]/10 text-[#FF4D67]' 
+                          : 'text-gray-300 hover:bg-gray-800/50 hover:text-white'
+                      }`}
+                    >
+                      <span className="flex-1 text-left font-medium">English</span>
+                      {language === 'en' && (
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                    </button>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setLanguage('rw');
+                        setShowLanguagePopup(false);
+                      }}
+                      className={`flex items-center w-full px-4 py-3 transition-all duration-150 ${
+                        language === 'rw' 
+                          ? 'bg-[#FF4D67]/10 text-[#FF4D67]' 
+                          : 'text-gray-300 hover:bg-gray-800/50 hover:text-white'
+                      }`}
+                    >
+                      <span className="flex-1 text-left font-medium">Kinyarwanda</span>
+                      {language === 'rw' && (
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
 
             {isAuthenticated && (

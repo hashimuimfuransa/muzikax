@@ -234,17 +234,18 @@ const AIMusicAssistant: React.FC = () => {
           setIsMinimized(false);
           openAssistant();
         }}
-        className="fixed bottom-40 sm:bottom-48 right-4 sm:right-6 z-[10003] bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] text-white p-3 sm:p-4 rounded-full shadow-2xl hover:shadow-[#FF4D67]/50 transition-all duration-300 hover:scale-110 group"
+        className="fixed bottom-20 sm:bottom-28 right-4 sm:right-6 z-[9999] bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] text-white p-3.5 sm:p-4 rounded-full shadow-2xl hover:shadow-[#FF4D67]/50 transition-all duration-300 hover:scale-110 active:scale-95 group touch-manipulation"
         aria-label="Open AI Music Assistant"
+        style={{ WebkitTapHighlightColor: 'transparent' }}
       >
         <div className="relative">
-          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-7 h-7 sm:w-8 sm:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
           </svg>
-          <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+          <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full animate-pulse border-2 border-gray-900"></div>
         </div>
-        {/* Tooltip - positioned above the button */}
-        <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 bg-gray-900 text-white px-4 py-2 rounded-lg shadow-xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all duration-300 text-sm font-semibold border border-[#FF4D67]/30">
+        {/* Tooltip - only show on desktop */}
+        <span className="hidden sm:block absolute bottom-full left-1/2 -translate-x-1/2 mb-3 bg-gray-900 text-white px-4 py-2 rounded-lg shadow-xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all duration-300 text-sm font-semibold border border-[#FF4D67]/30">
           🎵 MuzikaX AI Assistant
           {/* Arrow pointing down */}
           <span className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-gray-900"></span>
@@ -255,29 +256,46 @@ const AIMusicAssistant: React.FC = () => {
 
   return (
     <>
-      {/* Floating Chat Window - Lower z-index when minimized so AI button is on top */}
-      <div className={`fixed bottom-20 sm:bottom-24 right-4 sm:right-6 ${isMinimized ? 'z-[9998]' : 'z-[10000]'} w-full sm:w-96 ${isMinimized ? 'h-auto' : 'max-h-[600px]'} bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl flex flex-col overflow-hidden`}>
-        {/* Header */}
-        <div className="bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] p-4 flex items-center justify-between">
+      {/* Floating Chat Window - Mobile-First Responsive Design */}
+      <div 
+        className={`fixed left-0 right-0 sm:right-4 sm:left-auto ${
+          isMinimized ? 'z-[9997]' : 'z-[9999]'
+        } ${
+          isMinimized 
+            ? 'bottom-20 sm:bottom-28' 
+            : 'bottom-0 sm:bottom-24'
+        } ${
+          isMinimized 
+            ? 'w-auto mx-4 sm:w-96' 
+            : 'w-full sm:w-96'
+        } ${
+          isMinimized 
+            ? 'h-auto' 
+            : 'h-[85vh] sm:max-h-[600px]'
+        } bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden transition-all duration-300`}
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      >
+        {/* Header - Larger touch targets for mobile */}
+        <div className="bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] p-3 sm:p-4 flex items-center justify-between flex-shrink-0">
           <div 
-            className="flex items-center space-x-3 cursor-pointer flex-1"
+            className="flex items-center space-x-3 cursor-pointer flex-1 min-w-0"
             onClick={handleMinimize}
             title={isMinimized ? "Click to maximize" : "Click to minimize"}
           >
-            <div className="bg-white/20 p-2 rounded-full">
+            <div className="bg-white/20 p-2 rounded-full flex-shrink-0">
               <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
             </div>
-            <div>
-              <h3 className="text-white font-bold text-lg">MuzikaX AI Assistant</h3>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-white font-bold text-sm sm:text-base truncate">MuzikaX AI Assistant</h3>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
             {isMinimized && (
               <button
                 onClick={handleMaximize}
-                className="text-white/80 hover:text-white transition-colors p-2 rounded-full hover:bg-white/10"
+                className="text-white/80 hover:text-white transition-colors p-2 sm:p-2.5 rounded-full hover:bg-white/10 active:bg-white/20 touch-manipulation"
                 aria-label="Maximize"
                 title="Maximize"
               >
@@ -289,7 +307,7 @@ const AIMusicAssistant: React.FC = () => {
             {!isMinimized && (
               <button
                 onClick={handleMinimize}
-                className="text-white/80 hover:text-white transition-colors p-2 rounded-full hover:bg-white/10"
+                className="text-white/80 hover:text-white transition-colors p-2 sm:p-2.5 rounded-full hover:bg-white/10 active:bg-white/20 touch-manipulation"
                 aria-label="Minimize"
                 title="Minimize"
               >
@@ -300,7 +318,7 @@ const AIMusicAssistant: React.FC = () => {
             )}
             <button
               onClick={handleClose}
-              className="text-white/80 hover:text-white transition-colors p-2 rounded-full hover:bg-white/10"
+              className="text-white/80 hover:text-white transition-colors p-2 sm:p-2.5 rounded-full hover:bg-white/10 active:bg-white/20 touch-manipulation"
               aria-label="Close chat"
               title="Close"
             >
@@ -313,20 +331,20 @@ const AIMusicAssistant: React.FC = () => {
 
         {/* Messages - Hidden when minimized */}
         {!isMinimized && (
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-900/50">
+          <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 bg-gray-900/50 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
             {messages.map((message) => (
             <div
               key={message.id}
               className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               <div
-                className={`max-w-[80%] rounded-2xl px-4 py-3 ${
+                className={`max-w-[85%] sm:max-w-[80%] rounded-2xl px-4 py-3 ${
                   message.role === 'user'
                     ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
                     : 'bg-gray-800 text-gray-100'
                 }`}
               >
-                <p className="text-sm">{message.content}</p>
+                <p className="text-sm leading-relaxed">{message.content}</p>
                 <p className={`text-xs mt-1 ${message.role === 'user' ? 'text-white/70' : 'text-gray-400'}`}>
                   {formatTime(message.timestamp)}
                 </p>
@@ -441,30 +459,30 @@ const AIMusicAssistant: React.FC = () => {
 
         {/* Quick Actions - Hidden when minimized */}
         {!isMinimized && (
-          <div className="px-4 py-2 bg-gray-800/50 border-t border-gray-700">
+          <div className="px-3 py-2 sm:px-4 sm:py-2 bg-gray-800/50 border-t border-gray-700/50 flex-shrink-0">
           <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
             <button
               onClick={() => handleQuickAction("Play calm Rwandan songs for studying")}
-              className="whitespace-nowrap px-3 py-1.5 bg-[#FF4D67]/20 text-[#FF4D67] rounded-full text-xs hover:bg-[#FF4D67]/30 transition-colors"
+              className="flex-shrink-0 px-3 py-2 sm:py-1.5 bg-[#FF4D67]/20 text-[#FF4D67] rounded-full text-xs font-medium hover:bg-[#FF4D67]/30 transition-colors active:scale-95 touch-manipulation"
             >
               📚 Study Music
             </button>
             <button
               onClick={() => handleQuickAction("Give me trending Afrobeat in Kigali")}
-              className="whitespace-nowrap px-3 py-1.5 bg-[#FFCB2B]/20 text-[#FFCB2B] rounded-full text-xs hover:bg-[#FFCB2B]/30 transition-colors"
+              className="flex-shrink-0 px-3 py-2 sm:py-1.5 bg-[#FFCB2B]/20 text-[#FFCB2B] rounded-full text-xs font-medium hover:bg-[#FFCB2B]/30 transition-colors active:scale-95 touch-manipulation"
             >
               🔥 Trending Now
             </button>
             <button
               onClick={() => handleQuickAction("Find songs like The Ben but faster")}
-              className="whitespace-nowrap px-3 py-1.5 bg-[#FF4D67]/20 text-[#FF4D67] rounded-full text-xs hover:bg-[#FF4D67]/30 transition-colors"
+              className="flex-shrink-0 px-3 py-2 sm:py-1.5 bg-[#FF4D67]/20 text-[#FF4D67] rounded-full text-xs font-medium hover:bg-[#FF4D67]/30 transition-colors active:scale-95 touch-manipulation"
             >
               🎤 Similar Artists
             </button>
             {!isAuthenticated && (
               <button
                 onClick={() => sendMessage("Create a playlist for me")}
-                className="whitespace-nowrap px-3 py-1.5 bg-[#FFCB2B]/20 text-[#FFCB2B] rounded-full text-xs hover:bg-[#FFCB2B]/30 transition-colors flex items-center space-x-1"
+                className="flex-shrink-0 px-3 py-2 sm:py-1.5 bg-[#FFCB2B]/20 text-[#FFCB2B] rounded-full text-xs font-medium hover:bg-[#FFCB2B]/30 transition-colors active:scale-95 touch-manipulation flex items-center space-x-1"
               >
                 <span>🎵</span>
                 <span>Create Playlist</span>
@@ -477,16 +495,16 @@ const AIMusicAssistant: React.FC = () => {
 
         {/* Input Area - Hidden when minimized */}
         {!isMinimized && (
-          <div className="p-4 bg-gray-800 border-t border-gray-700">
+          <div className="p-3 sm:p-4 bg-gray-800 border-t border-gray-700 flex-shrink-0">
           <div className="flex items-center space-x-2">
             <button
               onClick={handleVoiceInput}
               disabled={isListening}
-              className={`p-3 rounded-full transition-colors ${
+              className={`p-3 rounded-full transition-colors flex-shrink-0 ${
                 isListening
                   ? 'bg-[#FF4D67] text-white animate-pulse'
                   : 'bg-gray-700 text-gray-300 hover:bg-[#FF4D67] hover:text-white'
-              }`}
+              } active:scale-95 touch-manipulation`}
               aria-label="Voice input"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -500,12 +518,12 @@ const AIMusicAssistant: React.FC = () => {
               onChange={(e) => setInputValue(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && sendMessage(inputValue)}
               placeholder="Ask me anything about music..."
-              className="flex-1 bg-gray-700 text-white placeholder-gray-400 rounded-full px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="flex-1 bg-gray-700 text-white placeholder-gray-400 rounded-full px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
             />
             <button
               onClick={() => sendMessage(inputValue)}
               disabled={!inputValue.trim() || isLoading}
-              className="p-3 bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] text-white rounded-full hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="p-3 bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] text-white rounded-full hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 touch-manipulation flex-shrink-0"
               aria-label="Send message"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

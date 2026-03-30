@@ -355,7 +355,7 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     if (currentTrack && !isMinimized && explicitlyPlayedRef.current) {
       console.log('Navigating to /player');
       router.push('/player');
-      // Reset the flag after navigation
+      // Reset the flag after navigation to prevent duplicate navigations
       explicitlyPlayedRef.current = false;
     } else {
       console.log('Not navigating to /player because:');
@@ -516,7 +516,10 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
       // Ensure audio continues playing after seek if it was playing before
       if (isPlaying && audio.paused) {
         audio.play().catch(error => {
-          console.error('Error resuming playback after seek:', error);
+          // Ignore AbortError which occurs when play() is interrupted by pause()
+          if (error.name !== 'AbortError' && error.name !== 'NotAllowedError') {
+            console.error('Error resuming playback after seek:', error);
+          }
         });
       }
     };
@@ -636,11 +639,15 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
         });
     }
     
-    // Start playing the audio
+    // Start playing the audio with proper error handling
     audio.play().catch(error => {
       // Ignore AbortError as it just means the play request was cancelled by a subsequent play/pause call
       if (error.name !== 'AbortError' && error.name !== 'NotAllowedError') {
         console.error('Error playing track:', error);
+        // Check if this is a network/CORS error and suggest using backend proxy
+        if (error.message.includes('network') || error.message.includes('CORS')) {
+          console.warn('⚠️ Network or CORS error detected. Ensure backend server is running on port 5000 for audio proxy.');
+        }
       }
       // Even if play fails, we still set the track so UI reflects the current state
       setIsPlaying(false);
@@ -1094,7 +1101,10 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
       // Ensure audio continues playing after seek if it was playing before
       if (isPlaying && audio.paused) {
         audio.play().catch(error => {
-          console.error('Error resuming playback after seek:', error);
+          // Ignore AbortError which occurs when play() is interrupted by pause()
+          if (error.name !== 'AbortError' && error.name !== 'NotAllowedError') {
+            console.error('Error resuming playback after seek:', error);
+          }
         });
       }
     };
@@ -1155,11 +1165,15 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
         });
     }
     
-    // Start playing the audio
+    // Start playing the audio with proper error handling
     audio.play().catch(error => {
       // Ignore AbortError as it just means the play request was cancelled by a subsequent play/pause call
       if (error.name !== 'AbortError' && error.name !== 'NotAllowedError') {
         console.error('Error playing track:', error);
+        // Check if this is a network/CORS error and suggest using backend proxy
+        if (error.message.includes('network') || error.message.includes('CORS')) {
+          console.warn('⚠️ Network or CORS error detected. Ensure backend server is running on port 5000 for audio proxy.');
+        }
       }
       // Even if play fails, we still set the track so UI reflects the current state
       setIsPlaying(false);
