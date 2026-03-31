@@ -560,4 +560,62 @@ const getAllUsers = async (req, res) => {
 };
 
 exports.getAllUsers = getAllUsers;
+
+// Get user's followers (PUBLIC - anyone can view)
+const getUserFollowers = async (req, res) => {
+    try {
+        const userId = req.params['userId'] || req.params['id'];
+        
+        if (!userId) {
+            return res.status(400).json({ message: 'User ID is required' });
+        }
+        
+        // Find user by ID
+        const user = await User_1.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Get all users who have this user in their following array
+        const followers = await User_1.find({ 
+            following: userId 
+        }).select('-password');
+
+        res.json({
+            followers
+        });
+    } catch (error) {
+        console.error('Error in getUserFollowers:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.getUserFollowers = getUserFollowers;
+
+// Get users that a user is following (PUBLIC - anyone can view)
+const getUserFollowing = async (req, res) => {
+    try {
+        // Support both viewing others and own following list
+        const userId = req.params['userId'] || (req.user ? req.user._id : null);
+        
+        if (!userId) {
+            return res.status(400).json({ message: 'User ID is required' });
+        }
+        
+        // Find user and populate following array
+        const user = await User_1.findById(userId).populate('following', '-password');
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.json({
+            following: user.following || []
+        });
+    } catch (error) {
+        console.error('Error in getUserFollowing:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.getUserFollowing = getUserFollowing;
 //# sourceMappingURL=userController.js.map

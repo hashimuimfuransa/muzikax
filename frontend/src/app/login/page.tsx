@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '../../contexts/AuthContext'
 import { useGoogleLogin } from '@react-oauth/google'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 function LoginContent() {
   const [isLogin, setIsLogin] = useState(true)
@@ -20,6 +21,7 @@ function LoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [redirect, setRedirect] = useState<string | null>(null)
+  const { t } = useLanguage()
   
   // 2FA State
   const [requires2FA, setRequires2FA] = useState(false)
@@ -404,7 +406,7 @@ function LoginContent() {
             MuzikaX
           </h1>
           <h2 className="mt-1 sm:mt-1.5 text-lg sm:text-xl font-bold text-white">
-            {isLogin ? 'Welcome back' : 'Create account'}
+            {isLogin ? (t('login') || 'Welcome back') : (t('signUp') || 'Create account')}
           </h2>
           <p className="mt-1 sm:mt-1.5 text-gray-300 text-xs sm:text-sm max-w-md mx-auto">
             {isLogin 
@@ -430,7 +432,7 @@ function LoginContent() {
               setStep(1)
             }}
           >
-            Login
+            {t('login') || 'Login'}
           </button>
           <button
             className={`flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition-colors ${
@@ -443,7 +445,7 @@ function LoginContent() {
               setStep(1)
             }}
           >
-            Sign Up
+            {t('signUp') || 'Sign Up'}
           </button>
         </div>
 

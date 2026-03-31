@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useAudioPlayer } from '../contexts/AudioPlayerContext'
 import { useRouter } from 'next/navigation'
+import { useLanguage } from '../contexts/LanguageContext'
 
 interface PlaylistTrack {
   _id: string
@@ -38,6 +39,7 @@ export default function RecommendedPlaylists({
   titleClassName = '',
   titleSize = 'lg'
 }: RecommendedPlaylistsProps) {
+  const { t } = useLanguage()
   const [playlists, setPlaylists] = useState<Playlist[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -157,7 +159,7 @@ export default function RecommendedPlaylists({
           <h2 className={`font-bold text-white ${
             titleSize === 'sm' ? 'text-base sm:text-lg' : 
             titleSize === 'md' ? 'text-xl' : 'text-2xl'
-          } ${titleClassName}`}>Recommended Playlists</h2>
+          } ${titleClassName}`}>{t('recommendedPlaylists')}</h2>
         </div>
         <div className="flex space-x-4 overflow-x-auto pb-4">
           {[...Array(5)].map((_, index) => (
@@ -184,12 +186,12 @@ export default function RecommendedPlaylists({
         <h2 className={`font-bold text-white ${
             titleSize === 'sm' ? 'text-base sm:text-lg' : 
             titleSize === 'md' ? 'text-xl' : 'text-xl sm:text-2xl'
-          } ${titleClassName}`}>Recommended Playlists</h2>
+          } ${titleClassName}`}>{t('recommendedPlaylists')}</h2>
         <button 
           onClick={handleViewAll}
           className="text-[#FF4D67] hover:text-[#FF4D67]/80 text-sm font-medium transition-colors"
         >
-          View All
+          {t('viewAll')}
         </button>
       </div>
       

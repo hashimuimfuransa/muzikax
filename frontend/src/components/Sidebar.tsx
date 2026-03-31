@@ -5,10 +5,12 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '../contexts/AuthContext'
+import { useLanguage } from '../contexts/LanguageContext'
 
 export default function Sidebar() {
   const [isHovered, setIsHovered] = useState(false)
   const { isAuthenticated, userRole } = useAuth()
+  const { t } = useLanguage()
   const router = useRouter()
   const pathname = usePathname()
 
@@ -44,12 +46,12 @@ export default function Sidebar() {
               ? 'bg-[#FF4D67] text-white' 
               : 'text-gray-400 hover:text-white hover:bg-gray-800/40'
           } ${!isHovered && 'justify-center'}`}
-          title="Home"
+          title={t('home')}
         >
           <svg className="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
           </svg>
-          {isHovered && <span className="font-semibold tracking-wide">Home</span>}
+          {isHovered && <span className="font-semibold tracking-wide">{t('home')}</span>}
         </Link>
 
         <Link
@@ -59,12 +61,12 @@ export default function Sidebar() {
               ? 'bg-[#FF4D67] text-white' 
               : 'text-gray-400 hover:text-white hover:bg-gray-800/40'
           } ${!isHovered && 'justify-center'}`}
-          title="Explore"
+          title={t('explore')}
         >
           <svg className="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
-          {isHovered && <span className="font-semibold tracking-wide">Explore</span>}
+          {isHovered && <span className="font-semibold tracking-wide">{t('explore')}</span>}
         </Link>
 
         <Link
@@ -74,12 +76,12 @@ export default function Sidebar() {
               ? 'bg-[#FF4D67] text-white' 
               : 'text-gray-400 hover:text-white hover:bg-gray-800/40'
           } ${!isHovered && 'justify-center'}`}
-          title="Charts"
+          title={t('charts')}
         >
           <svg className="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
           </svg>
-          {isHovered && <span className="font-semibold tracking-wide">Charts</span>}
+          {isHovered && <span className="font-semibold tracking-wide">{t('charts')}</span>}
         </Link>
 
         <Link
@@ -89,12 +91,12 @@ export default function Sidebar() {
               ? 'bg-[#FF4D67] text-white' 
               : 'text-gray-400 hover:text-white hover:bg-gray-800/40'
           } ${!isHovered && 'justify-center'}`}
-          title="Beats"
+          title={t('beats')}
         >
           <svg className="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
           </svg>
-          {isHovered && <span className="font-semibold tracking-wide">Beats</span>}
+          {isHovered && <span className="font-semibold tracking-wide">{t('beats')}</span>}
         </Link>
 
         <Link
@@ -104,12 +106,12 @@ export default function Sidebar() {
               ? 'bg-[#FF4D67] text-white' 
               : 'text-gray-400 hover:text-white hover:bg-gray-800/40'
           } ${!isHovered && 'justify-center'}`}
-          title="Playlists"
+          title={t('playlists')}
         >
           <svg className="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
           </svg>
-          {isHovered && <span className="font-semibold tracking-wide">Playlists</span>}
+          {isHovered && <span className="font-semibold tracking-wide">{t('playlists')}</span>}
         </Link>
 
         {/* Upload Button */}
@@ -122,19 +124,19 @@ export default function Sidebar() {
             }
           }}
           className={`flex items-center gap-3 px-3 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/40 transition-all duration-200 w-full text-left ${!isHovered && 'justify-center'}`}
-          title="Upload"
+          title={t('upload')}
         >
           <svg className="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
           </svg>
-          {isHovered && <span className="font-semibold tracking-wide">Upload</span>}
+          {isHovered && <span className="font-semibold tracking-wide">{t('upload')}</span>}
         </button>
 
         {isHovered && (
           <div className="animate-in fade-in slide-in-from-left-2 duration-300">
             <div className="mt-8 pt-4 border-t border-gray-800/50">
               <h2 className="text-[11px] uppercase tracking-[0.2em] text-gray-500 font-bold mb-4 px-4">
-                Categories
+                {t('categories')}
               </h2>
               <div className="space-y-0.5 px-2">
                 {categories.map((cat) => (
@@ -152,7 +154,7 @@ export default function Sidebar() {
 
             <div className="mt-8 pt-4 border-t border-gray-800/50">
               <h2 className="text-[11px] uppercase tracking-[0.2em] text-gray-500 font-bold mb-4 px-4">
-                Library
+                {t('library')}
               </h2>
               <div className="space-y-0.5 px-2">
                 <Link
@@ -162,7 +164,7 @@ export default function Sidebar() {
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                   </svg>
-                  <span>Favorites</span>
+                  <span>{t('favorites') || 'Favorites'}</span>
                 </Link>
                 <Link
                   href="/recently-played"
@@ -171,7 +173,7 @@ export default function Sidebar() {
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <span>Recently Played</span>
+                  <span>{t('recentlyPlayed') || 'Recently Played'}</span>
                 </Link>
               </div>
             </div>
@@ -183,7 +185,7 @@ export default function Sidebar() {
         <div className="mt-auto pt-4 border-t border-gray-800/50 animate-in fade-in slide-in-from-bottom-2 duration-500">
           <div className="px-4 py-4">
             <p className="text-[10px] text-gray-500 font-medium">
-              © {new Date().getFullYear()} All rights reserved.
+              © {new Date().getFullYear()} {t('allRightsReserved')}
             </p>
           </div>
         </div>

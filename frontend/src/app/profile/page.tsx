@@ -1,2243 +1,975 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../contexts/AuthContext'
-import { useLanguage } from '../../contexts/LanguageContext'
-import { fetchCreatorAnalytics, fetchCreatorTracks } from '../../services/creatorService'
-import { getAlbumsByCreator, deleteAlbum } from '../../services/albumService'
-import { deleteTrack } from '../../services/trackService'
-import { ITrack } from '../../types'
-import { useAudioPlayer } from '../../contexts/AudioPlayerContext'
-import { getFollowedCreators } from '../../services/trackService'
-import { getRecentlyPlayed } from '../../services/recentlyPlayedService'
-import { getArtistEarnings, requestWithdrawal, ArtistEarnings } from '../../services/withdrawalService'
-import { getSignedUrl, uploadToS3, proxyUpload, uploadToCloudFront } from '../../services/s3Service'
+import Link from 'next/link'
 
-// Define the possible active tab types
-type ActiveTab = 'profile' | 'favorites' | 'analytics' | 'tracks' | 'albums' | 'whatsapp' | 'earnings' | 'following' | 'recently-played';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'
 
-interface CreatorAnalytics {
+interface UserProfile {
+  _id: string
+  name: string
+  email: string
+  avatar?: string
+  bio?: string
+  followersCount?: number
+  followingCount?: number
+  creatorType?: string
+  role?: string
+  genres?: string[]
+  whatsappContact?: string
+}
+
+interface Track {
+  _id: string
+  title: string
+  artist: string
+  coverURL?: string
+  plays?: number
+  likes?: number
+  type?: 'song' | 'beat' | 'mix'
+  uniquePlays?: number
+}
+
+interface AnalyticsData {
   totalTracks: number
   totalPlays: number
-  totalUniquePlays?: number // Added for unique plays tracking
+  totalUniquePlays: number
+  monthlyListeners: number
   totalLikes: number
-  tracks: number
-  topCountries?: Array<{ country: string; count: number }>
+  topCountries: { country: string; count: number }[]
 }
 
-interface ProfileAlbum {
-  id: string;
-  title: string;
-  artist: string;
-  coverImage: string;
-  year: number;
-  tracks: number;
-  createdAt: string;
+interface RecentlyPlayedTrack extends Track {
+  playedAt: string
 }
 
-// Extend the Album interface to match backend data structure
-interface Album {
-  _id: string;
-  id: string;
-  title: string;
-  creatorId: {
-    _id: string;
-    name: string;
-    avatar?: string;
-  } | string;
-  coverURL: string;
-  releaseDate: string;
-  tracks: Array<any>;
-  createdAt: string;
-  updatedAt: string;
-}
+type ExpandedSection = 'about' | 'genres' | 'contact' | null
 
-export default function Profile() {
-  const [activeTab, setActiveTab] = useState<ActiveTab>('profile')
-  const [analytics, setAnalytics] = useState<CreatorAnalytics | null>(null)
-  const [tracks, setTracks] = useState<ITrack[]>([])
-  const [albums, setAlbums] = useState<ProfileAlbum[]>([])
-  const [filteredTracks, setFilteredTracks] = useState<ITrack[]>([])
-  const [filteredAlbums, setFilteredAlbums] = useState<ProfileAlbum[]>([])
-  const [loadingAnalytics, setLoadingAnalytics] = useState(false)
-  const [loadingTracks, setLoadingTracks] = useState(false)
-  const [loadingAlbums, setLoadingAlbums] = useState(false)
-  const [tracksPage, setTracksPage] = useState(1)
-  const [tracksTotalPages, setTracksTotalPages] = useState(1)
-  const [error, setError] = useState<string | null>(null)
-  const [showDeleteModal, setShowDeleteModal] = useState(false)
-  const [itemToDelete, setItemToDelete] = useState<{type: 'track' | 'album', id: string, title: string} | null>(null)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [bio, setBio] = useState('')
-  const [genres, setGenres] = useState<string[]>([])
-  const [followedCreators, setFollowedCreators] = useState<any[]>([])
-  const [loadingFollowed, setLoadingFollowed] = useState(false)
-  const [newGenre, setNewGenre] = useState('')
-  const [whatsappContact, setWhatsappContact] = useState('') // Add WhatsApp contact state
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null) // Add avatar URL state
-  const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({})
-  const [isUploading, setIsUploading] = useState(false)
-  const [recentlyPlayedTracks, setRecentlyPlayedTracks] = useState<any[]>([])
-  const [loadingRecentlyPlayed, setLoadingRecentlyPlayed] = useState(false)
-  const [earnings, setEarnings] = useState<ArtistEarnings | null>(null)
-  const [loadingEarnings, setLoadingEarnings] = useState(false)
-  const [withdrawalAmount, setWithdrawalAmount] = useState('')
-  const [withdrawalPhone, setWithdrawalPhone] = useState('')
-  const [showWithdrawalModal, setShowWithdrawalModal] = useState(false)
-  const [submittingWithdrawal, setSubmittingWithdrawal] = useState(false)
-  const [showTabsSidebar, setShowTabsSidebar] = useState(false)
-  const { currentTrack, isPlaying, playTrack, setCurrentPlaylist, favorites, addToFavorites, removeFromFavorites } = useAudioPlayer()
+export default function MyProfile() {
   const router = useRouter()
-  const { t } = useLanguage()
-  const { isAuthenticated, user, isLoading, updateProfile, updateWhatsAppContact } = useAuth() // Import both functions
-
-  // Check authentication on component mount
-  useEffect(() => {
-    // Don't redirect while loading
-    if (!isLoading && !isAuthenticated) {
-      // If not authenticated, redirect to login
-      router.push('/login')
-    }
-  }, [isAuthenticated, router, isLoading]) // Add isLoading to dependency array
-
-  // Check URL parameters to set active tab
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const tabParam = urlParams.get('tab');
-    
-    if (tabParam === 'whatsapp' && user?.role === 'creator') {
-      setActiveTab('whatsapp');
-    }
-  }, [user]);
-
-  // Fetch user data when authenticated
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      setBio(user.bio || '')
-      setGenres(user.genres || [])
-      setAvatarUrl(user.avatar || null)
-      // Properly initialize WhatsApp contact - check if it's an object or string
-      let whatsappNumber = '';
-      if (typeof user.whatsappContact === 'string') {
-        whatsappNumber = user.whatsappContact;
-      } else if (user.whatsappContact && typeof user.whatsappContact === 'object') {
-        // If it's an object, try to extract the actual WhatsApp number
-        whatsappNumber = (user.whatsappContact as any).whatsappContact || '';
-      }
-      console.log('Initializing WhatsApp contact:', whatsappNumber, typeof whatsappNumber)
-      setWhatsappContact(whatsappNumber)
-      
-      // Fetch analytics for creators
-      if (user.role === 'creator') {
-        fetchAnalytics()
-        fetchTracks(1)
-        fetchAlbums()
-      }
-      
-      // Fetch recently played tracks for all users
-      fetchRecentlyPlayed();
-    }
-    
-    // Fetch followed creators
-    fetchFollowedCreators();
-  }, [isAuthenticated, user])
+  const { user, logout, fetchUserProfile, isLoading: isAuthLoading } = useAuth()
   
-  const fetchFollowedCreators = async () => {
-    if (!isAuthenticated || !user) return;
-    
-    setLoadingFollowed(true);
-    try {
-      const creators = await getFollowedCreators();
-      setFollowedCreators(creators);
-    } catch (error) {
-      console.error('Failed to fetch followed creators:', error);
-    } finally {
-      setLoadingFollowed(false);
+  const [profile, setProfile] = useState<UserProfile | null>(null)
+  const [tracks, setTracks] = useState<Track[]>([])
+  const [recentlyPlayed, setRecentlyPlayed] = useState<RecentlyPlayedTrack[]>([])
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [scrollY, setScrollY] = useState(0)
+  const [expandedSection, setExpandedSection] = useState<ExpandedSection>(null)
+  const [showBioFull, setShowBioFull] = useState(false)
+  const [showActionsMenu, setShowActionsMenu] = useState(false)
+  const [pullRefresh, setPullRefresh] = useState(false)
+  const [touchStartY, setTouchStartY] = useState(0)
+  const [pullDistance, setPullDistance] = useState(0)
+
+  // CSS Animations for smooth transitions
+  const animationStyles = `
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes slideDown {
+      from { 
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to { 
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .animate-fadeIn {
+      animation: fadeIn 0.3s ease-out;
+    }
+    .animate-slideDown {
+      animation: slideDown 0.2s ease-out;
+    }
+  `
+
+  // Track scroll position with optimized throttling
+  useEffect(() => {
+    let ticking = false
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          setScrollY(window.scrollY)
+          ticking = false
+        })
+        ticking = true
+      }
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  // Pull-to-refresh handlers for mobile
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (window.scrollY === 0) {
+      setTouchStartY(e.touches[0].clientY)
     }
   }
 
-  // Fetch recently played tracks
-  const fetchRecentlyPlayed = async () => {
-    setLoadingRecentlyPlayed(true);
-    try {
-      const tracksData = await getRecentlyPlayed();
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartY > 0 && window.scrollY === 0) {
+      const currentY = e.touches[0].clientY
+      const distance = Math.max(0, currentY - touchStartY)
+      setPullDistance(distance)
+    }
+  }
+
+  const handleTouchEnd = async () => {
+    if (pullDistance > 100 && !loading && !pullRefresh) {
+      setPullRefresh(true)
+      setPullDistance(0)
       
-      // Transform the data to match our Track interface
-      const transformedTracks = tracksData.map((track: any) => ({
-        _id: track._id,
-        id: track._id,
-        title: track.title,
-        artist: typeof track.creatorId === 'object' && track.creatorId !== null ? track.creatorId.name : 'Unknown Artist',
-        album: '',
-        plays: track.plays,
-        likes: track.likes,
-        coverImage: track.coverURL || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-        coverURL: track.coverURL,
-        duration: undefined,
-        audioUrl: track.audioURL,
-        creatorId: typeof track.creatorId === 'object' && track.creatorId !== null ? track.creatorId._id : track.creatorId,
-        playedAt: track.playedAt
-      }));
-
-      setRecentlyPlayedTracks(transformedTracks);
-    } catch (error) {
-      console.error('Error fetching recently played tracks:', error);
-    } finally {
-      setLoadingRecentlyPlayed(false);
-    }
-  }
-
-  // Add a separate effect to update WhatsApp contact when user changes
-  useEffect(() => {
-    if (user && user.whatsappContact !== undefined) {
-      // Properly extract WhatsApp contact - check if it's an object or string
-      let whatsappNumber = '';
-      if (typeof user.whatsappContact === 'string') {
-        whatsappNumber = user.whatsappContact;
-      } else if (user.whatsappContact && typeof user.whatsappContact === 'object') {
-        // If it's an object, try to extract the actual WhatsApp number
-        whatsappNumber = (user.whatsappContact as any).whatsappContact || '';
+      // Refresh all data
+      try {
+        const token = localStorage.getItem('accessToken') || localStorage.getItem('token')
+        if (token && user?.id) {
+          // Fetch tracks
+          const tracksResponse = await fetch(`${API_BASE_URL}/api/tracks/creator`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          })
+          if (tracksResponse.ok) {
+            const tracksData = await tracksResponse.json()
+            setTracks(tracksData.tracks || [])
+          }
+          
+          // Fetch analytics
+          const analyticsResponse = await fetch(`${API_BASE_URL}/api/creator/analytics`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          })
+          if (analyticsResponse.ok) {
+            const analyticsData = await analyticsResponse.json()
+            setAnalytics(analyticsData)
+          }
+          
+          // Fetch recently played
+          const recentlyPlayedResponse = await fetch(`${API_BASE_URL}/api/recently-played?userId=${user.id}&limit=10`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          })
+          if (recentlyPlayedResponse.ok) {
+            const recentlyPlayedData = await recentlyPlayedResponse.json()
+            setRecentlyPlayed(recentlyPlayedData.tracks || [])
+          }
+        }
+      } catch (err) {
+        console.error('Error refreshing data:', err)
+      } finally {
+        setTimeout(() => setPullRefresh(false), 500)
       }
-      console.log('Updating WhatsApp contact from user change:', whatsappNumber, typeof whatsappNumber)
-      setWhatsappContact(whatsappNumber)
+    } else {
+      setPullDistance(0)
     }
-  }, [user?.whatsappContact])
+    setTouchStartY(0)
+  }
 
-  // Listen for track updates (when favorites are added/removed)
+  // Fetch profile data - use user data from AuthContext directly
   useEffect(() => {
-    const handleTrackUpdate = (event: CustomEvent) => {
-      const detail = event.detail;
-      if (detail && detail.trackId) {
-        // Also refresh analytics since total likes may have changed
-        fetchAnalytics()
-      }
-    };
-    
-    // Listen for analytics updates specifically
-    const handleAnalyticsUpdate = () => {
-      fetchAnalytics();
-    };
-
-    // Add event listeners
-    window.addEventListener('trackUpdated', handleTrackUpdate as EventListener);
-    window.addEventListener('analyticsUpdated', handleAnalyticsUpdate);
-
-    // Clean up event listeners
-    return () => {
-      window.removeEventListener('trackUpdated', handleTrackUpdate as EventListener);
-      window.removeEventListener('analyticsUpdated', handleAnalyticsUpdate);
-    }
-  }, [user, tracksPage]);
-
-  const fetchAnalytics = async () => {
-    if (!user || user.role !== 'creator') return
-    
-    setLoadingAnalytics(true)
-    setError(null)
-    
-    try {
-      const data = await fetchCreatorAnalytics()
-      setAnalytics(data)
-    } catch (err: any) {
-      console.error('Failed to fetch analytics:', err)
-      setError(`Failed to fetch analytics: ${err.message || 'Unknown error'}`)
-    } finally {
-      setLoadingAnalytics(false)
-    }
-  }
-
-  const fetchTracks = async (page: number = 1) => {
-    if (!user || user.role !== 'creator') return
-    
-    setLoadingTracks(true)
-    setError(null)
-    
-    try {
-      const data = await fetchCreatorTracks(page, 6) // 6 items per page
-      setTracks(data.tracks)
-      setFilteredTracks(data.tracks)
-      setTracksTotalPages(data.pages)
-      setTracksPage(data.page)
-    } catch (err: any) {
-      console.error('Failed to fetch tracks:', err)
-      setError(`Failed to fetch tracks: ${err.message || 'Unknown error'}`)
-    } finally {
-      setLoadingTracks(false)
-    }
-  }
-
-  const fetchAlbums = async () => {
-    if (!user || user.role !== 'creator') return
-  
-    setLoadingAlbums(true)
-    setError(null)
-    
-    try {
-      const albumsData = await getAlbumsByCreator(user.id) // Pass actual user ID instead of empty string
-      // Transform the data to match our interface
-      const transformedAlbums = albumsData.map((album: any) => ({
-        id: album._id,
-        title: album.title,
-        artist: (typeof album.creatorId === 'object' && album.creatorId !== null && 'name' in album.creatorId) ? (album.creatorId as any).name : 'Unknown Artist',
-        coverImage: album.coverURL,
-        year: new Date(album.releaseDate || album.createdAt).getFullYear(),
-        tracks: album.tracks?.length || 0,
-        createdAt: album.createdAt
-      }))
-      setAlbums(transformedAlbums)
-      setFilteredAlbums(transformedAlbums)
-    } catch (err: any) {
-      console.error('Failed to fetch albums:', err)
-      setError(`Failed to fetch albums: ${err.message || 'Unknown error'}`)
-    } finally {
-      setLoadingAlbums(false)
-    }
-  }
-
-  const fetchEarnings = async () => {
-    if (!user || user.role !== 'creator') return
-    
-    setLoadingEarnings(true)
-    setError(null)
-    
-    try {
-      const earningsData = await getArtistEarnings()
-      setEarnings(earningsData)
-    } catch (err: any) {
-      console.error('Failed to fetch earnings:', err)
-      setError(`Failed to fetch earnings: ${err.message || 'Unknown error'}`)
-    } finally {
-      setLoadingEarnings(false)
-    }
-  }
-
-  const handleWithdrawalRequest = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!withdrawalAmount || !withdrawalPhone) {
-      alert('Please fill in all fields')
+    // Wait for AuthContext to finish loading
+    if (isAuthLoading) {
+      console.log('AuthContext is still loading, waiting...')
       return
     }
 
-    setSubmittingWithdrawal(true)
-    try {
-      const amount = Number(withdrawalAmount)
-      const response = await requestWithdrawal(amount, withdrawalPhone)
-      alert(`Withdrawal request submitted successfully! Available balance: ${response.availableBalance}`)
-      setWithdrawalAmount('')
-      setWithdrawalPhone('')
-      setShowWithdrawalModal(false)
-      fetchEarnings()
-    } catch (err: any) {
-      alert(`Failed to request withdrawal: ${err.message}`)
-    } finally {
-      setSubmittingWithdrawal(false)
-    }
-  }
-
-  // Handle avatar upload with S3
-  const handleAvatarFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setIsUploading(true);
-      try {
-        // Use the new CloudFront upload method (Backend API)
-        const result: any = await uploadToCloudFront(file, (progress) => {
-          setUploadProgress(prev => ({ ...prev, avatar: progress }));
-        });
-        
-        setAvatarUrl(result.url);
-        updateProfile({ avatar: result.url });
-      } catch (error) {
-        console.error('Error uploading avatar to CloudFront:', error);
-        
-        // Fallback to legacy methods
-        try {
-          let accessToken = localStorage.getItem('accessToken');
-          if (!accessToken) {
-            // Attempt to refresh token if missing
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh-token`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ refreshToken: localStorage.getItem('refreshToken') })
-            });
-            if (response.ok) {
-              const data = await response.json();
-              accessToken = data.accessToken;
-              localStorage.setItem('accessToken', data.accessToken);
-              localStorage.setItem('refreshToken', data.refreshToken);
-            }
-          }
-
-          if (!accessToken) {
-            alert('Authentication error. Please log in again.');
-            return;
-          }
-
-          try {
-            const { uploadUrl, fileUrl } = await getSignedUrl(file.name, file.type, accessToken);
-            await uploadToS3(file, uploadUrl, (progress) => {
-              setUploadProgress(prev => ({ ...prev, avatar: progress }));
-            });
-            setAvatarUrl(fileUrl);
-            updateProfile({ avatar: fileUrl });
-          } catch (directError: any) {
-            console.warn('Direct S3 upload failed (possibly CORS), trying proxy upload...', directError);
-            const result: any = await proxyUpload(file, accessToken, (progress) => {
-              setUploadProgress(prev => ({ ...prev, avatar: progress }));
-            });
-            setAvatarUrl(result.fileUrl);
-            updateProfile({ avatar: result.fileUrl });
-          }
-        } catch (fallbackError) {
-          console.error('Fallback error uploading avatar:', fallbackError);
-          alert('Failed to upload avatar. Please try again.');
-        }
-      } finally {
-        setIsUploading(false);
-      }
-    }
-  };
-
-  const handlePageChange = (newPage: number, type: 'tracks' | 'albums') => {
-    if (type === 'tracks') {
-      fetchTracks(newPage)
-    }
-  }
-
-  // Map ITrack to Track interface for audio player
-  const mapTrackForPlayer = (track: ITrack) => ({
-    id: track._id,
-    title: track.title,
-    artist: (typeof track.creatorId === 'object' && track.creatorId !== null && 'name' in track.creatorId) ? (track.creatorId as any).name : 'Unknown Artist', // This would need to be fetched from the creator data
-    coverImage: track.coverURL,
-    audioUrl: track.audioURL,
-    duration: 0, // Would need to calculate or fetch duration
-    creatorId: track.creatorId,
-    likes: track.likes,
-    type: track.type, // Include track type for WhatsApp functionality
-    creatorWhatsapp: (typeof track.creatorId === 'object' && track.creatorId !== null 
-      ? (track.creatorId as any).whatsappContact 
-      : undefined) // Include creator's WhatsApp contact
-  });
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    let isMounted = true // Track component mount status
     
-    try {
-      const form = e.target as HTMLFormElement
-      const name = (form.elements.namedItem('name') as HTMLInputElement)?.value || ''
-      const email = (form.elements.namedItem('email') as HTMLInputElement)?.value || ''
-      const bio = (form.elements.namedItem('bio') as HTMLTextAreaElement)?.value || ''
-      
-      const currentPasswordInput = form.elements.namedItem('currentPassword') as HTMLInputElement
-      const passwordInput = form.elements.namedItem('password') as HTMLInputElement
-      
-      const currentPassword = currentPasswordInput?.value || ''
-      const password = passwordInput?.value || ''
-      
-      // Prepare update data
-      const updateData: any = {
-        name: name.trim(),
-        email: email.trim(),
-        bio: bio.trim(),
-        genres: genres, // Use the genres from state directly
-        avatar: avatarUrl // Include avatar URL
-      }
-      
-      // Only include fields that have values
-      if (name.trim()) updateData.name = name.trim();
-      if (email.trim()) updateData.email = email.trim();
-      if (bio.trim()) updateData.bio = bio.trim();
-      if (genres.length > 0) updateData.genres = genres;
-      if (avatarUrl) updateData.avatar = avatarUrl;
-      
-      // Only include password fields if they have values
-      if (currentPassword) {
-        updateData.currentPassword = currentPassword
-      }
-      
-      if (password) {
-        updateData.password = password
-      }
-      
-      // Call the update profile function from AuthContext
-      const success = await updateProfile(updateData)
-      
-      if (success) {
-        // Refresh tracks to show updated creator name
-        if (user?.role === 'creator') {
-          await fetchTracks()
+    const fetchProfileData = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+
+        // User data from AuthContext already has everything we need
+        if (!user) {
+          console.log('No user found after auth loaded, redirecting to login')
+          router.push('/auth/login?redirect=/profile')
+          return
+        }
+
+        console.log('Profile page - User from AuthContext:', user)
+        console.log('Profile page - User role:', user.role)
+        console.log('Profile page - User creatorType:', user.creatorType)
+        
+        // Convert user object to match our UserProfile interface
+        setProfile({
+          _id: user.id,
+          name: user.name,
+          email: user.email,
+          avatar: user.avatar,
+          bio: user.bio,
+          followersCount: user.followersCount || 0,
+          followingCount: user.followingCount || 0,
+          creatorType: user.creatorType,
+          role: user.role,
+          genres: user.genres,
+          whatsappContact: user.whatsappContact
+        })
+
+        let token = localStorage.getItem('accessToken') || localStorage.getItem('token')
+        
+        if (!token || !user.id) {
+          console.error('No token or user ID found')
+          if (isMounted) setLoading(false)
+          return
+        }
+
+        // Fetch user's tracks using the authenticated endpoint
+        console.log('Fetching creator tracks...')
+        try {
+          const tracksResponse = await fetch(`${API_BASE_URL}/api/tracks/creator`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          })
+          
+          console.log('Tracks response status:', tracksResponse.status)
+          
+          // Handle 503 Service Unavailable gracefully (backend temporarily down)
+          if (tracksResponse.status === 503) {
+            console.warn('Backend service temporarily unavailable. Using cached data.')
+            if (isMounted) setTracks([]) // Set empty tracks instead of reloading
+          } else if (tracksResponse.status === 401) {
+            console.error('Unauthorized - Token may be expired. Attempting refresh...')
+            // Token might be expired, try to refresh
+            const refreshToken = localStorage.getItem('refreshToken')
+            if (refreshToken) {
+              try {
+                const refreshResponse = await fetch(`${API_BASE_URL}/api/auth/refresh-token`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({ refreshToken })
+                })
+                
+                if (refreshResponse.ok) {
+                  const refreshData = await refreshResponse.json()
+                  localStorage.setItem('accessToken', refreshData.accessToken)
+                  localStorage.setItem('refreshToken', refreshData.refreshToken)
+                  token = refreshData.accessToken
+                  
+                  // Retry fetching tracks with new token
+                  const retryTracksResponse = await fetch(`${API_BASE_URL}/api/tracks/creator`, {
+                    headers: {
+                      'Authorization': `Bearer ${token}`
+                    }
+                  })
+                  
+                  if (retryTracksResponse.ok) {
+                    const retryTracksData = await retryTracksResponse.json()
+                    console.log('Fetched tracks after refresh:', retryTracksData)
+                    if (isMounted) setTracks(retryTracksData.tracks || [])
+                  } else {
+                    console.error('Failed to fetch tracks after refresh:', retryTracksResponse.status)
+                    const errorText = await retryTracksResponse.text()
+                    console.error('Error response:', errorText)
+                    if (isMounted) setTracks([])
+                  }
+                } else {
+                  console.error('Token refresh failed')
+                  if (isMounted) setTracks([])
+                }
+              } catch (refreshError) {
+                console.error('Error during token refresh:', refreshError)
+                if (isMounted) setTracks([])
+              }
+            } else {
+              console.error('No refresh token available')
+              if (isMounted) setTracks([])
+            }
+          } else if (tracksResponse.ok) {
+            const tracksData = await tracksResponse.json()
+            console.log('Fetched tracks:', tracksData)
+            console.log('Number of tracks:', tracksData.tracks ? tracksData.tracks.length : 0)
+            // Handle both array response and object with tracks property
+            const tracksArray = Array.isArray(tracksData) ? tracksData : (tracksData.tracks || [])
+            if (isMounted) setTracks(tracksArray)
+          } else {
+            console.error('Failed to fetch tracks:', tracksResponse.status)
+            const errorText = await tracksResponse.text()
+            console.error('Error response:', errorText)
+            
+            // If 403 or 401 after refresh, user might not be a creator
+            if (tracksResponse.status === 403 || tracksResponse.status === 401) {
+              console.warn('User may not have creator role. Current role:', user.role)
+              // Don't set error state, just show empty tracks section
+            }
+            if (isMounted) setTracks([])
+          }
+        } catch (tracksError) {
+          console.error('Error fetching tracks:', tracksError)
+          if (isMounted) setTracks([])
         }
         
-        alert('Profile updated successfully!')
-      } else {
-        alert('Failed to update profile. Please try again.')
+        // Fetch analytics - only creators will get successful response
+        console.log('Fetching analytics for user...')
+        try {
+          const analyticsResponse = await fetch(`${API_BASE_URL}/api/creator/analytics`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          })
+          if (analyticsResponse.ok) {
+            const analyticsData = await analyticsResponse.json()
+            console.log('Fetched analytics:', analyticsData)
+            if (isMounted) setAnalytics(analyticsData)
+          } else if (analyticsResponse.status === 401 || analyticsResponse.status === 503) {
+            console.log('Analytics not available (not a creator/DJ or backend unavailable)')
+            // User is not a creator/DJ or backend is down
+          } else {
+            console.error('Analytics response not OK:', analyticsResponse.status)
+          }
+        } catch (err) {
+          console.error('Error fetching analytics:', err)
+          // Analytics failed but continue loading rest of page
+        }
+        
+        // Fetch recently played
+        try {
+          const recentlyPlayedResponse = await fetch(`${API_BASE_URL}/api/recently-played?userId=${user.id}&limit=10`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          })
+          if (recentlyPlayedResponse.ok) {
+            const recentlyPlayedData = await recentlyPlayedResponse.json()
+            if (isMounted) setRecentlyPlayed(recentlyPlayedData.tracks || [])
+          }
+        } catch (err) {
+          console.error('Error fetching recently played:', err)
+        }
+      } catch (err) {
+        console.error('Error fetching profile data:', err)
+        if (isMounted) setError(err.message || 'An error occurred while loading your profile')
+      } finally {
+        if (isMounted) setLoading(false)
       }
-      
-      // Clear password fields
-      if (currentPasswordInput) {
-        currentPasswordInput.value = ''
+    }
+
+    fetchProfileData()
+    
+    // Cleanup function to prevent state updates on unmounted component
+    return () => {
+      isMounted = false
+    }
+  }, [user, router, isAuthLoading])
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: profile?.name || 'My Profile',
+          text: `Check out my profile on MuzikaX`,
+          url: window.location.href
+        })
+      } catch (err) {
+        console.error('Error sharing:', err)
       }
-      if (passwordInput) {
-        passwordInput.value = ''
-      }
-    } catch (error: any) {
-      console.error('Failed to update profile:', error)
-      // Show more specific error messages
-      if (error.message && error.message.includes('duplicate key')) {
-        alert('Email is already in use by another account')
-      } else {
-        alert(`Failed to update profile: ${error.message || 'Unknown error'}`)
-      }
+    } else {
+      await navigator.clipboard.writeText(window.location.href)
+      alert('Profile link copied to clipboard!')
     }
   }
 
-  const confirmDelete = async () => {
-    if (!itemToDelete) return
-
-    try {
-      if (itemToDelete.type === 'track') {
-        // Delete track with token refresh
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tracks/${itemToDelete.id}`, {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-          }
-        })
-        
-        if (!response.ok) {
-          const errorData = await response.json()
-          throw new Error(errorData.message || 'Failed to delete track')
-        }
-        
-        setTracks(prevTracks => prevTracks.filter(track => track._id !== itemToDelete.id))
-        setFilteredTracks(prevFilteredTracks => prevFilteredTracks.filter(track => track._id !== itemToDelete.id))
-      } else if (itemToDelete.type === 'album') {
-        // Delete album with token refresh
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/albums/${itemToDelete.id}`, {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-          }
-        })
-        
-        if (!response.ok) {
-          const errorData = await response.json()
-          throw new Error(errorData.message || 'Failed to delete album')
-        }
-        
-        setAlbums(prevAlbums => prevAlbums.filter(album => album.id !== itemToDelete.id))
-        setFilteredAlbums(prevFilteredAlbums => prevFilteredAlbums.filter(album => album.id !== itemToDelete.id))
-      }
-      setShowDeleteModal(false)
-      setItemToDelete(null) // Clear the item to delete
-    } catch (error: any) {
-      console.error(`Failed to delete ${itemToDelete.type}:`, error)
-      setError(`Failed to delete ${itemToDelete.type}: ${error.message || 'Unknown error'}`)
-      // Keep the modal open so user can see the error
-    }
+  const handleLogout = async () => {
+    await logout()
+    router.push('/')
   }
 
-  
-  // Show loading state while checking auth
-  if (isLoading) {
+  // Show loading state while AuthContext is initializing or profile data is loading
+  if (isAuthLoading || loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black flex items-center justify-center">
-        <div className="text-white">Loading...</div>
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#FF4D67]"></div>
+          <p className="mt-4 text-gray-400 font-medium">
+            {isAuthLoading ? 'Authenticating...' : 'Loading your profile...'}
+          </p>
+        </div>
       </div>
     )
   }
 
-  // Don't render the profile if not authenticated
-  if (!isAuthenticated) {
-    return null
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-white mb-4">Oops! Something Went Wrong</h2>
+          <p className="text-gray-400 mb-6 max-w-md">{error}</p>
+          <button
+            onClick={() => router.push('/auth/login?redirect=/profile')}
+            className="bg-[#FF4D67] hover:bg-[#FF4D67]/80 text-white font-bold py-2 px-6 rounded-lg transition-all active:scale-95"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    )
   }
 
+  if (!profile) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-white mb-4">Please Log In</h2>
+          <p className="text-gray-400 mb-6">You need to be logged in to view your profile</p>
+          <button
+            onClick={() => router.push('/auth/login?redirect=/profile')}
+            className="inline-block bg-[#FF4D67] hover:bg-[#FF4D67]/80 text-white py-2 px-6 rounded-lg transition-colors"
+          >
+            Go to Login
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  const isCompact = scrollY > 200
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black py-6 sm:py-8 md:py-12 overflow-x-hidden">
-      <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-1/2 max-w-96 h-1/2 max-h-96 sm:w-96 sm:h-96 bg-[#FF4D67]/10 rounded-full blur-3xl -z-10"></div>
-      <div className="absolute -bottom-40 left-1/2 -translate-x-1/2 w-1/2 max-w-96 h-1/2 max-h-96 sm:w-96 sm:h-96 bg-[#FFCB2B]/10 rounded-full blur-3xl -z-10"></div>
+    <div 
+      className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
+      {/* Custom Animations */}
+      <style>{animationStyles}</style>
       
-      <div className="container mx-auto px-4">
-        <div className="max-w-4xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-6 sm:mb-8 md:mb-12">
-            <div className="flex justify-between items-center mb-4">
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B]">
-                {user?.role === 'creator' ? 'Creator Dashboard' : 'Your Profile'}
-              </h1>
-              <div className="flex gap-2">
-                {/* Contact Us Button */}
-                <button
-                  onClick={() => {
-                    // Open contact options in a modal
-                    const contactOptions = [
-                      { name: 'WhatsApp', url: 'https://wa.me/250793828834', icon: '💬' },
-                      { name: 'Email', url: 'mailto:support@muzikax.com?subject=Help%20Needed&body=Hello%20MuzikaX%20Team,', icon: '📧' },
-                      { name: 'Call', url: 'tel:+250793828834', icon: '📞' }
-                    ];
-                    
-                    // Create and show contact modal
-                    const modal = document.createElement('div');
-                    modal.className = 'fixed inset-0 bg-black/80 backdrop-blur-sm z-[99999] flex items-center justify-center p-4';
-                    modal.innerHTML = `
-                      <div class="card-bg rounded-2xl p-6 max-w-sm w-full border border-gray-700/50">
-                        <div class="text-center mb-4">
-                          <h3 class="text-xl font-bold text-white mb-2">Contact Us</h3>
-                          <p class="text-gray-400">How would you like to reach us?</p>
-                        </div>
-                        <div class="space-y-3">
-                          ${contactOptions.map(option => `
-                            <button
-                              onclick="window.open('${option.url}', '_blank'); document.querySelector('[data-contact-modal]').remove()"
-                              class="w-full flex items-center justify-center gap-3 bg-white text-gray-800 px-4 py-3 rounded-lg hover:bg-gray-100 transition-colors"
-                            >
-                              <span class="text-lg">${option.icon}</span>
-                              <span class="font-medium">${option.name}</span>
-                            </button>
-                          `).join('')}
-                        </div>
-                        <button
-                          onclick="this.closest('[data-contact-modal]').remove()"
-                          class="w-full mt-4 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors"
-                        >
-                          Close
-                        </button>
-                      </div>
-                    `;
-                    modal.setAttribute('data-contact-modal', '');
-                    document.body.appendChild(modal);
-                  }}
-                  className="px-3 py-1.5 sm:px-4 sm:py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-full text-xs sm:text-sm font-medium transition-all hover:opacity-90 hover:scale-105 flex items-center gap-1"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                  </svg>
-                  <span>Contact Us</span>
-                </button>
-                
-                <button
-                  onClick={() => router.push('/playlists')}
-                  className="px-3 py-1.5 sm:px-4 sm:py-2 bg-transparent border border-[#FFCB2B] text-[#FFCB2B] hover:bg-[#FFCB2B]/10 rounded-full text-xs sm:text-sm font-medium transition-colors flex items-center gap-1"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
-                  </svg>
-                  <span>Playlists</span>
-                </button>
-                <button
-                  onClick={() => {
-                    if (typeof window !== 'undefined') {
-                      localStorage.removeItem('user');
-                      localStorage.removeItem('accessToken');
-                      localStorage.removeItem('refreshToken');
-                    }
-                    router.push('/login');
-                  }}
-                  className="px-3 py-1.5 sm:px-4 sm:py-2 bg-transparent border border-[#FF4D67] text-[#FF4D67] hover:bg-[#FF4D67]/10 rounded-full text-xs sm:text-sm font-medium transition-colors flex items-center gap-1"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                  </svg>
-                  <span>Logout</span>
-                </button>
-              </div>
-            </div>
-            <p className="text-gray-400 text-sm">
-              {user?.role === 'creator' 
-                ? 'Manage your content, view analytics, and engage with your audience' 
-                : 'Manage your account settings and preferences'}
-            </p>
-          </div>
-
-          {/* Profile Header Section */}
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-800/40 via-gray-900/60 to-black border border-gray-700/30 mb-8 shadow-2xl">
-            {/* Background Decorative Elements */}
-            <div className="absolute top-0 right-0 -mr-24 -mt-24 w-96 h-96 bg-[#FF4D67]/10 rounded-full blur-[120px] pointer-events-none animate-pulse"></div>
-            <div className="absolute bottom-0 left-0 -ml-24 -mb-24 w-96 h-96 bg-[#FFCB2B]/5 rounded-full blur-[120px] pointer-events-none opacity-20"></div>
-
-            <div className="relative z-10 p-6 md:p-10">
-              <div className="flex flex-col md:flex-row items-center md:items-center gap-8">
-                {/* Avatar with Glow Effect */}
-                <div className="flex-shrink-0 relative group cursor-pointer" onClick={() => document.getElementById('avatarInput')?.click()}>
-                  <div className="absolute -inset-1 bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] rounded-full blur opacity-30 group-hover:opacity-60 transition duration-500"></div>
-                  <div className="relative w-28 h-28 md:w-36 md:h-36 rounded-full border-4 border-gray-900 overflow-hidden shadow-2xl bg-gray-800">
-                    {avatarUrl ? (
-                      <img 
-                        src={avatarUrl} 
-                        alt="Profile" 
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-700 flex items-center justify-center">
-                        <span className="text-4xl md:text-5xl font-black text-[#FF4D67] drop-shadow-lg">
-                          {user?.name?.charAt(0)?.toUpperCase() || 'U'}
-                        </span>
-                      </div>
-                    )}
-                    {/* Hover Overlay */}
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                    </div>
-                  </div>
-                  <input
-                    id="avatarInput"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleAvatarFileChange}
-                    className="hidden"
-                  />
-                </div>
-
-                {/* Profile Details */}
-                <div className="text-center md:text-left flex-1 min-w-0">
-                  <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mb-3">
-                    <span className="px-3 py-1 bg-gray-900/60 backdrop-blur-md text-[#FF4D67] text-[10px] uppercase font-bold tracking-widest rounded-full border border-gray-700/50">
-                      {user?.role === 'creator' ? 'Verified Creator' : 'MuzikaX Member'}
-                    </span>
-                    {user?.role === 'creator' && user?.creatorType && (
-                      <span className="px-3 py-1 bg-[#FFCB2B]/10 text-[#FFCB2B] text-[10px] uppercase font-bold tracking-widest rounded-full border border-[#FFCB2B]/20">
-                        {user.creatorType}
-                      </span>
-                    )}
-                  </div>
-                  
-                  <h2 className="text-3xl md:text-5xl font-black text-white mb-2 tracking-tight truncate drop-shadow-lg">
-                    {user?.name || 'Your Profile'}
-                  </h2>
-                  <p className="text-gray-400 text-sm mb-6 flex items-center justify-center md:justify-start gap-2">
-                    <svg className="w-4 h-4 text-[#FF4D67]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                    {user?.email}
-                  </p>
-
-                  {/* Desktop Action Buttons */}
-                  {user?.role === 'creator' && (
-                    <div className="hidden md:flex flex-wrap gap-3">
-                      <button 
-                        onClick={() => router.push('/upload')}
-                        className="px-6 py-2.5 bg-[#FF4D67] text-white rounded-xl hover:bg-[#FF4D67]/90 transition-all duration-300 text-sm font-bold flex items-center gap-2 shadow-lg shadow-[#FF4D67]/20 active:scale-95"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                        </svg>
-                        Upload Track
-                      </button>
-                      <button 
-                        onClick={() => router.push('/create-album')}
-                        className="px-6 py-2.5 bg-gray-800 text-white border border-gray-700 rounded-xl hover:bg-gray-700 transition-all duration-300 text-sm font-bold flex items-center gap-2 active:scale-95"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-                        </svg>
-                        New Album
-                      </button>
-                      <button 
-                        onClick={() => router.push('/monetization')}
-                        className="px-6 py-2.5 bg-green-600/20 text-green-500 border border-green-600/30 rounded-xl hover:bg-green-600/30 transition-all duration-300 text-sm font-bold flex items-center gap-2 active:scale-95"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Monetization
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Upload Progress (Absolute Overlay) */}
-                {uploadProgress['avatar'] > 0 && uploadProgress['avatar'] < 100 && (
-                  <div className="absolute top-4 right-4 bg-gray-900/90 backdrop-blur-md rounded-2xl p-4 border border-gray-700/50 shadow-2xl min-w-[200px]">
-                    <div className="flex justify-between text-[10px] text-gray-400 mb-2 uppercase font-bold tracking-widest">
-                      <span>Syncing Avatar</span>
-                      <span>{Math.round(uploadProgress['avatar'])}%</span>
-                    </div>
-                    <div className="w-full bg-gray-800 h-1.5 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-[#FF4D67] rounded-full transition-all duration-300" 
-                        style={{ width: `${uploadProgress['avatar']}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Mobile Action Buttons */}
-              {user?.role === 'creator' && (
-                <div className="md:hidden grid grid-cols-2 gap-3 mt-8">
-                  <button 
-                    onClick={() => router.push('/upload')}
-                    className="col-span-2 px-6 py-3.5 bg-[#FF4D67] text-white rounded-2xl text-sm font-bold shadow-lg shadow-[#FF4D67]/20"
-                  >
-                    Upload Track
-                  </button>
-                  <button 
-                    onClick={() => router.push('/create-album')}
-                    className="px-4 py-3 bg-gray-800 text-white border border-gray-700 rounded-2xl text-xs font-bold"
-                  >
-                    New Album
-                  </button>
-                  <button 
-                    onClick={() => router.push('/monetization')}
-                    className="px-4 py-3 bg-green-600/20 text-green-500 border border-green-600/30 rounded-2xl text-xs font-bold"
-                  >
-                    Monetization
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-
-            {/* Bio Section */}
-            {user?.role === 'creator' && (
-              <div className="mb-5">
-                <h3 className="text-gray-400 text-xs mb-2">Bio</h3>
-                <p className="text-white text-sm">{bio || 'No bio added yet. Tell your fans about yourself!'}</p>
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                <div className="card-bg rounded-xl p-4 border border-gray-700/30">
-                  <h3 className="text-gray-400 text-xs mb-1">Member Since</h3>
-                  <p className="text-white font-medium text-sm">January 2024</p>
-                </div>
-                <div className="card-bg rounded-xl p-4 border border-gray-700/30">
-                  <h3 className="text-gray-400 text-xs mb-1">Favorite Genres</h3>
-                  <p className="text-white font-medium text-sm">
-                    {genres && genres.length > 0 ? genres.join(', ') : 'Not specified'}
-                  </p>
-                </div>
-                <div 
-                  className="card-bg rounded-xl p-4 border border-gray-700/30 cursor-pointer hover:border-[#FFCB2B]/50 transition-colors"
-                  onClick={() => router.push('/')}
-                >
-                  <h3 className="text-gray-400 text-xs mb-1">Following</h3>
-                  <p className="text-white font-medium text-sm">
-                    {user?.followingCount?.toLocaleString() || '0'}
-                  </p>
-                </div>
-                <div className="card-bg rounded-xl p-4 border border-gray-700/30">
-                  <h3 className="text-gray-400 text-xs mb-1">Followers</h3>
-                  <p className="text-white font-medium text-sm">
-                    {user?.followersCount?.toLocaleString() || '0'}
-                  </p>
-                </div>
-            </div>
-
-          {/* Navigation Tabs with Sidebar */}
-          <div className="flex gap-6 mb-6">
-            {/* Mobile Hamburger Button - More Prominent */}
-            <div className="lg:hidden flex items-center">
-              <button
-                onClick={() => setShowTabsSidebar(!showTabsSidebar)}
-                className={`relative group px-4 py-2.5 rounded-lg font-medium text-sm flex items-center gap-2 transition-all duration-300 ${
-                  showTabsSidebar
-                    ? 'bg-[#FF4D67] text-white shadow-lg shadow-[#FF4D67]/50'
-                    : 'bg-gradient-to-r from-[#FF4D67]/20 to-[#FFCB2B]/20 text-white hover:from-[#FF4D67]/30 hover:to-[#FFCB2B]/30 border border-[#FF4D67]/30'
-                }`}
-              >
-                <svg className={`w-5 h-5 transition-transform duration-300 ${showTabsSidebar ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-                <span>View All Tabs</span>
-                
-                {/* Pulsing Indicator Dot */}
-                {!showTabsSidebar && (
-                  <span className="absolute top-1 right-1 flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF4D67] opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FF4D67]"></span>
-                  </span>
-                )}
-              </button>
-
-              {/* Tooltip for first-time users */}
-              <div className="absolute top-full left-0 mt-2 bg-gray-900 border border-[#FF4D67]/50 rounded-lg px-3 py-2 text-xs text-gray-200 whitespace-nowrap pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity z-50">
-                <p className="font-semibold text-[#FF4D67] mb-1">Browse All Navigation</p>
-                <p>Access all profile sections including Analytics & Earnings</p>
-              </div>
-            </div>
-
-            {/* Sidebar - Mobile Only */}
-            <div className={`fixed left-0 top-0 h-screen w-64 card-bg border-r border-gray-800 p-6 z-40 transform transition-transform duration-300 ${
-              showTabsSidebar ? 'translate-x-0' : '-translate-x-full'
-            } lg:hidden`}>
-              {/* Close button for mobile */}
-              <button
-                onClick={() => setShowTabsSidebar(false)}
-                className="lg:hidden absolute top-4 right-4 p-2 hover:bg-gray-800/50 rounded-lg"
-              >
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-
-              {/* Sidebar Header */}
-              <div className="lg:hidden mb-6">
-                <h3 className="text-white font-bold text-lg mb-1 flex items-center gap-2">
-                  <svg className="w-5 h-5 text-[#FF4D67]" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2h-2.22l-1.414 1.414a1 1 0 01-1.414-1.414L9.586 13H5a2 2 0 01-2-2V5z" clipRule="evenodd" />
-                  </svg>
-                  All Navigation
-                </h3>
-                <p className="text-gray-400 text-xs">Browse all your profile sections</p>
-              </div>
-
-              <nav className="space-y-2">
-                {/* Profile Settings */}
-                <button
-                  onClick={() => {
-                    setActiveTab('profile')
-                    setShowTabsSidebar(false)
-                  }}
-                  className={`w-full text-left px-4 py-3 rounded-lg font-medium text-sm transition-all ${
-                    activeTab === 'profile'
-                      ? 'bg-[#FF4D67]/10 text-[#FF4D67] border-l-4 border-[#FF4D67]'
-                      : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
-                  }`}
-                >
-                  Profile Settings
-                </button>
-
-                {/* Favorites */}
-                <Link 
-                  href="/favorites"
-                  onClick={() => setShowTabsSidebar(false)}
-                  className={`block px-4 py-3 rounded-lg font-medium text-sm transition-all ${
-                    activeTab === 'favorites'
-                      ? 'bg-[#FF4D67]/10 text-[#FF4D67] border-l-4 border-[#FF4D67]'
-                      : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
-                  }`}
-                >
-                  Favorites
-                </Link>
-
-                {/* Recently Played */}
-                <button
-                  onClick={() => {
-                    setActiveTab('recently-played')
-                    setShowTabsSidebar(false)
-                  }}
-                  className={`w-full text-left px-4 py-3 rounded-lg font-medium text-sm transition-all ${
-                    activeTab === 'recently-played'
-                      ? 'bg-[#FF4D67]/10 text-[#FF4D67] border-l-4 border-[#FF4D67]'
-                      : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
-                  }`}
-                >
-                  Recently Played
-                </button>
-
-                {/* Following */}
-                <button
-                  onClick={() => {
-                    setActiveTab('following')
-                    setShowTabsSidebar(false)
-                  }}
-                  className={`w-full text-left px-4 py-3 rounded-lg font-medium text-sm transition-all ${
-                    activeTab === 'following'
-                      ? 'bg-[#FF4D67]/10 text-[#FF4D67] border-l-4 border-[#FF4D67]'
-                      : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
-                  }`}
-                >
-                  Following
-                </button>
-
-                {/* Creator Only Tabs */}
-                {user?.role === 'creator' && (
-                  <div className="border-t border-gray-700 pt-4 mt-4">
-                    <div className="mb-3 px-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="h-px flex-1 bg-gradient-to-r from-[#FF4D67] to-transparent"></div>
-                      </div>
-                      <p className="text-xs text-[#FF4D67] font-bold tracking-wider flex items-center gap-2">
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-2.77 3.066 3.066 0 00-3.58 3.03A3.066 3.066 0 006.267 3.455zm9.8 5.348a3.066 3.066 0 01-3.054 3.093 3.066 3.066 0 013.666-3.093zM9 12.794a3.066 3.066 0 01-3.054-3.093 3.066 3.066 0 013.666 3.093zM7 8.3a1 1 0 100-2 1 1 0 000 2zm8 8a1 1 0 11-2 0 1 1 0 012 0z" clipRule="evenodd" />
-                        </svg>
-                        CREATOR TOOLS
-                      </p>
-                    </div>
-
-                    <button
-                      onClick={() => {
-                        setActiveTab('analytics')
-                        setShowTabsSidebar(false)
-                      }}
-                      className={`w-full text-left px-4 py-3 rounded-lg font-medium text-sm transition-all ${
-                        activeTab === 'analytics'
-                          ? 'bg-[#FF4D67]/10 text-[#FF4D67] border-l-4 border-[#FF4D67]'
-                          : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
-                      }`}
-                    >
-                      Analytics
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setActiveTab('tracks')
-                        setShowTabsSidebar(false)
-                      }}
-                      className={`w-full text-left px-4 py-3 rounded-lg font-medium text-sm transition-all ${
-                        activeTab === 'tracks'
-                          ? 'bg-[#FF4D67]/10 text-[#FF4D67] border-l-4 border-[#FF4D67]'
-                          : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
-                      }`}
-                    >
-                      My Tracks
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setActiveTab('albums')
-                        setShowTabsSidebar(false)
-                      }}
-                      className={`w-full text-left px-4 py-3 rounded-lg font-medium text-sm transition-all ${
-                        activeTab === 'albums'
-                          ? 'bg-[#FF4D67]/10 text-[#FF4D67] border-l-4 border-[#FF4D67]'
-                          : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
-                      }`}
-                    >
-                      My Albums
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setActiveTab('whatsapp')
-                        setShowTabsSidebar(false)
-                      }}
-                      className={`w-full text-left px-4 py-3 rounded-lg font-medium text-sm transition-all ${
-                        activeTab === 'whatsapp'
-                          ? 'bg-[#FF4D67]/10 text-[#FF4D67] border-l-4 border-[#FF4D67]'
-                          : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
-                      }`}
-                    >
-                      WhatsApp Contact
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setActiveTab('earnings')
-                        setShowTabsSidebar(false)
-                        if (!earnings) {
-                          fetchEarnings()
-                        }
-                      }}
-                      className={`w-full text-left px-4 py-3 rounded-lg font-medium text-sm transition-all ${
-                        activeTab === 'earnings'
-                          ? 'bg-[#FF4D67]/10 text-[#FF4D67] border-l-4 border-[#FF4D67]'
-                          : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
-                      }`}
-                    >
-                      Earnings
-                    </button>
-                  </div>
-                )}
-              </nav>
-            </div>
-
-            {/* Desktop Horizontal Tabs */}
-            <div className="hidden lg:flex overflow-x-auto border-b border-gray-800 flex-1 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-              <button
-              className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors whitespace-nowrap ${
-                activeTab === 'profile'
-                  ? 'text-[#FF4D67] border-b-2 border-[#FF4D67]'
-                  : 'text-gray-500 hover:text-gray-300'
-              }`}
-              onClick={() => setActiveTab('profile')}
-            >
-              Profile Settings
-            </button>
-            <Link 
-              href="/favorites"
-              className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors whitespace-nowrap ${
-                activeTab === 'favorites'
-                  ? 'text-[#FF4D67] border-b-2 border-[#FF4D67]'
-                  : 'text-gray-500 hover:text-gray-300'
-              }`}
-            >
-              Favorites
-            </Link>
-            <button
-              className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors whitespace-nowrap ${
-                activeTab === 'recently-played'
-                  ? 'text-[#FF4D67] border-b-2 border-[#FF4D67]'
-                  : 'text-gray-500 hover:text-gray-300'
-              }`}
-              onClick={() => setActiveTab('recently-played')}
-            >
-              Recently Played
-            </button>
-            <button
-              className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors whitespace-nowrap ${
-                activeTab === 'following'
-                  ? 'text-[#FF4D67] border-b-2 border-[#FF4D67]'
-                  : 'text-gray-500 hover:text-gray-300'
-              }`}
-              onClick={() => setActiveTab('following')}
-            >
-              Following
-            </button>
-            {user?.role === 'creator' && (
-              <>
-                <button
-                  className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors whitespace-nowrap ${
-                    activeTab === 'analytics'
-                      ? 'text-[#FF4D67] border-b-2 border-[#FF4D67]'
-                      : 'text-gray-500 hover:text-gray-300'
-                  }`}
-                  onClick={() => setActiveTab('analytics')}
-                >
-                  Analytics
-                </button>
-                <button
-                  className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors whitespace-nowrap ${
-                    activeTab === 'tracks'
-                      ? 'text-[#FF4D67] border-b-2 border-[#FF4D67]'
-                      : 'text-gray-500 hover:text-gray-300'
-                  }`}
-                  onClick={() => setActiveTab('tracks')}
-                >
-                  My Tracks
-                </button>
-                <button
-                  className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors whitespace-nowrap ${
-                    activeTab === 'albums'
-                      ? 'text-[#FF4D67] border-b-2 border-[#FF4D67]'
-                      : 'text-gray-500 hover:text-gray-300'
-                  }`}
-                  onClick={() => setActiveTab('albums')}
-                >
-                  My Albums
-                </button>
-                <button
-                  className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors whitespace-nowrap ${
-                    activeTab === 'whatsapp'
-                      ? 'text-[#FF4D67] border-b-2 border-[#FF4D67]'
-                      : 'text-gray-500 hover:text-gray-300'
-                  }`}
-                  onClick={() => setActiveTab('whatsapp')}
-                >
-                  WhatsApp Contact
-                </button>
-                <button
-                  className={`py-3 px-4 sm:px-6 font-medium text-sm sm:text-base transition-colors whitespace-nowrap ${
-                    activeTab === 'earnings'
-                      ? 'text-[#FF4D67] border-b-2 border-[#FF4D67]'
-                      : 'text-gray-500 hover:text-gray-300'
-                  }`}
-                  onClick={() => {
-                    setActiveTab('earnings');
-                    if (!earnings) {
-                      fetchEarnings();
-                    }
-                  }}
-                >
-                  Earnings
-                </button>
-              </>
-            )}
-            </div>
-          </div>
-
-          {/* Profile Settings Tab */}
-          {activeTab === 'profile' && (
-            <div className="card-bg rounded-2xl p-5 sm:p-6 border border-gray-700/50">
-              <h3 className="text-lg sm:text-xl font-bold text-white mb-5">{t('accountSettings')}</h3>
-              
-              <form onSubmit={handleSubmit} className="space-y-5">
-                {/* Avatar Upload Section */}
-                <div className="pt-2">
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    {t('profilePicture')}
-                  </label>
-                  <div className="flex flex-col sm:flex-row items-center gap-4">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center relative overflow-hidden">
-                      {avatarUrl ? (
-                        <img 
-                          src={avatarUrl} 
-                          alt="Profile" 
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-lg font-bold text-white z-10">
-                          {user?.name?.charAt(0)?.toUpperCase() || 'U'}
-                        </span>
-                      )}
-                      <div className="absolute inset-0 bg-black/20"></div>
-                    </div>
-                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                      <div className="flex flex-col space-y-2">
-                        <label className="cursor-pointer bg-[#FF4D67] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#FF4D67]/80 transition-colors">
-                          {avatarUrl ? t('change') : t('upload')}
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleAvatarFileChange}
-                            className="hidden"
-                          />
-                        </label>
-                        {avatarUrl && (
-                          <button 
-                            type="button"
-                            onClick={() => {
-                              setAvatarUrl(null);
-                              updateProfile({ avatar: '' });
-                            }}
-                            className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors text-sm font-medium w-full sm:w-auto"
-                          >
-                            {t('remove')}
-                          </button>
-                        )}
-                        {uploadProgress['avatar'] > 0 && uploadProgress['avatar'] < 100 && (
-                          <div className="w-full mt-2">
-                            <div className="flex justify-between text-[10px] text-gray-400 mb-1">
-                              <span>{t('loading')}</span>
-                              <span>{Math.round(uploadProgress['avatar'])}%</span>
-                            </div>
-                            <div className="w-full bg-gray-700 rounded-full h-1.5 overflow-hidden">
-                              <div className="bg-[#FF4D67] h-1.5 rounded-full transition-all duration-300" style={{ width: `${uploadProgress['avatar']}%` }}></div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
-                    {t('fullName')}
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    defaultValue={user?.name || ''}
-                    className="w-full px-3 py-2.5 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
-                    {t('emailAddress')}
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    defaultValue={user?.email || ''}
-                    className="w-full px-3 py-2.5 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm"
-                  />
-                </div>
-
-                {user?.role === 'creator' && (
-                  <>
-                    {/* Bio Field */}
-                    <div>
-                      <label htmlFor="bio" className="block text-sm font-medium text-gray-300 mb-2">
-                        {t('bio')}
-                      </label>
-                      <textarea
-                        id="bio"
-                        value={bio}
-                        onChange={(e) => setBio(e.target.value)}
-                        placeholder={t('bioPlaceholder')}
-                        className="w-full px-3 py-2.5 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm min-h-[100px]"
-                      />
-                    </div>
-
-                    {/* Genres Field */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">
-                        {t('favoriteGenres')}
-                      </label>
-                      <div className="flex flex-wrap gap-2 mb-3">
-                        {genres.map((genre, index) => (
-                          <div key={index} className="flex items-center bg-gray-700 rounded-full px-3 py-1 text-sm">
-                            <span className="text-white">{genre}</span>
-                            <button 
-                              type="button"
-                              onClick={() => setGenres(genres.filter((_, i) => i !== index))}
-                              className="ml-2 text-gray-400 hover:text-white"
-                            >
-                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"></path>
-                              </svg>
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="flex">
-                        <input
-                          type="text"
-                          value={newGenre}
-                          onChange={(e) => setNewGenre(e.target.value)}
-                          placeholder={t('addGenrePlaceholder')}
-                          className="flex-1 px-3 py-2.5 bg-gray-800/50 border border-gray-700 rounded-l-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm"
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                              if (newGenre.trim() && !genres.includes(newGenre.trim())) {
-                                setGenres([...genres, newGenre.trim()]);
-                                setNewGenre('');
-                              }
-                            }
-                          }}
-                        />
-                        <button 
-                          type="button"
-                          onClick={() => {
-                            if (newGenre.trim() && !genres.includes(newGenre.trim())) {
-                              setGenres([...genres, newGenre.trim()]);
-                              setNewGenre('');
-                            }
-                          }}
-                          className="px-4 bg-[#FF4D67] text-white rounded-r-lg hover:bg-[#FF4D67]/80 transition-colors text-sm font-medium"
-                        >
-                          {t('add')}
-                        </button>
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                <div>
-                  <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-300 mb-2">
-                    {t('currentPassword')}
-                  </label>
-                  <input
-                    type="password"
-                    id="currentPassword"
-                    placeholder={t('currentPasswordPlaceholder')}
-                    className="w-full px-3 py-2.5 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
-                    {t('newPassword')}
-                  </label>
-                  <input
-                    type="password"
-                    id="password"
-                    placeholder={t('newPasswordPlaceholder')}
-                    className="w-full px-3 py-2.5 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm"
-                  />
-                </div>
-
-                {user?.role !== 'creator' && (
-                  <div className="card-bg rounded-xl p-4 border-l-4 border-[#FFCB2B]">
-                    <h4 className="font-medium text-white mb-2 flex items-center gap-2">
-                      <svg className="w-4 h-4 text-[#FFCB2B]" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 101 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"></path>
-                      </svg>
-                      {t('wantBecomeCreator')}
-                    </h4>
-                    <p className="text-xs text-gray-400 mb-3">
-                      {t('upgradeAccountDescription')}
-                    </p>
-                    <button 
-                      onClick={() => router.push('/upload')}
-                      className="px-3 py-1.5 bg-transparent border border-[#FFCB2B] text-[#FFCB2B] hover:bg-[#FFCB2B]/10 rounded-full text-xs font-medium transition-colors"
-                      type="button"
-                    >
-                      {t('upgradeToCreator')}
-                    </button>
-                  </div>
-                )}
-
-                <div className="flex justify-end pt-2">
-                  <button 
-                    type="submit"
-                    className="px-5 py-2.5 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-opacity text-sm"
-                  >
-                    {t('saveChanges')}
-                  </button>
-                </div>
-              </form>
-              
-              {/* Legal & Informational Pages */}
-              <div className="mt-8 pt-6 border-t border-gray-700">
-                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                  <svg className="w-5 h-5 text-[#FF4D67]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                  </svg>
-                  {t('legalInformation')}
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <Link href="/about" className="flex items-center justify-between p-3 bg-gray-800/30 hover:bg-gray-700/50 rounded-lg border border-gray-700 transition-colors group">
-                    <span className="text-gray-300 group-hover:text-white">{t('aboutUs')}</span>
-                    <svg className="w-4 h-4 text-gray-500 group-hover:text-[#FF4D67]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
-                    </svg>
-                  </Link>
-                  <Link href="/contact" className="flex items-center justify-between p-3 bg-gray-800/30 hover:bg-gray-700/50 rounded-lg border border-gray-700 transition-colors group">
-                    <span className="text-gray-300 group-hover:text-white">{t('contactUs')}</span>
-                    <svg className="w-4 h-4 text-gray-500 group-hover:text-[#FF4D67]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
-                    </svg>
-                  </Link>
-                  <Link href="/faq" className="flex items-center justify-between p-3 bg-gray-800/30 hover:bg-gray-700/50 rounded-lg border border-gray-700 transition-colors group">
-                    <span className="text-gray-300 group-hover:text-white">{t('faq')}</span>
-                    <svg className="w-4 h-4 text-gray-500 group-hover:text-[#FF4D67]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
-                    </svg>
-                  </Link>
-                  <Link href="/terms" className="flex items-center justify-between p-3 bg-gray-800/30 hover:bg-gray-700/50 rounded-lg border border-gray-700 transition-colors group">
-                    <span className="text-gray-300 group-hover:text-white">{t('termsOfUse')}</span>
-                    <svg className="w-4 h-4 text-gray-500 group-hover:text-[#FF4D67]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
-                    </svg>
-                  </Link>
-                  <Link href="/privacy" className="flex items-center justify-between p-3 bg-gray-800/30 hover:bg-gray-700/50 rounded-lg border border-gray-700 transition-colors group">
-                    <span className="text-gray-300 group-hover:text-white">{t('privacyPolicy')}</span>
-                    <svg className="w-4 h-4 text-gray-500 group-hover:text-[#FF4D67]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
-                    </svg>
-                  </Link>
-                  <Link href="/copyright" className="flex items-center justify-between p-3 bg-gray-800/30 hover:bg-gray-700/50 rounded-lg border border-gray-700 transition-colors group">
-                    <span className="text-gray-300 group-hover:text-white">{t('copyrightPolicy')}</span>
-                    <svg className="w-4 h-4 text-gray-500 group-hover:text-[#FF4D67]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
-                    </svg>
-                  </Link>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Creator Analytics Tab */}
-          {activeTab === 'analytics' && user?.role === 'creator' && (
-            <div className="card-bg rounded-2xl p-5 sm:p-6 border border-gray-700/50">
-              <h3 className="text-lg sm:text-xl font-bold text-white mb-5">{t('creatorAnalytics')}</h3>
-              
-              {error && (
-                <div className="bg-red-900/50 border border-red-700 rounded-lg p-4 mb-5">
-                  <div className="text-red-300 text-sm">{error}</div>
-                  <button 
-                    onClick={fetchAnalytics}
-                    className="mt-2 px-3 py-1.5 bg-red-700 text-white rounded hover:bg-red-600 text-sm"
-                  >
-                    Retry
-                  </button>
-                </div>
-              )}
-              
-              {loadingAnalytics ? (
-                <div className="flex justify-center items-center h-40">
-                  <div className="text-white text-sm">{t('loading')}</div>
-                </div>
-              ) : analytics ? (
-                <>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                    <div className="card-bg rounded-xl p-5 border border-gray-700/30 text-center">
-                      <div className="text-2xl sm:text-3xl font-bold text-[#FF4D67] mb-2">{analytics.totalTracks}</div>
-                      <div className="text-gray-400 text-sm">{t('totalTracks')}</div>
-                    </div>
-                    <div className="card-bg rounded-xl p-5 border border-gray-700/30 text-center">
-                      <div className="text-2xl sm:text-3xl font-bold text-[#FFCB2B] mb-2">{analytics.totalPlays.toLocaleString()}</div>
-                      <div className="text-gray-400 text-sm">{t('totalPlays')}</div>
-                    </div>
-                    {analytics.totalUniquePlays !== undefined && (
-                      <div className="card-bg rounded-xl p-5 border border-gray-700/30 text-center">
-                        <div className="text-2xl sm:text-3xl font-bold text-[#10B981] mb-2">{analytics.totalUniquePlays.toLocaleString()}</div>
-                        <div className="text-gray-400 text-sm">Unique Plays</div>
-                      </div>
-                    )}
-                    <div className="card-bg rounded-xl p-5 border border-gray-700/30 text-center">
-                      <div className="text-2xl sm:text-3xl font-bold text-[#6C63FF] mb-2">{analytics.totalLikes.toLocaleString()}</div>
-                      <div className="text-gray-400 text-sm">{t('totalLikes')}</div>
-                    </div>
-                  </div>
-                  
-                  {/* Geography Data */}
-                  {analytics.topCountries && analytics.topCountries.length > 0 && (
-                    <div className="card-bg rounded-xl p-5 border border-gray-700/30 mb-6">
-                      <h4 className="text-lg font-bold text-white mb-4">Top Listener Locations</h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                        {analytics.topCountries.map((countryData, index) => (
-                          <div key={index} className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg hover:bg-gray-800/50 transition-colors">
-                            <div className="flex items-center">
-                              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center text-white text-xs font-bold mr-3">
-                                {index + 1}
-                              </div>
-                              <span className="text-white font-medium">{countryData.country}</span>
-                            </div>
-                            <span className="text-gray-400 text-sm">{countryData.count} listeners</span>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="mt-4 text-xs text-gray-500">
-                        Based on IP address tracking of listeners
-                      </div>
-                    </div>
-                  )}
-                </>
-              ) : !error ? (
-                <div className="text-center py-8 text-gray-400 text-sm">
-                  No analytics data available
-                </div>
-              ) : null}
-            </div>
-          )}
-
-          {/* Creator Tracks Tab */}
-          {activeTab === 'tracks' && user?.role === 'creator' && (
-            <div className="card-bg rounded-2xl p-5 sm:p-6 border border-gray-700/50">
-              <div className="flex justify-between items-center mb-5">
-                <h3 className="text-lg sm:text-xl font-bold text-white">{t('myTracks')}</h3>
-                <button 
-                  onClick={() => router.push('/upload')}
-                  className="px-4 py-2 bg-[#FF4D67] text-white rounded-lg hover:bg-[#FF4D67]/80 transition-colors text-sm font-medium flex items-center gap-2"
-                >
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd"></path>
-                  </svg>
-                  {t('uploadTrack')}
-                </button>
-              </div>
-
-              {error && (
-                <div className="bg-red-900/50 border border-red-700 rounded-lg p-4 mb-5">
-                  <div className="text-red-300 text-sm">{error}</div>
-                  <button 
-                    onClick={() => fetchTracks(tracksPage)}
-                    className="mt-2 px-3 py-1.5 bg-red-700 text-white rounded hover:bg-red-600 text-sm"
-                  >
-                    {t('retry')}
-                  </button>
-                </div>
-              )}
-
-              {loadingTracks ? (
-                <div className="flex justify-center items-center h-40">
-                  <div className="text-white text-sm">{t('loadingTracks')}</div>
-                </div>
-              ) : tracks && tracks.length > 0 ? (
-                <>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {filteredTracks.map((track) => (
-                      <div key={track._id} className="card-bg rounded-xl p-4 border border-gray-700/30 hover:border-[#FF4D67]/50 transition-colors group">
-                        <div className="flex items-center gap-3 mb-3">
-                          <div className="w-12 h-12 rounded-lg bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center overflow-hidden">
-                            {track.coverURL ? (
-                              <img 
-                                src={track.coverURL} 
-                                alt={track.title} 
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <span className="text-white font-bold text-xs">
-                                {track.title.charAt(0)}
-                              </span>
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-medium text-white truncate">{track.title}</h4>
-                            <p className="text-gray-400 text-xs truncate">{(typeof track.creatorId === 'object' && track.creatorId !== null && 'name' in track.creatorId) ? (track.creatorId as any).name : 'Unknown Artist'}</p>
-                          </div>
-                        </div>
-                        
-                        <div className="flex justify-between items-center text-xs text-gray-400 mb-3">
-                          <span>{new Date(track.createdAt).toLocaleDateString()}</span>
-                          <span>{track.likes || 0} likes</span>
-                        </div>
-                        
-                        <div className="flex gap-2">
-                          <button 
-                            onClick={() => {
-                              // Map tracks to the format expected by the audio player
-                              const mappedTracks = filteredTracks.map(mapTrackForPlayer);
-                              setCurrentPlaylist(mappedTracks);
-                              playTrack(mapTrackForPlayer(track));
-                            }}
-                            className="flex-1 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors text-sm font-medium"
-                          >
-                            {t('play')}
-                          </button>
-                          <button 
-                            onClick={() => router.push(`/edit-track/${track._id}`)}
-                            className="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                            </svg>
-                          </button>
-                          <button 
-                            onClick={() => {
-                              setItemToDelete({
-                                type: 'track',
-                                id: track._id,
-                                title: track.title
-                              });
-                              setShowDeleteModal(true);
-                            }}
-                            className="px-3 py-2 bg-red-900/50 hover:bg-red-900 text-red-400 rounded-lg transition-colors"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1v3M4 7h16"></path>
-                            </svg>
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {tracksTotalPages > 1 && (
-                    <div className="flex justify-center items-center gap-2 mt-6">
-                      <button
-                        onClick={() => handlePageChange(Math.max(1, tracksPage - 1), 'tracks')}
-                        disabled={tracksPage === 1}
-                        className="px-3 py-1.5 bg-gray-800 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700 transition-colors text-sm"
-                      >
-                        {t('previous')}
-                      </button>
-                      
-                      <span className="text-white text-sm">
-                        {t('pageOf', { current: tracksPage, total: tracksTotalPages })}
-                      </span>
-                      
-                      <button
-                        onClick={() => handlePageChange(Math.min(tracksTotalPages, tracksPage + 1), 'tracks')}
-                        disabled={tracksPage === tracksTotalPages}
-                        className="px-3 py-1.5 bg-gray-800 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700 transition-colors text-sm"
-                      >
-                        {t('next')}
-                      </button>
-                    </div>
-                  )}
-                </>
-              ) : !error ? (
-                <div className="text-center py-8">
-                  <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
-                    </svg>
-                  </div>
-                  <h4 className="text-white font-medium mb-2">{t('noTracksYet')}</h4>
-                  <p className="text-gray-400 text-sm mb-4">{t('startUploading')}</p>
-                  <button 
-                    onClick={() => router.push('/upload')}
-                    className="px-4 py-2 bg-[#FF4D67] text-white rounded-lg hover:bg-[#FF4D67]/80 transition-colors text-sm font-medium"
-                  >
-                    {t('uploadFirstTrack')}
-                  </button>
-                </div>
-              ) : null}
-            </div>
-          )}
-
-          {/* Creator Albums Tab */}
-          {activeTab === 'albums' && user?.role === 'creator' && (
-            <div className="card-bg rounded-2xl p-5 sm:p-6 border border-gray-700/50">
-              <div className="flex justify-between items-center mb-5">
-                <h3 className="text-lg sm:text-xl font-bold text-white">My Albums</h3>
-                <button 
-                  onClick={() => router.push('/create-album')}
-                  className="px-4 py-2 bg-[#FFCB2B] text-gray-900 rounded-lg hover:bg-[#FFCB2B]/80 transition-colors text-sm font-medium flex items-center gap-2"
-                >
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M5 4a1 1 0 00-2 0v7.268a2 2 0 000 3.464V16a1 1 0 102 0v-1.268a2 2 0 000-3.464V4zM11 4a1 1 0 10-2 0v1.268a2 2 0 000 3.464V16a1 1 0 102 0V8.732a2 2 0 000-3.464V4zM16 3a1 1 0 011 1v7.268a2 2 0 010 3.464V16a1 1 0 11-2 0v-1.268a2 2 0 010-3.464V4a1 1 0 011-1z"></path>
-                  </svg>
-                  Create Album
-                </button>
-              </div>
-
-              {error && (
-                <div className="bg-red-900/50 border border-red-700 rounded-lg p-4 mb-5">
-                  <div className="text-red-300 text-sm">{error}</div>
-                  <button 
-                    onClick={fetchAlbums}
-                    className="mt-2 px-3 py-1.5 bg-red-700 text-white rounded hover:bg-red-600 text-sm"
-                  >
-                    {t('retry')}
-                  </button>
-                </div>
-              )}
-
-              {loadingAlbums ? (
-                <div className="flex justify-center items-center h-40">
-                  <div className="text-white text-sm">{t('loadingAlbums')}</div>
-                </div>
-              ) : albums && albums.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {filteredAlbums.map((album) => (
-                    <div key={album.id} className="card-bg rounded-xl p-4 border border-gray-700/30 hover:border-[#FFCB2B]/50 transition-colors group">
-                      <div className="relative mb-3">
-                        <div className="aspect-square rounded-lg bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center overflow-hidden">
-                          {album.coverImage ? (
-                            <img 
-                              src={album.coverImage} 
-                              alt={album.title} 
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <span className="text-white font-bold text-2xl">
-                              {album.title.charAt(0)}
-                            </span>
-                          )}
-                        </div>
-                        <button 
-                          onClick={() => {
-                            // View album tracks
-                            router.push(`/album/${album.id}`);
-                          }}
-                          className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg"
-                        >
-                          <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                          </svg>
-                        </button>
-                      </div>
-                      
-                      <h4 className="font-medium text-white truncate mb-1">{album.title}</h4>
-                      <p className="text-gray-400 text-xs mb-2">{album.artist}</p>
-                      <div className="flex justify-between items-center text-xs text-gray-400">
-                        <span>{album.year}</span>
-                        <span>{t('tracksCount', { count: album.tracks })}</span>
-                      </div>
-                      
-                      <div className="flex gap-2 mt-3">
-                        <button 
-                          onClick={() => router.push(`/edit-album/${album.id}`)}
-                          className="flex-1 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors text-sm font-medium"
-                        >
-                          {t('edit')}
-                        </button>
-                        <button 
-                          onClick={() => {
-                            setItemToDelete({
-                              type: 'album',
-                              id: album.id,
-                              title: album.title
-                            });
-                            setShowDeleteModal(true);
-                          }}
-                          className="px-3 py-2 bg-red-900/50 hover:bg-red-900 text-red-400 rounded-lg transition-colors"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1v3M4 7h16"></path>
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : !error ? (
-                <div className="text-center py-8">
-                  <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 4a1 1 0 00-2 0v7.268a2 2 0 000 3.464V16a1 1 0 102 0v-1.268a2 2 0 000-3.464V4zM11 4a1 1 0 10-2 0v1.268a2 2 0 000 3.464V16a1 1 0 102 0V8.732a2 2 0 000-3.464V4zM16 3a1 1 0 011 1v7.268a2 2 0 010 3.464V16a1 1 0 11-2 0v-1.268a2 2 0 010-3.464V4a1 1 0 011-1z"></path>
-                    </svg>
-                  </div>
-                  <h4 className="text-white font-medium mb-2">{t('noAlbumsYet')}</h4>
-                  <p className="text-gray-400 text-sm mb-4">{t('createFirstAlbum')}</p>
-                  <button 
-                    onClick={() => router.push('/create-album')}
-                    className="px-4 py-2 bg-[#FFCB2B] text-gray-900 rounded-lg hover:bg-[#FFCB2B]/80 transition-colors text-sm font-medium"
-                  >
-                    {t('createYourFirstAlbum')}
-                  </button>
-                </div>
-              ) : null}
-            </div>
-          )}
-
-      {/* Delete Confirmation Modal */}
-      {showDeleteModal && itemToDelete && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
-          <div className="card-bg rounded-2xl p-6 max-w-md w-full border border-gray-700/50">
-            <h3 className="text-lg font-bold text-white mb-2">{t('confirmDeletion')}</h3>
-            <p className="text-gray-400 text-sm mb-6">
-              {t('confirmDeleteMessage', { title: itemToDelete.title })}
-            </p>
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={() => {
-                  setShowDeleteModal(false);
-                  setItemToDelete(null);
-                }}
-                className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium"
-              >
-                {t('cancel')}
-              </button>
-              <button
-                onClick={confirmDelete}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
-              >
-                {t('delete')}
-              </button>
+      {/* Pull-to-Refresh Indicator */}
+      {pullDistance > 0 && (
+        <div 
+          className="fixed top-0 left-0 right-0 z-[60] flex items-center justify-center pointer-events-none"
+          style={{ transform: `translateY(${pullDistance - 100}px)` }}
+        >
+          <div className="bg-gray-800/90 backdrop-blur-xl rounded-full px-6 py-3 shadow-2xl border border-gray-700">
+            <div className="flex items-center gap-3">
+              <div className={`w-5 h-5 border-2 border-[#FF4D67] border-t-transparent rounded-full animate-spin ${pullRefresh ? '' : 'hidden'}`}></div>
+              <span className="text-white font-bold text-sm">
+                {pullRefresh ? 'Refreshing...' : 'Pull to refresh'}
+              </span>
             </div>
           </div>
         </div>
       )}
-
-      {/* WhatsApp Contact Tab */}
-      {activeTab === 'whatsapp' && user?.role === 'creator' && (
-        <div className="card-bg rounded-2xl p-5 sm:p-6 border border-gray-700/50">
-          <h3 className="text-lg sm:text-xl font-bold text-white mb-5">{t('whatsappContactInfo')}</h3>
-          
-          <div className="max-w-2xl">
-            <p className="text-gray-400 text-sm mb-6">
-              {t('whatsappContactDescription')}
-            </p>
-            
-            <form onSubmit={async (e) => {
-              e.preventDefault();
-              // Use the new WhatsApp contact update function
-              const success = await updateWhatsAppContact(whatsappContact.trim());
-              if (success) {
-                alert(t('whatsappUpdated'));
-              } else {
-                alert(t('whatsappUpdateFailed'));
-              }
-            }} className="space-y-6">
-              <div>
-                <label htmlFor="whatsappContact" className="block text-sm font-medium text-gray-300 mb-2">
-                  {t('whatsappNumber')}
-                </label>
-                <input
-                  type="text"
-                  id="whatsappContact"
-                  value={whatsappContact}
-                  onChange={(e) => setWhatsappContact(e.target.value)}
-                  placeholder={t('whatsappPlaceholder')}
-                  className="w-full px-3 py-2.5 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm"
-                />
-                <p className="mt-2 text-xs text-gray-400">
-                  {t('whatsappHelpText')}
-                </p>
-              </div>
-              
-              <div className="bg-gray-800/30 rounded-lg p-4 border border-gray-700/50">
-                <h4 className="font-medium text-white mb-2 flex items-center gap-2">
-                  <svg className="w-5 h-5 text-[#25D366]" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.480-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.87 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-                  </svg>
-                  {t('howItWorks')}
-                </h4>
-                <ul className="text-xs text-gray-400 space-y-1">
-                  <li>• {t('whatsappWorks1')}</li>
-                  <li>• {t('whatsappWorks2')}</li>
-                  <li>• {t('whatsappWorks3')}</li>
-                  <li>• {t('whatsappWorks4')}</li>
-                </ul>
-              </div>
-              
-              <div className="flex justify-end pt-2">
-                <button 
-                  type="submit"
-                  className="px-5 py-2.5 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-opacity text-sm"
-                >
-                  {t('saveWhatsApp')}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Earnings Tab */}
-      {activeTab === 'earnings' && user?.role === 'creator' && (
-        <div className="space-y-6">
-          {/* Earnings Summary Cards */}
-          {loadingEarnings ? (
-            <div className="flex justify-center items-center h-40">
-              <div className="text-white text-sm">{t('loadingEarnings')}</div>
-            </div>
-          ) : earnings ? (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {/* Total Earnings Card */}
-                <div className="card-bg rounded-2xl p-5 border border-gray-700/50">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-gray-400 text-sm font-medium">{t('totalEarnings')}</p>
-                      <p className="text-2xl font-bold text-white mt-2">
-                        {earnings.earnings.totalEarnings.toLocaleString()} RWF
-                      </p>
-                    </div>
-                    <svg className="w-8 h-8 text-[#FF4D67]" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                      <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"></path>
-                    </svg>
-                  </div>
-                </div>
-
-                {/* Available Balance Card */}
-                <div className="card-bg rounded-2xl p-5 border border-gray-700/50">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-gray-400 text-sm font-medium">{t('availableBalance')}</p>
-                      <p className="text-2xl font-bold text-green-500 mt-2">
-                        {earnings.earnings.availableBalance.toLocaleString()} RWF
-                      </p>
-                    </div>
-                    <svg className="w-8 h-8 text-green-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
-                    </svg>
-                  </div>
-                </div>
-
-                {/* Total Withdrawn Card */}
-                <div className="card-bg rounded-2xl p-5 border border-gray-700/50">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-gray-400 text-sm font-medium">{t('totalWithdrawn')}</p>
-                      <p className="text-2xl font-bold text-white mt-2">
-                        {earnings.earnings.totalWithdrawn.toLocaleString()} RWF
-                      </p>
-                    </div>
-                    <svg className="w-8 h-8 text-amber-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                      <path fillRule="evenodd" d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" clipRule="evenodd"></path>
-                    </svg>
-                  </div>
-                </div>
-
-                {/* Completed Transactions Card */}
-                <div className="card-bg rounded-2xl p-5 border border-gray-700/50">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-gray-400 text-sm font-medium">{t('transactions')}</p>
-                      <p className="text-2xl font-bold text-white mt-2">
-                        {earnings.earnings.completedTransactions}
-                      </p>
-                    </div>
-                    <svg className="w-8 h-8 text-blue-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 6H6.28l-.31-1.243A1 1 0 005 4H3z"></path>
-                      <path d="M16 16a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                      <path d="M4 16a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                    </svg>
-                  </div>
-                </div>
-              </div>
-
-              {/* Request Withdrawal Button */}
-              <div className="flex justify-end">
-                <button
-                  onClick={() => setShowWithdrawalModal(true)}
-                  disabled={earnings.earnings.availableBalance <= 0}
-                  className="px-6 py-2.5 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {t('requestWithdrawal')}
-                </button>
-              </div>
-
-              {/* Recent Transactions */}
-              <div className="card-bg rounded-2xl p-5 sm:p-6 border border-gray-700/50">
-                <h3 className="text-lg sm:text-xl font-bold text-white mb-5">{t('recentTransactions')}</h3>
-                
-                {earnings.recentTransactions && earnings.recentTransactions.length > 0 ? (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b border-gray-700">
-                          <th className="text-left py-3 px-4 font-medium text-gray-400">{t('track')}</th>
-                          <th className="text-left py-3 px-4 font-medium text-gray-400">{t('buyer')}</th>
-                          <th className="text-right py-3 px-4 font-medium text-gray-400">{t('amount')}</th>
-                          <th className="text-left py-3 px-4 font-medium text-gray-400">{t('date')}</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {earnings.recentTransactions.map((transaction) => (
-                          <tr key={transaction._id} className="border-b border-gray-700/50 hover:bg-gray-800/30">
-                            <td className="py-3 px-4">
-                              <div className="flex items-center gap-3">
-                                <img
-                                  src={transaction.trackId?.coverURL || '/placeholder.jpg'}
-                                  alt={transaction.trackId?.title}
-                                  className="w-8 h-8 rounded object-cover"
-                                />
-                                <span className="text-white truncate">{transaction.trackId?.title}</span>
-                              </div>
-                            </td>
-                            <td className="py-3 px-4 text-gray-300">{transaction.buyerId?.name}</td>
-                            <td className="py-3 px-4 text-right text-green-500 font-medium">{transaction.amount.toLocaleString()} RWF</td>
-                            <td className="py-3 px-4 text-gray-400 text-xs">
-                              {new Date(transaction.completedDate).toLocaleDateString()}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <p className="text-gray-400">{t('noTransactionsYet')}</p>
-                  </div>
-                )}
-              </div>
-
-              {/* Withdrawal History */}
-              {earnings.withdrawalHistory && earnings.withdrawalHistory.length > 0 && (
-                <div className="card-bg rounded-2xl p-5 sm:p-6 border border-gray-700/50">
-                  <h3 className="text-lg sm:text-xl font-bold text-white mb-5">{t('withdrawalHistory')}</h3>
-                  
-                  <div className="space-y-3">
-                    {earnings.withdrawalHistory.map((withdrawal) => (
-                      <div key={withdrawal._id} className="flex items-center justify-between p-4 bg-gray-800/30 rounded-lg border border-gray-700/50">
-                        <div className="flex-1">
-                          <p className="text-white font-medium">{withdrawal.amount.toLocaleString()} RWF</p>
-                          <p className="text-gray-400 text-xs mt-1">
-                            {withdrawal.mobileNumber} • {new Date(withdrawal.requestDate).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          withdrawal.status === 'paid' ? 'bg-green-900/30 text-green-400' :
-                          withdrawal.status === 'approved' ? 'bg-blue-900/30 text-blue-400' :
-                          withdrawal.status === 'pending' ? 'bg-yellow-900/30 text-yellow-400' :
-                          'bg-red-900/30 text-red-400'
-                        }`}>
-                          {t(withdrawal.status)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Withdrawal Modal */}
-              {showWithdrawalModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                  <div className="card-bg rounded-2xl p-6 border border-gray-700/50 max-w-md w-full">
-                    <h3 className="text-xl font-bold text-white mb-4">{t('requestWithdrawal')}</h3>
-                    
-                    <div className="mb-4 p-3 bg-blue-900/20 rounded-lg border border-blue-700/50">
-                      <p className="text-blue-300 text-sm">
-                        {t('availableBalance')}: <span className="font-bold">{earnings.earnings.availableBalance.toLocaleString()} RWF</span>
-                      </p>
-                    </div>
-                    
-                    <form onSubmit={handleWithdrawalRequest} className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">
-                          {t('amountRwf')}
-                        </label>
-                        <input
-                          type="number"
-                          value={withdrawalAmount}
-                          onChange={(e) => setWithdrawalAmount(e.target.value)}
-                          placeholder="0"
-                          min="1"
-                          max={earnings.earnings.availableBalance}
-                          className="w-full px-3 py-2.5 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent"
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">
-                          {t('mobileNumber')}
-                        </label>
-                        <input
-                          type="tel"
-                          value={withdrawalPhone}
-                          onChange={(e) => setWithdrawalPhone(e.target.value)}
-                          placeholder="+250..."
-                          className="w-full px-3 py-2.5 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent"
-                        />
-                        <p className="text-xs text-gray-400 mt-1">{t('withdrawalPhoneHelp')}</p>
-                      </div>
-                      
-                      <div className="flex gap-3 pt-4">
-                        <button
-                          type="button"
-                          onClick={() => setShowWithdrawalModal(false)}
-                          className="flex-1 px-4 py-2 border border-gray-700 rounded-lg text-white font-medium hover:bg-gray-800/30 transition-colors"
-                        >
-                          {t('cancel')}
-                        </button>
-                        <button
-                          type="submit"
-                          disabled={submittingWithdrawal}
-                          className="flex-1 px-4 py-2 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
-                        >
-                          {submittingWithdrawal ? t('submitting') : t('request')}
-                        </button>
-                      </div>
-                    </form>
-                  </div>
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="card-bg rounded-2xl p-8 border border-gray-700/50 text-center">
-              <p className="text-gray-400">Failed to load earnings data</p>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Recently Played Tab */}
-      {activeTab === 'recently-played' && (
-        <div className="card-bg rounded-2xl p-5 sm:p-6 border border-gray-700/50">
-          <div className="flex justify-between items-center mb-5">
-            <h3 className="text-lg sm:text-xl font-bold text-white">{t('recentlyPlayed')}</h3>
-            <button 
-              onClick={() => router.push('/explore')}
-              className="px-4 py-2 bg-[#FF4D67] text-white rounded-lg hover:bg-[#FF4D67]/80 transition-colors text-sm font-medium flex items-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd"></path>
+      
+      {/* Sticky Profile Header with Smooth Scroll Effect */}
+      <div 
+        className={`sticky top-0 z-50 transition-all duration-300 ease-in-out ${
+          isCompact 
+            ? 'bg-gray-900/98 backdrop-blur-xl shadow-2xl shadow-black/50 py-2' 
+            : 'bg-transparent py-4'
+        }`}
+      >
+        <div className="container mx-auto px-4">
+          {/* Top Bar with Back Button and Actions Menu */}
+          <div className={`flex items-center justify-between transition-all duration-300 ${isCompact ? 'mb-2' : 'mb-4'}`}>
+            {/* Back Button */}
+            <Link href="/" className="text-gray-400 hover:text-[#FF4D67] text-xs font-bold uppercase tracking-widest inline-flex items-center gap-2 transition-all active:scale-95">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              {t('viewNewTracks')}
-            </button>
-          </div>
-                    
-          {loadingRecentlyPlayed ? (
-            <div className="flex justify-center items-center h-40">
-              <div className="text-white text-sm">{t('loadingRecentlyPlayed')}</div>
-            </div>
-          ) : recentlyPlayedTracks.length > 0 ? (
-            <div className="space-y-4">
-              {recentlyPlayedTracks.map((track) => (
-                <div key={track.id} className="card-bg rounded-xl p-4 flex items-center gap-4 transition-all hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50">
-                  <div className="relative">
-                    <img 
-                      src={track.coverImage} 
-                      alt={track.title} 
-                      className="w-16 h-16 rounded-lg object-cover"
-                    />
-                    <button 
-                      onClick={() => {
-                        playTrack(track);
-                                  
-                        // Set the current playlist to all recently played tracks
-                        setCurrentPlaylist(recentlyPlayedTracks);
-                      }}
-                      className="absolute inset-0 w-full h-full rounded-lg bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
-                    >
-                      <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
-                      </svg>
-                    </button>
-                  </div>
-                            
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-white text-sm sm:text-base truncate">{track.title}</h3>
-                    <p className="text-gray-400 text-xs sm:text-sm truncate">{track.artist}</p>
-                    <p className="text-gray-500 text-xs mt-1">
-                      {t('playedDate', { date: new Date(track.playedAt).toLocaleDateString() })}
-                    </p>
-                  </div>
-                            
-                  <div className="flex items-center gap-3">
-                    <span className="text-gray-500 text-xs sm:text-sm hidden sm:block">
-                      {track.duration ? `${Math.floor(track.duration / 60)}:${Math.floor(track.duration % 60).toString().padStart(2, '0')}` : '3:45'}
-                    </span>
-                    <button 
-                      onClick={() => {
-                        // Toggle favorite status for the track
-                        const isFavorite = Object.values(favorites).some((fav: any) => fav.id === track.id);
-                        if (isFavorite) {
-                          removeFromFavorites(track.id);
-                        } else {
-                          addToFavorites(track);
-                        }
-                      }}
-                      className="p-1.5 sm:p-2 rounded-full hover:bg-gray-800/50 transition-all duration-300 hover:scale-110"
-                    >
-                      <svg 
-                        className={`w-4 h-4 sm:w-5 sm:h-5 transition-all duration-200 ${Object.values(favorites).some((fav: any) => fav.id === track.id) ? 'text-red-500 fill-current scale-110' : 'text-[#FF4D67] stroke-current'}`}
-                        fill={Object.values(favorites).some((fav: any) => fav.id === track.id) ? "currentColor" : "none"}
-                        stroke="currentColor"
-                        viewBox="0 0 24 24" 
-                        xmlns="http://www.w3.org/2000/svg"
+              Back
+            </Link>
+
+            {/* Actions Menu Button (Mobile) with Proper Z-Index */}
+            <div className="relative md:hidden z-50">
+              <button
+                onClick={() => setShowActionsMenu(!showActionsMenu)}
+                className="p-2 text-gray-400 hover:text-white transition-all active:scale-90"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                </svg>
+              </button>
+
+              {/* Mobile Actions Dropdown with Backdrop */}
+              {showActionsMenu && (
+                <>
+                  {/* Backdrop for better UX */}
+                  <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40" onClick={() => setShowActionsMenu(false)}></div>
+                  {/* Dropdown Menu */}
+                  <div className="absolute right-0 mt-2 w-56 bg-gray-800/98 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-700 z-50 overflow-hidden animate-slideDown">
+                    <div className="py-2">
+                      <button
+                        onClick={() => {
+                          router.push('/edit-profile')
+                          setShowActionsMenu(false)
+                        }}
+                        className="w-full px-4 py-3 text-left text-gray-300 hover:bg-gray-700 flex items-center gap-3 transition-colors"
                       >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="card-bg rounded-2xl p-8 sm:p-12 text-center border border-gray-700/50">
-              <div className="mx-auto w-16 h-16 rounded-full bg-gray-800/50 flex items-center justify-center mb-6">
-                <svg className="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-              </div>
-              <h3 className="text-xl sm:text-2xl font-bold text-white mb-3">{t('noRecentlyPlayed')}</h3>
-              <p className="text-gray-500 mb-6 max-w-md mx-auto">
-                {t('startListening')}
-              </p>
-              <button 
-                onClick={() => router.push('/explore')}
-                className="px-5 py-2.5 sm:px-6 sm:py-3 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-opacity text-sm sm:text-base"
-              >
-                {t('exploreMusic')}
-              </button>
-            </div>
-          )}
-        </div>
-      )}
-      
-      {/* Following Tab */}
-      {activeTab === 'following' && (
-        <div className="card-bg rounded-2xl p-5 sm:p-6 border border-gray-700/50">
-          <h3 className="text-lg sm:text-xl font-bold text-white mb-5">{t('following')}</h3>
-                    
-          {loadingFollowed ? (
-            <div className="flex justify-center items-center h-40">
-              <div className="text-white text-sm">{t('loadingFollowed')}</div>
-            </div>
-          ) : followedCreators && followedCreators.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {followedCreators.map((creator) => (
-                <div 
-                  key={creator._id} 
-                  className="card-bg rounded-xl p-4 border border-gray-700/30 hover:border-[#FF4D67]/50 transition-colors cursor-pointer"
-                  onClick={() => router.push(`/artists/${creator._id}`)}
-                >
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center overflow-hidden">
-                      {creator.avatar ? (
-                        <img 
-                          src={creator.avatar} 
-                          alt={creator.name} 
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-white font-bold text-xs">
-                          {creator.name.charAt(0)}
-                        </span>
+                        <svg className="w-5 h-5 text-[#FF4D67]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                        Edit Profile
+                      </button>
+                      {analytics && (
+                        <button
+                          onClick={() => {
+                            router.push('/profile/analytics')
+                            setShowActionsMenu(false)
+                          }}
+                          className="w-full px-4 py-3 text-left text-gray-300 hover:bg-gray-700 flex items-center gap-3 transition-colors"
+                        >
+                          <svg className="w-5 h-5 text-[#6366F1]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                          </svg>
+                          View Analytics
+                        </button>
                       )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-white truncate">{creator.name}</h4>
-                      <p className="text-gray-400 text-xs truncate capitalize">{creator.creatorType}</p>
+                      <button
+                        onClick={async () => {
+                          await handleShare()
+                          setShowActionsMenu(false)
+                        }}
+                        className="w-full px-4 py-3 text-left text-gray-300 hover:bg-gray-700 flex items-center gap-3 transition-colors"
+                      >
+                        <svg className="w-5 h-5 text-[#FFCB2B]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 1.342a4 4 0 11-8 0 4 4 0 018 0zm.016 4.658a4 4 0 11-8 0 4 4 0 018 0zm13.342-6.658a4 4 0 11-8 0 4 4 0 018 0zm.016 4.658a4 4 0 11-8 0 4 4 0 018 0zM17 9a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                        Share Profile
+                      </button>
+                      <hr className="my-2 border-gray-700" />
+                      <button
+                        onClick={async () => {
+                          await handleLogout()
+                          setShowActionsMenu(false)
+                        }}
+                        className="w-full px-4 py-3 text-left text-red-400 hover:bg-red-900/20 flex items-center gap-3 transition-colors"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                        Logout
+                      </button>
                     </div>
                   </div>
-                  <div className="flex justify-between text-xs text-gray-400">
-                    <span>{t('followersCount', { count: creator.followersCount || 0 })}</span>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Profile Info with Smooth Transitions */}
+          <div 
+            className={`transition-all duration-300 ease-in-out ${
+              isCompact ? 'flex items-center gap-3 sm:gap-4' : 'flex items-start'
+            }`}
+          >
+            {/* Avatar with Responsive Sizing */}
+            <div 
+              className={`relative group transition-all duration-300 ease-in-out transform ${
+                isCompact ? 'w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0 scale-95' : 'w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 scale-100'
+              }`}
+            >
+              <div className="absolute -inset-1 bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] rounded-full blur opacity-25 group-hover:opacity-40 transition-opacity"></div>
+              <div className="relative rounded-full border-2 border-gray-900 overflow-hidden shadow-xl bg-gray-800">
+                {profile.avatar ? (
+                  <img src={profile.avatar} alt={profile.name} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center">
+                    <span className={`${isCompact ? 'text-xl sm:text-2xl' : 'text-2xl sm:text-3xl md:text-4xl'} font-black text-white transition-all duration-300`}>
+                      {profile.name.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Name & Stats - Mobile Optimized */}
+            <div className={`flex-1 min-w-0 transition-all duration-300 ${isCompact ? 'py-2 pl-2 sm:pl-3' : 'mt-3 sm:mt-4 md:mt-6 ml-0'}`}>
+              <h1 className={`${isCompact ? 'text-lg sm:text-xl' : 'text-2xl sm:text-3xl md:text-4xl'} font-black text-white tracking-tight transition-all duration-300 leading-tight truncate`}>
+                {profile.name}
+              </h1>
+              
+              {!isCompact && (
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3 md:gap-4 mt-2 sm:mt-3 text-xs sm:text-sm text-gray-400 animate-fadeIn overflow-x-auto scrollbar-hide pb-1">
+                  <div className="flex flex-col flex-shrink-0 cursor-pointer hover:bg-gray-800/50 rounded-lg p-1.5 sm:p-2 transition-all active:scale-95" onClick={() => router.push('/profile/tracks')}>
+                    <span className="text-white font-bold text-sm sm:text-base">{tracks.length || 0}</span>
+                    <span className="text-[9px] sm:text-[10px] uppercase tracking-widest font-medium whitespace-nowrap">Tracks</span>
+                  </div>
+                  <div className="w-px h-6 sm:h-8 bg-gray-700/50 flex-shrink-0"></div>
+                  <div className="flex flex-col flex-shrink-0 cursor-pointer hover:bg-gray-800/50 rounded-lg p-1.5 sm:p-2 transition-all active:scale-95" onClick={() => router.push('/profile/followers')}>
+                    <span className="text-white font-bold text-sm sm:text-base">{(profile.followersCount || 0).toLocaleString()}</span>
+                    <span className="text-[9px] sm:text-[10px] uppercase tracking-widest font-medium whitespace-nowrap">Followers</span>
+                  </div>
+                  <div className="w-px h-6 sm:h-8 bg-gray-700/50 flex-shrink-0"></div>
+                  <div className="flex flex-col flex-shrink-0 cursor-pointer hover:bg-gray-800/50 rounded-lg p-1.5 sm:p-2 transition-all active:scale-95" onClick={() => router.push('/profile/following')}>
+                    <span className="text-white font-bold text-sm sm:text-base">{(profile.followingCount || 0).toLocaleString()}</span>
+                    <span className="text-[9px] sm:text-[10px] uppercase tracking-widest font-medium whitespace-nowrap">Following</span>
+                  </div>
+                  {analytics && (
+                    <>
+                      <div className="w-px h-6 sm:h-8 bg-gray-700/50 flex-shrink-0 hidden sm:block"></div>
+                      <div className="hidden sm:flex flex-col flex-shrink-0 cursor-pointer hover:bg-gray-800/50 rounded-lg p-1.5 sm:p-2 transition-all active:scale-95" onClick={() => router.push('/profile/analytics')}>
+                        <span className="text-white font-bold text-sm sm:text-base">{analytics.monthlyListeners.toLocaleString()}</span>
+                        <span className="text-[9px] sm:text-[10px] uppercase tracking-widest font-medium whitespace-nowrap">Monthly</span>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="container mx-auto px-4 pb-12">
+        {/* Action Buttons - Fully Responsive */}
+        <div className="flex flex-col sm:flex-row gap-3 my-4 sm:my-6">
+          <button 
+            onClick={() => router.push('/edit-profile')}
+            className="flex-1 bg-[#FF4D67] hover:bg-[#FF4D67]/90 text-white font-bold py-3 sm:py-3.5 px-4 sm:px-6 rounded-xl sm:rounded-2xl transition-all active:scale-95 shadow-lg shadow-[#FF4D67]/20 flex items-center justify-center gap-2 text-sm sm:text-base"
+          >
+            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            <span className="hidden sm:inline">Edit Profile</span>
+            <span className="sm:hidden">Edit</span>
+          </button>
+          {analytics && (
+            <button 
+              onClick={() => router.push('/profile/analytics')}
+              className="flex-1 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] hover:from-[#6366F1]/90 hover:to-[#8B5CF6]/90 text-white font-bold py-3 sm:py-3.5 px-4 sm:px-6 rounded-xl sm:rounded-2xl transition-all active:scale-95 shadow-lg shadow-[#6366F1]/20 flex items-center justify-center gap-2 text-sm sm:text-base"
+            >
+              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              <span className="hidden sm:inline">View Analytics</span>
+              <span className="sm:hidden">Analytics</span>
+            </button>
+          )}
+          <button 
+            onClick={handleShare}
+            className="flex-1 bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 sm:py-3.5 px-4 sm:px-6 rounded-xl sm:rounded-2xl transition-all active:scale-95 border border-gray-700 flex items-center justify-center gap-2 text-sm sm:text-base"
+          >
+            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 1.342a4 4 0 11-8 0 4 4 0 018 0zm.016 4.658a4 4 0 11-8 0 4 4 0 018 0zm13.342-6.658a4 4 0 11-8 0 4 4 0 018 0zm.016 4.658a4 4 0 11-8 0 4 4 0 018 0zM17 9a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+            <span className="hidden sm:inline">Share Profile</span>
+            <span className="sm:hidden">Share</span>
+          </button>
+          <button 
+            onClick={handleLogout}
+            className="flex-1 bg-red-600/10 hover:bg-red-600/20 text-red-500 font-bold py-3 sm:py-3.5 px-4 sm:px-6 rounded-xl sm:rounded-2xl transition-all active:scale-95 border border-red-600/20 flex items-center justify-center gap-2 text-sm sm:text-base"
+          >
+            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            <span className="hidden sm:inline">Logout</span>
+            <span className="sm:hidden">Logout</span>
+          </button>
+        </div>
+
+        {/* Collapsible Info Cards */}
+        <div className="space-y-3 mb-10">
+          {/* Analytics Summary for Creators */}
+          {analytics && (
+            <div className="bg-gradient-to-br from-[#6366F1]/10 to-[#8B5CF6]/10 backdrop-blur-sm rounded-2xl border border-[#6366F1]/30 overflow-hidden">
+              <div className="p-5 border-b border-[#6366F1]/20">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <svg className="w-6 h-6 text-[#6366F1]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    <span className="font-bold text-white text-lg">Your Analytics</span>
+                  </div>
+                  <button
+                    onClick={() => router.push('/profile/analytics')}
+                    className="text-[#6366F1] hover:text-[#8B5CF6] text-sm font-bold transition-colors flex items-center gap-1"
+                  >
+                    View All
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 p-5">
+                <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50">
+                  <div className="flex items-center gap-2 mb-2">
+                    <svg className="w-5 h-5 text-[#FF4D67]" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                    </svg>
+                    <span className="text-xs text-gray-400 uppercase tracking-wider font-medium">Total Plays</span>
+                  </div>
+                  <p className="text-2xl font-black text-white">{analytics.totalPlays.toLocaleString()}</p>
+                </div>
+                
+                <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50">
+                  <div className="flex items-center gap-2 mb-2">
+                    <svg className="w-5 h-5 text-[#10B981]" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+                    </svg>
+                    <span className="text-xs text-gray-400 uppercase tracking-wider font-medium">Monthly Listeners</span>
+                  </div>
+                  <p className="text-2xl font-black text-white">{analytics.monthlyListeners.toLocaleString()}</p>
+                </div>
+                
+                <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50">
+                  <div className="flex items-center gap-2 mb-2">
+                    <svg className="w-5 h-5 text-[#EF4444]" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+                    </svg>
+                    <span className="text-xs text-gray-400 uppercase tracking-wider font-medium">Unique Listeners</span>
+                  </div>
+                  <p className="text-2xl font-black text-white">{analytics.totalUniquePlays.toLocaleString()}</p>
+                </div>
+                
+                <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50">
+                  <div className="flex items-center gap-2 mb-2">
+                    <svg className="w-5 h-5 text-[#8B5CF6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    <span className="text-xs text-gray-400 uppercase tracking-wider font-medium">Total Likes</span>
+                  </div>
+                  <p className="text-2xl font-black text-white">{analytics.totalLikes.toLocaleString()}</p>
+                </div>
+                
+                <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50">
+                  <div className="flex items-center gap-2 mb-2">
+                    <svg className="w-5 h-5 text-[#FFCB2B]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    <span className="text-xs text-gray-400 uppercase tracking-wider font-medium">Tracks</span>
+                  </div>
+                  <p className="text-2xl font-black text-white">{analytics.totalTracks}</p>
+                </div>
+              </div>
+              
+              {analytics.topCountries && analytics.topCountries.length > 0 && (
+                <div className="px-5 pb-5 pt-2 border-t border-[#6366F1]/20">
+                  <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">Top Countries</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {analytics.topCountries.slice(0, 5).map((item, idx) => (
+                      <span key={idx} className="bg-gray-800/80 text-gray-300 text-xs px-3 py-1.5 rounded-xl border border-gray-700/50 font-medium flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 bg-[#6366F1] rounded-full"></span>
+                        {item.country}: {item.count.toLocaleString()}
+                      </span>
+                    ))}
                   </div>
                 </div>
-              ))}
+              )}
             </div>
-          ) : (
-            <div className="text-center py-8">
-              <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+          )}
+          {/* About Section */}
+          <div className="bg-gray-800/30 backdrop-blur-sm rounded-2xl border border-gray-700/30 overflow-hidden">
+            <button
+              onClick={() => setExpandedSection(expandedSection === 'about' ? null : 'about')}
+              className="w-full flex items-center justify-between p-5 text-left hover:bg-gray-800/40 transition-all"
+            >
+              <div className="flex items-center gap-3">
+                <svg className="w-5 h-5 text-[#FF4D67]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
+                <span className="font-bold text-white">About</span>
               </div>
-              <h4 className="text-white font-medium mb-2">{t('notFollowingYet')}</h4>
-              <p className="text-gray-400 text-sm mb-4">{t('startFollowing')}</p>
-              <button 
-                onClick={() => router.push('/explore')}
-                className="px-4 py-2 bg-[#FF4D67] text-white rounded-lg hover:bg-[#FF4D67]/80 transition-colors text-sm font-medium"
+              <svg className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${expandedSection === 'about' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            
+            {expandedSection === 'about' && (
+              <div className="px-5 pb-5 pt-0 border-t border-gray-700/30">
+                {profile.bio ? (
+                  <>
+                    <p className={`text-gray-400 leading-relaxed mt-4 text-sm ${!showBioFull && 'line-clamp-3'}`}>
+                      "{profile.bio}"
+                    </p>
+                    {profile.bio.length > 150 && (
+                      <button
+                        onClick={() => setShowBioFull(!showBioFull)}
+                        className="text-[#FF4D67] text-sm font-bold mt-2 hover:underline"
+                      >
+                        {showBioFull ? 'Show less' : 'Read more'}
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-gray-500 italic text-sm mt-4">No bio added yet.</p>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Genres Section */}
+          {profile.genres && profile.genres.length > 0 && (
+            <div className="bg-gray-800/30 backdrop-blur-sm rounded-2xl border border-gray-700/30 overflow-hidden">
+              <button
+                onClick={() => setExpandedSection(expandedSection === 'genres' ? null : 'genres')}
+                className="w-full flex items-center justify-between p-5 text-left hover:bg-gray-800/40 transition-all"
               >
-                {t('exploreCreators')}
+                <div className="flex items-center gap-3">
+                  <svg className="w-5 h-5 text-[#FF4D67]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                  </svg>
+                  <span className="font-bold text-white">Genres</span>
+                </div>
+                <svg className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${expandedSection === 'genres' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
               </button>
+              
+              {expandedSection === 'genres' && (
+                <div className="px-5 pb-5 pt-0 border-t border-gray-700/30">
+                  <div className="flex flex-wrap gap-2 mt-4">
+                    {profile.genres.map((genre, idx) => (
+                      <span key={idx} className="bg-gray-800 text-gray-300 text-xs px-3 py-1.5 rounded-xl border border-gray-700/50 font-medium">
+                        {genre}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Contact Section */}
+          {profile.whatsappContact && (
+            <div className="bg-gray-800/30 backdrop-blur-sm rounded-2xl border border-gray-700/30 overflow-hidden">
+              <button
+                onClick={() => setExpandedSection(expandedSection === 'contact' ? null : 'contact')}
+                className="w-full flex items-center justify-between p-5 text-left hover:bg-gray-800/40 transition-all"
+              >
+                <div className="flex items-center gap-3">
+                  <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.246 2.248 3.484 5.232 3.484 8.412-.003 6.557-5.338 11.892-11.893 11.892-1.997-.001-3.951-.5-5.688-1.448l-6.309 1.656zm6.224-3.82l.303.18c1.524.909 3.284 1.389 5.083 1.391 5.646.003 10.243-4.591 10.246-10.238.002-2.737-1.065-5.307-3.001-7.245-1.936-1.938-4.505-3.007-7.244-3.008-5.647 0-10.243 4.595-10.246 10.242-.001 1.93.52 3.811 1.507 5.435l.165.271-1.084 3.957 4.074-1.065zm10.59-6.345c-.277-.139-1.638-.809-1.892-.901-.254-.093-.439-.139-.624.139-.185.277-.717.901-.878 1.086-.161.185-.323.208-.6.069-.277-.139-1.17-.431-2.228-1.374-.824-.735-1.38-1.644-1.542-1.921-.162-.277-.017-.427.121-.565.125-.124.277-.323.416-.485.139-.161.185-.277.277-.462.093-.185.046-.347-.023-.485-.069-.139-.624-1.503-.855-2.057-.225-.541-.45-.467-.624-.476-.161-.008-.347-.01-.532-.01-.185 0-.485.069-.739.347-.254.277-.971.948-.971 2.312 0 1.364.993 2.682 1.132 2.867.139.185 1.953 2.982 4.731 4.183.661.286 1.177.457 1.579.585.663.211 1.267.181 1.744.11.533-.08 1.638-.67 1.869-1.318.231-.647.231-1.202.162-1.318-.069-.116-.254-.185-.531-.324z" />
+                  </svg>
+                  <span className="font-bold text-white">WhatsApp Contact</span>
+                </div>
+                <svg className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${expandedSection === 'contact' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              
+              {expandedSection === 'contact' && (
+                <div className="px-5 pb-5 pt-0 border-t border-gray-700/30">
+                  <p className="text-gray-300 text-sm mt-4 font-mono">{profile.whatsappContact}</p>
+                </div>
+              )}
             </div>
           )}
         </div>
-      )}
+
+        {/* Recently Played - Horizontal Scroll */}
+        {recentlyPlayed.length > 0 && (
+          <div className="mb-12">
+            <h2 className="text-xl font-black text-white tracking-tight mb-6 flex items-center gap-2">
+              <svg className="w-6 h-6 text-[#FF4D67]" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+              </svg>
+              Recently Played
+            </h2>
+
+            <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+              {recentlyPlayed.slice(0, 10).map((track) => (
+                <Link
+                  key={track._id}
+                  href={`/tracks/${track._id}`}
+                  className="flex-shrink-0 w-40 group bg-gray-800/30 backdrop-blur-sm rounded-2xl overflow-hidden border border-gray-700/30 hover:bg-gray-800/50 hover:border-[#FF4D67]/40 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+                >
+                  <div className="aspect-square relative overflow-hidden">
+                    <img
+                      src={track.coverURL || '/placeholder-cover.jpg'}
+                      alt={track.title}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement
+                        target.src = '/placeholder-cover.jpg'
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent opacity-60"></div>
+                  </div>
+                  <div className="p-3">
+                    <h3 className="font-bold text-white group-hover:text-[#FF4D67] transition-colors truncate text-sm">
+                      {track.title}
+                    </h3>
+                    <p className="text-gray-400 text-xs truncate">{track.artist}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Uploaded Tracks Grid */}
+        <div>
+          <h2 className="text-xl font-black text-white tracking-tight mb-6">
+            {recentlyPlayed.length > 0 ? 'Your Tracks' : 'Your Activity'}
+          </h2>
+
+          {tracks.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {tracks.map((track) => (
+                <Link
+                  key={track._id}
+                  href={`/tracks/${track._id}`}
+                  className="group flex flex-col bg-gray-800/20 backdrop-blur-sm rounded-2xl overflow-hidden border border-gray-700/30 hover:bg-gray-800/40 hover:border-[#FF4D67]/40 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-[#FF4D67]/5"
+                >
+                  <div className="aspect-video relative overflow-hidden">
+                    <img
+                      src={track.coverURL || '/placeholder-cover.jpg'}
+                      alt={track.title}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement
+                        target.src = '/placeholder-cover.jpg'
+                      }}
+                    />
+                    <div className="absolute bottom-3 left-3 flex gap-1">
+                      <span className="px-2 py-0.5 bg-[#FF4D67] text-[9px] font-black text-white uppercase rounded">
+                        {track.type || 'Track'}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="p-4 flex-1">
+                    <h3 className="font-bold text-white group-hover:text-[#FF4D67] transition-colors mb-1 truncate text-sm">
+                      {track.title}
+                    </h3>
+                    <p className="text-gray-400 text-xs truncate mb-4">{track.artist}</p>
+                    
+                    <div className="flex items-center justify-between text-[10px] text-gray-500 font-bold uppercase tracking-widest pt-3 border-t border-gray-700/50">
+                      <div className="flex items-center gap-3">
+                        <span className="flex items-center gap-1.5">
+                          <svg className="w-3.5 h-3.5 text-[#FF4D67]" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                          </svg>
+                          {track.plays || 0}
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                          <svg className="w-3.5 h-3.5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+                          </svg>
+                          {track.likes || 0}
+                        </span>
+                      </div>
+                      <span className="text-[#FF4D67]">Play →</span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-16 bg-gray-800/10 rounded-2xl border border-dashed border-gray-700/50">
+              <div className="w-16 h-16 mx-auto mb-4 bg-gray-800 rounded-full flex items-center justify-center text-gray-600">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold text-white mb-2">No tracks yet</h3>
+              <p className="text-gray-500 text-sm max-w-xs mx-auto mb-6">Start uploading your music to share with the world!</p>
+              <button
+                onClick={() => router.push('/upload')}
+                className="bg-[#FF4D67] hover:bg-[#FF4D67]/90 text-white font-bold py-3 px-8 rounded-2xl transition-all active:scale-95 shadow-lg shadow-[#FF4D67]/20"
+              >
+                Upload Your First Track
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

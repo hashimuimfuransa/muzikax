@@ -47,6 +47,31 @@ const getCreatorAnalytics = async (req, res) => {
         // Get total likes for all tracks
         const totalLikes = tracks.reduce((sum, track) => sum + track.likes, 0);
         console.log('Creator Analytics - Total likes:', totalLikes);
+        
+        // Calculate monthly listeners (unique listeners in last 30 days)
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        
+        const monthlyGeographyData = await ListenerGeography_1.aggregate([
+          {
+            $match: {
+              creatorId: creatorId,
+              timestamp: { $gte: thirtyDaysAgo }
+            }
+          },
+          {
+            $group: {
+              _id: '$ipAddress',
+              country: { $first: '$country' },
+              region: { $first: '$region' },
+              city: { $first: '$city' }
+            }
+          }
+        ]);
+        
+        const monthlyListeners = monthlyGeographyData.length;
+        console.log('Creator Analytics - Monthly listeners:', monthlyListeners);
+        
         // Get geography data for listener locations
         const listenerGeographies = await ListenerGeography_1.find({ creatorId });
         
@@ -69,6 +94,7 @@ const getCreatorAnalytics = async (req, res) => {
             totalTracks,
             totalPlays,
             totalUniquePlays,
+            monthlyListeners,
             totalLikes,
             tracks: tracks.length,
             topCountries

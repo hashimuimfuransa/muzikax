@@ -2,6 +2,7 @@
 
 import { useAudioPlayer } from '../contexts/AudioPlayerContext'
 import { usePayment } from '../contexts/PaymentContext'
+import { useLanguage } from '../contexts/LanguageContext'
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 
@@ -10,6 +11,7 @@ interface BeatPlayerProps {
 }
 
 const BeatPlayer = ({ className = '' }: BeatPlayerProps) => {
+  const { t } = useLanguage()
   const {
     currentTrack,
     isPlaying,
@@ -104,14 +106,14 @@ const BeatPlayer = ({ className = '' }: BeatPlayerProps) => {
               <h4 className="text-white font-bold text-sm truncate max-w-[160px]">{currentTrack.title}</h4>
               <p className="text-[#FFCB2B] text-xs truncate max-w-[140px]">{currentTrack.artist}</p>
               <div className="flex items-center gap-1 mt-1">
-                <span className="text-[#FF4D67] text-xs font-medium whitespace-nowrap">BEAT</span>
+                <span className="text-[#FF4D67] text-xs font-bold whitespace-nowrap">{t('beat')}</span>
                 {currentTrack.paymentType === 'paid' ? (
-                  <span className="text-green-400 text-xs whitespace-nowrap">• PAID</span>
+                  <span className="text-green-400 text-xs font-semibold whitespace-nowrap">• {t('paid')}</span>
                 ) : (
-                  <span className="text-blue-400 text-xs whitespace-nowrap">• FREE</span>
+                  <span className="text-blue-400 text-xs font-semibold whitespace-nowrap">• {t('free')}</span>
                 )}
                 {currentTrack.paymentType === 'paid' && currentTrack.price && (
-                  <span className="text-yellow-400 text-xs whitespace-nowrap">• {currentTrack.price.toLocaleString()} RWF</span>
+                  <span className="text-yellow-400 text-xs font-semibold whitespace-nowrap">• {currentTrack.price.toLocaleString()} RWF</span>
                 )}
               </div>
             </div>

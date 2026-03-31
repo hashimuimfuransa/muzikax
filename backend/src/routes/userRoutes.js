@@ -111,5 +111,12 @@ router.route('/unfollow/:id')
 // Route to get all users except current user
 router.get('/all', jwt_1.protect, userController_1.getAllUsers);
 
+// Routes for followers and following (PUBLIC - can view any user's followers/following)
+router.get('/:userId/followers', userController_1.getUserFollowers);
+router.get('/:userId/following', userController_1.getUserFollowing);
+// Keep backward compatibility for authenticated user's own lists
+router.get('/my-followers', jwt_1.protect, userController_1.getUserFollowers);
+router.get('/my-following', jwt_1.protect, userController_1.getUserFollowing);
+
 module.exports = router;
 //# sourceMappingURL=userRoutes.js.map

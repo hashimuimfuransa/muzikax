@@ -9,6 +9,11 @@ import {
   getPublicCreators, // Add this import
   upgradeToCreator, // Add this import
   followCreator, // Add this import
+  unfollowCreator, // Add unfollow
+  checkFollowingStatus, // Add check status
+  getFollowedCreators, // Add get followed
+  getUserFollowers, // NEW: Get followers
+  getUserFollowing, // NEW: Get following
 } from '../controllers/userController';
 import { protect, admin, creator } from '../utils/jwt';
 
@@ -89,5 +94,24 @@ router.route('/upgrade-to-creator')
 // User route for following a creator
 router.route('/follow/:id')
   .post(protect, followCreator);
+
+// User route for unfollowing a creator
+router.route('/unfollow/:id')
+  .delete(protect, unfollowCreator);
+
+// Check if user is following a creator
+router.route('/following/check/:id')
+  .get(protect, checkFollowingStatus);
+
+// Get users that authenticated user follows
+router.route('/following')
+  .get(protect, getFollowedCreators);
+
+// Public routes - Get followers/following for any user
+router.route('/followers/:userId')
+  .get(getUserFollowers);
+
+router.route('/following/:userId')
+  .get(getUserFollowing);
 
 export default router;

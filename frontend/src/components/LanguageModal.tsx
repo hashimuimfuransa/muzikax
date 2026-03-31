@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 
 export default function LanguageModal() {
-  const { setLanguage } = useLanguage();
+  const { setLanguage, t } = useLanguage();
   const [isVisible, setIsVisible] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -61,7 +61,7 @@ export default function LanguageModal() {
         {/* Header with Close Button */}
         <div className="px-6 py-4 border-b border-gray-800/50 flex items-center justify-between">
           <h2 className="text-base font-semibold text-white">
-            Select Language
+            {t('selectLanguage') || 'Select Language'}
           </h2>
           <button
             onClick={() => setIsVisible(false)}
@@ -87,8 +87,8 @@ export default function LanguageModal() {
             <div className="flex items-center space-x-4">
               <span className="text-3xl">🇬🇧</span>
               <div className="flex flex-col">
-                <span className="text-base font-semibold text-white">English</span>
-                <span className="text-xs opacity-60">United Kingdom</span>
+                <span className="text-base font-semibold text-white">{t('english') || 'English'}</span>
+                <span className="text-xs opacity-60">{t('unitedKingdom') || 'United Kingdom'}</span>
               </div>
             </div>
             <svg className="w-6 h-6 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
@@ -107,8 +107,8 @@ export default function LanguageModal() {
             <div className="flex items-center space-x-4">
               <span className="text-3xl">🇷🇼</span>
               <div className="flex flex-col">
-                <span className="text-base font-semibold text-white">Kinyarwanda</span>
-                <span className="text-xs opacity-60">Rwanda</span>
+                <span className="text-base font-semibold text-white">{t('kinyarwanda') || 'Kinyarwanda'}</span>
+                <span className="text-xs opacity-60">{t('rwanda') || 'Rwanda'}</span>
               </div>
             </div>
             <svg className="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
@@ -127,8 +127,8 @@ export default function LanguageModal() {
             <div className="flex items-center space-x-4">
               <span className="text-3xl">🇹🇿</span>
               <div className="flex flex-col">
-                <span className="text-base font-semibold text-white">Kiswahili</span>
-                <span className="text-xs opacity-60">Tanzania/Kenya</span>
+                <span className="text-base font-semibold text-white">{t('kiswahili') || 'Kiswahili'}</span>
+                <span className="text-xs opacity-60">{t('tanzaniaKenya') || 'Tanzania/Kenya'}</span>
               </div>
             </div>
             <svg className="w-6 h-6 text-green-400" fill="currentColor" viewBox="0 0 20 20">
@@ -140,7 +140,7 @@ export default function LanguageModal() {
         {/* Info Text */}
         <div className="px-6 pb-5 text-center border-t border-gray-800/50 pt-4">
           <p className="text-xs text-gray-400">
-            You can change this later in settings
+            {t('languageChangeInfo') || 'You can change this later in settings'}
           </p>
         </div>
       </div>

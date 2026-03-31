@@ -69,7 +69,8 @@ exports.addRecentlyPlayed = addRecentlyPlayed;
 // Get user's recently played tracks
 const getRecentlyPlayed = async (req, res) => {
     try {
-        const userId = req.user?.id;
+        // Allow fetching for a specific userId if provided (for profile pages)
+        const userId = req.query.userId || req.user?.id;
         const limit = parseInt(req.query.limit) || 20;
 
         if (!userId) {
@@ -97,7 +98,6 @@ const getRecentlyPlayed = async (req, res) => {
         if (!user.recentlyPlayed) {
             user.recentlyPlayed = [];
         }
-
         // Filter out any recently played entries where the track no longer exists
         const validRecentlyPlayed = user.recentlyPlayed.filter(
             item => item.trackId !== null

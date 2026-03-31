@@ -98,12 +98,12 @@ export default function MobileNavbar() {
       href: '/upload', 
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
         </svg>
       ),
       activeIcon: (
         <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+          <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
         </svg>
       )
     },
@@ -112,12 +112,12 @@ export default function MobileNavbar() {
       href: isAuthenticated ? '/profile' : '/login', 
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
         </svg>
       ),
       activeIcon: (
         <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M4 6h16M4 12h16M4 18h16" />
+          <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
         </svg>
       )
     }
@@ -191,112 +191,114 @@ export default function MobileNavbar() {
                 </span>
               </button>
             </div>
-
-            {/* Language Modal - Centered */}
-            {showLanguageModal && (
-              <div 
-                className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-                onClick={() => setShowLanguageModal(false)}
-              >
-                <div 
-                  className="bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl w-full max-w-md transform transition-all duration-200 overflow-auto max-h-[90vh]"
-                  onClick={(e) => e.stopPropagation()}
-                  role="dialog"
-                  aria-modal="true"
-                >
-                  {/* Header with Close Button */}
-                  <div className="px-6 py-4 border-b border-gray-800/50 flex items-center justify-between">
-                    <h2 className="text-base font-semibold text-white">
-                      Select Language
-                    </h2>
-                    <button
-                      onClick={() => setShowLanguageModal(false)}
-                      className="p-1.5 rounded-full text-gray-400 hover:bg-gray-800 transition-colors"
-                      aria-label="Close"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
-
-                  {/* Language Options - Large & Touch-Friendly */}
-                  <div className="p-4 space-y-3 pb-6">
-                    {/* English Option */}
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setLanguage('en');
-                        setShowLanguageModal(false);
-                      }}
-                      className="w-full flex items-center justify-between px-5 py-4 rounded-xl bg-gradient-to-r from-blue-600/20 to-blue-600/10 border border-blue-500/30 hover:border-blue-400 transition-all duration-200 group active:scale-[0.98]"
-                    >
-                      <div className="flex items-center space-x-4">
-                        <span className="text-3xl">🇬🇧</span>
-                        <div className="flex flex-col">
-                          <span className="text-base font-semibold text-white">English</span>
-                          <span className="text-xs opacity-60">United Kingdom</span>
-                        </div>
-                      </div>
-                      <svg className="w-6 h-6 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    </button>
-                    
-                    {/* Kinyarwanda Option */}
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setLanguage('rw');
-                        setShowLanguageModal(false);
-                      }}
-                      className="w-full flex items-center justify-between px-5 py-4 rounded-xl bg-gradient-to-r from-yellow-500/20 to-red-500/10 border border-yellow-500/30 hover:border-yellow-400 transition-all duration-200 group active:scale-[0.98]"
-                    >
-                      <div className="flex items-center space-x-4">
-                        <span className="text-3xl">🇷🇼</span>
-                        <div className="flex flex-col">
-                          <span className="text-base font-semibold text-white">Kinyarwanda</span>
-                          <span className="text-xs opacity-60">Rwanda</span>
-                        </div>
-                      </div>
-                      <svg className="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    </button>
-                    
-                    {/* Kiswahili Option */}
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setLanguage('sw');
-                        setShowLanguageModal(false);
-                      }}
-                      className="w-full flex items-center justify-between px-5 py-4 rounded-xl bg-gradient-to-r from-green-600/20 to-blue-600/10 border border-green-500/30 hover:border-green-400 transition-all duration-200 group active:scale-[0.98]"
-                    >
-                      <div className="flex items-center space-x-4">
-                        <span className="text-3xl">🇹🇿</span>
-                        <div className="flex flex-col">
-                          <span className="text-base font-semibold text-white">Kiswahili</span>
-                          <span className="text-xs opacity-60">Tanzania/Kenya</span>
-                        </div>
-                      </div>
-                      <svg className="w-6 h-6 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    </button>
-                  </div>
-
-                  {/* Info Text */}
-                  <div className="px-6 pb-5 text-center border-t border-gray-800/50 pt-4">
-                    <p className="text-xs text-gray-400">
-                      You can change this later in settings
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
+
+        {/* Language Modal - Centered Outside Header */}
+        {showLanguageModal && (
+          <div 
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            style={{ top: 0, left: 0, right: 0, bottom: 0, minHeight: '100vh' }}
+            onClick={() => setShowLanguageModal(false)}
+          >
+            <div 
+              className="bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl w-full max-w-md transform transition-all duration-200 scale-100 animate-in fade-in zoom-in-95 overflow-auto"
+              onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              style={{ maxHeight: '90vh' }}
+            >
+              {/* Header with Close Button */}
+              <div className="px-6 py-4 border-b border-gray-800/50 flex items-center justify-between">
+                <h2 className="text-base font-semibold text-white">
+                  Select Language
+                </h2>
+                <button
+                  onClick={() => setShowLanguageModal(false)}
+                  className="p-1.5 rounded-full text-gray-400 hover:bg-gray-800 transition-colors"
+                  aria-label="Close"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Language Options - Large & Touch-Friendly */}
+              <div className="p-4 space-y-3 pb-6">
+                {/* English Option */}
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setLanguage('en');
+                    setShowLanguageModal(false);
+                  }}
+                  className="w-full flex items-center justify-between px-5 py-4 rounded-xl bg-gradient-to-r from-blue-600/20 to-blue-600/10 border border-blue-500/30 hover:border-blue-400 transition-all duration-200 group active:scale-[0.98]"
+                >
+                  <div className="flex items-center space-x-4">
+                    <span className="text-3xl">🇬🇧</span>
+                    <div className="flex flex-col">
+                      <span className="text-base font-semibold text-white">English</span>
+                      <span className="text-xs opacity-60">United Kingdom</span>
+                    </div>
+                  </div>
+                  <svg className="w-6 h-6 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                </button>
+                
+                {/* Kinyarwanda Option */}
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setLanguage('rw');
+                    setShowLanguageModal(false);
+                  }}
+                  className="w-full flex items-center justify-between px-5 py-4 rounded-xl bg-gradient-to-r from-yellow-500/20 to-red-500/10 border border-yellow-500/30 hover:border-yellow-400 transition-all duration-200 group active:scale-[0.98]"
+                >
+                  <div className="flex items-center space-x-4">
+                    <span className="text-3xl">🇷🇼</span>
+                    <div className="flex flex-col">
+                      <span className="text-base font-semibold text-white">Kinyarwanda</span>
+                      <span className="text-xs opacity-60">Rwanda</span>
+                    </div>
+                  </div>
+                  <svg className="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                </button>
+                
+                {/* Kiswahili Option */}
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setLanguage('sw');
+                    setShowLanguageModal(false);
+                  }}
+                  className="w-full flex items-center justify-between px-5 py-4 rounded-xl bg-gradient-to-r from-green-600/20 to-blue-600/10 border border-green-500/30 hover:border-green-400 transition-all duration-200 group active:scale-[0.98]"
+                >
+                  <div className="flex items-center space-x-4">
+                    <span className="text-3xl">🇹🇿</span>
+                    <div className="flex flex-col">
+                      <span className="text-base font-semibold text-white">Kiswahili</span>
+                      <span className="text-xs opacity-60">Tanzania/Kenya</span>
+                    </div>
+                  </div>
+                  <svg className="w-6 h-6 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Info Text */}
+              <div className="px-6 pb-5 text-center border-t border-gray-800/50 pt-4">
+                <p className="text-xs text-gray-400">
+                  You can change this later in settings
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Player bar when track is playing - Enhanced with gradient */}

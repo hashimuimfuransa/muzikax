@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useAudioPlayer } from '../contexts/AudioPlayerContext';
 import { useAIAssistant } from '../contexts/AIAssistantContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface Message {
   id: string;
@@ -14,6 +15,7 @@ interface Message {
 }
 
 const AIMusicAssistant: React.FC = () => {
+  const { t } = useLanguage()
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAudioPlayer } from "../../contexts/AudioPlayerContext";
+import { useLanguage } from "../../contexts/LanguageContext";
 import {
   getGlobalCharts,
   getCountryCharts,
@@ -40,6 +41,7 @@ const GENRES = [
 ];
 
 export default function ChartsPage() {
+  const { t } = useLanguage()
   const [chartType, setChartType] = useState<ChartType>("global");
   const [timeWindow, setTimeWindow] = useState<TimeWindow>("weekly");
   const [selectedCountry, setSelectedCountry] = useState<CountryCode>("RW");
@@ -158,7 +160,7 @@ export default function ChartsPage() {
       {/* Header */}
       <div className="bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] p-8">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-4xl font-bold mb-2">Muzikax Charts</h1>
+          <h1 className="text-4xl font-bold mb-2">{t('charts')} Charts</h1>
           <p className="text-white/90">
             Discover the hottest tracks trending right now
           </p>
@@ -181,7 +183,7 @@ export default function ChartsPage() {
                       : "bg-gray-800/50 text-gray-400 hover:text-white hover:bg-gray-700/50"
                   }`}
                 >
-                  {type}
+                  {type === 'global' ? 'Global' : type === 'country' ? 'Country' : type === 'genre' ? 'Genre' : 'Trending'}
                 </button>
               )
             )}

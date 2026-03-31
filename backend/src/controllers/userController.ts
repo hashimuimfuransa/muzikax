@@ -729,3 +729,60 @@ export const getPlaylists = async (req: Request, res: Response): Promise<void> =
     res.status(500).json({ message: error.message });
   }
 };
+
+// Get followers for a user (public endpoint)
+export const getUserFollowers = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const targetUserId = req.params['userId'];
+
+    if (!targetUserId) {
+      res.status(400).json({ message: 'User ID is required' });
+      return;
+    }
+
+    // Find the user
+    const user = await User.findById(targetUserId);
+
+    if (!user) {
+      res.status(404).json({ message: 'User not found' });
+      return;
+    }
+
+    // Find all users who follow this user
+    const followers = await User.find({ 
+      following: new mongoose.Types.ObjectId(targetUserId) 
+    }).select('name email avatar role creatorType followersCount followingCount bio');
+
+    res.json({ followers });
+  } catch (error: any) {
+    console.error('Error in getUserFollowers:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Get users that a specific user is following (public endpoint)
+export const getUserFollowing = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const targetUserId = req.params['userId'];
+
+    if (!targetUserId) {
+      res.status(400).json({ message: 'User ID is required' });
+      return;
+    }
+
+    // Find the user and populate following list
+    const user = await User.findById(targetUserId)
+      .populate('following', 'name email avatar role creatorType followersCount followingCount bio')
+      .select('following');
+
+    if (!user) {
+      res.status(404).json({ message: 'User not found' });
+      return;
+    }
+
+    res.json({ following: user.following || [] });
+  } catch (error: any) {
+    console.error('Error in getUserFollowing:', error);
+    res.status(500).json({ message: error.message });
+  }
+};

@@ -41,11 +41,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Check if we're in the browser before accessing localStorage
     if (typeof window !== 'undefined') {
       const storedUser = localStorage.getItem('user')
+      const accessToken = localStorage.getItem('accessToken')
       console.log('AuthProvider - storedUser:', storedUser);
-      if (storedUser) {
+      console.log('AuthProvider - accessToken exists:', !!accessToken);
+      
+      // If we have both user and token, set user immediately but keep loading until profile refresh completes
+      if (storedUser && accessToken) {
         try {
           const parsedUser = JSON.parse(storedUser)
           console.log('AuthProvider - parsedUser:', parsedUser);
+          console.log('AuthProvider - parsedUser.role:', parsedUser?.role);
+          console.log('AuthProvider - parsedUser.creatorType:', parsedUser?.creatorType);
           
           // Ensure whatsappContact is a string, not an object
           if (parsedUser && parsedUser.whatsappContact) {
@@ -57,16 +63,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           
           setUser(parsedUser)
           
-          // Fetch complete user profile to ensure followers count and other data is up to date
-          fetchUserProfile();
+          // Always fetch complete user profile on page load to ensure data is fresh
+          // This is critical for creator role verification
+          console.log('AuthProvider - Fetching fresh user profile...');
+          fetchUserProfile()
+            .then(success => {
+              if (success) {
+                console.log('AuthProvider - Profile refreshed successfully');
+              } else {
+                console.warn('AuthProvider - Failed to refresh profile, using cached data');
+                // Set loading to false if refresh failed but we have cached user
+                setIsLoading(false);
+              }
+            })
+            .catch(error => {
+              console.error('AuthProvider - Error during profile refresh:', error);
+              // Set loading to false on error but keep cached user
+              setIsLoading(false);
+            });
         } catch (error) {
           console.error('Error parsing user data:', error)
+          setIsLoading(false);
         }
       } else {
+        // No stored user or token, stop loading immediately
+        console.log('AuthProvider - No stored user/token found');
         setIsLoading(false);
       }
     } else {
       // On the server, just set loading to false
+      console.log('AuthProvider - Server-side rendering, skipping initialization');
       setIsLoading(false);
     }
   }, [])
@@ -96,6 +122,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return false;
       }
       
+      console.log('fetchUserProfile - Starting profile fetch with token:', accessToken.substring(0, 20) + '...');
+      
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
         method: 'GET',
         headers: {
@@ -103,6 +131,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           'Authorization': `Bearer ${accessToken}`
         }
       });
+      
+      console.log('fetchUserProfile - Response status:', response.status);
       
       if (!response.ok) {
         if (response.status === 401) {
@@ -152,6 +182,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 whatsappContact: whatsappContactValue
               };
               
+              console.log('fetchUserProfile - Profile refreshed successfully (after token refresh):', completeUser);
               setUser(completeUser);
               localStorage.setItem('user', JSON.stringify(completeUser));
               setIsLoading(false);
@@ -165,6 +196,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       
       const updatedUserData = await response.json();
+      console.log('fetchUserProfile - Raw user data from API:', updatedUserData);
       
       // Ensure whatsappContact is a string, not an object
       let whatsappContactValue = updatedUserData.whatsappContact || '';
@@ -179,17 +211,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         whatsappContact: whatsappContactValue
       };
       
+      console.log('fetchUserProfile - Complete user object set:', completeUser);
+      console.log('fetchUserProfile - User role:', completeUser.role);
+      console.log('fetchUserProfile - User creatorType:', completeUser.creatorType);
+      console.log('fetchUserProfile - User followersCount:', completeUser.followersCount);
+      console.log('fetchUserProfile - User followingCount:', completeUser.followingCount);
+      
       setUser(completeUser);
       localStorage.setItem('user', JSON.stringify(completeUser));
       setIsLoading(false);
-      
       return true;
     } catch (error) {
-      console.error('Error fetching user profile:', error);
+      console.error('Error in fetchUserProfile:', error);
       setIsLoading(false);
       return false;
     }
-  }
+  };
 
   const logout = () => {
     console.log('AuthProvider - logout called');

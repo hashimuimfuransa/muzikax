@@ -251,6 +251,13 @@ async function handleDefaultRequest(request) {
       }
     }
 
+    // Don't return 503 for API requests, let them fail naturally
+    // This prevents false 503 errors when backend is temporarily unavailable
+    if (request.url.includes('/api/')) {
+      console.log('[ServiceWorker] API request failed, not intercepting:', request.url);
+      throw error; // Re-throw to let the app handle it
+    }
+
     return new Response('Offline', { status: 503 });
   }
 }

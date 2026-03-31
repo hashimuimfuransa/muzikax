@@ -796,36 +796,38 @@ export default function Home() {
         <section className="md:hidden w-full px-0 py-2 bg-gradient-to-r from-gray-900 via-gray-900/95 to-black border-b border-gray-800/50 shadow-lg sticky top-[3.6rem] z-40 mb-4">
           <div className="flex items-center space-x-2 overflow-x-auto scrollbar-hide px-3 pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
             {[
-              { id: 'trending', name: '🔥 Trending' },
-              { id: 'new', name: '✨ New' },
-              { id: 'popular', name: '⭐ Popular' },
-              { id: 'afrobeat', name: 'Afrobeat' },
-              { id: 'amapiano', name: 'Amapiano' },
-              { id: 'hiphop', name: 'Hip Hop' },
-              { id: 'rnb', name: 'R&B' },
-              { id: 'afropop', name: 'Afropop' },
-              { id: 'gospel', name: 'Gospel' },
-              { id: 'dancehall', name: 'Dancehall' },
-              { id: 'reggae', name: 'Reggae' },
-              { id: 'pop', name: 'Pop' },
-              { id: 'rock', name: 'Rock' },
-              { id: 'electronic', name: 'Electronic' },
-              { id: 'gakondo', name: 'Gakondo' },
-              { id: 'drill', name: 'Drill' },
-              { id: 'trap', name: 'Trap' },
+              { id: 'trending', name: `🔥 ${t('trending')}`, tabType: 'filter' },
+              { id: 'new', name: `✨ ${t('newReleases')}`, tabType: 'filter' },
+              { id: 'popular', name: `⭐ ${t('popularSongs')}`, tabType: 'filter' },
+              { id: 'afrobeat', name: 'Afrobeat', tabType: 'navigate' },
+              { id: 'amapiano', name: 'Amapiano', tabType: 'navigate' },
+              { id: 'hiphop', name: 'Hip Hop', tabType: 'navigate' },
+              { id: 'rnb', name: 'R&B', tabType: 'navigate' },
+              { id: 'afropop', name: 'Afropop', tabType: 'navigate' },
+              { id: 'gospel', name: 'Gospel', tabType: 'navigate' },
+              { id: 'dancehall', name: 'Dancehall', tabType: 'navigate' },
+              { id: 'reggae', name: 'Reggae', tabType: 'navigate' },
+              { id: 'pop', name: 'Pop', tabType: 'navigate' },
+              { id: 'rock', name: 'Rock', tabType: 'navigate' },
+              { id: 'electronic', name: 'Electronic', tabType: 'navigate' },
+              { id: 'gakondo', name: 'Gakondo', tabType: 'navigate' },
+              { id: 'drill', name: 'Drill', tabType: 'navigate' },
+              { id: 'trap', name: 'Trap', tabType: 'navigate' },
             ].map((category) => (
               <button
                 key={category.id}
                 onClick={() => {
-                  if (['trending', 'new', 'popular'].includes(category.id)) {
-                    setActiveTab(category.id as any);
+                  if (category.tabType === 'filter') {
+                    // Change the active tab filter
+                    setActiveTab(category.id as "trending" | "new" | "popular");
                   } else {
+                    // Navigate to explore page with category filter
                     router.push(`/explore?category=${category.id}`);
                   }
                 }}
                 className={`px-4 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap flex-shrink-0 transition-all duration-200 active:scale-95 ${
                   activeTab === category.id
-                    ? 'bg-gradient-to-r from-[#FF4D67] to-[#FF6B8B] text-white shadow-lg shadow-[#FF4D67]/30'
+                    ? 'bg-gradient-to-r from-[#FF4D67] to-[#FF6B8B] text-white shadow-lg shadow-[#FF4D67]/30 scale-105'
                     : 'bg-gray-800/60 text-gray-300 hover:bg-gray-700/80 border border-gray-700/50'
                 }`}
               >

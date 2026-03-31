@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '../contexts/AuthContext'
@@ -12,6 +12,8 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [showLanguageModal, setShowLanguageModal] = useState(false)
+  const [showUserMenu, setShowUserMenu] = useState(false)
+  const userMenuRef = useRef<HTMLDivElement>(null)
   const { isAuthenticated: actualAuth, userRole: actualRole, logout } = useAuth()
   const { t, language: actualLanguage, setLanguage } = useLanguage()
   const router = useRouter()
@@ -26,6 +28,35 @@ export default function Navbar() {
   const [showCategories, setShowCategories] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const categoriesRef = useRef<HTMLDivElement>(null);
+
+  // Close user menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false)
+      }
+    }
+
+    if (showUserMenu) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showUserMenu])
+
+  // Handle user menu navigation
+  const handleProfileClick = () => {
+    setShowUserMenu(false)
+    // Force a small delay to allow menu to close before navigation
+    setTimeout(() => {
+      router.push('/profile')
+    }, 100)
+  }
+
+  const handleLogout = async () => {
+    await logout()
+    setShowUserMenu(false)
+    router.push('/')
+  }
 
   // Set mounted state
   useEffect(() => {
@@ -120,258 +151,260 @@ export default function Navbar() {
   }, [isAuthenticated]);
 
   return (
-    <nav className="hidden md:block bg-gray-900/80 backdrop-blur-lg border-b border-gray-800 sticky top-0 z-40" data-testid="desktop-navbar">
-      {/* Categories Bar - Slides up/down on mobile */}
-      <div 
-        ref={categoriesRef}
-        className={`bg-gray-900/95 backdrop-blur-lg border-b border-gray-800 transition-all duration-300 overflow-hidden ${
-          showCategories ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'
-        } md:hidden`}
-      >
-        <div className="px-4 py-3">
-          <div className="flex space-x-3 overflow-x-auto scrollbar-hide pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-            {categories.map((category) => (
-              <button
-                key={category.id}
-                onClick={() => {
-                  handleCategorySelect(category.id);
-                  setShowCategories(false); // Close categories after selection
-                }}
-                className={`flex flex-col items-center px-3 py-2 rounded-xl transition-all duration-200 whitespace-nowrap flex-shrink-0 ${
-                  'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50 hover:text-white'
-                }`}
-              >
-                <span className="text-lg mb-1">{category.icon}</span>
-                <span className="text-xs font-medium">{category.name}</span>
-              </button>
-            ))}
+    <>
+      <nav className="hidden md:block bg-gray-900/80 backdrop-blur-lg border-b border-gray-800 sticky top-0 z-40" data-testid="desktop-navbar">
+        {/* Categories Bar */}
+        <div 
+          ref={categoriesRef}
+          className={`bg-gray-900/95 backdrop-blur-lg border-b border-gray-800 transition-all duration-300 overflow-hidden ${
+            showCategories ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'
+          } md:hidden`}
+        >
+          <div className="px-4 py-3">
+            <div className="flex space-x-3 overflow-x-auto scrollbar-hide pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+              {categories.map((category) => (
+                <button
+                  key={category.id}
+                  onClick={() => {
+                    handleCategorySelect(category.id);
+                    setShowCategories(false); // Close categories after selection
+                  }}
+                  className={`flex flex-col items-center px-3 py-2 rounded-xl transition-all duration-200 whitespace-nowrap flex-shrink-0 ${
+                    'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50 hover:text-white'
+                  }`}
+                >
+                  <span className="text-lg mb-1">{category.icon}</span>
+                  <span className="text-xs font-medium">{category.name}</span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
-      
-      <div className="w-full px-1 sm:px-3 lg:px-4">
-        <div className="flex items-center justify-between h-16 w-full">
-          {/* Logo */}
-          <div className="flex-shrink-0 flex items-center">
-            <Link href="/" className="flex items-center group">
-              <div className="w-9 h-9 rounded-lg overflow-hidden shadow-md">
-                <img src="/muzikax.png" alt="MuzikaX Logo" className="w-full h-full object-cover rounded-lg transition-transform group-hover:scale-105" />
-              </div>
-              <span className="ml-2 text-2xl font-black text-white tracking-tighter">MuzikaX</span>
-            </Link>
-          </div>
+        
+        <div className="w-full px-1 sm:px-3 lg:px-4">
+          <div className="flex items-center justify-between h-16 w-full">
+            {/* Logo */}
+            <div className="flex-shrink-0 flex items-center">
+              <Link href="/" className="flex items-center group">
+                <div className="w-9 h-9 rounded-lg overflow-hidden shadow-md">
+                  <img src="/muzikax.png" alt="MuzikaX Logo" className="w-full h-full object-cover rounded-lg transition-transform group-hover:scale-105" />
+                </div>
+                <span className="ml-2 text-2xl font-black text-white tracking-tighter">MuzikaX</span>
+              </Link>
+            </div>
 
-          {/* Desktop Search */}
-          <div className="hidden md:flex flex-1 justify-start px-12 max-w-2xl">
-            <form onSubmit={handleSearch} className="relative w-full">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                </svg>
-              </div>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={t('searchPlaceholder')}
-                className="w-full pl-11 pr-4 py-2.5 bg-gray-800/40 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67]/50 focus:bg-gray-800/60 transition-all rounded-full border border-gray-700/50 text-sm"
-              />
-            </form>
-          </div>
+            {/* Desktop Search */}
+            <div className="hidden md:flex flex-1 justify-start px-12 max-w-2xl">
+              <form onSubmit={handleSearch} className="relative w-full">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder={t('searchPlaceholder')}
+                  className="w-full pl-11 pr-4 py-2.5 bg-gray-800/40 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67]/50 focus:bg-gray-800/60 transition-all rounded-full border border-gray-700/50 text-sm"
+                />
+              </form>
+            </div>
 
-          {/* Desktop Controls (Right) */}
-          <div className="hidden md:flex items-center space-x-3 bg-gray-800/40 px-3 py-1.5 rounded-2xl border border-gray-700/50">
-            <button 
-              onClick={() => {
-                if (!isAuthenticated) {
-                  router.push('/login');
-                } else {
-                  router.push('/upload');
-                }
-              }}
-              className="hidden lg:flex items-center px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-full text-sm font-bold border border-white/10 transition-all"
-            >
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
-              </svg>
-              {t('upload')}
-            </button>
-
-            {/* Language Switcher */}
-            <div className="relative">
+            {/* Desktop Controls (Right) */}
+            <div className="hidden md:flex items-center space-x-3 bg-gray-800/40 px-3 py-1.5 rounded-2xl border border-gray-700/50">
+              {/* Upload Button */}
               <button 
-                onClick={() => setShowLanguageModal(true)}
-                className="p-2 text-gray-300 hover:text-white transition-colors rounded-full hover:bg-gray-800 flex items-center space-x-1.5"
-                aria-label="Switch Language"
+                onClick={() => {
+                  if (!isAuthenticated) {
+                    router.push('/login');
+                  } else {
+                    router.push('/upload');
+                  }
+                }}
+                className="hidden lg:flex items-center px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-full text-sm font-bold border border-white/10 transition-all"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
                 </svg>
-                <span className="hidden sm:inline text-xs font-bold uppercase">{language === 'en' ? 'EN' : language === 'rw' ? 'RW' : 'SW'}</span>
+                {t('upload')}
+              </button>
+
+              {/* Language Switcher */}
+              <div className="relative">
+                <button 
+                  onClick={() => setShowLanguageModal(true)}
+                  className="p-2 text-gray-300 hover:text-white transition-colors rounded-full hover:bg-gray-800 flex items-center space-x-1.5"
+                  aria-label="Switch Language"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <span className="hidden sm:inline text-xs font-bold uppercase">{language === 'en' ? 'EN' : language === 'rw' ? 'RW' : 'SW'}</span>
+                </button>
+              </div>
+
+              {/* User Profile Dropdown - Only when authenticated */}
+              {isAuthenticated && userRole && (
+                <div className="relative">
+                  <button 
+                    onClick={() => setShowUserMenu(!showUserMenu)}
+                    className="flex items-center space-x-2 p-1.5 rounded-full hover:bg-gray-800 transition-all active:scale-95"
+                    aria-label="User Menu"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center text-white font-bold text-sm shadow-lg">
+                      {userRole === 'creator' ? '🎵' : userRole === 'admin' ? '⚡' : '👤'}
+                    </div>
+                  </button>
+
+                  {/* Dropdown Menu - Rendered outside navbar with fixed positioning */}
+                  {showUserMenu && (
+                    <div 
+                      ref={userMenuRef}
+                      className="fixed top-16 right-4 w-56 bg-gray-900/98 backdrop-blur-xl border border-gray-600/50 rounded-2xl shadow-2xl py-2 z-[9999] animate-in fade-in zoom-in-95 duration-200 ring-1 ring-white/10"
+                    >
+                      {/* User Info Header */}
+                      <div className="px-4 py-3 border-b border-gray-700/50 bg-gradient-to-br from-[#FF4D67]/10 to-[#FFCB2B]/5">
+                        <p className="text-sm font-bold text-white">My Account</p>
+                        <p className="text-xs text-gray-300 capitalize">{userRole}</p>
+                      </div>
+                      
+                      {/* Menu Items */}
+                      <div className="py-2">
+                        <button
+                          onClick={handleProfileClick}
+                          className="w-full flex items-center px-4 py-3 text-sm text-gray-200 hover:text-white hover:bg-gradient-to-r hover:from-[#FF4D67]/20 hover:to-[#FF4D67]/10 transition-all group"
+                        >
+                          <svg className="w-5 h-5 mr-3 text-[#FF4D67]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
+                          <span className="font-medium">View Profile</span>
+                        </button>
+                      </div>
+                      
+                      {/* Divider */}
+                      <div className="border-t border-gray-700/50 my-1"></div>
+                      
+                      {/* Logout */}
+                      <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center px-4 py-3 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all group"
+                      >
+                        <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                        <span className="font-medium">Logout</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Language Modal */}
+      {showLanguageModal && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div 
+            className="bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl w-full max-w-md transform transition-all duration-200 scale-100 animate-in fade-in zoom-in-95 overflow-auto"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            style={{ maxHeight: '90vh' }}
+          >
+            {/* Header with Close Button */}
+            <div className="px-6 py-4 border-b border-gray-800/50 flex items-center justify-between">
+              <h2 className="text-base font-semibold text-white">
+                Select Language
+              </h2>
+              <button
+                onClick={() => setShowLanguageModal(false)}
+                className="p-1.5 rounded-full text-gray-400 hover:bg-gray-800 transition-colors"
+                aria-label="Close"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
 
-            {/* Language Modal - Centered */}
-            {showLanguageModal && (
-              <div 
-                className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-                onClick={() => setShowLanguageModal(false)}
+            {/* Language Options - Large & Touch-Friendly */}
+            <div className="p-4 space-y-3 pb-6">
+              {/* English Option */}
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setLanguage('en');
+                  setShowLanguageModal(false);
+                }}
+                className="w-full flex items-center justify-between px-5 py-4 rounded-xl bg-gradient-to-r from-blue-600/20 to-blue-600/10 border border-blue-500/30 hover:border-blue-400 transition-all duration-200 group active:scale-[0.98]"
               >
-                <div 
-                  className="bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl w-full max-w-md transform transition-all duration-200 overflow-auto max-h-[90vh]"
-                  onClick={(e) => e.stopPropagation()}
-                  role="dialog"
-                  aria-modal="true"
-                >
-                  {/* Header with Close Button */}
-                  <div className="px-6 py-4 border-b border-gray-800/50 flex items-center justify-between">
-                    <h2 className="text-base font-semibold text-white">
-                      Select Language
-                    </h2>
-                    <button
-                      onClick={() => setShowLanguageModal(false)}
-                      className="p-1.5 rounded-full text-gray-400 hover:bg-gray-800 transition-colors"
-                      aria-label="Close"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
-
-                  {/* Language Options - Large & Touch-Friendly */}
-                  <div className="p-4 space-y-3 pb-6">
-                    {/* English Option */}
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setLanguage('en');
-                        setShowLanguageModal(false);
-                      }}
-                      className="w-full flex items-center justify-between px-5 py-4 rounded-xl bg-gradient-to-r from-blue-600/20 to-blue-600/10 border border-blue-500/30 hover:border-blue-400 transition-all duration-200 group active:scale-[0.98]"
-                    >
-                      <div className="flex items-center space-x-4">
-                        <span className="text-3xl">🇬🇧</span>
-                        <div className="flex flex-col">
-                          <span className="text-base font-semibold text-white">English</span>
-                          <span className="text-xs opacity-60">United Kingdom</span>
-                        </div>
-                      </div>
-                      <svg className="w-6 h-6 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    </button>
-                    
-                    {/* Kinyarwanda Option */}
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setLanguage('rw');
-                        setShowLanguageModal(false);
-                      }}
-                      className="w-full flex items-center justify-between px-5 py-4 rounded-xl bg-gradient-to-r from-yellow-500/20 to-red-500/10 border border-yellow-500/30 hover:border-yellow-400 transition-all duration-200 group active:scale-[0.98]"
-                    >
-                      <div className="flex items-center space-x-4">
-                        <span className="text-3xl">🇷🇼</span>
-                        <div className="flex flex-col">
-                          <span className="text-base font-semibold text-white">Kinyarwanda</span>
-                          <span className="text-xs opacity-60">Rwanda</span>
-                        </div>
-                      </div>
-                      <svg className="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    </button>
-                    
-                    {/* Kiswahili Option */}
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setLanguage('sw');
-                        setShowLanguageModal(false);
-                      }}
-                      className="w-full flex items-center justify-between px-5 py-4 rounded-xl bg-gradient-to-r from-green-600/20 to-blue-600/10 border border-green-500/30 hover:border-green-400 transition-all duration-200 group active:scale-[0.98]"
-                    >
-                      <div className="flex items-center space-x-4">
-                        <span className="text-3xl">🇹🇿</span>
-                        <div className="flex flex-col">
-                          <span className="text-base font-semibold text-white">Kiswahili</span>
-                          <span className="text-xs opacity-60">Tanzania/Kenya</span>
-                        </div>
-                      </div>
-                      <svg className="w-6 h-6 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    </button>
-                  </div>
-
-                  {/* Info Text */}
-                  <div className="px-6 pb-5 text-center border-t border-gray-800/50 pt-4">
-                    <p className="text-xs text-gray-400">
-                      You can change this later in settings
-                    </p>
+                <div className="flex items-center space-x-4">
+                  <span className="text-3xl">🇬🇧</span>
+                  <div className="flex flex-col">
+                    <span className="text-base font-semibold text-white">English</span>
+                    <span className="text-xs opacity-60">United Kingdom</span>
                   </div>
                 </div>
-              </div>
-            )}
-
-            {isAuthenticated && (
-              <Link 
-                href="/notifications" 
-                className="relative p-2 text-gray-300 hover:text-white transition-colors rounded-full hover:bg-gray-800"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                <svg className="w-6 h-6 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
-                {unreadCount > 0 && (
-                  <span className="absolute top-1.5 right-1.5 bg-[#FF4D67] text-white text-[9px] font-black rounded-full h-4 w-4 flex items-center justify-center border-2 border-gray-900">
-                    {unreadCount > 99 ? '99+' : unreadCount}
-                  </span>
-                )}
-              </Link>
-            )}
-
-            <div className="h-6 w-[1px] bg-gray-800 mx-1"></div>
-
-            {isAuthenticated ? (
-              <div className="flex items-center space-x-2">
-                <Link href="/profile" className="flex items-center space-x-2 p-1 pl-3 pr-3 hover:bg-gray-800 rounded-full transition-all group">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#FF4D67] to-[#FF3352] flex items-center justify-center text-white font-bold text-xs uppercase">
-                    {t('profile').charAt(0)}
+              </button>
+              
+              {/* Kinyarwanda Option */}
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setLanguage('rw');
+                  setShowLanguageModal(false);
+                }}
+                className="w-full flex items-center justify-between px-5 py-4 rounded-xl bg-gradient-to-r from-yellow-500/20 to-red-500/10 border border-yellow-500/30 hover:border-yellow-400 transition-all duration-200 group active:scale-[0.98]"
+              >
+                <div className="flex items-center space-x-4">
+                  <span className="text-3xl">🇷🇼</span>
+                  <div className="flex flex-col">
+                    <span className="text-base font-semibold text-white">Kinyarwanda</span>
+                    <span className="text-xs opacity-60">Rwanda</span>
                   </div>
-                </Link>
-                <button 
-                  onClick={() => {
-                    logout();
-                    router.push('/');
-                  }}
-                  className="p-2 text-gray-400 hover:text-white transition-colors"
-                  title={t('logout')}
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                  </svg>
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center space-x-2">
-                <Link href="/login" className="px-4 py-2 text-sm font-bold text-white hover:text-[#FF4D67] transition-all">
-                  {t('login')}
-                </Link>
-                <Link href="/login" className="px-5 py-2 btn-primary text-white text-sm font-bold rounded-full transition-all shadow-lg hover:scale-105 active:scale-95">
-                  {t('signUp')}
-                </Link>
-              </div>
-            )}
+                </div>
+                <svg className="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              </button>
+              
+              {/* Kiswahili Option */}
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setLanguage('sw');
+                  setShowLanguageModal(false);
+                }}
+                className="w-full flex items-center justify-between px-5 py-4 rounded-xl bg-gradient-to-r from-green-600/20 to-blue-600/10 border border-green-500/30 hover:border-green-400 transition-all duration-200 group active:scale-[0.98]"
+              >
+                <div className="flex items-center space-x-4">
+                  <span className="text-3xl">🇹🇿</span>
+                  <div className="flex flex-col">
+                    <span className="text-base font-semibold text-white">Kiswahili</span>
+                    <span className="text-xs opacity-60">Tanzania/Kenya</span>
+                  </div>
+                </div>
+                <svg className="w-6 h-6 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Info Text */}
+            <div className="px-6 pb-5 text-center border-t border-gray-800/50 pt-4">
+              <p className="text-xs text-gray-400">
+                You can change this later in settings
+              </p>
+            </div>
           </div>
-
-          {/* Mobile Controls - REMOVED: Now handled by MobileNavbar component */}
-          {/* This section is intentionally left empty as mobile uses a separate native app-style header */}
         </div>
-      </div>
-
-      {/* Mobile Menu - REMOVED: Now handled by MobileNavbar component */}
-      {/* This section is intentionally removed as mobile uses a separate native app-style header with bottom navigation */}
-    </nav>
+      )}
+    </>
   )
 }
