@@ -343,7 +343,7 @@ export default function MyProfile() {
         }
       } catch (err) {
         console.error('Error fetching profile data:', err)
-        if (isMounted) setError(err.message || 'An error occurred while loading your profile')
+        if (isMounted) setError(err instanceof Error ? err.message : 'An error occurred while loading your profile')
       } finally {
         if (isMounted) setLoading(false)
       }
