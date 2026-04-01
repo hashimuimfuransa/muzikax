@@ -40,9 +40,9 @@ export default function Loading() {
     
     // Check if we have meaningful cached content
     const hasContent = !!(
-      cachedData.recentTracks?.length ||
-      cachedData.popularTracks?.length ||
-      cachedData.homepageSlides?.length
+      cachedData?.recentTracks?.length ||
+      cachedData?.popularTracks?.length ||
+      cachedData?.homepageSlides?.length
     );
     setHasCachedContent(hasContent);
 
