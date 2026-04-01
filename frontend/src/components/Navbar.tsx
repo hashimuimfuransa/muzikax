@@ -216,7 +216,7 @@ export default function Navbar() {
               {/* Login Button - Show when not authenticated */}
               {!isAuthenticated && (
                 <button 
-                  onClick={() => router.push('/login')}
+                  onClick={() => router.push('/login?mode=login')}
                   className="flex items-center px-4 py-2 bg-[#FF4D67] hover:bg-[#FF4D67]/90 text-white rounded-full text-sm font-bold transition-all active:scale-95 shadow-lg shadow-[#FF4D67]/20"
                 >
                   <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

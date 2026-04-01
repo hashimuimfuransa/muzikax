@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '../../contexts/AuthContext'
+import { useLanguage } from '../../contexts/LanguageContext'
 import Link from 'next/link'
 import { FaArrowLeft } from 'react-icons/fa'
 import { getUserProfile, getUserFollowers, getUserFollowing, getCreatorTracks } from '@/services/userService'
@@ -60,6 +61,7 @@ export default function LibraryPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { logout, isLoading: isAuthLoading } = useAuth()
+  const { t } = useLanguage()
   
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [tracks, setTracks] = useState<Track[]>([])
@@ -237,8 +239,8 @@ export default function LibraryPage() {
                 <FaArrowLeft className="w-5 h-5" />
               </button>
               <div>
-                <h1 className="text-2xl font-black text-white">My Library</h1>
-                <p className="text-sm text-gray-400">Manage your music and profile</p>
+                <h1 className="text-2xl font-black text-white">{t('myLibrary')}</h1>
+                <p className="text-sm text-gray-400">{t('manageMusicProfile')}</p>
               </div>
             </div>
             <button
@@ -471,7 +473,7 @@ export default function LibraryPage() {
               <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
               </svg>
-              <span className="text-[10px] font-medium">Home</span>
+              <span className="text-[10px] font-medium">{t('home')}</span>
             </button>
             
             <button
@@ -485,7 +487,7 @@ export default function LibraryPage() {
               <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
               </svg>
-              <span className="text-[10px] font-medium">Tracks</span>
+              <span className="text-[10px] font-medium">{t('yourTracks')}</span>
             </button>
             
             {profile.role === 'creator' && (
@@ -500,7 +502,7 @@ export default function LibraryPage() {
                 <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span className="text-[10px] font-medium">Earn</span>
+                <span className="text-[10px] font-medium">{t('earn')}</span>
               </button>
             )}
             
@@ -515,7 +517,7 @@ export default function LibraryPage() {
               <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span className="text-[10px] font-medium">Recent</span>
+              <span className="text-[10px] font-medium">{t('recentlyPlayed')}</span>
             </button>
             
             <button
@@ -530,7 +532,7 @@ export default function LibraryPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
-              <span className="text-[10px] font-medium">Settings</span>
+              <span className="text-[10px] font-medium">{t('settings')}</span>
             </button>
             
             <button
@@ -544,7 +546,7 @@ export default function LibraryPage() {
               <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
-              <span className="text-[10px] font-medium">Fans</span>
+              <span className="text-[10px] font-medium">{t('fans')}</span>
             </button>
           </div>
         </div>
@@ -561,8 +563,8 @@ export default function LibraryPage() {
                 <svg className="w-8 h-8 text-[#FF4D67] mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
-                <h3 className="font-bold text-white mb-1">Edit Profile</h3>
-                <p className="text-xs text-gray-400">Update your info</p>
+                <h3 className="font-bold text-white mb-1">{t('editProfile')}</h3>
+                <p className="text-xs text-gray-400">{t('updateInfo')}</p>
               </button>
               
               <button
@@ -572,8 +574,8 @@ export default function LibraryPage() {
                 <svg className="w-8 h-8 text-[#FFCB2B] mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                 </svg>
-                <h3 className="font-bold text-white mb-1">Upload</h3>
-                <p className="text-xs text-gray-400">New track</p>
+                <h3 className="font-bold text-white mb-1">{t('uploadNew')}</h3>
+                <p className="text-xs text-gray-400">{t('newTrack')}</p>
               </button>
             </div>
 
@@ -588,8 +590,8 @@ export default function LibraryPage() {
                       </svg>
                     </div>
                     <div>
-                      <h3 className="font-bold text-white">Recently Played</h3>
-                      <p className="text-xs text-gray-400">Your listening history</p>
+                      <h3 className="font-bold text-white">{t('recentlyPlayed')}</h3>
+                      <p className="text-xs text-gray-400">{t('yourListeningHistory')}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">

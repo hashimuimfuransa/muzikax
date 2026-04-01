@@ -42,6 +42,14 @@ function LoginContent() {
   useEffect(() => {
     // Manually extract the redirect parameter from the URL to include any query parameters it might have
     const params = new URLSearchParams(window.location.search)
+    // Check if mode parameter exists to determine login vs signup
+    const mode = params.get('mode')
+    if (mode === 'login') {
+      setIsLogin(true)
+    } else if (mode === 'signup') {
+      setIsLogin(false)
+    }
+    
     // We want the raw value of everything after "redirect="
     const fullUrl = window.location.search
     const redirectPrefix = 'redirect='
