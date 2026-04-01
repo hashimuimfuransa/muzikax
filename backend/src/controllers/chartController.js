@@ -7,6 +7,7 @@ const {
 } = require('../services/chartService');
 const { signTrackUrls } = require('../utils/s3');
 const redisCache = require('../utils/redisCache');
+const { validateChartFreshness, validateChartsBulk } = require('../utils/chartValidator');
 
 /**
  * Get global charts
@@ -39,6 +40,8 @@ const getGlobalCharts = async (req, res) => {
     
     console.log('💾 Cache miss: Fetching from database');
     
+    const startTime = Date.now();
+    
     // Get chart scores from database
     const sortField = `${timeWindow}Score`;
     const charts = await ChartScore.find()
@@ -53,6 +56,8 @@ const getGlobalCharts = async (req, res) => {
         }
       })
       .lean();
+    
+    const queryTime = Date.now() - startTime;
     
     if (charts.length === 0) {
       // Fallback to calculating on the fly if no cached charts
@@ -74,12 +79,14 @@ const getGlobalCharts = async (req, res) => {
         charts: signedCharts,
         timeWindow,
         total: signedCharts.length,
-        updatedAt: new Date()
+        updatedAt: new Date(),
+        queryTimeMs: queryTime
       };
       
       // Cache the result
       await redisCache.cacheCharts('global', { timeWindow, limit }, response);
       
+      res.set('Cache-Control', 'public, max-age=300'); // 5 minutes
       return res.json(response);
     }
     
@@ -118,12 +125,14 @@ const getGlobalCharts = async (req, res) => {
       charts: validCharts,
       timeWindow,
       total: validCharts.length,
-      updatedAt: charts[0]?.lastUpdated || new Date()
+      updatedAt: charts[0]?.lastUpdated || new Date(),
+      queryTimeMs: queryTime
     };
     
     // Cache the result
     await redisCache.cacheCharts('global', { timeWindow, limit }, response);
     
+    res.set('Cache-Control', 'public, max-age=300'); // 5 minutes
     res.json(response);
   } catch (error) {
     console.error('Error getting global charts:', error);
@@ -165,8 +174,10 @@ const getCountryCharts = async (req, res) => {
     
     console.log(`💾 Cache miss: Fetching from database for ${countryCode}`);
     
+    const startTime = Date.now();
     const charts = await getCountryChartsService(countryCode, timeWindow, limit);
-    console.log(`📊 Retrieved ${charts.length} tracks for ${countryCode} from database`);
+    const queryTime = Date.now() - startTime;
+    console.log(`📊 Retrieved ${charts.length} tracks for ${countryCode} from database in ${queryTime}ms`);
     
     if (charts.length === 0) {
       console.warn(`⚠️ No chart data found for country: ${countryCode}. This could mean:`);
@@ -176,9 +187,41 @@ const getCountryCharts = async (req, res) => {
       console.warn(`   Run: node seed-country-data.js to populate test data`);
     }
     
+    // Populate track data efficiently using batch populate
+    const Track = require('../models/Track');
+    const trackIds = charts.map(c => c._id);
+    const tracks = await Track.find({ _id: { $in: trackIds } })
+      .select('title genre type coverURL audioURL plays likes shares reposts playlistAdditions creatorId createdAt')
+      .lean();
+    
+    // Create a map for fast lookup
+    const trackMap = new Map();
+    tracks.forEach(track => {
+      trackMap.set(track._id.toString(), track);
+    });
+    
+    // Merge chart data with track info
+    const mergedCharts = charts.map(chart => {
+      const track = trackMap.get(chart._id.toString());
+      if (!track) return null;
+      return {
+        ...track,
+        countryScore: chart.countryScore,
+        countryPlays: chart.countryPlays,
+        countryUniqueListeners: chart.countryUniqueListeners,
+        countryRank: chart.countryRank,
+        weeklyScore: chart.weeklyScore,
+        dailyScore: chart.dailyScore,
+        monthlyScore: chart.monthlyScore,
+        globalRank: chart.globalRank,
+        playVelocity: chart.playVelocity,
+        growthRate: chart.growthRate
+      };
+    }).filter(c => c !== null);
+    
     // Sign URLs and format
     const formattedCharts = await Promise.all(
-      charts.map(async (track, index) => {
+      mergedCharts.map(async (track, index) => {
         const signedTrack = await signTrackUrls(track);
         return {
           ...signedTrack,
@@ -197,12 +240,14 @@ const getCountryCharts = async (req, res) => {
       countryName: getCountryName(countryCode),
       timeWindow,
       total: formattedCharts.length,
-      updatedAt: new Date()
+      updatedAt: new Date(),
+      queryTimeMs: queryTime
     };
     
     // Cache the result
     await redisCache.cacheCharts('country', { countryCode, timeWindow, limit }, response);
     
+    res.set('Cache-Control', 'public, max-age=300'); // 5 minutes
     res.json(response);
   } catch (error) {
     console.error('Error getting country charts:', error);
@@ -332,6 +377,76 @@ const getChartMetadata = async (req, res) => {
 };
 
 /**
+ * Debug endpoint to check chart performance and data freshness
+ * @route GET /api/charts/debug
+ */
+const debugCharts = async (req, res) => {
+  try {
+    const timeWindow = req.query.timeWindow || 'weekly';
+    const countryCode = req.query.country || 'RW';
+    const limit = Math.min(parseInt(req.query.limit) || 20, 100);
+    
+    console.log(`🔍 Debug charts requested for ${countryCode} (${timeWindow})`);
+    
+    // Get sample charts without caching
+    const sortField = `${timeWindow}Score`;
+    const sampleCharts = await ChartScore.find()
+      .sort({ [sortField]: -1 })
+      .limit(limit)
+      .select('trackId dailyScore weeklyScore monthlyScore lastUpdated countryScores')
+      .lean();
+    
+    // Validate freshness
+    const freshnessValidation = validateChartsBulk(sampleCharts, timeWindow);
+    
+    // Check cache status
+    const cacheKey = `charts:country:${countryCode}:${timeWindow}:${limit}`;
+    const cachedData = await redisCache.get(cacheKey);
+    
+    // Calculate performance metrics
+    const avgCountryScores = sampleCharts
+      .filter(c => c.countryScores && c.countryScores.length > 0)
+      .map(c => {
+        const countryData = c.countryScores.find(cs => cs.country === countryCode);
+        return countryData ? countryData.score : 0;
+      })
+      .filter(s => s > 0);
+    
+    const avgScore = avgCountryScores.length > 0
+      ? Math.round(avgCountryScores.reduce((a, b) => a + b, 0) / avgCountryScores.length)
+      : 0;
+    
+    res.json({
+      query: { timeWindow, countryCode, limit },
+      sampleSize: sampleCharts.length,
+      freshness: freshnessValidation,
+      cacheStatus: {
+        key: cacheKey,
+        isCached: !!cachedData,
+        cachedAt: cachedData?.timestamp || null,
+        ageMinutes: cachedData?.timestamp
+          ? Math.round((Date.now() - new Date(cachedData.timestamp).getTime()) / 60000)
+          : null
+      },
+      performance: {
+        averageCountryScore: avgScore,
+        tracksWithCountryData: avgCountryScores.length,
+        indexedFields: ['lastUpdated', sortField, 'countryScores.country']
+      },
+      recommendations: [
+        ...freshnessValidation.recommendations,
+        cachedData ? 'Cache is active - check Redis for performance' : 'No cache found - queries hitting database directly',
+        avgCountryScores.length < 10 ? `Limited country data for ${countryCode} - may need more listener data` : 'Good country data coverage'
+      ],
+      timestamp: new Date()
+    });
+  } catch (error) {
+    console.error('Error debugging charts:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/**
  * Helper function to get country name from code
  */
 function getCountryName(code) {
@@ -364,5 +479,6 @@ module.exports = {
   getCountryCharts,
   getGenreCharts,
   getTrendingCharts,
-  getChartMetadata
+  getChartMetadata,
+  debugCharts
 };

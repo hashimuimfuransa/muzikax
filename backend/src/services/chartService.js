@@ -249,24 +249,24 @@ async function getCountryCharts(countryCode, timeWindow = 'weekly', limit = 50) 
     console.log(`\n🌍 Getting country charts for: ${countryCode}`);
     console.log(`   Time window: ${timeWindow}, Limit: ${limit}`);
     
+    const startTime = Date.now();
+    
     // Use pre-calculated ChartScore data for better performance
     const sortField = `${timeWindow}Score`;
     
-    // Get charts sorted by the time window score
-    const chartData = await ChartScore.find()
-      .sort({ [sortField]: -1 })
-      .limit(limit * 3) // Get more to filter by country
-      .populate({
-        path: 'trackId',
-        select: 'title genre type coverURL audioURL plays likes shares reposts playlistAdditions creatorId',
-        populate: {
-          path: 'creatorId',
-          select: 'name avatar whatsappContact'
-        }
-      })
-      .lean();
+    // Get fresh chart data from the last 7 days (ensure recent data)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     
-    console.log(`   📊 Found ${chartData.length} ChartScore documents`);
+    const chartData = await ChartScore.find({
+      lastUpdated: { $gte: sevenDaysAgo }
+    })
+    .sort({ [sortField]: -1, lastUpdated: -1 })
+    .limit(limit * 3) // Get more to filter by country
+    .select('trackId dailyScore weeklyScore monthlyScore totalPlays uniqueListeners likes shares reposts playlistAdditions playVelocity growthRate globalRank lastUpdated')
+    .lean();
+    
+    console.log(`   📊 Found ${chartData.length} ChartScore documents (filtered by lastUpdated)`);
     
     if (chartData.length === 0) {
       // Fallback to calculation if no chart scores exist
@@ -274,48 +274,67 @@ async function getCountryCharts(countryCode, timeWindow = 'weekly', limit = 50) 
       return await getCountryChartsFallback(countryCode, timeWindow, limit);
     }
     
-    // Filter tracks that have listeners in this country
+    // Extract track IDs for batch query
+    const trackIds = chartData.map(chart => chart.trackId);
+    
+    // BATCH QUERY: Get all ListenerGeography data in ONE query using aggregation
     const ListenerGeography = require('../models/ListenerGeography');
+    const countryStatsAgg = await ListenerGeography.aggregate([
+      {
+        $match: {
+          trackId: { $in: trackIds },
+          country: countryCode.toUpperCase()
+        }
+      },
+      {
+        $group: {
+          _id: '$trackId',
+          plays: { $sum: 1 },
+          uniqueListeners: { $addToSet: '$ipAddress' },
+          uniqueUserIds: { $addToSet: '$userId' }
+        }
+      },
+      {
+        $project: {
+          trackId: '$_id',
+          plays: 1,
+          uniqueListeners: { $size: '$uniqueListeners' },
+          uniqueUserIds: { $size: '$uniqueUserIds' },
+          _id: 0
+        }
+      }
+    ]);
+    
+    console.log(`   📍 Batch query returned ${countryStatsAgg.length} tracks with listeners in ${countryCode}`);
+    
+    // Create a map for fast lookup
+    const countryStatsMap = new Map();
+    countryStatsAgg.forEach(stat => {
+      countryStatsMap.set(stat.trackId.toString(), stat);
+    });
+    
+    // Filter and format results
     const countryTracks = [];
     
-    console.log(`   🔍 Checking ListenerGeography for country: ${countryCode}`);
-    
-    // Check total records for this country
-    const totalCountryRecords = await ListenerGeography.countDocuments({ country: countryCode });
-    console.log(`   📍 Total ListenerGeography records for ${countryCode}: ${totalCountryRecords}`);
-    
     for (const chart of chartData) {
-      const track = chart.trackId;
-      if (!track) continue;
+      const stats = countryStatsMap.get(chart.trackId.toString());
       
-      // Check if this track has listeners in the target country
-      const countryStats = await ListenerGeography.aggregate([
-        {
-          $match: {
-            trackId: track._id,
-            country: countryCode.toUpperCase()
-          }
-        },
-        {
-          $group: {
-            _id: '$trackId',
-            plays: { $sum: 1 },
-            uniqueListeners: { $addToSet: '$ipAddress' }
-          }
-        }
-      ]);
-      
-      if (countryStats.length > 0) {
-        const stats = countryStats[0];
-        const countryScore = (stats.plays * 0.6) + (stats.uniqueListeners.length * 0.4);
+      if (stats && stats.plays > 0) {
+        const countryScore = (stats.plays * 0.6) + (stats.uniqueListeners * 0.4);
         
         countryTracks.push({
-          ...track,
+          _id: chart.trackId,
           countryScore,
           countryPlays: stats.plays,
-          countryUniqueListeners: stats.uniqueListeners.length,
+          countryUniqueListeners: Math.max(stats.uniqueListeners, stats.uniqueUserIds || 0),
+          weeklyScore: chart.weeklyScore || 0,
+          dailyScore: chart.dailyScore || 0,
+          monthlyScore: chart.monthlyScore || 0,
           globalRank: chart.globalRank || 0,
-          weeklyScore: chart.weeklyScore || 0
+          totalPlays: chart.totalPlays || 0,
+          uniqueListeners: chart.uniqueListeners || 0,
+          playVelocity: chart.playVelocity || 0,
+          growthRate: chart.growthRate || 0
         });
         
         // Stop once we have enough tracks
@@ -331,6 +350,9 @@ async function getCountryCharts(countryCode, timeWindow = 'weekly', limit = 50) 
       track.countryRank = index + 1;
       track.country = countryCode;
     });
+    
+    const endTime = Date.now();
+    console.log(`   ⚡ Query completed in ${endTime - startTime}ms - Returning ${countryTracks.length} tracks`);
     
     return countryTracks.slice(0, limit);
   } catch (error) {

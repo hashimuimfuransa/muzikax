@@ -66,6 +66,7 @@ export default function Navbar() {
   // App-like categories similar to Spotify/Apple Music
   const categories = [
     { id: 'home', name: t('home'), icon: '🏠' },
+    { id: 'charts', name: t('charts'), icon: '📊' },
     { id: 'beats', name: t('beats'), icon: '🎵' },
     { id: 'mixes', name: t('mixes'), icon: '🎧' },
     { id: 'afrobeat', name: 'Afrobeat', icon: '🌍' },
@@ -90,6 +91,9 @@ export default function Navbar() {
     switch(categoryId) {
       case 'home':
         router.push('/');
+        break;
+      case 'charts':
+        router.push('/charts');
         break;
       case 'beats':
       case 'mixes':

@@ -196,8 +196,8 @@ function initChartAggregator() {
   // Run aggregation every hour
   setInterval(aggregateDailyStats, 60 * 60 * 1000); // Every hour
   
-  // Update chart scores every hour (5 minutes after aggregation)
-  setInterval(updateAllChartScores, 60 * 60 * 1000 + 5 * 60 * 1000); // Every hour + 5 min
+  // Update chart scores every 5 minutes (changed from hourly for fresher data)
+  setInterval(updateAllChartScores, 5 * 60 * 1000); // Every 5 minutes
   
   // Cleanup old data once per day at midnight
   const now = new Date();
@@ -212,8 +212,9 @@ function initChartAggregator() {
   
   // Run initial aggregation immediately
   aggregateDailyStats();
+  updateAllChartScores();
   
-  console.log('[Chart Aggregator] Initialized successfully');
+  console.log('[Chart Aggregator] Initialized successfully - Charts update every 5 minutes');
 }
 
 // Export for manual triggering if needed

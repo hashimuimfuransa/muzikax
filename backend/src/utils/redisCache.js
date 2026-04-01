@@ -6,14 +6,14 @@ class RedisCache {
     this.connected = false;
     this.errorLogged = false;
     this.ttl = {
-      charts: 3600,        // 1 hour for charts
-      trending: 1800,      // 30 minutes for trending
-      monthly: 1800,       // 30 minutes for monthly popular
+      charts: 300,         // 5 minutes for charts (reduced from 1 hour for fresher data)
+      trending: 180,       // 3 minutes for trending
+      monthly: 300,        // 5 minutes for monthly popular
       metadata: 7200,      // 2 hours for metadata
       tracks: 900,         // 15 minutes for track lists
       user: 1800,          // 30 minutes for user data
       session: 86400,      // 24 hours for sessions
-      default: 3600        // 1 hour default
+      default: 300         // 5 minutes default
     };
   }
 

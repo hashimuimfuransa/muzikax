@@ -112,4 +112,10 @@ ChartScoreSchema.index({ monthlyScore: -1 });
 ChartScoreSchema.index({ 'countryScores.country': 1, 'countryScores.score': -1 });
 ChartScoreSchema.index({ genreRank: 1 });
 
+// Compound indexes for optimized country-based queries with time filtering
+ChartScoreSchema.index({ lastUpdated: -1, weeklyScore: -1 });
+ChartScoreSchema.index({ lastUpdated: -1, dailyScore: -1 });
+ChartScoreSchema.index({ lastUpdated: -1, monthlyScore: -1 });
+ChartScoreSchema.index({ 'countryScores.country': 1, lastUpdated: -1, weeklyScore: -1 });
+
 module.exports = mongoose.model('ChartScore', ChartScoreSchema);

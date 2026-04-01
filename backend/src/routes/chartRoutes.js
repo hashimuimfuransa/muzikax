@@ -4,7 +4,8 @@ const {
   getCountryCharts,
   getGenreCharts,
   getTrendingCharts,
-  getChartMetadata
+  getChartMetadata,
+  debugCharts
 } = require('../controllers/chartController');
 const {
   trackShare,
@@ -20,6 +21,7 @@ const router = express.Router();
 router.get('/global', getGlobalCharts);
 router.get('/trending', getTrendingCharts);
 router.get('/metadata', getChartMetadata);
+router.get('/debug', debugCharts); // Debug endpoint for performance monitoring
 router.get('/:countryCode', getCountryCharts);
 router.get('/genre/:genre', getGenreCharts);
 
