@@ -4,7 +4,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { FaPlus, FaMusic, FaUserFriends, FaFire, FaShare } from 'react-icons/fa';
+import { FaPlus, FaMusic, FaUserFriends, FaFire, FaShare, FaArrowLeft } from 'react-icons/fa';
 import { proxyUpload } from '../../services/s3Service';
 import { extractVideoThumbnail, compressImage } from '../../utils/videoThumbnail';
 
@@ -548,7 +548,26 @@ const CommunityContent = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 pt-14 md:pt-0">
+      {/* Mobile Header with Back Button */}
+      <div className="md:hidden sticky top-0 z-50 bg-gray-900/95 backdrop-blur-lg border-b border-gray-800">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => router.back()}
+              className="text-gray-400 hover:text-white transition-colors p-2 -ml-2"
+              aria-label="Go back"
+            >
+              <FaArrowLeft className="w-5 h-5" />
+            </button>
+            <div>
+              <h1 className="text-xl font-black text-white">Community</h1>
+              <p className="text-xs text-gray-400">Connect & share</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {sharedNotification && (
         <div className="fixed top-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-[60] animate-fade-in">
           {sharedNotification}

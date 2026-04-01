@@ -763,7 +763,7 @@ export default function Home() {
   }, [trendingTracks, recommendedTracks]);
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black relative overflow-hidden pt-14 md:pt-0">
+    <div className="flex flex-col md:flex-row min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black relative overflow-hidden pt-0 md:pt-0">
       {/* Loading overlay for initial data fetch */}
       {trendingLoading && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
@@ -793,7 +793,7 @@ export default function Home() {
           rewardText="🎵 Support us by watching a quick video!"
         /> */}
         {/* Mobile Categories Scroll - Enhanced Native App Style */}
-        <section className="md:hidden w-full px-0 py-2 bg-gradient-to-r from-gray-900 via-gray-900/95 to-black border-b border-gray-800/50 shadow-lg sticky top-[3.6rem] z-40 mb-4">
+        <section className="md:hidden w-full px-0 py-2 bg-gradient-to-r from-gray-900 via-gray-900/95 to-black border-b border-gray-800/50 shadow-lg sticky top-[3.5rem] z-40 mb-4">
           <div className="flex items-center space-x-2 overflow-x-auto scrollbar-hide px-3 pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
             {[
               { id: 'trending', name: `🔥 ${t('trending')}`, tabType: 'filter' },

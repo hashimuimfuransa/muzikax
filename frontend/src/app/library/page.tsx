@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '../../contexts/AuthContext'
 import Link from 'next/link'
+import { FaArrowLeft } from 'react-icons/fa'
 import { getUserProfile, getUserFollowers, getUserFollowing, getCreatorTracks } from '@/services/userService'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'
@@ -226,9 +227,19 @@ export default function LibraryPage() {
       <div className="sticky top-0 z-50 bg-gray-900/95 backdrop-blur-lg border-b border-gray-800">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-black text-white">My Library</h1>
-              <p className="text-sm text-gray-400">Manage your music and profile</p>
+            <div className="flex items-center gap-3">
+              {/* Mobile Back Button */}
+              <button
+                onClick={() => router.back()}
+                className="md:hidden text-gray-400 hover:text-white transition-colors p-2 -ml-2"
+                aria-label="Go back"
+              >
+                <FaArrowLeft className="w-5 h-5" />
+              </button>
+              <div>
+                <h1 className="text-2xl font-black text-white">My Library</h1>
+                <p className="text-sm text-gray-400">Manage your music and profile</p>
+              </div>
             </div>
             <button
               onClick={handleLogout}

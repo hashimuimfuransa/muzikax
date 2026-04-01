@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { FaArrowLeft } from 'react-icons/fa'
 import { useTracksByType } from '../../hooks/useTracks'
 import { useAudioPlayer } from '../../contexts/AudioPlayerContext'
 import { usePayment } from '../../contexts/PaymentContext'
@@ -24,6 +26,7 @@ interface Track {
 }
 
 export default function BeatsPage() {
+  const router = useRouter()
   const { tracks: allBeatTracks, loading: beatsLoading, refresh: refreshBeats } = useTracksByType('beat', 0); // 0 means no limit
   const { favorites, favoritesLoading, addToFavorites, removeFromFavorites, playTrack, setCurrentPlaylist } = useAudioPlayer()
   const { showPayment } = usePayment()
@@ -227,6 +230,25 @@ export default function BeatsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black pt-14 md:pt-0">
+      {/* Mobile Header with Back Button */}
+      <div className="md:hidden sticky top-0 z-50 bg-gray-900/95 backdrop-blur-lg border-b border-gray-800">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => router.back()}
+              className="text-gray-400 hover:text-white transition-colors p-2 -ml-2"
+              aria-label="Go back"
+            >
+              <FaArrowLeft className="w-5 h-5" />
+            </button>
+            <div>
+              <h1 className="text-xl font-black text-white">Beats</h1>
+              <p className="text-xs text-gray-400">Find your rhythm</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Mobile Search & Category Scroll - Native App Style */}
       <div className="md:hidden sticky top-[3.6rem] z-40 bg-gradient-to-r from-gray-900 via-gray-900/95 to-black border-b border-gray-800/50 shadow-lg">
         {/* Search Bar */}

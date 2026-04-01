@@ -7,7 +7,7 @@ import { useAudioPlayer } from '@/contexts/AudioPlayerContext'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { Suspense } from 'react'
 import { followCreator, unfollowCreator, checkFollowStatus } from '@/services/trackService'
-import { FaMusic, FaHeadphones, FaCompactDisc, FaListUl, FaUsers } from 'react-icons/fa'
+import { FaMusic, FaHeadphones, FaCompactDisc, FaListUl, FaUsers, FaArrowLeft } from 'react-icons/fa'
 
 interface Album {
   _id: string
@@ -487,6 +487,25 @@ function ExploreContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black pt-14 md:pt-0">
+      {/* Mobile Header with Back Button */}
+      <div className="md:hidden sticky top-0 z-50 bg-gray-900/95 backdrop-blur-lg border-b border-gray-800">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => router.back()}
+              className="text-gray-400 hover:text-white transition-colors p-2 -ml-2"
+              aria-label="Go back"
+            >
+              <FaArrowLeft className="w-5 h-5" />
+            </button>
+            <div>
+              <h1 className="text-xl font-black text-white">Explore</h1>
+              <p className="text-xs text-gray-400">Discover new music</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Mobile Category Filter - Horizontal Scroll (Compact) */}
       <section className="md:hidden w-full px-0 py-1.5 bg-gradient-to-r from-gray-900 via-gray-900/95 to-black border-b border-gray-800/50 shadow-lg sticky top-[3.5rem] z-40">
         <div className="flex items-center space-x-1.5 overflow-x-auto scrollbar-hide px-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>

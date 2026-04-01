@@ -1,11 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Suspense } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useLanguage } from '@/contexts/LanguageContext'
+import { FaArrowLeft } from 'react-icons/fa'
 import { followCreator } from '@/services/trackService'
 import { useAudioPlayer } from '@/contexts/AudioPlayerContext'
 
@@ -76,6 +77,7 @@ interface Playlist {
 function SearchResultsContent() {
   const { t } = useLanguage()
   const searchParams = useSearchParams()
+  const router = useRouter()
   const query = searchParams.get('q') || ''
   const [searchQuery, setSearchQuery] = useState(query)
   const [activeTab, setActiveTab] = useState<'tracks' | 'artists' | 'albums' | 'playlists' | 'mixes'>('tracks')
@@ -229,6 +231,25 @@ function SearchResultsContent() {
 
   return (
     <div className="relative overflow-hidden min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black pt-24 pb-8 sm:pt-28 sm:pb-12">
+      {/* Mobile Header with Back Button */}
+      <div className="md:hidden sticky top-0 z-50 bg-gray-900/95 backdrop-blur-lg border-b border-gray-800">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => router.back()}
+              className="text-gray-400 hover:text-white transition-colors p-2 -ml-2"
+              aria-label="Go back"
+            >
+              <FaArrowLeft className="w-5 h-5" />
+            </button>
+            <div>
+              <h1 className="text-xl font-black text-white">Search</h1>
+              <p className="text-xs text-gray-400">Find music & artists</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#FF4D67]/10 rounded-full blur-3xl -z-10"></div>
       <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-[#FFCB2B]/10 rounded-full blur-3xl -z-10"></div>
       

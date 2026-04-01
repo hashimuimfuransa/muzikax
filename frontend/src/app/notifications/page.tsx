@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../contexts/AuthContext'
+import { FaArrowLeft } from 'react-icons/fa'
 import notificationService from '../../services/notificationService'
 import Link from 'next/link'
 import NotificationSettings from '../../components/NotificationSettings'
@@ -280,9 +281,28 @@ export default function NotificationsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black">
-      {/* Header */}
-      <div className="bg-gray-900/50 backdrop-blur-lg border-b border-gray-800 sticky top-0 z-10">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black pt-14 md:pt-0">
+      {/* Mobile Header with Back Button */}
+      <div className="md:hidden bg-gray-900/50 backdrop-blur-lg border-b border-gray-800 sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => router.back()}
+              className="text-gray-400 hover:text-white transition-colors p-2 -ml-2"
+              aria-label="Go back"
+            >
+              <FaArrowLeft className="w-5 h-5" />
+            </button>
+            <div>
+              <h1 className="text-xl font-black text-white">Notifications</h1>
+              <p className="text-xs text-gray-400">Stay updated</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop Header */}
+      <div className="hidden md:block bg-gray-900/50 backdrop-blur-lg border-b border-gray-800 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div>

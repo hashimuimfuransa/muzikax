@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { FaArrowLeft } from 'react-icons/fa'
 import { fetchRecommendedTracks } from '@/services/recommendationService';
 import { ITrack } from '@/types';
 import { useAudioPlayer } from '@/contexts/AudioPlayerContext';
@@ -20,6 +22,7 @@ interface Track {
 }
 
 export default function ForYouPage() {
+  const router = useRouter()
   const { playTrack } = useAudioPlayer();
   const [sortBy, setSortBy] = useState<'popular' | 'recent' | 'alphabetical' | 'new_and_popular'>('new_and_popular')
   const [filterBy, setFilterBy] = useState<'music' | 'beats' | 'mixes' | 'all'>('music'); // Default to music
@@ -221,7 +224,26 @@ export default function ForYouPage() {
   })
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black py-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black py-8 pt-14 md:pt-0">
+      {/* Mobile Header with Back Button */}
+      <div className="md:hidden sticky top-0 z-50 bg-gray-900/95 backdrop-blur-lg border-b border-gray-800">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => router.back()}
+              className="text-gray-400 hover:text-white transition-colors p-2 -ml-2"
+              aria-label="Go back"
+            >
+              <FaArrowLeft className="w-5 h-5" />
+            </button>
+            <div>
+              <h1 className="text-xl font-black text-white">For You</h1>
+              <p className="text-xs text-gray-400">Your recommendations</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>

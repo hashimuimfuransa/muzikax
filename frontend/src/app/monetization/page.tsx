@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../contexts/AuthContext'
+import { FaArrowLeft } from 'react-icons/fa'
 import { 
   getMonetizationStatus, 
   applyForMonetization, 
@@ -190,16 +191,35 @@ export default function Monetization() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black py-8 overflow-x-hidden relative">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black py-8 overflow-x-hidden relative pt-14 md:pt-0">
       <div className="absolute -top-40 -left-20 w-64 h-64 sm:w-96 sm:h-96 bg-[#FF4D67]/10 rounded-full blur-3xl -z-10"></div>
       <div className="absolute -bottom-40 -right-20 w-64 h-64 sm:w-96 sm:h-96 bg-[#FFCB2B]/10 rounded-full blur-3xl -z-10"></div>
       
+      {/* Mobile Header with Back Button */}
+      <div className="md:hidden sticky top-0 z-50 bg-gray-900/95 backdrop-blur-lg border-b border-gray-800">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => router.back()}
+              className="text-gray-400 hover:text-white transition-colors p-2 -ml-2"
+              aria-label="Go back"
+            >
+              <FaArrowLeft className="w-5 h-5" />
+            </button>
+            <div>
+              <h1 className="text-xl font-black text-white">Monetization</h1>
+              <p className="text-xs text-gray-400">Earn from your music</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
           {/* Wrapper to prevent overflow */}
           <div className="w-full overflow-x-hidden">
-          {/* Header */}
-          <div className="text-center mb-8">
+          {/* Desktop Header */}
+          <div className="hidden md:block text-center mb-8">
             <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] mb-2">
               Monetization Center
             </h1>
