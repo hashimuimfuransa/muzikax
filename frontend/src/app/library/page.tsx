@@ -54,7 +54,7 @@ interface User {
   bio?: string
 }
 
-type TabType = 'overview' | 'tracks' | 'analytics' | 'followers' | 'following'
+type TabType = 'overview' | 'tracks' | 'analytics' | 'followers' | 'following' | 'recentlyPlayed'
 
 export default function LibraryPage() {
   const router = useRouter()
@@ -73,7 +73,7 @@ export default function LibraryPage() {
   // Get tab from URL query parameter
   useEffect(() => {
     const tab = searchParams.get('tab') as TabType
-    if (tab && ['overview', 'tracks', 'analytics', 'followers', 'following'].includes(tab)) {
+    if (tab && ['overview', 'tracks', 'analytics', 'followers', 'following', 'recentlyPlayed'].includes(tab)) {
       setActiveTab(tab)
     } else {
       setActiveTab('overview')
@@ -459,7 +459,7 @@ export default function LibraryPage() {
 
         {/* Tab Navigation - Mobile Bottom Bar Style */}
         <div className="fixed bottom-0 left-0 right-0 bg-gray-900/98 backdrop-blur-lg border-t border-gray-800 z-50 md:hidden">
-          <div className="grid grid-cols-5 gap-1 px-2 py-2">
+          <div className="grid grid-cols-6 gap-1 px-2 py-2">
             <button
               onClick={() => router.push('/library?tab=overview')}
               className={`flex flex-col items-center p-2 rounded-xl transition-all ${
@@ -503,6 +503,20 @@ export default function LibraryPage() {
                 <span className="text-[10px] font-medium">Earn</span>
               </button>
             )}
+            
+            <button
+              onClick={() => router.push('/library?tab=recentlyPlayed')}
+              className={`flex flex-col items-center p-2 rounded-xl transition-all ${
+                activeTab === 'recentlyPlayed' 
+                  ? 'bg-[#8B5CF6]/20 text-[#8B5CF6]' 
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="text-[10px] font-medium">Recent</span>
+            </button>
             
             <button
               onClick={() => router.push('/settings')}
@@ -562,6 +576,71 @@ export default function LibraryPage() {
                 <p className="text-xs text-gray-400">New track</p>
               </button>
             </div>
+
+            {/* Recently Played Section */}
+            {recentlyPlayed.length > 0 && (
+              <div className="bg-gray-800/30 backdrop-blur-sm rounded-2xl border border-gray-700/30 p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[#8B5CF6] to-[#6366F1] flex items-center justify-center">
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-white">Recently Played</h3>
+                      <p className="text-xs text-gray-400">Your listening history</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => router.push('/library?tab=recentlyPlayed')}
+                      className="text-[#8B5CF6] text-sm font-bold hover:underline"
+                    >
+                      View All
+                    </button>
+                    <button
+                      onClick={() => {
+                        localStorage.removeItem('recentlyPlayed')
+                        setRecentlyPlayed([])
+                      }}
+                      className="text-gray-400 hover:text-[#EF4444] transition-colors"
+                      title="Clear History"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                  {recentlyPlayed.slice(0, 5).map((track, index) => (
+                    <Link
+                      key={`${track._id}-${index}`}
+                      href={`/player?id=${track._id}`}
+                      className="group bg-gray-800/50 rounded-xl overflow-hidden border border-gray-700/30 hover:bg-gray-700/50 hover:border-[#8B5CF6]/40 transition-all duration-300"
+                    >
+                      <div className="aspect-square relative overflow-hidden">
+                        <img
+                          src={track.coverURL || '/default-cover.jpg'}
+                          alt={track.title}
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                        />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z" />
+                          </svg>
+                        </div>
+                      </div>
+                      <div className="p-2">
+                        <h3 className="font-semibold text-white text-xs truncate">{track.title}</h3>
+                        <p className="text-[10px] text-gray-400 truncate mt-0.5">{track.artist}</p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Recent Tracks Preview */}
             {tracks.length > 0 && (
@@ -945,6 +1024,81 @@ export default function LibraryPage() {
                   className="bg-[#FF4D67] hover:bg-[#FF4D67]/90 text-white font-bold py-3 px-8 rounded-xl transition-all active:scale-95"
                 >
                   Discover Creators
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Recently Played Tab */}
+        {activeTab === 'recentlyPlayed' && (
+          <div>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+              <div>
+                <h2 className="text-xl font-bold text-white">Recently Played</h2>
+                <p className="text-sm text-gray-400 mt-1">
+                  {recentlyPlayed.length} {recentlyPlayed.length === 1 ? 'track' : 'tracks'}
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  localStorage.removeItem('recentlyPlayed')
+                  setRecentlyPlayed([])
+                }}
+                disabled={recentlyPlayed.length === 0}
+                className="text-xs text-[#EF4444] hover:text-[#EF4444]/80 font-medium flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto justify-center"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Clear History
+              </button>
+            </div>
+            
+            {recentlyPlayed.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
+                {recentlyPlayed.map((track, index) => (
+                  <Link
+                    key={`${track._id}-${index}`}
+                    href={`/player?id=${track._id}`}
+                    className="group bg-gray-800/30 backdrop-blur-sm rounded-xl overflow-hidden border border-gray-700/30 hover:bg-gray-800/50 hover:border-[#FF4D67]/40 transition-all duration-300"
+                  >
+                    <div className="aspect-square relative overflow-hidden">
+                      <img
+                        src={track.coverURL || '/default-cover.jpg'}
+                        alt={track.title}
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                      />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M8 5v14l11-7z" />
+                        </svg>
+                      </div>
+                      <div className="absolute top-1 right-1 bg-black/60 backdrop-blur-sm px-2 py-0.5 rounded text-[10px] text-white font-medium">
+                        #{index + 1}
+                      </div>
+                    </div>
+                    <div className="p-2">
+                      <h3 className="font-semibold text-white text-sm truncate">{track.title}</h3>
+                      <p className="text-xs text-gray-400 truncate mt-0.5">{track.artist}</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-16 bg-gray-800/10 rounded-2xl border border-dashed border-gray-700/50">
+                <div className="w-16 h-16 mx-auto mb-4 bg-gray-800 rounded-full flex items-center justify-center text-gray-600">
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-bold text-white mb-2">No Recently Played Tracks</h3>
+                <p className="text-gray-500 text-sm mb-4">Start listening to build your history!</p>
+                <button
+                  onClick={() => router.push('/explore')}
+                  className="bg-[#FF4D67] hover:bg-[#FF4D67]/90 text-white font-bold py-3 px-8 rounded-xl transition-all active:scale-95"
+                >
+                  Discover Music
                 </button>
               </div>
             )}
