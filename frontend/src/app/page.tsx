@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
+import { useOffline } from "../contexts/OfflineContext";
 import { useTrendingTracks, usePopularCreators, useTracksByType } from "../hooks/useTracks";
 import { useAudioPlayer } from "../contexts/AudioPlayerContext";
 import { getAlbumById } from "../services/albumService";
@@ -22,6 +23,7 @@ import { fetchRecommendedTracks } from "../services/recommendationService";
 import { getRecentlyPlayed } from "../services/recentlyPlayedService";
 import { ITrack } from "../types";
 import { convertImageUrl } from "../utils/imageUtils";
+import { offlineCacheService } from "../services/offlineCacheService";
 
 interface Track {
   id: string;
@@ -111,6 +113,7 @@ export default function Home() {
   const router = useRouter();
   const { isAuthenticated, userRole } = useAuth();
   const { t } = useLanguage();
+  const { isOnline } = useOffline();
   
   // Redirect admin users to admin dashboard immediately
   if (isAuthenticated && userRole === "admin") {
@@ -614,9 +617,22 @@ export default function Home() {
   const [monthlyPopularTracks, setMonthlyPopularTracks] = useState<Track[]>([]);
   const [monthlyPopularLoading, setMonthlyPopularLoading] = useState(true);
   
-  // Fetch monthly popular tracks
+  // Fetch monthly popular tracks - use cache when offline, cache for future offline use
   useEffect(() => {
     const fetchMonthlyPopularTracks = async () => {
+      // If offline, try to use cached data
+      if (!isOnline) {
+        console.log('📴 Using cached monthly popular tracks for offline mode');
+        const cachedTracks = offlineCacheService.getCachedMonthlyPopularTracks();
+        if (cachedTracks) {
+          setMonthlyPopularTracks(cachedTracks);
+        } else {
+          setMonthlyPopularTracks(trendingTracks.slice(0, 10));
+        }
+        setMonthlyPopularLoading(false);
+        return;
+      }
+      
       try {
         setMonthlyPopularLoading(true);
         const { fetchMonthlyPopularTracks: fetchMonthly } = await import('@/services/trackService');
@@ -629,11 +645,23 @@ export default function Home() {
           setMonthlyPopularTracks(trendingTracks.slice(0, 10));
         } else {
           setMonthlyPopularTracks(tracks);
+          
+          // Cache the data for offline use
+          offlineCacheService.cacheMonthlyPopularTracks(tracks);
+          console.log('💾 Cached monthly popular tracks for offline use');
         }
       } catch (error) {
         console.error('Error fetching monthly popular tracks:', error);
-        // Fallback to trending tracks if monthly popular fails
-        setMonthlyPopularTracks(trendingTracks.slice(0, 10));
+        
+        // If fetch fails, try to use cached data as fallback
+        const cachedTracks = offlineCacheService.getCachedMonthlyPopularTracks();
+        if (cachedTracks) {
+          console.log('⚠️ API failed, using cached monthly popular tracks');
+          setMonthlyPopularTracks(cachedTracks);
+        } else {
+          // Fallback to trending tracks if monthly popular fails
+          setMonthlyPopularTracks(trendingTracks.slice(0, 10));
+        }
       } finally {
         setMonthlyPopularLoading(false);
       }
@@ -642,7 +670,7 @@ export default function Home() {
     if (trendingTracks.length > 0) {
       fetchMonthlyPopularTracks();
     }
-  }, [trendingTracks]);
+  }, [trendingTracks, isOnline]);
   
   // For You section - use monthly popular tracks
   const forYouTracks: Track[] = monthlyPopularTracks.slice(0, 5);

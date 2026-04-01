@@ -2,6 +2,7 @@
 
 import { useAudioPlayer } from '../../contexts/AudioPlayerContext';
 import { usePayment } from '../../contexts/PaymentContext';
+import { useOffline } from '../../contexts/OfflineContext';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -11,6 +12,7 @@ import ReportTrackModal from '../../components/ReportTrackModal';
 import RecommendedPlaylists from '../../components/RecommendedPlaylists';
 import SoloPlayer from '../../components/SoloPlayer';
 import { fetchCreatorProfile, fetchTracksByCreatorPublic, fetchMonthlyPopularTracks } from '../../services/trackService';
+import { offlineCacheService } from '../../services/offlineCacheService';
 
 // Define comment interface with replies
 interface CommentWithReplies {
@@ -64,6 +66,7 @@ const FullPagePlayer = () => {
     currentPlaylistName,
     frequencyData  } = useAudioPlayer();
   
+  const { isOnline } = useOffline();
   const router = useRouter();
   const { isAuthenticated, user } = useAuth();
   const { showPayment } = usePayment();
@@ -221,16 +224,46 @@ const FullPagePlayer = () => {
     };
   }, []);
 
-  // Fetch creator profile and tracks when currentTrack changes
+  // Fetch creator profile and tracks when currentTrack changes - use cache when offline
   useEffect(() => {
     const fetchCreatorData = async () => {
       if (!currentTrack || !currentTrack.creatorId) return;
+      
+      // If offline or currentTrack changed while offline, use cached data
+      if (!isOnline) {
+        console.log('📴 Using cached creator data for offline mode');
+        
+        // Try to get cached creator profile
+        const cachedProfile = offlineCacheService.getCachedCreatorProfile(currentTrack.creatorId);
+        if (cachedProfile) {
+          setCreator(cachedProfile);
+        } else {
+          setCreator(null);
+        }
+        
+        // Try to get cached creator tracks
+        const cachedTracks = offlineCacheService.getCachedCreatorTracks(currentTrack.creatorId);
+        if (cachedTracks) {
+          const filteredTracks = cachedTracks
+            .filter((track: any) => track._id !== currentTrack.id)
+            .slice(0, 3);
+          setCreatorTracks(filteredTracks);
+        } else {
+          setCreatorTracks([]);
+        }
+        
+        setLoadingCreator(false);
+        return;
+      }
       
       setLoadingCreator(true);
       try {
         // Fetch creator profile
         const creatorData = await fetchCreatorProfile(currentTrack.creatorId);
         setCreator(creatorData);
+        
+        // Cache the profile
+        offlineCacheService.cacheCreatorProfile(currentTrack.creatorId, creatorData);
         
         // Fetch creator's tracks
         const tracksData = await fetchTracksByCreatorPublic(currentTrack.creatorId);
@@ -239,32 +272,83 @@ const FullPagePlayer = () => {
           .filter((track: any) => track._id !== currentTrack.id)
           .slice(0, 3);
         setCreatorTracks(filteredTracks);
+        
+        // Cache the tracks
+        offlineCacheService.cacheCreatorTracks(currentTrack.creatorId, tracksData);
+        console.log('💾 Cached creator data for offline use');
       } catch (error) {
         console.error('Error fetching creator data:', error);
+        
+        // If fetch fails, try to use cached data as fallback
+        const cachedProfile = offlineCacheService.getCachedCreatorProfile(currentTrack.creatorId);
+        if (cachedProfile) {
+          console.log('⚠️ API failed, using cached creator profile');
+          setCreator(cachedProfile);
+        } else {
+          setCreator(null);
+        }
+        
+        const cachedTracks = offlineCacheService.getCachedCreatorTracks(currentTrack.creatorId);
+        if (cachedTracks) {
+          console.log('⚠️ API failed, using cached creator tracks');
+          const filteredTracks = cachedTracks
+            .filter((track: any) => track._id !== currentTrack.id)
+            .slice(0, 3);
+          setCreatorTracks(filteredTracks);
+        } else {
+          setCreatorTracks([]);
+        }
       } finally {
         setLoadingCreator(false);
       }
     };
     
     fetchCreatorData();
-  }, [currentTrack]);
+  }, [currentTrack, isOnline]);
 
-  // Fetch popular tracks
+  // Fetch popular tracks - ONLY when online, use cache when offline
   useEffect(() => {
     const fetchPopular = async () => {
       setLoadingPopular(true);
+      
+      // If offline, try to use cached data
+      if (!isOnline) {
+        console.log('📴 Using cached popular tracks for offline mode');
+        const cachedTracks = offlineCacheService.getCachedMonthlyPopularTracks();
+        if (cachedTracks) {
+          setPopularTracks(cachedTracks);
+        } else {
+          setPopularTracks([]);
+        }
+        setLoadingPopular(false);
+        return;
+      }
+      
       try {
         const data = await fetchMonthlyPopularTracks(10);
         setPopularTracks(data);
+        
+        // Cache the data for offline use
+        offlineCacheService.cacheMonthlyPopularTracks(data);
+        console.log('💾 Cached monthly popular tracks for offline use');
       } catch (error) {
         console.error('Error fetching popular tracks:', error);
+        
+        // If fetch fails, try to use cached data as fallback
+        const cachedTracks = offlineCacheService.getCachedMonthlyPopularTracks();
+        if (cachedTracks) {
+          console.log('⚠️ API failed, using cached popular tracks');
+          setPopularTracks(cachedTracks);
+        } else {
+          setPopularTracks([]);
+        }
       } finally {
         setLoadingPopular(false);
       }
     };
     
     fetchPopular();
-  }, []);
+  }, [isOnline]);
 
   // Format time in MM:SS
   const formatTime = (seconds: number) => {

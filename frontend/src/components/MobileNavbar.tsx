@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
 import { useAudioPlayer } from '../contexts/AudioPlayerContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useOffline } from '../contexts/OfflineContext';
 
 export default function MobileNavbar() {
   const pathname = usePathname();
@@ -16,6 +17,7 @@ export default function MobileNavbar() {
   const { isAuthenticated: actualAuth, userRole: actualRole } = useAuth();
   const { currentTrack, isPlaying, togglePlayPause } = useAudioPlayer();
   const { t, language: actualLanguage, setLanguage } = useLanguage();
+  const { isOnline } = useOffline();
   const [showHeader, setShowHeader] = useState(true);
   const [showBottomNav, setShowBottomNav] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
@@ -50,7 +52,7 @@ export default function MobileNavbar() {
   const language = mounted ? actualLanguage : 'en';
 
   // Navigation items
-  const navItems = [
+  const baseNavItems = [
     { 
       name: t('home'), 
       href: '/', 
@@ -122,6 +124,24 @@ export default function MobileNavbar() {
       )
     }
   ];
+
+  // Add offline button when offline
+  const navItems = !isOnline 
+    ? [...baseNavItems, {
+        name: 'Offline', 
+        href: '/offline', 
+        icon: (
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-3.244m16.942-12.73a9 9 0 00-12.728 0m0 0l2.829 2.829m-2.829-2.829L3 3m5.658 16.942a9 9 0 01-2.83-1.414" />
+          </svg>
+        ),
+        activeIcon: (
+          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M18.364 5.636a9 9 0 010 12.728" />
+          </svg>
+        )
+      }]
+    : baseNavItems;
 
   // Active link checker
   const isActive = (href: string) => {

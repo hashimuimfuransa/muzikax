@@ -1,5 +1,6 @@
 import { ITrack } from '../types';
 import { getUserFriendlyError, isNetworkError, formatErrorForToast } from '../utils/errorMessages';
+import { offlineSafeFetch } from '../utils/offlineApi';
 
 export interface PaginatedTracks {
   tracks: ITrack[];
@@ -16,7 +17,7 @@ const refreshToken = async (): Promise<string | null> => {
       return null;
     }
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh-token`, {
+    const response = await offlineSafeFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh-token`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -81,7 +82,7 @@ const makeAuthenticatedRequest = async (url: string, options: RequestInit = {}):
  */
 export const fetchCreatorProfile = async (creatorId: string): Promise<any> => {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/public/creators/${creatorId}`);
+    const response = await offlineSafeFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/public/creators/${creatorId}`);
     
     if (!response.ok) {
       throw new Error(`Failed to fetch creator profile: ${response.status} ${response.statusText}`);
@@ -195,7 +196,7 @@ export const fetchTrendingTracks = async (limit: number = 10, sortBy?: 'plays' |
  */
 export const fetchMonthlyPopularTracks = async (limit: number = 10): Promise<any[]> => {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tracks/monthly-popular?limit=${limit}`);
+    const response = await offlineSafeFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tracks/monthly-popular?limit=${limit}`);
     
     if (!response.ok) {
       throw new Error(`Failed to fetch monthly popular tracks: ${response.status} ${response.statusText}`);

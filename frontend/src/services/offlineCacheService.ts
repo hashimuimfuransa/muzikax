@@ -1,219 +1,261 @@
 /**
  * Offline Data Cache Service
- * Manages cached data from backend for offline viewing
+ * Caches essential data before user goes offline
+ * Provides cached data when offline
  */
 
-export interface CachedData {
-  data: any;
+interface CacheEntry<T> {
+  data: T;
   timestamp: number;
-  expiresAt: number;
+  expiry: number;
 }
 
-export interface OfflineData {
-  recentTracks?: any[];
-  popularTracks?: any[];
-  trendingCreators?: any[];
-  homepageSlides?: any[];
-  lastSyncTime?: number;
+interface OfflineCache {
+  monthlyPopularTracks: CacheEntry<any[]> | null;
+  trendingTracks: CacheEntry<any[]> | null;
+  creatorProfiles: Map<string, CacheEntry<any>>;
+  creatorTracks: Map<string, CacheEntry<any[]>>;
+  trackDetails: Map<string, CacheEntry<any>>;
 }
 
-const CACHE_PREFIX = 'muzikax_cache_';
-const DEFAULT_EXPIRY = 5 * 60 * 1000; // 5 minutes in milliseconds
+const CACHE_DURATION = {
+  MONTHLY_POPULAR: 30 * 60 * 1000, // 30 minutes
+  TRENDING: 30 * 60 * 1000, // 30 minutes
+  CREATOR_PROFILE: 60 * 60 * 1000, // 1 hour
+  CREATOR_TRACKS: 60 * 60 * 1000, // 1 hour
+  TRACK_DETAILS: 60 * 60 * 1000, // 1 hour
+};
 
 class OfflineCacheService {
-  private isOnline: boolean = true;
-
-  constructor() {
-    // Only run in browser environment
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    this.isOnline = navigator.onLine;
-
-    // Listen for online/offline events
-    window.addEventListener('online', () => {
-      this.isOnline = true;
-      console.log('🟢 Back online - syncing data...');
-      this.syncData();
-    });
-
-    window.addEventListener('offline', () => {
-      this.isOnline = false;
-      console.log('🔴 Gone offline - using cached data');
-    });
-  }
+  private cache: OfflineCache = {
+    monthlyPopularTracks: null,
+    trendingTracks: null,
+    creatorProfiles: new Map(),
+    creatorTracks: new Map(),
+    trackDetails: new Map(),
+  };
 
   /**
-   * Cache data from backend
+   * Cache monthly popular tracks
    */
-  async cacheData(key: string, data: any, expiryMs: number = DEFAULT_EXPIRY): Promise<void> {
-    try {
-      const cacheEntry: CachedData = {
-        data,
-        timestamp: Date.now(),
-        expiresAt: Date.now() + expiryMs,
-      };
-
-      localStorage.setItem(CACHE_PREFIX + key, JSON.stringify(cacheEntry));
-      console.log(`✅ Cached data for key: ${key}`);
-    } catch (error) {
-      console.error('Failed to cache data:', error);
-    }
-  }
-
-  /**
-   * Get cached data (returns null if expired or not found)
-   */
-  getCachedData<T>(key: string): T | null {
-    try {
-      const cached = localStorage.getItem(CACHE_PREFIX + key);
-      
-      if (!cached) {
-        return null;
-      }
-
-      const entry: CachedData = JSON.parse(cached);
-      
-      // Check if expired
-      if (Date.now() > entry.expiresAt) {
-        console.log(`⏰ Cache expired for key: ${key}`);
-        localStorage.removeItem(CACHE_PREFIX + key);
-        return null;
-      }
-
-      console.log(`✅ Retrieved cached data for key: ${key}`);
-      return entry.data as T;
-    } catch (error) {
-      console.error('Failed to get cached data:', error);
-      return null;
-    }
-  }
-
-  /**
-   * Get offline data bundle for loading screen
-   */
-  getOfflineData(): OfflineData {
-    const offlineData: OfflineData = {
-      recentTracks: this.getCachedData<any[]>('recent_tracks') || undefined,
-      popularTracks: this.getCachedData<any[]>('popular_tracks') || undefined,
-      trendingCreators: this.getCachedData<any[]>('trending_creators') || undefined,
-      homepageSlides: this.getCachedData<any[]>('homepage_slides') || undefined,
-      lastSyncTime: this.getCachedData<number>('last_sync_time') || undefined,
+  cacheMonthlyPopularTracks(tracks: any[]) {
+    this.cache.monthlyPopularTracks = {
+      data: tracks,
+      timestamp: Date.now(),
+      expiry: Date.now() + CACHE_DURATION.MONTHLY_POPULAR,
     };
-
-    return offlineData;
+    console.log('💾 Cached monthly popular tracks:', tracks.length);
   }
 
   /**
-   * Sync fresh data when online
+   * Get cached monthly popular tracks
    */
-  async syncData(): Promise<void> {
-    if (!this.isOnline) return;
-
-    try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-      
-      // Fetch critical data in parallel
-      const endpoints = [
-        { key: 'recent_tracks', url: '/api/tracks/trending', limit: 10 },
-        { key: 'popular_tracks', url: '/api/tracks/monthly-popular', limit: 10 },
-        { key: 'trending_creators', url: '/api/public/creators', limit: 5 },
-        { key: 'homepage_slides', url: '/api/admin/homepage', limit: 5 },
-      ];
-
-      const promises = endpoints.map(async (endpoint) => {
-        try {
-          const response = await fetch(`${API_URL}${endpoint.url}`, {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            // Handle different response structures
-            let dataToCache: any;
-            if (Array.isArray(data)) {
-              dataToCache = data;
-            } else if (endpoint.key === 'homepage_slides') {
-              // Special handling for homepage slides which returns { slides: [...] }
-              dataToCache = data.slides || [];
-            } else {
-              dataToCache = data.data || data.tracks || data.creators || [];
-            }
-            await this.cacheData(endpoint.key, dataToCache, DEFAULT_EXPIRY);
-          }
-        } catch (error) {
-          console.warn(`Failed to sync ${endpoint.key}:`, error);
-        }
-      });
-
-      await Promise.all(promises);
-      
-      // Update last sync time
-      await this.cacheData('last_sync_time', Date.now(), DEFAULT_EXPIRY);
-      
-      console.log('✅ Data sync complete');
-    } catch (error) {
-      console.error('Sync failed:', error);
+  getCachedMonthlyPopularTracks(): any[] | null {
+    const entry = this.cache.monthlyPopularTracks;
+    if (entry && Date.now() < entry.expiry) {
+      console.log('✅ Using cached monthly popular tracks');
+      return entry.data;
     }
+    console.log('⚠️ No valid cached monthly popular tracks');
+    return null;
   }
 
   /**
-   * Clear all cached data
+   * Cache trending tracks
    */
-  clearCache(): void {
-    const keys = Object.keys(localStorage);
-    keys.forEach((key) => {
-      if (key.startsWith(CACHE_PREFIX)) {
-        localStorage.removeItem(key);
-      }
+  cacheTrendingTracks(tracks: any[]) {
+    this.cache.trendingTracks = {
+      data: tracks,
+      timestamp: Date.now(),
+      expiry: Date.now() + CACHE_DURATION.TRENDING,
+    };
+    console.log('💾 Cached trending tracks:', tracks.length);
+  }
+
+  /**
+   * Get cached trending tracks
+   */
+  getCachedTrendingTracks(): any[] | null {
+    const entry = this.cache.trendingTracks;
+    if (entry && Date.now() < entry.expiry) {
+      console.log('✅ Using cached trending tracks');
+      return entry.data;
+    }
+    console.log('⚠️ No valid cached trending tracks');
+    return null;
+  }
+
+  /**
+   * Cache creator profile
+   */
+  cacheCreatorProfile(creatorId: string, profile: any) {
+    this.cache.creatorProfiles.set(creatorId, {
+      data: profile,
+      timestamp: Date.now(),
+      expiry: Date.now() + CACHE_DURATION.CREATOR_PROFILE,
     });
-    console.log('🗑️ Cache cleared');
+    console.log(`💾 Cached creator profile: ${creatorId}`);
   }
 
   /**
-   * Get cache statistics
+   * Get cached creator profile
    */
-  getCacheStats(): { totalKeys: number; totalSize: number; oldestEntry: string | null } {
-    const keys = Object.keys(localStorage);
-    const cacheKeys = keys.filter(key => key.startsWith(CACHE_PREFIX));
+  getCachedCreatorProfile(creatorId: string): any | null {
+    const entry = this.cache.creatorProfiles.get(creatorId);
+    if (entry && Date.now() < entry.expiry) {
+      console.log(`✅ Using cached creator profile: ${creatorId}`);
+      return entry.data;
+    }
+    console.log(`⚠️ No valid cached creator profile: ${creatorId}`);
+    return null;
+  }
+
+  /**
+   * Cache creator tracks
+   */
+  cacheCreatorTracks(creatorId: string, tracks: any[]) {
+    this.cache.creatorTracks.set(creatorId, {
+      data: tracks,
+      timestamp: Date.now(),
+      expiry: Date.now() + CACHE_DURATION.CREATOR_TRACKS,
+    });
+    console.log(`💾 Cached creator tracks: ${creatorId}`);
+  }
+
+  /**
+   * Get cached creator tracks
+   */
+  getCachedCreatorTracks(creatorId: string): any[] | null {
+    const entry = this.cache.creatorTracks.get(creatorId);
+    if (entry && Date.now() < entry.expiry) {
+      console.log(`✅ Using cached creator tracks: ${creatorId}`);
+      return entry.data;
+    }
+    console.log(`⚠️ No valid cached creator tracks: ${creatorId}`);
+    return null;
+  }
+
+  /**
+   * Cache track details
+   */
+  cacheTrackDetails(trackId: string, track: any) {
+    this.cache.trackDetails.set(trackId, {
+      data: track,
+      timestamp: Date.now(),
+      expiry: Date.now() + CACHE_DURATION.TRACK_DETAILS,
+    });
+    console.log(`💾 Cached track details: ${trackId}`);
+  }
+
+  /**
+   * Get cached track details
+   */
+  getCachedTrackDetails(trackId: string): any | null {
+    const entry = this.cache.trackDetails.get(trackId);
+    if (entry && Date.now() < entry.expiry) {
+      console.log(`✅ Using cached track details: ${trackId}`);
+      return entry.data;
+    }
+    console.log(`⚠️ No valid cached track details: ${trackId}`);
+    return null;
+  }
+
+  /**
+   * Pre-cache essential data for offline mode
+   * Call this when we detect network is about to go down
+   */
+  async preCacheEssentialData(fetchFunctions: {
+    fetchMonthlyPopular?: () => Promise<any[]>;
+    fetchTrending?: () => Promise<any[]>;
+  }) {
+    console.log('🔄 Pre-caching essential data for offline mode...');
     
-    let totalSize = 0;
-    let oldestTime = Date.now();
-    let oldestKey = null;
-
-    cacheKeys.forEach(key => {
-      const value = localStorage.getItem(key);
-      if (value) {
-        totalSize += value.length;
-        
-        try {
-          const entry: CachedData = JSON.parse(value);
-          if (entry.timestamp < oldestTime) {
-            oldestTime = entry.timestamp;
-            oldestKey = key.replace(CACHE_PREFIX, '');
-          }
-        } catch (e) {
-          // Ignore parse errors
+    try {
+      if (fetchFunctions.fetchMonthlyPopular) {
+        const tracks = await fetchFunctions.fetchMonthlyPopular();
+        if (tracks && tracks.length > 0) {
+          this.cacheMonthlyPopularTracks(tracks);
         }
       }
-    });
+      
+      if (fetchFunctions.fetchTrending) {
+        const tracks = await fetchFunctions.fetchTrending();
+        if (tracks && tracks.length > 0) {
+          this.cacheTrendingTracks(tracks);
+        }
+      }
+      
+      console.log('✅ Essential data cached for offline mode');
+    } catch (error) {
+      console.error('❌ Error pre-caching data:', error);
+    }
+  }
 
+  /**
+   * Clear all cache
+   */
+  clearCache() {
+    this.cache.monthlyPopularTracks = null;
+    this.cache.trendingTracks = null;
+    this.cache.creatorProfiles.clear();
+    this.cache.creatorTracks.clear();
+    this.cache.trackDetails.clear();
+    console.log('🗑️ Cleared all offline cache');
+  }
+
+  /**
+   * Clear expired entries
+   */
+  clearExpired() {
+    const now = Date.now();
+    
+    // Clear monthly popular if expired
+    if (this.cache.monthlyPopularTracks && now >= this.cache.monthlyPopularTracks.expiry) {
+      this.cache.monthlyPopularTracks = null;
+    }
+    
+    // Clear trending if expired
+    if (this.cache.trendingTracks && now >= this.cache.trendingTracks.expiry) {
+      this.cache.trendingTracks = null;
+    }
+    
+    // Clear expired creator profiles
+    this.cache.creatorProfiles.forEach((value, key) => {
+      if (now >= value.expiry) {
+        this.cache.creatorProfiles.delete(key);
+      }
+    });
+    
+    // Clear expired creator tracks
+    this.cache.creatorTracks.forEach((value, key) => {
+      if (now >= value.expiry) {
+        this.cache.creatorTracks.delete(key);
+      }
+    });
+    
+    // Clear expired track details
+    this.cache.trackDetails.forEach((value, key) => {
+      if (now >= value.expiry) {
+        this.cache.trackDetails.delete(key);
+      }
+    });
+    
+    console.log('🧹 Cleared expired cache entries');
+  }
+
+  /**
+   * Get cache stats
+   */
+  getStats() {
     return {
-      totalKeys: cacheKeys.length,
-      totalSize: Math.round(totalSize / 1024), // KB
-      oldestEntry: oldestKey,
+      monthlyPopularTracks: this.cache.monthlyPopularTracks ? '✓' : '✗',
+      trendingTracks: this.cache.trendingTracks ? '✓' : '✗',
+      creatorProfiles: this.cache.creatorProfiles.size,
+      creatorTracks: this.cache.creatorTracks.size,
+      trackDetails: this.cache.trackDetails.size,
     };
   }
 }
 
-// Export singleton instance
+// Singleton instance
 export const offlineCacheService = new OfflineCacheService();
-
-// Auto-sync on initial load if online (client-side only)
-if (typeof window !== 'undefined' && navigator.onLine) {
-  setTimeout(() => {
-    offlineCacheService.syncData();
-  }, 1000); // Wait 1 second after page load
-}

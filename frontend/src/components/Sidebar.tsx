@@ -6,11 +6,13 @@ import Image from 'next/image'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '../contexts/AuthContext'
 import { useLanguage } from '../contexts/LanguageContext'
+import { useOffline } from '../contexts/OfflineContext'
 
 export default function Sidebar() {
   const [isHovered, setIsHovered] = useState(false)
   const { isAuthenticated, userRole } = useAuth()
   const { t } = useLanguage()
+  const { isOnline } = useOffline()
   const router = useRouter()
   const pathname = usePathname()
 
@@ -113,6 +115,24 @@ export default function Sidebar() {
           </svg>
           {isHovered && <span className="font-semibold tracking-wide">{t('playlists')}</span>}
         </Link>
+
+        {/* Offline Mode Button - Only visible when offline */}
+        {!isOnline && (
+          <Link
+            href="/offline"
+            className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${
+              pathname === '/offline' 
+                ? 'bg-[#FF4D67] text-white' 
+                : 'text-gray-400 hover:text-white hover:bg-gray-800/40'
+            } ${!isHovered && 'justify-center'}`}
+            title="Offline Player"
+          >
+            <svg className="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-3.244m16.942-12.73a9 9 0 00-12.728 0m0 0l2.829 2.829m-2.829-2.829L3 3m5.658 16.942a9 9 0 01-2.83-1.414" />
+            </svg>
+            {isHovered && <span className="font-semibold tracking-wide">Offline Player</span>}
+          </Link>
+        )}
 
         {/* Upload Button */}
         <button

@@ -2,6 +2,8 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { offlineStorage, OfflineTrack, downloadAudioAsBlob } from '../utils/offlineStorage';
+import { setOnlineState } from '../utils/offlineApi';
+import { offlineCacheService } from '../services/offlineCacheService';
 
 interface OfflineContextType {
   isOnline: boolean;
@@ -9,6 +11,7 @@ interface OfflineContextType {
   offlineTracks: OfflineTrack[];
   isDownloading: boolean;
   downloadProgress: number;
+  isMobileApp: boolean;
   checkOnlineStatus: () => void;
   downloadTrackForOffline: (track: any) => Promise<void>;
   removeOfflineTrack: (trackId: string) => Promise<void>;
@@ -26,6 +29,7 @@ export function OfflineProvider({ children }: { children: React.ReactNode }) {
   const [offlineTracks, setOfflineTracks] = useState<OfflineTrack[]>([]);
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
+  const [isMobileApp, setIsMobileApp] = useState(false);
 
   /**
    * Check online status and load offline tracks
@@ -34,9 +38,43 @@ export function OfflineProvider({ children }: { children: React.ReactNode }) {
     const online = navigator.onLine;
     setIsOnline(online);
     
+    // Sync with offline API utility
+    setOnlineState(online);
+    
+    // Detect if running in a mobile app (Capacitor, Cordova, or standalone PWA)
+    const isMobile = (
+      typeof window !== 'undefined' &&
+      (
+        // Capacitor/Cordova
+        'Capacitor' in window || 
+        'cordova' in window ||
+        // Standalone PWA
+        window.matchMedia('(display-mode: standalone)').matches ||
+        // iOS standalone
+        ('standalone' in window.navigator && (window.navigator as any).standalone === true) ||
+        // Android standalone
+        /Android.*Mozilla/.test(navigator.userAgent) && /Safari.*Mozilla/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent)
+      )
+    );
+    
+    setIsMobileApp(isMobile);
+    
     if (!online) {
       setIsOfflineMode(true);
-      console.log('App is now in offline mode');
+      console.log('🔴 App is now in offline mode');
+      if (isMobile) {
+        console.log('📱 Mobile app detected - enabling offline player');
+      }
+      
+      // Clear expired cache entries when going offline
+      offlineCacheService.clearExpired();
+      
+      // Log cache stats
+      const stats = offlineCacheService.getStats();
+      console.log('💾 Offline cache available:', stats);
+    } else {
+      setIsOfflineMode(false);
+      console.log('🟢 App is online');
     }
 
     // Load offline tracks from IndexedDB
@@ -190,6 +228,7 @@ export function OfflineProvider({ children }: { children: React.ReactNode }) {
       offlineTracks,
       isDownloading,
       downloadProgress,
+      isMobileApp,
       checkOnlineStatus,
       downloadTrackForOffline,
       removeOfflineTrack,
