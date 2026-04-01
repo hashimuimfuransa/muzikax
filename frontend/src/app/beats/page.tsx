@@ -226,7 +226,7 @@ export default function BeatsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black pt-14 md:pt-0">
       {/* Mobile Search & Category Scroll - Native App Style */}
       <div className="md:hidden sticky top-[3.6rem] z-40 bg-gradient-to-r from-gray-900 via-gray-900/95 to-black border-b border-gray-800/50 shadow-lg">
         {/* Search Bar */}

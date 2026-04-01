@@ -389,3 +389,118 @@ export const updatePlaylistMetadata = async (playlistId: string, name?: string, 
     return null;
   }
 };
+
+/**
+ * Get current user profile
+ */
+export const getUserProfile = async (): Promise<any | null> => {
+  try {
+    const response = await makeAuthenticatedRequest(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`);
+
+    // If user is not authenticated (401), return null
+    if (response.status === 401) {
+      return null;
+    }
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to fetch user profile');
+    }
+
+    const data = await response.json();
+    return {
+      ...data,
+      id: data._id,
+      whatsappContact: typeof data.whatsappContact === 'object' && data.whatsappContact !== null 
+        ? data.whatsappContact.whatsappContact || '' 
+        : data.whatsappContact || ''
+    };
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+    return null;
+  }
+};
+
+/**
+ * Get user's followers
+ */
+export const getUserFollowers = async (userId: string): Promise<any[]> => {
+  try {
+    if (!userId) {
+      return [];
+    }
+
+    const response = await makeAuthenticatedRequest(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${userId}/followers`);
+
+    // If user is not authenticated (401), return empty array
+    if (response.status === 401) {
+      return [];
+    }
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to fetch followers');
+    }
+
+    const data = await response.json();
+    return data.followers || [];
+  } catch (error) {
+    console.error('Error fetching followers:', error);
+    return [];
+  }
+};
+
+/**
+ * Get users that the user is following
+ */
+export const getUserFollowing = async (userId: string): Promise<any[]> => {
+  try {
+    if (!userId) {
+      return [];
+    }
+
+    const response = await makeAuthenticatedRequest(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${userId}/following`);
+
+    // If user is not authenticated (401), return empty array
+    if (response.status === 401) {
+      return [];
+    }
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to fetch following');
+    }
+
+    const data = await response.json();
+    return data.following || [];
+  } catch (error) {
+    console.error('Error fetching following:', error);
+    return [];
+  }
+};
+
+/**
+ * Get creator's tracks
+ */
+export const getCreatorTracks = async (): Promise<any[]> => {
+  try {
+    const response = await makeAuthenticatedRequest(`${process.env.NEXT_PUBLIC_API_URL}/api/tracks/creator`);
+
+    // If user is not authenticated (401), return empty array
+    if (response.status === 401) {
+      return [];
+    }
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to fetch tracks');
+    }
+
+    const data = await response.json();
+    // Handle both array and object responses
+    return Array.isArray(data) ? data : (data.tracks || []);
+  } catch (error) {
+    console.error('Error fetching tracks:', error);
+    return [];
+  }
+};

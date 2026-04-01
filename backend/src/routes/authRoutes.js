@@ -1,5 +1,5 @@
 const express = require('express');
-const { register, login, refreshToken, getUserProfile, updateUserProfile } = require('../controllers/authController');
+const { register, login, refreshToken, getUserProfile, updateUserProfile, requestPasswordReset, resetPassword } = require('../controllers/authController');
 const { googleLogin } = require('../controllers/googleAuthController');
 const { requestOTP, verifyOTPAndLogin, resendOTP, enable2FA, get2FAStatus } = require('../controllers/twoFAController');
 const { protect } = require('../utils/jwt');
@@ -36,6 +36,10 @@ router.route('/profile')
 
 // Refresh token route
 router.post('/refresh-token', refreshToken);
+
+// Password reset routes
+router.post('/forgot-password', requestPasswordReset);
+router.post('/reset-password', resetPassword);
 
 // 2FA routes for artists
 router.post('/2fa/request', requestOTP);

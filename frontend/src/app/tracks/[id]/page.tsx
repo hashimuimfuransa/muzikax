@@ -178,7 +178,7 @@ export default async function TrackDetailPage({ params }: { params: Promise<{ id
       : 'N/A';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black py-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black py-8 pt-14 md:pt-8">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
           {/* Track Detail Client (Header + Playback) */}

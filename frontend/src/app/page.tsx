@@ -763,7 +763,7 @@ export default function Home() {
   }, [trendingTracks, recommendedTracks]);
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black relative overflow-hidden">
+    <div className="flex flex-col md:flex-row min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black relative overflow-hidden pt-14 md:pt-0">
       {/* Loading overlay for initial data fetch */}
       {trendingLoading && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">

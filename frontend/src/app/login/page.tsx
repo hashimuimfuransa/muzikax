@@ -8,7 +8,7 @@ import { useGoogleLogin } from '@react-oauth/google'
 import { useLanguage } from '../../contexts/LanguageContext'
 
 function LoginContent() {
-  const [isLogin, setIsLogin] = useState(true)
+  const [isLogin, setIsLogin] = useState(false)
   const [step, setStep] = useState(1) // 1: Email, 2: Password, 3: Name (for signup)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -22,6 +22,12 @@ function LoginContent() {
   const searchParams = useSearchParams()
   const [redirect, setRedirect] = useState<string | null>(null)
   const { t } = useLanguage()
+  
+  // Forgot Password State
+  const [showForgotPassword, setShowForgotPassword] = useState(false)
+  const [resetEmail, setResetEmail] = useState('')
+  const [resetSent, setResetSent] = useState(false)
+  const [resetError, setResetError] = useState('')
   
   // 2FA State
   const [requires2FA, setRequires2FA] = useState(false)
@@ -46,6 +52,36 @@ function LoginContent() {
       setRedirect(decodeURIComponent(redirectValue))
     }
   }, [])
+
+  // Handle forgot password submit
+  const handleForgotPasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    setResetError('')
+    
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/forgot-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: resetEmail }),
+      })
+
+      const data = await response.json()
+      
+      if (!response.ok) {
+        setResetError(data.message || 'Failed to send reset email')
+      } else {
+        setResetSent(true)
+      }
+    } catch (error) {
+      console.error('Forgot password error:', error)
+      setResetError('An unexpected error occurred')
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const { login } = useAuth()
 
@@ -496,7 +532,7 @@ function LoginContent() {
         )}
 
         {/* Step 2: Password (Login) */}
-        {step === 2 && isLogin && (
+        {step === 2 && isLogin && !requires2FA && (
           <form className="mt-6 sm:mt-8 space-y-6" onSubmit={handleLoginSubmit}>
             <div>
               <div className="flex items-center justify-between mb-1">
@@ -504,9 +540,13 @@ function LoginContent() {
                   Password
                 </label>
                 <div className="text-sm">
-                  <a href="#" className="font-medium text-[#FF4D67] hover:text-[#FF4D67]/80">
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotPassword(true)}
+                    className="font-medium text-[#FF4D67] hover:text-[#FF4D67]/80 transition-colors"
+                  >
                     Forgot password?
-                  </a>
+                  </button>
                 </div>
               </div>
               <div className="relative">
@@ -569,29 +609,26 @@ function LoginContent() {
           </form>
         )}
 
-        {/* 2FA - OTP Verification for Artists and Admins */}
+        {/* 2FA - OTP Verification for Artists and Admins - Compact Design */}
         {requires2FA && (
-          <div className="mt-6 sm:mt-8">
-            <div className="text-center mb-6">
-              <div className="flex justify-center mb-3">
-                <div className="w-16 h-16 bg-gradient-to-r from-[#FF4D67] to-[#FF6B6B] rounded-full flex items-center justify-center">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="mt-4 sm:mt-6">
+            <div className="text-center mb-4">
+              <div className="flex justify-center mb-2">
+                <div className="w-12 h-12 bg-gradient-to-r from-[#FF4D67] to-[#FF6B6B] rounded-full flex items-center justify-center">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                   </svg>
                 </div>
               </div>
-              <h2 className="text-xl font-bold text-white mb-2">
+              <h2 className="text-lg font-bold text-white mb-1">
                 Two-Factor Authentication
               </h2>
-              <p className="text-gray-400 text-sm">
-                We've sent a 6-digit verification code to <strong className="text-white">{email}</strong>
-              </p>
-              <p className="text-gray-500 text-xs mt-2">
-                Check your inbox and spam folder. Code expires in 10 minutes.
+              <p className="text-gray-400 text-xs">
+                6-digit code sent to <strong className="text-white">{email}</strong>
               </p>
             </div>
 
-            <form onSubmit={handleOTPVerify} className="space-y-4">
+            <form onSubmit={handleOTPVerify} className="space-y-3">
               <div>
                 <label htmlFor="otp" className="block text-sm font-medium text-gray-300 mb-2 text-center">
                   Enter Verification Code
@@ -837,6 +874,214 @@ function LoginContent() {
           </p>
         </div>
       </div>
+
+      {/* Forgot Password Modal */}
+      {showForgotPassword && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div 
+            className="bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl w-full max-w-md transform transition-all duration-200 animate-in fade-in zoom-in-95 overflow-auto"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+          >
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-gray-800/50 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-white">Reset Password</h2>
+              <button
+                onClick={() => {
+                  setShowForgotPassword(false)
+                  setResetSent(false)
+                  setResetEmail('')
+                  setResetError('')
+                }}
+                className="p-1.5 rounded-full text-gray-400 hover:bg-gray-800 transition-colors"
+                aria-label="Close"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6">
+              {!resetSent ? (
+                <>
+                  <p className="text-sm text-gray-300 mb-4">
+                    Enter your email address and we'll send you a link to reset your password.
+                  </p>
+                  
+                  <form onSubmit={handleForgotPasswordSubmit} className="space-y-4">
+                    <div>
+                      <label htmlFor="resetEmail" className="block text-sm font-medium text-gray-300 mb-2">
+                        Email Address
+                      </label>
+                      <input
+                        id="resetEmail"
+                        name="resetEmail"
+                        type="email"
+                        required
+                        value={resetEmail}
+                        onChange={(e) => setResetEmail(e.target.value)}
+                        className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm"
+                        placeholder="you@example.com"
+                      />
+                    </div>
+
+                    {resetError && (
+                      <div className="text-red-500 text-xs py-1">
+                        {resetError}
+                      </div>
+                    )}
+
+                    <button
+                      type="submit"
+                      disabled={isLoading || !resetEmail}
+                      className="w-full py-3 px-4 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FF4D67] focus:ring-offset-gray-900 text-sm flex items-center justify-center disabled:opacity-70"
+                    >
+                      {isLoading ? (
+                        <>
+                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Sending...
+                        </>
+                      ) : 'Send Reset Link'}
+                    </button>
+                  </form>
+                </>
+              ) : (
+                <div className="text-center py-4">
+                  <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-bold text-white mb-2">Email Sent!</h3>
+                  <p className="text-sm text-gray-300 mb-4">
+                    Check your inbox for password reset instructions.
+                  </p>
+                  <button
+                    onClick={() => {
+                      setShowForgotPassword(false)
+                      setResetSent(false)
+                      setResetEmail('')
+                    }}
+                    className="w-full py-2.5 px-4 bg-gray-800 hover:bg-gray-700 text-white rounded-lg font-medium transition-all text-sm"
+                  >
+                    Back to Login
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 2FA Verification Modal */}
+      {requires2FA && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div 
+            className="bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl w-full max-w-md transform transition-all duration-200 animate-in fade-in zoom-in-95 overflow-auto"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+          >
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-gray-800/50 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-white">Two-Factor Authentication</h2>
+              <button
+                onClick={() => {
+                  setRequires2FA(false)
+                  setOtp('')
+                  setOtpError('')
+                }}
+                className="p-1.5 rounded-full text-gray-400 hover:bg-gray-800 transition-colors"
+                aria-label="Close"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6">
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-gradient-to-r from-[#FF4D67] to-[#FF6B6B] rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                </div>
+                <p className="text-sm text-gray-300 mb-2">
+                  We've sent a 6-digit verification code to
+                </p>
+                <p className="text-base font-semibold text-white">
+                  {email}
+                </p>
+                <p className="text-xs text-gray-500 mt-2">
+                  Check your inbox and spam folder. Code expires in 10 minutes.
+                </p>
+              </div>
+
+              <form onSubmit={handleOTPVerify} className="space-y-4">
+                <div>
+                  <label htmlFor="otp-modal" className="block text-sm font-medium text-gray-300 mb-2 text-center">
+                    Enter Verification Code
+                  </label>
+                  <input
+                    id="otp-modal"
+                    name="otp"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="\d{6}"
+                    maxLength={6}
+                    required
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                    className="w-full px-4 py-3 bg-gray-800/50 border-2 border-gray-700 rounded-lg text-white text-center text-2xl tracking-widest focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all"
+                    placeholder="000000"
+                    autoComplete="off"
+                  />
+                  {otpError && (
+                    <p className="text-red-500 text-xs mt-2 text-center">
+                      {otpError}
+                    </p>
+                  )}
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isLoading || otp.length !== 6}
+                  className="w-full py-3 px-4 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FF4D67] focus:ring-offset-gray-900 text-sm flex items-center justify-center disabled:opacity-70"
+                >
+                  {isLoading ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Verifying...
+                    </>
+                  ) : 'Verify & Continue'}
+                </button>
+              </form>
+
+              {/* Resend OTP */}
+              <div className="mt-4 text-center">
+                <button
+                  onClick={handleResendOTP}
+                  disabled={isLoading}
+                  className="text-sm text-[#FF4D67] hover:text-[#FF4D67]/80 transition-colors font-medium disabled:opacity-50"
+                >
+                  Didn't receive the code? Resend
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

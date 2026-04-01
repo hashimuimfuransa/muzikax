@@ -224,7 +224,7 @@ export default function FollowersPage() {
 
   return (
     <div 
-      className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black"
+      className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black pt-14 md:pt-0"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}

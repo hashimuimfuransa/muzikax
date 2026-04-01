@@ -178,7 +178,7 @@ export default function UserProfile() {
   const isCompact = scrollY > 200
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black pt-14 md:pt-0">
       {/* Sticky Profile Header */}
       <div className={`sticky top-0 z-50 transition-all duration-300 ${isCompact ? 'bg-gray-900/95 backdrop-blur-lg shadow-lg' : ''}`}>
         <div className="container mx-auto px-4 pt-4 pb-3">

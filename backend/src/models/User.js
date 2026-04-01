@@ -94,6 +94,15 @@ var UserSchema = new mongoose_1.Schema({
         type: String,
         select: false // Don't return this field by default
     },
+    // Password reset fields
+    resetPasswordToken: {
+        type: String,
+        select: false
+    },
+    resetPasswordExpires: {
+        type: Date,
+        select: false
+    },
     // Notification preferences
     emailNotifications: {
         newTrackFromFollowing: {

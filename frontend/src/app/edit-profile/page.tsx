@@ -184,7 +184,7 @@ export default function EditProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black py-8 px-4 sm:px-6 lg:px-8 pt-14 md:pt-8">
       {/* Header */}
       <div className="max-w-3xl mx-auto">
         {/* Back Button */}
