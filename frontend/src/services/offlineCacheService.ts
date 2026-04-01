@@ -10,6 +10,14 @@ interface CacheEntry<T> {
   expiry: number;
 }
 
+export interface OfflineData {
+  recentTracks?: any[];
+  popularTracks?: any[];
+  homepageSlides?: any[];
+  trendingCreators?: any[];
+  lastSyncTime?: number;
+}
+
 interface OfflineCache {
   monthlyPopularTracks: CacheEntry<any[]> | null;
   trendingTracks: CacheEntry<any[]> | null;
@@ -34,6 +42,7 @@ class OfflineCacheService {
     creatorTracks: new Map(),
     trackDetails: new Map(),
   };
+  private offlineData: OfflineData | null = null;
 
   /**
    * Cache monthly popular tracks
@@ -254,6 +263,35 @@ class OfflineCacheService {
       creatorTracks: this.cache.creatorTracks.size,
       trackDetails: this.cache.trackDetails.size,
     };
+  }
+
+  /**
+   * Get offline data
+   */
+  getOfflineData(): OfflineData | null {
+    return this.offlineData;
+  }
+
+  /**
+   * Sync data for offline mode
+   */
+  async syncData() {
+    console.log('🔄 Syncing data for offline mode...');
+    
+    try {
+      // Update offline data with current cached content
+      this.offlineData = {
+        recentTracks: this.getCachedMonthlyPopularTracks() || undefined,
+        popularTracks: this.getCachedTrendingTracks() || undefined,
+        homepageSlides: [], // Can be populated from other sources
+        trendingCreators: [], // Can be populated from creator profiles
+        lastSyncTime: Date.now(),
+      };
+      
+      console.log('✅ Data synced for offline mode');
+    } catch (error) {
+      console.error('❌ Error syncing data:', error);
+    }
   }
 }
 
