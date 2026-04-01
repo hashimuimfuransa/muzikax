@@ -27,7 +27,11 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   const t = (key: TranslationKey, replacements?: Record<string, string | number>): string => {
-    let translation = translations[language][key] || translations['en'][key] || key;
+    // Use type assertion to safely access translations
+    const langTranslations = translations[language] as Record<TranslationKey, string>;
+    const englishTranslations = translations['en'] as Record<TranslationKey, string>;
+    
+    let translation = langTranslations[key] || englishTranslations[key] || key;
     
     if (replacements) {
       Object.entries(replacements).forEach(([k, v]) => {
