@@ -110,8 +110,8 @@ const PWAInstallPrompt = () => {
   if (!showInstallPrompt || isInstalled) return null;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-[9998] md:bottom-4 md:left-4 md:right-auto md:w-96 pointer-events-none">
-      <div className="bg-gray-900/95 backdrop-blur-sm border border-pink-500/30 rounded-t-2xl md:rounded-2xl shadow-2xl p-4 md:p-5 max-w-md mx-auto md:mx-0 pointer-events-auto animate-bounce-in">
+    <div className="fixed inset-0 z-[9998] flex items-center justify-center p-4 pointer-events-none">
+      <div className="bg-gray-900/95 backdrop-blur-sm border border-pink-500/30 rounded-2xl shadow-2xl p-4 md:p-5 max-w-md w-full pointer-events-auto animate-bounce-in">
         <div className="flex flex-col gap-3">
           {/* Header with Icon and Title */}
           <div className="flex items-center gap-3">
