@@ -486,35 +486,47 @@ function ExploreContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black pt-14 md:pt-0">
+    <div className="min-h-screen bg-[var(--background)] text-white">
+
+      {/* ── Background ambience ── */}
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
+      >
+        <div className="absolute -top-40 -left-40 w-[600px] h-[600px] bg-amber-500/5 rounded-full blur-[120px]" />
+        <div className="absolute -bottom-40 -right-40 w-[500px] h-[500px] bg-orange-600/5 rounded-full blur-[120px]" />
+      </div>
+
+      {/* Main Content */}
+      <main className="flex-1 w-full max-w-[1600px] mx-auto px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10 pt-16 sm:pt-20 md:pt-16 lg:pt-8 pb-32 space-y-4 sm:space-y-6 md:space-y-8">
       {/* Mobile Header with Back Button */}
-      <div className="md:hidden sticky top-0 z-50 bg-gray-900/95 backdrop-blur-lg border-b border-gray-800">
+      <div className="md:hidden sticky top-0 z-50 bg-gradient-to-r from-amber-500 via-amber-500/95 to-orange-600 backdrop-blur-md border-b border-white/10 shadow-2xl">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-3">
             <button
               onClick={() => router.back()}
-              className="text-gray-400 hover:text-white transition-colors p-2 -ml-2"
+              className="text-black/70 hover:text-black transition-colors p-2 -ml-2"
               aria-label="Go back"
             >
               <FaArrowLeft className="w-5 h-5" />
             </button>
             <div>
-              <h1 className="text-xl font-black text-white">Explore</h1>
-              <p className="text-xs text-gray-400">Discover new music</p>
+              <h1 className="text-xl font-black text-black">Explore</h1>
+              <p className="text-xs text-black/80">Discover new music</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Mobile Category Filter - Horizontal Scroll (Compact) */}
-      <section className="md:hidden w-full px-0 py-1.5 bg-gradient-to-r from-gray-900 via-gray-900/95 to-black border-b border-gray-800/50 shadow-lg sticky top-[3.5rem] z-40">
-        <div className="flex items-center space-x-1.5 overflow-x-auto scrollbar-hide px-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
+      {/* Mobile Category Filters - Horizontal Scroll (Compact) */}
+      <section className="md:hidden w-full px-0 py-2 bg-gradient-to-b from-gray-900/95 to-gray-900/90 backdrop-blur-md border-b border-gray-800/50 shadow-xl sticky top-[8.5rem] z-40">
+        <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide px-3" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
           <button
             onClick={() => handleCategoryClick('')}
-            className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap flex-shrink-0 transition-all duration-200 active:scale-95 ${
+            className={`px-3 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap flex-shrink-0 transition-all duration-200 active:scale-95 ${
               selectedCategory === null
-                ? 'bg-gradient-to-r from-[#FF4D67] to-[#FF6B8B] text-white shadow-lg shadow-[#FF4D67]/30'
-                : 'bg-gray-800/60 text-gray-300 border border-gray-700/50'
+                ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-black shadow-lg shadow-amber-500/30 scale-105'
+                : 'bg-white/5 text-white/80 hover:text-white hover:bg-white/10 border border-white/10'
             }`}
           >
             All
@@ -523,10 +535,10 @@ function ExploreContent() {
             <button
               key={category.id}
               onClick={() => handleCategoryClick(category.id)}
-              className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap flex-shrink-0 transition-all duration-200 active:scale-95 ${
+              className={`px-3 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap flex-shrink-0 transition-all duration-200 active:scale-95 ${
                 selectedCategory === category.id
-                  ? 'bg-gradient-to-r from-[#FFCB2B] to-[#FFA726] text-gray-900 shadow-lg shadow-[#FFCB2B]/30'
-                  : 'bg-gray-800/60 text-gray-300 border border-gray-700/50'
+                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-black shadow-lg shadow-amber-500/30 scale-105'
+                  : 'bg-white/5 text-white/80 hover:text-white hover:bg-white/10 border border-white/10'
               }`}
             >
               {category.name}
@@ -535,28 +547,139 @@ function ExploreContent() {
         </div>
       </section>
 
-      {/* Mobile Search Bar - Compact Native Style */}
-      <div className="md:hidden sticky top-[5.3rem] z-40 bg-gradient-to-r from-gray-900 via-gray-900/95 to-black border-b border-gray-800/50 shadow-lg">
-        <div className="px-2 py-1.5">
-          <div className="relative">
+      {/* Desktop Search & Category Filters - Combined Bar */}
+      <div className="hidden md:block container mx-auto px-4 sm:px-6 py-4">
+        {/* Search and Filters in same row */}
+        <div className="flex items-center gap-4">
+          {/* Search Bar - Left side */}
+          <div className="relative w-full max-w-sm">
             <input
               type="text"
               placeholder={t('searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full py-2 px-3 pl-9 bg-gray-800/70 backdrop-blur-sm border border-gray-700/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-xs shadow-sm"
+              className="w-full py-2.5 px-4 pl-11 pr-10 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent transition-all text-sm shadow-lg"
             />
-            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <div className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-white/40">
+              <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
               </svg>
             </div>
             {searchTerm && (
               <button
                 onClick={() => setSearchTerm('')}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 active:text-white"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/40 hover:text-white transition-colors"
               >
-                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                </svg>
+              </button>
+            )}
+          </div>
+          
+          {/* Category Filters - Right side, scrollable */}
+          <div className="flex-1 flex items-center gap-1.5 overflow-x-auto scrollbar-hide pb-1">
+            <button
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all flex-shrink-0 ${
+                selectedCategory === null
+                  ? 'bg-gradient-to-r from-[#FF4D67] to-[#FF6B8B] text-white shadow-lg shadow-[#FF4D67]/20 scale-105'
+                  : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50 border border-gray-700/50 hover:scale-105'
+              }`}
+              onClick={() => handleCategoryClick('')}
+            >
+              {t('all')}
+            </button>
+            
+            {categories.slice(0, 10).map((category) => (
+              <button
+                key={category.id}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-300 whitespace-nowrap flex-shrink-0 ${
+                  selectedCategory === category.id
+                    ? 'bg-gradient-to-r from-[#FFCB2B] to-[#FFA726] text-gray-900 shadow-lg shadow-[#FFCB2B]/30 scale-105 ring-2 ring-[#FFCB2B]/40'
+                    : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50 border border-gray-700/50 hover:scale-105 hover:text-white'
+                }`}
+                onClick={() => handleCategoryClick(category.id)}
+              >
+                {category.name}
+              </button>
+            ))}
+            
+            {/* More genres dropdown */}
+            <div className="flex items-center flex-shrink-0 relative">
+              <details className="group">
+                <summary className="px-3 py-1.5 rounded-full text-xs font-medium bg-gray-800/50 text-gray-300 hover:bg-gray-700/50 border border-gray-700/50 cursor-pointer list-none flex items-center gap-1 hover:scale-105 transition-all">
+                  <span>{t('more')}</span>
+                  <svg className="w-3 h-3 ml-1 transition-transform duration-300 group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                  </svg>
+                </summary>
+                <div className="fixed z-50 inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 sm:p-8" onClick={(e) => e.stopPropagation()}>
+                  <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl shadow-2xl shadow-[#FF4D67]/50 border border-gray-700/50 max-h-[80vh] w-full max-w-md overflow-hidden">
+                    <div className="p-4 border-b border-gray-700/50 flex justify-between items-center">
+                      <h3 className="text-lg font-bold text-white">{t('moreGenres')}</h3>
+                      <button 
+                        onClick={() => {
+                          const details = document.querySelector('details');
+                          if (details) details.removeAttribute('open');
+                        }}
+                        className="text-gray-400 hover:text-white"
+                      >
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                      </button>
+                    </div>
+                    <div className="p-4 max-h-[60vh] overflow-y-auto">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        {categories.slice(10).map((category) => (
+                          <button
+                            key={category.id}
+                            className={`px-3 py-2 rounded-full text-sm font-medium transition-all duration-300 whitespace-nowrap ${
+                              selectedCategory === category.id
+                                ? 'bg-gradient-to-r from-[#FFCB2B] to-[#FFA726] text-gray-900 shadow-lg shadow-[#FFCB2B]/20'
+                                : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
+                            }`}
+                            onClick={() => {
+                              handleCategoryClick(category.id);
+                              const details = document.querySelector('details');
+                              if (details) details.removeAttribute('open');
+                            }}
+                          >
+                            {category.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </details>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Search Bar - Compact Native Style */}
+      <div className="md:hidden sticky top-[5.3rem] z-40 bg-gradient-to-r from-gray-900 via-gray-900/95 to-gray-900 backdrop-blur-md border-b border-gray-800/50 shadow-xl py-2">
+        <div className="px-3 py-2">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder={t('searchPlaceholder')}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full py-2.5 px-4 pl-10 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent transition-all text-xs shadow-md"
+            />
+            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+            </div>
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/60 active:text-white transition-colors"
+              >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
                 </svg>
               </button>
@@ -565,131 +688,10 @@ function ExploreContent() {
         </div>
       </div>
 
-      {/* Hero Section - Hidden on Mobile */}
-      <div className="hidden md:block relative py-8 sm:py-12 lg:py-16 overflow-hidden">
-        {/* Background image with gradient overlay */}
-        <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80)' }}></div>
-          <div className="absolute inset-0 bg-gradient-to-r from-gray-900 via-gray-900/80 to-gray-900/60"></div>
-        </div>
-        
-        {/* Decorative elements */}
-        <div className="absolute -top-20 -left-20 w-64 h-64 bg-[#FF4D67]/10 rounded-full blur-3xl -z-10"></div>
-        <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-[#FFCB2B]/10 rounded-full blur-3xl -z-10"></div>
-        
-        <div className="container mx-auto px-4 sm:px-8 relative z-10">
-          <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] mb-3 sm:mb-4">
-              {t('exploreRwandanMusic')}
-            </h1>
-            <p className="text-base sm:text-lg text-gray-300 max-w-2xl mx-auto mb-6 sm:mb-8">
-              {t('exploreHeroDescription')}
-            </p>
-            
-            <div className="relative max-w-xl mx-auto">
-              <input
-                type="text"
-                placeholder={t('searchPlaceholder')}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full py-2.5 sm:py-3 px-4 sm:px-6 pl-10 sm:pl-12 bg-gray-800/70 backdrop-blur-sm border border-gray-700/50 rounded-full text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm sm:text-base shadow-lg"
-              />
-              <div className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-gray-400">
-                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                </svg>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Category Filters - Hidden on Mobile */}
-      <div className="hidden md:block container mx-auto px-4 sm:px-8 py-4">
-        <div className="flex flex-wrap gap-1.5 xs:gap-2 justify-center max-w-full overflow-x-auto pb-2">
-          <button
-            className={`px-2.5 py-1.5 xs:px-3 xs:py-2 rounded-full text-xs xs:text-sm font-medium transition-colors flex-shrink-0 ${
-              selectedCategory === null
-                ? 'bg-gradient-to-r from-[#FF4D67] to-[#FF6B8B] text-white shadow-lg shadow-[#FF4D67]/20'
-                : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50 border border-gray-700/50'
-            }`}
-            onClick={() => handleCategoryClick('')}
-          >
-            {t('all')}
-          </button>
-          
-          {categories.slice(0, 10).map((category) => (
-            <button
-              key={category.id}
-              className={`px-2.5 py-1.5 xs:px-3 xs:py-2 rounded-full text-xs xs:text-sm font-medium transition-all duration-300 whitespace-nowrap flex-shrink-0 ${
-                selectedCategory === category.id
-                  ? 'bg-gradient-to-r from-[#FFCB2B] to-[#FFA726] text-gray-900 shadow-lg shadow-[#FFCB2B]/30 scale-105 ring-2 ring-[#FFCB2B]/40'
-                  : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50 border border-gray-700/50 hover:scale-105 hover:text-white hover:shadow-md'
-              }`}
-              onClick={() => handleCategoryClick(category.id)}
-            >
-              {category.name}
-            </button>
-          ))}
-          
-          {/* More genres dropdown */}
-          <div className="flex items-center flex-shrink-0 relative">
-            <details className="group">
-              <summary className="px-2.5 py-1.5 xs:px-3 xs:py-2 rounded-full text-xs xs:text-sm font-medium bg-gray-800/50 text-gray-300 hover:bg-gray-700/50 border border-gray-700/50 cursor-pointer list-none flex items-center gap-1">
-                <span>{t('more')}</span>
-                <svg className="w-3 h-3 ml-1 transition-transform duration-300 group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-                </svg>
-              </summary>
-              <div className="fixed z-50 inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 sm:p-8" onClick={(e) => e.stopPropagation()}>
-                <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl shadow-2xl shadow-[#FF4D67]/50 border border-gray-700/50 max-h-[80vh] w-full max-w-md overflow-hidden">
-                  <div className="p-4 border-b border-gray-700/50 flex justify-between items-center">
-                    <h3 className="text-lg font-bold text-white">{t('moreGenres')}</h3>
-                    <button 
-                      onClick={() => {
-                        const details = document.querySelector('details');
-                        if (details) details.removeAttribute('open');
-                      }}
-                      className="text-gray-400 hover:text-white"
-                    >
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-                      </svg>
-                    </button>
-                  </div>
-                  <div className="p-4 max-h-[60vh] overflow-y-auto">
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      {categories.slice(10).map((category) => (
-                        <button
-                          key={category.id}
-                          className={`px-3 py-2 rounded-full text-sm font-medium transition-all duration-300 whitespace-nowrap ${
-                            selectedCategory === category.id
-                              ? 'bg-gradient-to-r from-[#FFCB2B] to-[#FFA726] text-gray-900 shadow-lg shadow-[#FFCB2B]/20'
-                              : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
-                          }`}
-                          onClick={() => {
-                            handleCategoryClick(category.id);
-                            // Close the dropdown
-                            const details = document.querySelector('details');
-                            if (details) details.removeAttribute('open');
-                          }}
-                        >
-                          {category.name}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </details>
-          </div>
-        </div>
-      </div>
-
-      {/* Content Tabs - Desktop Only */}
-      <div className="container mx-auto px-4 sm:px-8 py-8 sm:py-12 md:py-16 pb-32 flex-1">
+      {/* Content Tabs - Reduced Padding */}
+      <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 md:py-8 pb-32 flex-1">
         {/* Mobile Tab Navigation - Bottom Fixed (Visible only on mobile) */}
-        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur-lg border-t border-gray-800/50 shadow-2xl z-50 safe-area-pb">
+        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-gradient-to-t from-gray-900 via-gray-900/95 to-gray-900/90 backdrop-blur-md border-t border-gray-800/50 shadow-2xl z-50 safe-area-pb">
           <div className="flex justify-around items-center">
             <button
               className={`flex-1 flex flex-col items-center justify-center py-3 transition-all active:scale-95 ${
@@ -750,61 +752,61 @@ function ExploreContent() {
         </div>
 
         {/* Desktop Tab Navigation - Hidden on Mobile */}
-        <div className="hidden md:block bg-gray-800/50 backdrop-blur-sm rounded-xl p-1 mb-8 sm:mb-10 border border-gray-700 overflow-x-auto scrollbar-hide">
-          <div className="flex justify-between min-w-max">
+        <div className="hidden md:block">
+          <div className="flex items-center gap-1 bg-white/5 backdrop-blur-sm rounded-full p-1 w-fit mx-auto mb-8 sm:mb-10 border border-white/10 shadow-lg overflow-x-auto scrollbar-hide">
             <button
-              className={`flex items-center gap-2 py-3 px-4 sm:px-6 rounded-lg transition-all duration-300 font-medium text-sm sm:text-base whitespace-nowrap ${
+              className={`flex items-center gap-2 py-2.5 px-5 sm:px-6 rounded-full transition-all duration-300 font-semibold text-xs sm:text-sm whitespace-nowrap flex-shrink-0 ${
                 activeTab === 'tracks'
-                  ? 'bg-gradient-to-r from-[#FF4D67] to-[#FF6B8B] text-white shadow-lg'
-                  : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-black shadow-md'
+                  : 'text-white/50 hover:text-white/80 hover:bg-white/5'
               }`}
               onClick={() => setActiveTab('tracks')}
             >
-              <FaMusic className={activeTab === 'tracks' ? 'text-white' : ''} />
+              <FaMusic className={activeTab === 'tracks' ? 'text-black' : ''} />
               <span>{t('trendingTracks')}</span>
             </button>
             <button
-              className={`flex items-center gap-2 py-3 px-4 sm:px-6 rounded-lg transition-all duration-300 font-medium text-sm sm:text-base whitespace-nowrap ${
+              className={`flex items-center gap-2 py-2.5 px-5 sm:px-6 rounded-full transition-all duration-300 font-semibold text-xs sm:text-sm whitespace-nowrap flex-shrink-0 ${
                 activeTab === 'beats'
-                  ? 'bg-gradient-to-r from-[#FF4D67] to-[#FF6B8B] text-white shadow-lg'
-                  : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-black shadow-md'
+                  : 'text-white/50 hover:text-white/80 hover:bg-white/5'
               }`}
               onClick={() => setActiveTab('beats')}
             >
-              <FaHeadphones className={activeTab === 'beats' ? 'text-white' : ''} />
+              <FaHeadphones className={activeTab === 'beats' ? 'text-black' : ''} />
               <span>{t('beats')}</span>
             </button>
             <button
-              className={`flex items-center gap-2 py-3 px-4 sm:px-6 rounded-lg transition-all duration-300 font-medium text-sm sm:text-base whitespace-nowrap ${
+              className={`flex items-center gap-2 py-2.5 px-5 sm:px-6 rounded-full transition-all duration-300 font-semibold text-xs sm:text-sm whitespace-nowrap flex-shrink-0 ${
                 activeTab === 'albums'
-                  ? 'bg-gradient-to-r from-[#FF4D67] to-[#FF6B8B] text-white shadow-lg'
-                  : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-black shadow-md'
+                  : 'text-white/50 hover:text-white/80 hover:bg-white/5'
               }`}
               onClick={() => setActiveTab('albums')}
             >
-              <FaCompactDisc className={activeTab === 'albums' ? 'text-white' : ''} />
+              <FaCompactDisc className={activeTab === 'albums' ? 'text-black' : ''} />
               <span>{t('albums')}</span>
             </button>
             <button
-              className={`flex items-center gap-2 py-3 px-4 sm:px-6 rounded-lg transition-all duration-300 font-medium text-sm sm:text-base whitespace-nowrap ${
+              className={`flex items-center gap-2 py-2.5 px-5 sm:px-6 rounded-full transition-all duration-300 font-semibold text-xs sm:text-sm whitespace-nowrap flex-shrink-0 ${
                 activeTab === 'playlists'
-                  ? 'bg-gradient-to-r from-[#FF4D67] to-[#FF6B8B] text-white shadow-lg'
-                  : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-black shadow-md'
+                  : 'text-white/50 hover:text-white/80 hover:bg-white/5'
               }`}
               onClick={() => setActiveTab('playlists')}
             >
-              <FaListUl className={activeTab === 'playlists' ? 'text-white' : ''} />
+              <FaListUl className={activeTab === 'playlists' ? 'text-black' : ''} />
               <span>{t('playlists')}</span>
             </button>
             <button
-              className={`flex items-center gap-2 py-3 px-4 sm:px-6 rounded-lg transition-all duration-300 font-medium text-sm sm:text-base whitespace-nowrap ${
+              className={`flex items-center gap-2 py-2.5 px-5 sm:px-6 rounded-full transition-all duration-300 font-semibold text-xs sm:text-sm whitespace-nowrap flex-shrink-0 ${
                 activeTab === 'creators'
-                  ? 'bg-gradient-to-r from-[#FFCB2B] to-[#FFD700] text-white shadow-lg'
-                  : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-black shadow-md'
+                  : 'text-white/50 hover:text-white/80 hover:bg-white/5'
               }`}
               onClick={() => setActiveTab('creators')}
             >
-              <FaUsers className={activeTab === 'creators' ? 'text-white' : ''} />
+              <FaUsers className={activeTab === 'creators' ? 'text-black' : ''} />
               <span>{t('topCreators')}</span>
             </button>
           </div>
@@ -814,13 +816,13 @@ function ExploreContent() {
         {activeTab === 'beats' && (
           <>
             {beatsLoading ? (
-              <div className="flex justify-center items-center h-64">
+              <div className="flex justify-center items-center h-48">
                 <div className="text-white">{t('loadingBeats')}</div>
               </div>
             ) : (
               <>
                 {/* Mobile List View - Home Page Style */}
-                <div className="md:hidden space-y-2 pb-32 px-2 mt-4">
+                <div className="md:hidden space-y-1.5 pb-32 px-2 -mt-2">
                   {filteredBeats.length > 0 ? (
                     filteredBeats.map((beat, index) => (
                       <div key={`beat-${beat.id}-mobile`} className="w-full mb-2">
@@ -1109,11 +1111,11 @@ function ExploreContent() {
         {activeTab === 'albums' && (
           <>
             {albumsLoading ? (
-              <div className="flex justify-center items-center h-64">
+              <div className="flex justify-center items-center h-48">
                 <div className="text-white">{t('loadingAlbums')}</div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 xs:gap-4 sm:gap-5 md:gap-6 lg:gap-8">
+              <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 xs:gap-4 sm:gap-5 md:gap-6 lg:gap-8 -mt-2">
                 {albums.length > 0 ? (
                   albums.map((album) => (
                   <div key={`album-${album.id}`} className="group card-bg rounded-lg xs:rounded-xl sm:rounded-2xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10">
@@ -1127,6 +1129,39 @@ function ExploreContent() {
                           target.src = '/placeholder-album.png';
                         }}
                       />
+                      
+                      {/* Layered stack effect for multi-track albums */}
+                      {(album.tracks?.length || 0) > 1 && (
+                        <>
+                          {/* Second layer */}
+                          <div className="absolute top-1 left-1 w-full h-full rounded-xl overflow-hidden shadow-lg border border-white/20 pointer-events-none">
+                            <img 
+                              src={album.coverImage || album.coverURL || '/placeholder-album.png'} 
+                              alt={album.title} 
+                              className="w-full h-full object-cover opacity-80"
+                            />
+                          </div>
+                          
+                          {/* Third layer for albums with many tracks */}
+                          {(album.tracks?.length || 0) > 3 && (
+                            <div className="absolute top-2 left-2 w-full h-full rounded-xl overflow-hidden shadow-lg border border-white/15 pointer-events-none">
+                              <img 
+                                src={album.coverImage || album.coverURL || '/placeholder-album.png'} 
+                                alt={album.title} 
+                                className="w-full h-full object-cover opacity-60"
+                              />
+                            </div>
+                          )}
+                        </>
+                      )}
+                      
+                      {/* Track count badge */}
+                      {(album.tracks?.length || 0) > 1 && (
+                        <div className="absolute bottom-2 right-2 bg-white/90 text-black text-[10px] font-bold px-2 py-0.5 rounded-full shadow-md min-w-[20px] text-center backdrop-blur-sm">
+                          {album.tracks?.length || 0}
+                        </div>
+                      )}
+                      
                       <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <button 
                           onClick={() => {
@@ -1227,11 +1262,11 @@ function ExploreContent() {
         {activeTab === 'playlists' && (
           <>
             {playlistsLoading ? (
-              <div className="flex justify-center items-center h-64">
+              <div className="flex justify-center items-center h-48">
                 <div className="text-white">{t('loadingPlaylists')}</div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 xs:gap-4 sm:gap-5 md:gap-6 lg:gap-8">
+              <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 xs:gap-4 sm:gap-5 md:gap-6 lg:gap-8 -mt-2">
                 {playlists.length > 0 ? (
                   playlists.map((playlist) => (
                   <div key={`playlist-${playlist.id}`} className="group card-bg rounded-lg xs:rounded-xl sm:rounded-2xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10">
@@ -1247,6 +1282,43 @@ function ExploreContent() {
                           target.src = '/placeholder-playlist.png';
                         }}
                       />
+                      
+                      {/* Layered stack effect for multi-track playlists */}
+                      {(playlist.tracks?.length || 0) > 1 && (
+                        <>
+                          {/* Second layer */}
+                          <div className="absolute top-1 left-1 w-full h-full rounded-xl overflow-hidden shadow-lg border border-white/20 pointer-events-none">
+                            <img 
+                              src={playlist.tracks && playlist.tracks.length > 0 ? 
+                                (playlist.tracks[0].coverURL || '/placeholder-playlist.png') : 
+                                '/placeholder-playlist.png'} 
+                              alt={playlist.name} 
+                              className="w-full h-full object-cover opacity-80"
+                            />
+                          </div>
+                          
+                          {/* Third layer for playlists with many tracks */}
+                          {(playlist.tracks?.length || 0) > 3 && (
+                            <div className="absolute top-2 left-2 w-full h-full rounded-xl overflow-hidden shadow-lg border border-white/15 pointer-events-none">
+                              <img 
+                                src={playlist.tracks && playlist.tracks.length > 0 ? 
+                                  (playlist.tracks[0].coverURL || '/placeholder-playlist.png') : 
+                                  '/placeholder-playlist.png'} 
+                                alt={playlist.name} 
+                                className="w-full h-full object-cover opacity-60"
+                              />
+                            </div>
+                          )}
+                        </>
+                      )}
+                      
+                      {/* Track count badge */}
+                      {(playlist.tracks?.length || 0) > 1 && (
+                        <div className="absolute bottom-2 right-2 bg-amber-500 text-black text-[10px] font-bold px-2 py-0.5 rounded-full shadow-md min-w-[20px] text-center">
+                          {playlist.tracks?.length || 0}
+                        </div>
+                      )}
+                      
                       <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <button 
                           onClick={() => {
@@ -1627,11 +1699,11 @@ function ExploreContent() {
         {activeTab === 'creators' && (
           <>
             {creatorsLoading ? (
-              <div className="flex justify-center items-center h-64">
+              <div className="flex justify-center items-center h-48">
                 <div className="text-white">{t('loading')}</div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 xs:gap-4 sm:gap-5 md:gap-6">
+              <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 xs:gap-4 sm:gap-5 md:gap-6 -mt-2">
                 {filteredCreators.length > 0 ? (
                   filteredCreators.map((creator) => (
                   <div key={`creator-${creator._id || creator.id}`} className="group card-bg rounded-lg xs:rounded-xl sm:rounded-2xl p-3 xs:p-4 sm:p-5 md:p-6 transition-all duration-300 hover:border-[#FFCB2B]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FFCB2B]/10 cursor-pointer"
@@ -1711,6 +1783,7 @@ function ExploreContent() {
           </>
         )}
       </div>
+      </main>
     </div>
   )
 }

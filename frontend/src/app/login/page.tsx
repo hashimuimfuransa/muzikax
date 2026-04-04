@@ -431,11 +431,11 @@ function LoginContent() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-900 to-black p-4 relative">
-      <div className="absolute top-1/3 left-0 w-32 h-32 bg-[#FF4D67]/10 rounded-full blur-3xl -z-10 opacity-70 md:w-48 md:h-48 md:top-1/4 md:left-1/4"></div>
-      <div className="absolute bottom-1/3 right-0 w-32 h-32 bg-[#FFCB2B]/10 rounded-full blur-3xl -z-10 opacity-70 md:w-48 md:h-48 md:bottom-1/4 md:right-1/4"></div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background-deep via-background to-surface-elevated p-4 relative">
+      <div className="absolute top-1/3 left-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -z-10 opacity-70 md:w-48 md:h-48 md:top-1/4 md:left-1/4"></div>
+      <div className="absolute bottom-1/3 right-0 w-32 h-32 bg-primary-hover/10 rounded-full blur-3xl -z-10 opacity-70 md:w-48 md:h-48 md:bottom-1/4 md:right-1/4"></div>
       
-      <div className="w-full max-w-md space-y-4 sm:space-y-5 card-bg rounded-2xl p-5 sm:p-7 border border-gray-700/50 shadow-2xl shadow-[#FF4D67]/10 relative z-10">
+      <div className="w-full max-w-md space-y-4 sm:space-y-5 card-bg rounded-2xl p-5 sm:p-7 border border-border-light shadow-2xl shadow-primary-glow relative z-10">
         <div className="text-center animate-fade-in">
           <div className="flex justify-center mb-2 items-center">
             <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden shadow-xl bg-black">
@@ -468,7 +468,7 @@ function LoginContent() {
           <button
             className={`flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition-colors ${
               isLogin 
-                ? 'bg-[#FF4D67] text-white' 
+                ? 'bg-gradient-to-r from-[#FFD700] to-[#FF8C00] text-white' 
                 : 'text-gray-400 hover:text-white'
             }`}
             onClick={() => {
@@ -481,7 +481,7 @@ function LoginContent() {
           <button
             className={`flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition-colors ${
               !isLogin 
-                ? 'bg-[#FF4D67] text-white' 
+                ? 'bg-gradient-to-r from-[#FFD700] to-[#FF8C00] text-white' 
                 : 'text-gray-400 hover:text-white'
             }`}
             onClick={() => {
@@ -508,7 +508,7 @@ function LoginContent() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2 sm:px-4 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm sm:text-base"
+                className="w-full px-3 py-2 sm:px-4 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FFD700] focus:border-transparent transition-all text-sm sm:text-base"
                 placeholder="you@example.com"
               />
             </div>
@@ -523,7 +523,7 @@ function LoginContent() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-2 sm:py-2.5 px-4 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FF4D67] focus:ring-offset-gray-900 text-sm sm:text-base flex items-center justify-center disabled:opacity-70"
+                className="w-full py-2 sm:py-2.5 px-4 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FFD700] focus:ring-offset-gray-900 text-sm sm:text-base flex items-center justify-center disabled:opacity-70"
               >
                 {isLoading ? (
                   <>
@@ -551,7 +551,7 @@ function LoginContent() {
                   <button
                     type="button"
                     onClick={() => setShowForgotPassword(true)}
-                    className="font-medium text-[#FF4D67] hover:text-[#FF4D67]/80 transition-colors"
+                    className="font-medium text-[#FFD700] hover:text-[#FF8C00] transition-colors"
                   >
                     Forgot password?
                   </button>
@@ -566,7 +566,7 @@ function LoginContent() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm sm:text-base pr-10"
+                  className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FFD700] focus:border-transparent transition-all text-sm sm:text-base pr-10"
                   placeholder="••••••••"
                 />
                 <button
@@ -601,7 +601,7 @@ function LoginContent() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-2.5 sm:py-3 px-4 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FF4D67] focus:ring-offset-gray-900 text-sm sm:text-base flex items-center justify-center disabled:opacity-70"
+                className="w-full py-2.5 sm:py-3 px-4 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FFD700] focus:ring-offset-gray-900 text-sm sm:text-base flex items-center justify-center disabled:opacity-70"
               >
                 {isLoading ? (
                   <>
@@ -622,7 +622,7 @@ function LoginContent() {
           <div className="mt-4 sm:mt-6">
             <div className="text-center mb-4">
               <div className="flex justify-center mb-2">
-                <div className="w-12 h-12 bg-gradient-to-r from-[#FF4D67] to-[#FF6B6B] rounded-full flex items-center justify-center">
+                <div className="w-12 h-12 bg-gradient-to-r from-[#FFD700] to-[#FF8C00] rounded-full flex items-center justify-center">
                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                   </svg>
@@ -651,7 +651,7 @@ function LoginContent() {
                   required
                   value={otp}
                   onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                  className="w-full px-4 py-3 bg-gray-800/50 border-2 border-gray-700 rounded-lg text-white text-center text-2xl tracking-widest focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 bg-gray-800/50 border-2 border-gray-700 rounded-lg text-white text-center text-2xl tracking-widest focus:outline-none focus:ring-2 focus:ring-[#FFD700] focus:border-transparent transition-all"
                   placeholder="000000"
                   autoComplete="off"
                 />
@@ -666,7 +666,7 @@ function LoginContent() {
                 <button
                   type="submit"
                   disabled={isLoading || otp.length !== 6}
-                  className="w-full py-3 px-4 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FF4D67] focus:ring-offset-gray-900 text-base flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
+                  className="w-full py-3 px-4 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FFD700] focus:ring-offset-gray-900 text-base flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                   {isLoading ? (
                     <>
@@ -687,7 +687,7 @@ function LoginContent() {
                   type="button"
                   onClick={handleResendOTP}
                   disabled={isLoading}
-                  className="text-sm text-[#FF4D67] hover:text-[#FF6B6B] transition-colors disabled:opacity-50"
+                  className="text-sm text-[#FFD700] hover:text-[#FF8C00] transition-colors disabled:opacity-50"
                 >
                   Resend Code
                 </button>
@@ -728,7 +728,7 @@ function LoginContent() {
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm sm:text-base"
+                className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FFD700] focus:border-transparent transition-all text-sm sm:text-base"
                 placeholder="John Doe"
               />
             </div>
@@ -746,7 +746,7 @@ function LoginContent() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm sm:text-base pr-10"
+                  className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FFD700] focus:border-transparent transition-all text-sm sm:text-base pr-10"
                   placeholder="••••••••"
                 />
                 <button
@@ -800,17 +800,17 @@ function LoginContent() {
                   type="checkbox"
                   checked={agreeToTerms}
                   onChange={(e) => setAgreeToTerms(e.target.checked)}
-                  className="h-4 w-4 text-[#FF4D67] focus:ring-[#FF4D67] border-gray-600 rounded bg-gray-700"
+                  className="h-4 w-4 text-[#FFD700] focus:ring-[#FFD700] border-gray-600 rounded bg-gray-700"
                 />
               </div>
               <div className="ml-3 text-sm">
                 <label htmlFor="terms" className="text-gray-300">
                   I agree to the{' '}
-                  <Link href="/terms" className="text-[#FF4D67] hover:text-[#FF4D67]/80">
+                  <Link href="/terms" className="text-[#FFD700] hover:text-[#FF8C00]">
                     Terms of Service
                   </Link>
                   {' '}and{' '}
-                  <Link href="/privacy" className="text-[#FF4D67] hover:text-[#FF4D67]/80">
+                  <Link href="/privacy" className="text-[#FFD700] hover:text-[#FF8C00]">
                     Privacy Policy
                   </Link>
                 </label>
@@ -825,7 +825,7 @@ function LoginContent() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-2.5 sm:py-3 px-4 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FF4D67] focus:ring-offset-gray-900 text-sm sm:text-base flex items-center justify-center disabled:opacity-70"
+                className="w-full py-2.5 sm:py-3 px-4 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FFD700] focus:ring-offset-gray-900 text-sm sm:text-base flex items-center justify-center disabled:opacity-70"
               >
                 {isLoading ? (
                   <>
@@ -875,7 +875,7 @@ function LoginContent() {
                 setIsLogin(!isLogin)
                 setStep(1)
               }}
-              className="font-medium text-[#FF4D67] hover:text-[#FF4D67]/80 transition-colors"
+              className="font-medium text-[#FFD700] hover:text-[#FF8C00] transition-colors"
             >
               {isLogin ? 'Sign up' : 'Sign in'}
             </button>
@@ -931,7 +931,7 @@ function LoginContent() {
                         required
                         value={resetEmail}
                         onChange={(e) => setResetEmail(e.target.value)}
-                        className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all text-sm"
+                        className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FFD700] focus:border-transparent transition-all text-sm"
                         placeholder="you@example.com"
                       />
                     </div>
@@ -945,7 +945,7 @@ function LoginContent() {
                     <button
                       type="submit"
                       disabled={isLoading || !resetEmail}
-                      className="w-full py-3 px-4 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FF4D67] focus:ring-offset-gray-900 text-sm flex items-center justify-center disabled:opacity-70"
+                      className="w-full py-3 px-4 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FFD700] focus:ring-offset-gray-900 text-sm flex items-center justify-center disabled:opacity-70"
                     >
                       {isLoading ? (
                         <>
@@ -961,7 +961,7 @@ function LoginContent() {
                 </>
               ) : (
                 <div className="text-center py-4">
-                  <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <div className="w-16 h-16 bg-gradient-to-r from-[#FFD700] to-[#FF8C00] rounded-full flex items-center justify-center mx-auto mb-4">
                     <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
@@ -1017,7 +1017,7 @@ function LoginContent() {
             {/* Content */}
             <div className="p-6">
               <div className="text-center mb-6">
-                <div className="w-16 h-16 bg-gradient-to-r from-[#FF4D67] to-[#FF6B6B] rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 bg-gradient-to-r from-[#FFD700] to-[#FF8C00] rounded-full flex items-center justify-center mx-auto mb-4">
                   <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                   </svg>
@@ -1048,7 +1048,7 @@ function LoginContent() {
                     required
                     value={otp}
                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                    className="w-full px-4 py-3 bg-gray-800/50 border-2 border-gray-700 rounded-lg text-white text-center text-2xl tracking-widest focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all"
+                    className="w-full px-4 py-3 bg-gray-800/50 border-2 border-gray-700 rounded-lg text-white text-center text-2xl tracking-widest focus:outline-none focus:ring-2 focus:ring-[#FFD700] focus:border-transparent transition-all"
                     placeholder="000000"
                     autoComplete="off"
                   />
@@ -1062,7 +1062,7 @@ function LoginContent() {
                 <button
                   type="submit"
                   disabled={isLoading || otp.length !== 6}
-                  className="w-full py-3 px-4 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FF4D67] focus:ring-offset-gray-900 text-sm flex items-center justify-center disabled:opacity-70"
+                  className="w-full py-3 px-4 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FFD700] focus:ring-offset-gray-900 text-sm flex items-center justify-center disabled:opacity-70"
                 >
                   {isLoading ? (
                     <>
@@ -1081,7 +1081,7 @@ function LoginContent() {
                 <button
                   onClick={handleResendOTP}
                   disabled={isLoading}
-                  className="text-sm text-[#FF4D67] hover:text-[#FF4D67]/80 transition-colors font-medium disabled:opacity-50"
+                  className="text-sm text-[#FFD700] hover:text-[#FFD700]/80 transition-colors font-medium disabled:opacity-50"
                 >
                   Didn't receive the code? Resend
                 </button>
@@ -1098,7 +1098,7 @@ export default function Login() {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center bg-gray-900">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#FF4D67]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#FFD700]"></div>
       </div>
     }>
       <LoginContent />

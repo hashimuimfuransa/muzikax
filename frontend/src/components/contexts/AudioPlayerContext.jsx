@@ -66,7 +66,7 @@ var recentlyPlayedService_1 = require("../services/recentlyPlayedService");
 var recommendationService_1 = require("../services/recommendationService");
 var trackCleanupService_1 = require("../services/trackCleanupService");
 var AudioPlayerContext = (0, react_1.createContext)(undefined);
-var useAudioPlayer = function () {
+export var useAudioPlayer = function () {
     var context = (0, react_1.useContext)(AudioPlayerContext);
     if (!context) {
         throw new Error('useAudioPlayer must be used within an AudioPlayerProvider');

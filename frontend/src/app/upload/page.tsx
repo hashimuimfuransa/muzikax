@@ -105,7 +105,7 @@ export default function Upload() {
   // Show loading state while checking auth
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black flex items-center justify-center">
+      <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
         <div className="text-white">Loading...</div>
       </div>
     )
@@ -682,7 +682,7 @@ export default function Upload() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black py-8 sm:py-12 overflow-x-hidden">
+    <div className="min-h-screen bg-[var(--background)] py-8 sm:py-12 overflow-x-hidden">
       {/* Background elements with better positioning for mobile */}
       <div className="absolute top-10 left-10 w-64 h-64 sm:w-80 sm:h-80 bg-[#FF4D67]/10 rounded-full blur-3xl -z-10 hidden md:block"></div>
       <div className="absolute bottom-10 right-10 w-64 h-64 sm:w-80 sm:h-80 bg-[#FFCB2B]/10 rounded-full blur-3xl -z-10 hidden md:block"></div>
@@ -752,7 +752,7 @@ export default function Upload() {
         <div className="container mx-auto px-4 sm:px-8">
           <div className="max-w-3xl mx-auto">
             <div className="text-center mb-8 sm:mb-12">
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] mb-3 sm:mb-4">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-clip-text text-transparent gradient-text mb-3 sm:mb-4">
                 Upload Your Music
               </h1>
               <p className="text-gray-400 text-sm sm:text-base max-w-2xl mx-auto">
@@ -1394,7 +1394,7 @@ export default function Upload() {
                       </p>
                       <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
                         <div 
-                          className="h-2 rounded-full bg-gradient-to-r from-[#FF4D67] to-purple-600 transition-all duration-500" 
+                          className="h-2 rounded-full bg-gradient-to-r from-gold-500 to-orange-500 transition-all duration-500"
                           style={{ width: `${stemProgress}%` }}
                         ></div>
                       </div>
@@ -1412,7 +1412,7 @@ export default function Upload() {
                       </div>
                       <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
                         <div 
-                          className="h-2 rounded-full bg-gradient-to-r from-[#FF4D67] to-purple-600 transition-all duration-500" 
+                          className="h-2 rounded-full bg-gradient-to-r from-gold-500 to-orange-500 transition-all duration-500"
                           style={{ width: `${stemProgress}%` }}
                         ></div>
                       </div>
@@ -1430,7 +1430,7 @@ export default function Upload() {
                       </div>
                       <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
                         <div 
-                          className="h-2 rounded-full bg-gradient-to-r from-green-500 to-emerald-600" 
+                          className="h-2 rounded-full bg-gradient-to-r from-green-500 to-emerald-500"
                           style={{ width: '100%' }}
                         ></div>
                       </div>

@@ -93,32 +93,43 @@ function SearchResultsContent() {
   const { isAuthenticated } = useAuth()
   const { playTrack, setCurrentPlaylist } = useAudioPlayer()
   
-  // Genre list for filtering
+  // Genre list for filtering with colors and icons
   const genres = [
-    { id: 'afrobeat', name: 'Afrobeat' },
-    { id: 'amapiano', name: 'Amapiano' },
-    { id: 'gakondo', name: 'Gakondo' },
-    { id: 'amapiyano', name: 'Amapiano' },
-    { id: 'afro gako', name: 'Afro Gako' },
-    { id: 'hiphop', name: 'Hip Hop' },
-    { id: 'rnb', name: 'R&B' },
-    { id: 'afropop', name: 'Afropop' },
-    { id: 'gospel', name: 'Gospel' },
-    { id: 'traditional', name: 'Traditional' },
-    { id: 'dancehall', name: 'Dancehall' },
-    { id: 'reggae', name: 'Reggae' },
-    { id: 'soul', name: 'Soul' },
-    { id: 'jazz', name: 'Jazz' },
-    { id: 'blues', name: 'Blues' },
-    { id: 'pop', name: 'Pop' },
-    { id: 'rock', name: 'Rock' },
-    { id: 'electronic', name: 'Electronic' },
-    { id: 'house', name: 'House' },
-    { id: 'techno', name: 'Techno' },
-    { id: 'drill', name: 'Drill' },
-    { id: 'trap', name: 'Trap' },
-    { id: 'lofi', name: 'Lo-Fi' },
-    { id: 'ambient', name: 'Ambient' }
+    { id: 'afrobeat', name: 'Afrobeat', color: 'from-green-500 to-emerald-700', icon: '🎵' },
+    { id: 'amapiano', name: 'Amapiano', color: 'from-purple-600 to-indigo-800', icon: '🎹' },
+    { id: 'hiphop', name: 'Hip Hop', color: 'from-orange-500 to-red-700', icon: '🎤' },
+    { id: 'rnb', name: 'R&B', color: 'from-pink-500 to-rose-700', icon: '💜' },
+    { id: 'afropop', name: 'Afropop', color: 'from-yellow-500 to-orange-600', icon: '⭐' },
+    { id: 'gospel', name: 'Gospel', color: 'from-blue-500 to-cyan-700', icon: '✨' },
+    { id: 'traditional', name: 'Traditional', color: 'from-amber-600 to-yellow-800', icon: '🥁' },
+    { id: 'dancehall', name: 'Dancehall', color: 'from-red-500 to-pink-700', icon: '💃' },
+    { id: 'reggae', name: 'Reggae', color: 'from-green-600 to-lime-700', icon: '🌴' },
+    { id: 'pop', name: 'Pop', color: 'from-fuchsia-500 to-purple-700', icon: '🎸' },
+    { id: 'electronic', name: 'Electronic', color: 'from-cyan-500 to-blue-700', icon: '⚡' },
+    { id: 'house', name: 'House', color: 'from-violet-500 to-purple-800', icon: '🏠' },
+    { id: 'jazz', name: 'Jazz', color: 'from-amber-500 to-orange-700', icon: '🎺' },
+    { id: 'soul', name: 'Soul', color: 'from-rose-500 to-red-700', icon: '❤️' },
+    { id: 'rock', name: 'Rock', color: 'from-gray-600 to-slate-800', icon: '🎸' },
+    { id: 'drill', name: 'Drill', color: 'from-slate-600 to-zinc-800', icon: '🔥' },
+    { id: 'trap', name: 'Trap', color: 'from-indigo-600 to-blue-900', icon: '🎧' },
+    { id: 'lofi', name: 'Lo-Fi', color: 'from-teal-500 to-emerald-700', icon: '☕' },
+    { id: 'ambient', name: 'Ambient', color: 'from-sky-500 to-blue-800', icon: '🌊' }
+  ]
+
+  // Browse categories for empty state (Spotify-style)
+  const browseCategories = [
+    { id: 'trending', name: 'Trending Now', color: 'from-[#FF4D67] to-[#FFCB2B]', description: 'Hot tracks right now' },
+    { id: 'new-releases', name: 'New Releases', color: 'from-purple-600 to-pink-600', description: 'Fresh drops this week' },
+    { id: 'charts', name: 'Top Charts', color: 'from-blue-600 to-cyan-500', description: 'Most played songs' },
+    { id: 'playlists', name: 'Curated Playlists', color: 'from-green-500 to-emerald-600', description: 'Handpicked collections' },
+    { id: 'artists', name: 'Featured Artists', color: 'from-orange-500 to-red-600', description: 'Spotlight on creators' },
+    { id: 'albums', name: 'Popular Albums', color: 'from-indigo-600 to-purple-700', description: 'Full album experiences' },
+    { id: 'beats', name: 'Beats & Instrumentals', color: 'from-pink-500 to-rose-600', description: 'Producer specials' },
+    { id: 'mixes', name: 'DJ Mixes', color: 'from-yellow-500 to-orange-600', description: 'Extended mixes' },
+    { id: 'local', name: 'Local Favorites', color: 'from-teal-500 to-cyan-600', description: 'Rwanda\'s finest' },
+    { id: 'international', name: 'International', color: 'from-violet-600 to-fuchsia-700', description: 'Global sounds' },
+    { id: 'workout', name: 'Workout', color: 'from-red-600 to-orange-600', description: 'High energy tracks' },
+    { id: 'chill', name: 'Chill Vibes', color: 'from-blue-500 to-indigo-600', description: 'Relaxing tunes' }
   ]
   
   // Fetch search results from API
@@ -230,20 +241,20 @@ function SearchResultsContent() {
   }
 
   return (
-    <div className="relative overflow-hidden min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black pt-24 pb-8 sm:pt-28 sm:pb-12">
+    <div className="relative overflow-hidden min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black pt-20 pb-8 sm:pt-28 sm:pb-12">
       {/* Mobile Header with Back Button */}
-      <div className="md:hidden sticky top-0 z-50 bg-gray-900/95 backdrop-blur-lg border-b border-gray-800">
-        <div className="container mx-auto px-4 py-4">
+      <div className="md:hidden sticky top-0 z-50 bg-gray-900/95 backdrop-blur-lg border-b border-gray-800 shadow-lg">
+        <div className="container mx-auto px-4 py-3">
           <div className="flex items-center gap-3">
             <button
               onClick={() => router.back()}
-              className="text-gray-400 hover:text-white transition-colors p-2 -ml-2"
+              className="text-gray-400 hover:text-white transition-colors p-2 -ml-2 active:scale-95"
               aria-label="Go back"
             >
               <FaArrowLeft className="w-5 h-5" />
             </button>
-            <div>
-              <h1 className="text-xl font-black text-white">Search</h1>
+            <div className="flex-1">
+              <h1 className="text-lg font-black text-white">Search</h1>
               <p className="text-xs text-gray-400">Find music & artists</p>
             </div>
           </div>
@@ -253,32 +264,33 @@ function SearchResultsContent() {
       <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#FF4D67]/10 rounded-full blur-3xl -z-10"></div>
       <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-[#FFCB2B]/10 rounded-full blur-3xl -z-10"></div>
       
-      <div className="w-full max-w-full px-4 sm:px-8">
-        <div className="max-w-4xl mx-auto">
-          {/* Search Header */}
+      <div className="w-full max-w-full px-3 sm:px-6 md:px-8">
+        <div className="max-w-6xl mx-auto">
+          {/* Search Header - Desktop */}
           <div className="hidden sm:block text-center mb-8 sm:mb-12">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] mb-4">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] via-[#FFCB2B] to-[#FF4D67] mb-2 animate-gradient">
               {t('searchResults')}
             </h1>
+            <p className="text-gray-400 text-sm sm:text-base mb-6">Discover music, artists, and playlists</p>
             
             {/* Search Bar */}
-            <form onSubmit={handleSearch} className="max-w-xl mx-auto">
-              <div className="relative">
+            <form onSubmit={handleSearch} className="max-w-2xl mx-auto">
+              <div className="relative group">
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={t('searchPlaceholder')}
-                  className="w-full px-4 py-3 sm:py-4 pl-12 pr-20 bg-gray-800/50 border border-gray-700 rounded-full text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent text-sm sm:text-base transition-all"
+                  className="w-full px-6 py-4 pl-14 pr-24 bg-gray-800/60 backdrop-blur-lg border-2 border-gray-700 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:border-[#FF4D67] focus:ring-4 focus:ring-[#FF4D67]/20 text-base transition-all shadow-xl group-hover:border-gray-600"
                 />
-                <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <div className="absolute left-5 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-[#FF4D67] transition-colors">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                   </svg>
                 </div>
                 <button 
                   type="submit"
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 px-4 py-1.5 sm:py-2 bg-[#FF4D67] hover:bg-[#FF4D67]/80 text-white rounded-full text-sm font-medium transition-colors"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 px-6 py-2 bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] hover:from-[#FF4D67]/90 hover:to-[#FFCB2B]/90 text-white rounded-xl text-sm font-bold transition-all shadow-lg hover:shadow-xl hover:scale-105"
                 >
                   {t('search')}
                 </button>
@@ -363,25 +375,25 @@ function SearchResultsContent() {
             </div>
           </div>
           
-          {/* Mobile Search Bar - Simplified */}
-          <div className="sm:hidden mb-6">
+          {/* Mobile Search Bar - Enhanced */}
+          <div className="sm:hidden mb-4 px-1">
             <form onSubmit={handleSearch} className="w-full">
-              <div className="relative">
+              <div className="relative group">
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={t('searchPlaceholder')}
-                  className="w-full px-4 py-3 pl-10 pr-16 bg-gray-800/50 border border-gray-700 rounded-full text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent text-sm transition-all"
+                  className="w-full px-4 py-3 pl-12 pr-20 bg-gray-800/60 backdrop-blur-lg border-2 border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[#FF4D67] focus:ring-2 focus:ring-[#FF4D67]/20 text-sm transition-all shadow-lg"
                 />
-                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                   </svg>
                 </div>
                 <button 
                   type="submit"
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 px-3 py-1.5 bg-[#FF4D67] hover:bg-[#FF4D67]/80 text-white rounded-full text-xs font-medium transition-colors"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 px-4 py-1.5 bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] text-white rounded-lg text-xs font-bold transition-all shadow-md active:scale-95"
                 >
                   {t('search')}
                 </button>
@@ -389,9 +401,40 @@ function SearchResultsContent() {
             </form>
           </div>
           
+          {/* Mobile Genre Filter - Horizontal Scroll */}
+          <div className="sm:hidden mb-4">
+            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-1 px-1">
+              <button
+                className={`flex-shrink-0 px-3 py-2 rounded-full text-xs font-medium transition-all ${
+                  selectedGenre === null
+                    ? 'bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] text-white shadow-md'
+                    : 'bg-gray-800/60 text-gray-300 border border-gray-700'
+                }`}
+                onClick={() => setSelectedGenre(null)}
+              >
+                All
+              </button>
+              
+              {genres.slice(0, 8).map((genre) => (
+                <button
+                  key={genre.id}
+                  className={`flex-shrink-0 px-3 py-2 rounded-full text-xs font-medium transition-all flex items-center gap-1 ${
+                    selectedGenre === genre.id
+                      ? 'bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] text-white shadow-md'
+                      : 'bg-gray-800/60 text-gray-300 border border-gray-700'
+                  }`}
+                  onClick={() => setSelectedGenre(genre.id)}
+                >
+                  <span>{genre.icon}</span>
+                  <span>{genre.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          
           {/* Results Info */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 w-full">
-            <p className="text-gray-400">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 sm:mb-6 w-full">
+            <p className="text-gray-400 text-xs sm:text-sm">
               {loading ? t('searching') : selectedGenre 
                 ? t('foundResultsInGenre', {
                     count: tracks.length + artists.length + albums.length + playlists.length + mixes.length,
@@ -404,58 +447,60 @@ function SearchResultsContent() {
                   })}
             </p>
             
-            {/* Tabs */}
-            <div className="flex flex-wrap border-b border-gray-800">
-              <button
-                className={`py-2 px-4 font-medium text-sm sm:text-base transition-colors ${
-                  activeTab === 'tracks'
-                    ? 'text-[#FF4D67] border-b-2 border-[#FF4D67]'
-                    : 'text-gray-500 hover:text-gray-300'
-                }`}
-                onClick={() => setActiveTab('tracks')}
-              >
-                {t('tracks')} ({tracks.length})
-              </button>
-              <button
-                className={`py-2 px-4 font-medium text-sm sm:text-base transition-colors ${
-                  activeTab === 'artists'
-                    ? 'text-[#FF4D67] border-b-2 border-[#FF4D67]'
-                    : 'text-gray-500 hover:text-gray-300'
-                }`}
-                onClick={() => setActiveTab('artists')}
-              >
-                {t('artists')} ({artists.length})
-              </button>
-              <button
-                className={`py-2 px-4 font-medium text-sm sm:text-base transition-colors ${
-                  activeTab === 'albums'
-                    ? 'text-[#FF4D67] border-b-2 border-[#FF4D67]'
-                    : 'text-gray-500 hover:text-gray-300'
-                }`}
-                onClick={() => setActiveTab('albums')}
-              >
-                {t('albums')} ({albums.length})
-              </button>
-              <button
-                className={`py-2 px-4 font-medium text-sm sm:text-base transition-colors ${
-                  activeTab === 'playlists'
-                    ? 'text-[#FF4D67] border-b-2 border-[#FF4D67]'
-                    : 'text-gray-500 hover:text-gray-300'
-                }`}
-                onClick={() => setActiveTab('playlists')}
-              >
-                {t('playlists')} ({playlists.length})
-              </button>
-              <button
-                className={`py-2 px-4 font-medium text-sm sm:text-base transition-colors ${
-                  activeTab === 'mixes'
-                    ? 'text-[#FF4D67] border-b-2 border-[#FF4D67]'
-                    : 'text-gray-500 hover:text-gray-300'
-                }`}
-                onClick={() => setActiveTab('mixes')}
-              >
-                {t('mixes')} ({mixes.length})
-              </button>
+            {/* Tabs - Mobile Horizontal Scroll */}
+            <div className="w-full sm:w-auto overflow-x-auto scrollbar-hide">
+              <div className="flex border-b border-gray-800 min-w-max">
+                <button
+                  className={`py-2 px-3 sm:px-4 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap ${
+                    activeTab === 'tracks'
+                      ? 'text-[#FF4D67] border-b-2 border-[#FF4D67]'
+                      : 'text-gray-500 hover:text-gray-300'
+                  }`}
+                  onClick={() => setActiveTab('tracks')}
+                >
+                  {t('tracks')} ({tracks.length})
+                </button>
+                <button
+                  className={`py-2 px-3 sm:px-4 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap ${
+                    activeTab === 'artists'
+                      ? 'text-[#FF4D67] border-b-2 border-[#FF4D67]'
+                      : 'text-gray-500 hover:text-gray-300'
+                  }`}
+                  onClick={() => setActiveTab('artists')}
+                >
+                  {t('artists')} ({artists.length})
+                </button>
+                <button
+                  className={`py-2 px-3 sm:px-4 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap ${
+                    activeTab === 'albums'
+                      ? 'text-[#FF4D67] border-b-2 border-[#FF4D67]'
+                      : 'text-gray-500 hover:text-gray-300'
+                  }`}
+                  onClick={() => setActiveTab('albums')}
+                >
+                  {t('albums')} ({albums.length})
+                </button>
+                <button
+                  className={`py-2 px-3 sm:px-4 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap ${
+                    activeTab === 'playlists'
+                      ? 'text-[#FF4D67] border-b-2 border-[#FF4D67]'
+                      : 'text-gray-500 hover:text-gray-300'
+                  }`}
+                  onClick={() => setActiveTab('playlists')}
+                >
+                  {t('playlists')} ({playlists.length})
+                </button>
+                <button
+                  className={`py-2 px-3 sm:px-4 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap ${
+                    activeTab === 'mixes'
+                      ? 'text-[#FF4D67] border-b-2 border-[#FF4D67]'
+                      : 'text-gray-500 hover:text-gray-300'
+                  }`}
+                  onClick={() => setActiveTab('mixes')}
+                >
+                  {t('mixes')} ({mixes.length})
+                </button>
+              </div>
             </div>
           </div>
           
@@ -483,94 +528,115 @@ function SearchResultsContent() {
             <>
               {/* Tracks Tab */}
               {activeTab === 'tracks' && (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {tracks.length > 0 ? (
-                    tracks.map((track) => (
-                      <div key={track.id} className="flex items-center gap-4 p-4 card-bg rounded-xl hover:bg-gray-800/50 transition-colors group">
-                        <div className="relative">
+                    tracks.map((track, index) => (
+                      <div 
+                        key={track.id} 
+                        className="group flex items-center gap-4 p-3 sm:p-4 bg-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-xl hover:bg-gray-800/60 hover:border-[#FF4D67]/50 transition-all duration-300 cursor-pointer"
+                        onClick={() => {
+                          const formattedTrack: PlayerTrack = {
+                            id: track.id,
+                            title: track.title,
+                            artist: track.artist,
+                            coverImage: track.coverImage,
+                            audioUrl: track.audioURL,
+                            duration: undefined,
+                            creatorId: track.creatorId,
+                            albumId: undefined,
+                            plays: track.plays,
+                            likes: track.likes,
+                            type: track.type || 'song',
+                            paymentType: track.paymentType,
+                            price: track.price,
+                            creatorWhatsapp: track.creatorWhatsapp
+                          };
+                          playTrack(formattedTrack);
+                        }}
+                      >
+                        {/* Track Number / Play Button */}
+                        <div className="w-8 text-center text-gray-500 text-sm font-medium group-hover:hidden">
+                          {index + 1}
+                        </div>
+                        <div className="w-8 hidden group-hover:flex items-center justify-center">
+                          <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
+                          </svg>
+                        </div>
+                        
+                        {/* Cover Image */}
+                        <div className="relative flex-shrink-0">
                           <img 
                             src={track.coverImage || '/placeholder-track.png'} 
                             alt={track.title} 
-                            className="w-16 h-16 rounded-lg object-cover"
+                            className="w-14 h-14 sm:w-16 sm:h-16 rounded-lg object-cover shadow-lg group-hover:shadow-xl transition-shadow"
                           />
                           {/* Beat indicator badge */}
                           {track.type === 'beat' && (
                             <div className="absolute -top-2 -left-2">
-                              <span className="px-2 py-1 bg-purple-600 text-white text-xs rounded-full">
+                              <span className="px-2 py-1 bg-purple-600 text-white text-[10px] font-bold rounded-full shadow-lg">
                                 BEAT
                               </span>
                             </div>
                           )}
                           {/* Payment type indicator for beats */}
-                          {track.type === 'beat' && (
-                            <div className="absolute -top-2 -right-2">
-                              <span className={`px-2 py-1 text-xs rounded-full ${track.paymentType === 'paid' ? 'bg-green-600 text-white' : 'bg-blue-600 text-white'}`}>
-                                {track.paymentType === 'paid' ? 'PAID' : 'FREE'}
-                              </span>
-                            </div>
-                          )}
-                          {track.type === 'beat' && track.paymentType === 'paid' && track.price && (
+                          {track.type === 'beat' && track.paymentType === 'paid' && (
                             <div className="absolute -bottom-2 -right-2">
-                              <span className="px-2 py-1 text-xs rounded-full bg-yellow-600 text-white">
-                                {track.price.toLocaleString()} RWF
+                              <span className="px-2 py-1 text-[10px] font-bold rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white shadow-lg">
+                                {track.price?.toLocaleString()} RWF
                               </span>
                             </div>
                           )}
-                          <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button 
-                              onClick={() => {
-                                // Format the track to match the PlayerTrack interface in AudioPlayerContext
-                                const formattedTrack: PlayerTrack = {
-                                  id: track.id,
-                                  title: track.title,
-                                  artist: track.artist,
-                                  coverImage: track.coverImage,
-                                  audioUrl: track.audioURL, // Use the audioURL from the track
-                                  duration: undefined, // Duration is optional
-                                  creatorId: track.creatorId, // Creator ID from search results
-                                  albumId: undefined, // Album ID is optional
-                                  plays: track.plays,
-                                  likes: track.likes,
-                                  type: track.type || 'song', // Include track type
-                                  paymentType: track.paymentType, // Include payment type
-                                  price: track.price, // Include price
-                                  creatorWhatsapp: track.creatorWhatsapp // Include WhatsApp contact
-                                };
-                                playTrack(formattedTrack);
-                              }}
-                              className="w-8 h-8 rounded-full gradient-primary flex items-center justify-center text-white"
-                            >
-                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
-                              </svg>
-                            </button>
-                          </div>
                         </div>
                         
+                        {/* Track Info */}
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-bold text-white truncate">{track.title}</h3>
+                          <h3 className="font-bold text-white truncate group-hover:text-[#FF4D67] transition-colors">{track.title}</h3>
                           <p className="text-gray-400 text-sm truncate">{track.artist}</p>
-                          {track.album && <p className="text-gray-500 text-xs truncate">{track.album}</p>}
+                          {track.album && <p className="text-gray-500 text-xs truncate mt-0.5">{track.album}</p>}
                         </div>
                         
-                        <div className="text-right">
-                          <p className="text-gray-500 text-xs sm:text-sm">{track.plays.toLocaleString()} plays</p>
-                          <div className="flex items-center gap-1 mt-1 justify-end">
-                            <svg className="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                              <path fillRule="evenodd" d="M3.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        {/* Stats */}
+                        <div className="hidden sm:flex items-center gap-4 text-right">
+                          <div className="flex items-center gap-1">
+                            <svg className="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"></path>
+                              <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"></path>
                             </svg>
-                            <span className="text-gray-500 text-xs sm:text-sm">{track.likes}</span>
+                            <span className="text-gray-400 text-sm">{track.plays.toLocaleString()}</span>
                           </div>
+                          <div className="flex items-center gap-1">
+                            <svg className="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M3.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" clipRule="evenodd"></path>
+                            </svg>
+                            <span className="text-gray-400 text-sm">{track.likes}</span>
+                          </div>
+                        </div>
+                        
+                        {/* Duration or More Options */}
+                        <div className="text-gray-500 text-sm">
+                          {track.duration || '3:45'}
                         </div>
                       </div>
                     ))
                   ) : (
-                    <div className="text-center py-12">
-                      <svg className="w-16 h-16 mx-auto text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                      </svg>
-                      <h3 className="mt-4 text-lg font-medium text-white">No tracks found</h3>
-                      <p className="mt-2 text-gray-400">Try adjusting your search to find what you're looking for.</p>
+                    <div className="text-center py-16 card-bg rounded-xl border border-gray-800">
+                      <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-[#FF4D67]/20 to-[#FFCB2B]/20 flex items-center justify-center">
+                        <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                      </div>
+                      <h3 className="text-xl font-bold text-white mb-2">No tracks found</h3>
+                      <p className="text-gray-400 mb-4">Try adjusting your search or browse categories below</p>
+                      <button 
+                        onClick={() => {
+                          setSearchQuery('');
+                          setSelectedGenre(null);
+                        }}
+                        className="px-6 py-2 bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] text-white rounded-full font-medium hover:shadow-lg transition-all"
+                      >
+                        Browse All
+                      </button>
                     </div>
                   )}
                 </div>
@@ -578,60 +644,81 @@ function SearchResultsContent() {
               
               {/* Artists Tab */}
               {activeTab === 'artists' && (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
                   {artists.length > 0 ? (
                     artists.map((artist) => (
-                      <Link key={artist._id || artist.id} href={`/artists/${artist._id || artist.id}`} className="group card-bg rounded-xl p-4 transition-all duration-300 hover:border-[#FFCB2B]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FFCB2B]/10 block">
-                        <div className="flex flex-col items-center text-center">
+                      <Link 
+                        key={artist._id || artist.id} 
+                        href={`/artists/${artist._id || artist.id}`} 
+                        className="group relative card-bg rounded-lg sm:rounded-xl p-3 sm:p-4 transition-all duration-300 hover:border-[#FFCB2B]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FFCB2B]/10 block overflow-hidden active:scale-95"
+                      >
+                        {/* Background gradient on hover */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-[#FFCB2B]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        
+                        <div className="relative flex flex-col items-center text-center">
                           <div className="relative mb-3">
                             <img 
                               src={artist.avatar || '/placeholder-avatar.png'} 
                               alt={artist.name} 
-                              className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover mx-auto"
+                              className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover mx-auto ring-2 ring-transparent group-hover:ring-[#FFCB2B] transition-all duration-300"
                             />
                             {artist.verified && (
-                              <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[#FF4D67] border-2 border-gray-900 flex items-center justify-center">
-                                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                              <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] border-2 border-gray-900 flex items-center justify-center shadow-lg">
+                                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
                                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
                                 </svg>
                               </div>
                             )}
                           </div>
-                          <h3 className="font-bold text-white text-sm sm:text-base truncate w-full">{artist.name}</h3>
-                          <p className="text-[#FFCB2B] text-xs sm:text-sm mb-2">{artist.type}</p>
-                          <p className="text-gray-500 text-xs">
-                            {(artist.followersCount || artist.followers || 0).toLocaleString()} followers
-                          </p>
+                          <h3 className="font-bold text-white text-sm sm:text-base truncate w-full group-hover:text-[#FFCB2B] transition-colors">{artist.name}</h3>
+                          <p className="text-gray-400 text-xs sm:text-sm mb-2">{artist.type}</p>
+                          <div className="flex items-center gap-1 text-gray-500 text-xs mb-3">
+                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"></path>
+                            </svg>
+                            <span>{(artist.followersCount || artist.followers || 0).toLocaleString()}</span>
+                          </div>
                           <button 
                             onClick={(e) => {
                               e.preventDefault();
                               handleFollowArtist(artist._id || artist.id || '');
                             }}
                             disabled={!isAuthenticated}
-                            className={`mt-2 w-full px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                            className={`mt-auto w-full px-3 py-2 rounded-full text-xs font-medium transition-all duration-300 ${
                               following[artist._id || artist.id || ''] 
-                                ? 'bg-[#FF4D67] text-white' 
+                                ? 'bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] text-white shadow-lg' 
                                 : isAuthenticated
-                                  ? 'bg-transparent border border-[#FFCB2B] text-[#FFCB2B] hover:bg-[#FFCB2B]/10'
+                                  ? 'bg-transparent border-2 border-[#FFCB2B] text-[#FFCB2B] hover:bg-[#FFCB2B] hover:text-gray-900 hover:shadow-lg'
                                   : 'bg-gray-700 text-gray-400 cursor-not-allowed'
                             }`}
                           >
                             {following[artist._id || artist.id || ''] 
-                              ? 'Following' 
+                              ? '✓ Following' 
                               : isAuthenticated 
-                                ? 'Follow' 
+                                ? '+ Follow' 
                                 : 'Login to Follow'}
                           </button>
                         </div>
                       </Link>
                     ))
                   ) : (
-                    <div className="col-span-full text-center py-12">
-                      <svg className="w-16 h-16 mx-auto text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                      </svg>
-                      <h3 className="mt-4 text-lg font-medium text-white">No artists found</h3>
-                      <p className="mt-2 text-gray-400">Try adjusting your search to find what you're looking for.</p>
+                    <div className="col-span-full text-center py-16 card-bg rounded-xl border border-gray-800">
+                      <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center">
+                        <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                      </div>
+                      <h3 className="text-xl font-bold text-white mb-2">No artists found</h3>
+                      <p className="text-gray-400 mb-4">Try adjusting your search or browse categories below</p>
+                      <button 
+                        onClick={() => {
+                          setSearchQuery('');
+                          setSelectedGenre(null);
+                        }}
+                        className="px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full font-medium hover:shadow-lg transition-all"
+                      >
+                        Browse All
+                      </button>
                     </div>
                   )}
                 </div>
@@ -639,25 +726,28 @@ function SearchResultsContent() {
               
               {/* Albums Tab */}
               {activeTab === 'albums' && (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
                   {albums.length > 0 ? (
                     albums.map((album) => (
-                      <div key={album.id} className="group card-bg rounded-xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10">
-                        <div className="relative">
+                      <div 
+                        key={album.id} 
+                        className="group card-bg rounded-lg sm:rounded-xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10 cursor-pointer active:scale-95"
+                        onClick={() => {
+                          alert('Album playback coming soon!');
+                        }}
+                      >
+                        <div className="relative aspect-square overflow-hidden">
                           <img 
                             src={album.coverImage || '/placeholder-album.png'} 
                             alt={album.title} 
-                            className="w-full aspect-square object-cover"
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          {/* Play overlay */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4">
                             <button 
-                              onClick={() => {
-                                // TODO: Implement album play functionality
-                                // This would require fetching full album data with tracks
-                                alert('Album playback coming soon!');
-                              }}
-                              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
-                              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                              className="w-12 h-12 rounded-full bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center text-white shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 hover:scale-110"
+                            >
+                              <svg className="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
                               </svg>
                             </button>
@@ -665,22 +755,38 @@ function SearchResultsContent() {
                         </div>
                         
                         <div className="p-3">
-                          <h3 className="font-bold text-white text-sm sm:text-base mb-1 truncate">{album.title}</h3>
-                          <p className="text-gray-400 text-xs sm:text-sm truncate">{album.artist}</p>
-                          <div className="flex justify-between items-center mt-2">
-                            <span className="text-gray-500 text-xs">{album.year}</span>
-                            <span className="text-gray-500 text-xs">{album.tracks} tracks</span>
+                          <h3 className="font-bold text-white text-sm sm:text-base mb-1 truncate group-hover:text-[#FF4D67] transition-colors">{album.title}</h3>
+                          <p className="text-gray-400 text-xs sm:text-sm truncate mb-2">{album.artist}</p>
+                          <div className="flex justify-between items-center text-xs text-gray-500">
+                            <span>{album.year}</span>
+                            <span className="flex items-center gap-1">
+                              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"></path>
+                              </svg>
+                              {album.tracks} tracks
+                            </span>
                           </div>
                         </div>
                       </div>
                     ))
                   ) : (
-                    <div className="col-span-full text-center py-12">
-                      <svg className="w-16 h-16 mx-auto text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                      </svg>
-                      <h3 className="mt-4 text-lg font-medium text-white">No albums found</h3>
-                      <p className="mt-2 text-gray-400">Try adjusting your search to find what you're looking for.</p>
+                    <div className="col-span-full text-center py-16 card-bg rounded-xl border border-gray-800">
+                      <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center">
+                        <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                        </svg>
+                      </div>
+                      <h3 className="text-xl font-bold text-white mb-2">No albums found</h3>
+                      <p className="text-gray-400 mb-4">Try adjusting your search or browse categories below</p>
+                      <button 
+                        onClick={() => {
+                          setSearchQuery('');
+                          setSelectedGenre(null);
+                        }}
+                        className="px-6 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-full font-medium hover:shadow-lg transition-all"
+                      >
+                        Browse All
+                      </button>
                     </div>
                   )}
                 </div>
@@ -688,40 +794,40 @@ function SearchResultsContent() {
               
               {/* Playlists Tab */}
               {activeTab === 'playlists' && (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
                   {playlists.length > 0 ? (
                     playlists.map((playlist) => (
                       <div 
                         key={playlist.id} 
-                        className="group card-bg rounded-xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10 cursor-pointer"
+                        className="group card-bg rounded-lg sm:rounded-xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10 cursor-pointer active:scale-95"
                         onClick={() => handlePlayPlaylist(playlist)}
                       >
-                        <div className="relative">
+                        <div className="relative aspect-square overflow-hidden">
                           {playlist.coverImage ? (
                             <img 
                               src={playlist.coverImage} 
                               alt={playlist.name} 
-                              className="w-full aspect-square object-cover transition-transform duration-300 group-hover:scale-105"
+                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                             />
                           ) : (
-                            <div className="w-full aspect-square bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center">
-                              <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div className="w-full h-full bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center">
+                              <svg className="w-16 h-16 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
                               </svg>
                             </div>
                           )}
                           
                           {/* Play Overlay */}
-                          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/90 flex items-center justify-center group-hover:scale-110 transition-transform">
-                              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-gray-900 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4">
+                            <button className="w-12 h-12 rounded-full bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center text-white shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 hover:scale-110">
+                              <svg className="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
                               </svg>
-                            </div>
+                            </button>
                           </div>
                           
                           {/* Track Count Badge */}
-                          <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full">
+                          <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full font-medium">
                             {playlist.tracks?.length || 0} tracks
                           </div>
                         </div>
@@ -730,11 +836,11 @@ function SearchResultsContent() {
                           <h3 className="font-bold text-white text-sm sm:text-base mb-1 truncate group-hover:text-[#FF4D67] transition-colors">
                             {playlist.name}
                           </h3>
-                          <p className="text-gray-400 text-[10px] sm:text-xs truncate">
-                            {playlist.creator}
+                          <p className="text-gray-400 text-[10px] sm:text-xs truncate mb-1">
+                            By {playlist.creator}
                           </p>
                           {playlist.description && (
-                            <p className="text-gray-500 text-[10px] sm:text-xs mt-1 truncate">
+                            <p className="text-gray-500 text-[10px] sm:text-xs line-clamp-2">
                               {playlist.description}
                             </p>
                           )}
@@ -742,12 +848,23 @@ function SearchResultsContent() {
                       </div>
                     ))
                   ) : (
-                    <div className="col-span-full text-center py-12">
-                      <svg className="w-16 h-16 mx-auto text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                      </svg>
-                      <h3 className="mt-4 text-lg font-medium text-white">No playlists found</h3>
-                      <p className="mt-2 text-gray-400">Try adjusting your search to find what you're looking for.</p>
+                    <div className="col-span-full text-center py-16 card-bg rounded-xl border border-gray-800">
+                      <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center">
+                        <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm0 0v-8"></path>
+                        </svg>
+                      </div>
+                      <h3 className="text-xl font-bold text-white mb-2">No playlists found</h3>
+                      <p className="text-gray-400 mb-4">Try adjusting your search or browse categories below</p>
+                      <button 
+                        onClick={() => {
+                          setSearchQuery('');
+                          setSelectedGenre(null);
+                        }}
+                        className="px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-full font-medium hover:shadow-lg transition-all"
+                      >
+                        Browse All
+                      </button>
                     </div>
                   )}
                 </div>
@@ -755,76 +872,186 @@ function SearchResultsContent() {
 
               {/* Mixes Tab */}
               {activeTab === 'mixes' && (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {mixes.length > 0 ? (
-                    mixes.map((mix) => (
-                      <div key={mix.id} className="flex items-center gap-4 p-4 card-bg rounded-xl hover:bg-gray-800/50 transition-colors group">
-                        <div className="relative">
+                    mixes.map((mix, index) => (
+                      <div 
+                        key={mix.id} 
+                        className="group flex items-center gap-4 p-3 sm:p-4 bg-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-xl hover:bg-gray-800/60 hover:border-[#FFCB2B]/50 transition-all duration-300 cursor-pointer"
+                        onClick={() => {
+                          const formattedTrack: PlayerTrack = {
+                            id: mix.id,
+                            title: mix.title,
+                            artist: mix.artist,
+                            coverImage: mix.coverImage,
+                            audioUrl: mix.audioURL,
+                            creatorId: mix.creatorId,
+                            plays: mix.plays,
+                            likes: mix.likes,
+                            type: 'mix'
+                          };
+                          playTrack(formattedTrack);
+                        }}
+                      >
+                        {/* Track Number / Play Button */}
+                        <div className="w-8 text-center text-gray-500 text-sm font-medium group-hover:hidden">
+                          {index + 1}
+                        </div>
+                        <div className="w-8 hidden group-hover:flex items-center justify-center">
+                          <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
+                          </svg>
+                        </div>
+                        
+                        {/* Cover Image */}
+                        <div className="relative flex-shrink-0">
                           <img 
                             src={mix.coverImage || '/placeholder-track.png'} 
                             alt={mix.title} 
-                            className="w-16 h-16 rounded-lg object-cover"
+                            className="w-14 h-14 sm:w-16 sm:h-16 rounded-lg object-cover shadow-lg group-hover:shadow-xl transition-shadow"
                           />
-                          <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button 
-                              onClick={() => {
-                                const formattedTrack: PlayerTrack = {
-                                  id: mix.id,
-                                  title: mix.title,
-                                  artist: mix.artist,
-                                  coverImage: mix.coverImage,
-                                  audioUrl: mix.audioURL,
-                                  creatorId: mix.creatorId,
-                                  plays: mix.plays,
-                                  likes: mix.likes,
-                                  type: 'mix'
-                                };
-                                playTrack(formattedTrack);
-                              }}
-                              className="w-8 h-8 rounded-full gradient-primary flex items-center justify-center text-white"
-                            >
-                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
-                              </svg>
-                            </button>
+                          {/* Mix badge */}
+                          <div className="absolute -top-2 -left-2">
+                            <span className="px-2 py-1 bg-gradient-to-r from-[#FFCB2B] to-orange-500 text-white text-[10px] font-bold rounded-full shadow-lg">
+                              MIX
+                            </span>
                           </div>
                         </div>
                         
+                        {/* Mix Info */}
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-bold text-white truncate">{mix.title}</h3>
+                          <h3 className="font-bold text-white truncate group-hover:text-[#FFCB2B] transition-colors">{mix.title}</h3>
                           <p className="text-gray-400 text-sm truncate">{mix.artist}</p>
                         </div>
                         
-                        <div className="text-right">
-                          <p className="text-gray-500 text-xs sm:text-sm">{mix.plays.toLocaleString()} plays</p>
-                          <div className="flex items-center gap-1 mt-1 justify-end">
-                            <svg className="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                              <path fillRule="evenodd" d="M3.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        {/* Stats */}
+                        <div className="hidden sm:flex items-center gap-4 text-right">
+                          <div className="flex items-center gap-1">
+                            <svg className="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"></path>
+                              <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"></path>
                             </svg>
-                            <span className="text-gray-500 text-xs sm:text-sm">{mix.likes}</span>
+                            <span className="text-gray-400 text-sm">{mix.plays.toLocaleString()}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <svg className="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M3.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" clipRule="evenodd"></path>
+                            </svg>
+                            <span className="text-gray-400 text-sm">{mix.likes}</span>
                           </div>
                         </div>
                       </div>
                     ))
                   ) : (
-                    <div className="text-center py-12">
-                      <svg className="w-16 h-16 mx-auto text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                      </svg>
-                      <h3 className="mt-4 text-lg font-medium text-white">No mixes found</h3>
-                      <p className="mt-2 text-gray-400">Try adjusting your search to find what you're looking for.</p>
+                    <div className="text-center py-16 card-bg rounded-xl border border-gray-800">
+                      <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-yellow-500/20 to-orange-500/20 flex items-center justify-center">
+                        <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm0 0v-8"></path>
+                        </svg>
+                      </div>
+                      <h3 className="text-xl font-bold text-white mb-2">No mixes found</h3>
+                      <p className="text-gray-400 mb-4">Try adjusting your search or browse categories below</p>
+                      <button 
+                        onClick={() => {
+                          setSearchQuery('');
+                          setSelectedGenre(null);
+                        }}
+                        className="px-6 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-full font-medium hover:shadow-lg transition-all"
+                      >
+                        Browse All
+                      </button>
                     </div>
                   )}
                 </div>
               )}
             </>
           ) : (
-            <div className="text-center py-12">
-              <svg className="w-16 h-16 mx-auto text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-              </svg>
-              <h3 className="mt-4 text-lg font-medium text-white">Start searching</h3>
-              <p className="mt-2 text-gray-400">Enter a search term to find music, artists, and albums.</p>
+            <div className="space-y-6 sm:space-y-8">
+              {/* Browse Categories Section - Spotify Style */}
+              <div>
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-4 sm:mb-6">Browse All</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+                  {browseCategories.map((category, index) => (
+                    <div
+                      key={category.id}
+                      onClick={() => {
+                        // Navigate to appropriate page based on category
+                        const routes: Record<string, string> = {
+                          'trending': '/charts',
+                          'new-releases': '/explore?filter=new',
+                          'charts': '/charts',
+                          'playlists': '/playlists',
+                          'artists': '/explore?filter=artists',
+                          'albums': '/explore?filter=albums',
+                          'beats': '/beats',
+                          'mixes': '/mixes',
+                          'local': '/explore?filter=local',
+                          'international': '/explore?filter=international',
+                          'workout': '/playlists?genre=workout',
+                          'chill': '/playlists?genre=chill'
+                        }
+                        router.push(routes[category.id] || '/explore')
+                      }}
+                      className={`relative overflow-hidden rounded-lg sm:rounded-xl aspect-square bg-gradient-to-br ${category.color} cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-2xl active:scale-95 group animate-scale-in`}
+                      style={{ animationDelay: `${index * 0.05}s` }}
+                    >
+                      <div className="absolute inset-0 p-3 sm:p-4 flex flex-col justify-between">
+                        <h3 className="text-white font-bold text-sm sm:text-lg leading-tight">{category.name}</h3>
+                        <p className="text-white/80 text-[10px] sm:text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-300 line-clamp-2">
+                          {category.description}
+                        </p>
+                      </div>
+                      {/* Decorative element */}
+                      <div className="absolute -bottom-4 -right-4 w-20 h-20 sm:w-24 sm:h-24 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500"></div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Popular Genres Section */}
+              <div>
+                <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-3 sm:mb-4">Popular Genres</h2>
+                <div className="flex flex-wrap gap-2 sm:gap-3">
+                  {genres.slice(0, 12).map((genre) => (
+                    <button
+                      key={genre.id}
+                      onClick={() => setSelectedGenre(genre.id)}
+                      className={`px-3 py-2 sm:px-4 sm:py-2.5 rounded-full bg-gradient-to-r ${genre.color} text-white font-medium text-xs sm:text-sm transition-all duration-300 hover:scale-105 hover:shadow-lg active:scale-95 flex items-center gap-1.5 sm:gap-2`}
+                    >
+                      <span>{genre.icon}</span>
+                      <span>{genre.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Quick Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mt-6 sm:mt-8">
+                <div className="card-bg rounded-lg sm:rounded-xl p-4 sm:p-6 text-center border border-gray-800 hover:border-[#FF4D67]/50 transition-colors">
+                  <div className="text-2xl sm:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] mb-1 sm:mb-2">
+                    10K+
+                  </div>
+                  <div className="text-gray-400 text-xs sm:text-sm">Songs</div>
+                </div>
+                <div className="card-bg rounded-lg sm:rounded-xl p-4 sm:p-6 text-center border border-gray-800 hover:border-[#FFCB2B]/50 transition-colors">
+                  <div className="text-2xl sm:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FFCB2B] to-[#FF4D67] mb-1 sm:mb-2">
+                    500+
+                  </div>
+                  <div className="text-gray-400 text-xs sm:text-sm">Artists</div>
+                </div>
+                <div className="card-bg rounded-lg sm:rounded-xl p-4 sm:p-6 text-center border border-gray-800 hover:border-purple-500/50 transition-colors">
+                  <div className="text-2xl sm:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-pink-500 mb-1 sm:mb-2">
+                    200+
+                  </div>
+                  <div className="text-gray-400 text-xs sm:text-sm">Albums</div>
+                </div>
+                <div className="card-bg rounded-lg sm:rounded-xl p-4 sm:p-6 text-center border border-gray-800 hover:border-blue-500/50 transition-colors">
+                  <div className="text-2xl sm:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-cyan-500 mb-1 sm:mb-2">
+                    100+
+                  </div>
+                  <div className="text-gray-400 text-xs sm:text-sm">Playlists</div>
+                </div>
+              </div>
             </div>
           )}
         </div>

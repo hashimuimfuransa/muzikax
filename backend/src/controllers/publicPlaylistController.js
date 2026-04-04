@@ -137,7 +137,47 @@ const getPublicPlaylists = async (req, res) => {
   }
 };
 
+// Get a single public playlist by ID
+const getPublicPlaylistById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const playlist = await Playlist.findById(id)
+      .populate('userId', 'name role')
+      .populate({
+        path: 'tracks',
+        select: 'title creatorId plays coverURL audioURL duration likes',
+        populate: {
+          path: 'creatorId',
+          select: 'name'
+        }
+      });
+    
+    if (!playlist) {
+      return res.status(404).json({ message: 'Playlist not found' });
+    }
+    
+    // Only allow access to public playlists
+    if (!playlist.isPublic) {
+      return res.status(403).json({ message: 'This playlist is not public' });
+    }
+    
+    const playlistObj = playlist.toObject();
+    
+    // Rename admin user to MuzikaX
+    if (playlistObj.userId && playlistObj.userId.role === 'admin') {
+      playlistObj.userId.name = 'MuzikaX';
+    }
+    
+    res.json({ playlist: playlistObj });
+  } catch (error) {
+    console.error('Error in getPublicPlaylistById:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getRecommendedPlaylists,
-  getPublicPlaylists
+  getPublicPlaylists,
+  getPublicPlaylistById
 };

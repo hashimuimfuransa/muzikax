@@ -103,6 +103,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Check if we're in the browser before accessing localStorage
     if (typeof window !== 'undefined') {
       localStorage.setItem('user', JSON.stringify(userData))
+      // Trigger a profile refresh to ensure data is up-to-date
+      fetchUserProfile().then(success => {
+        console.log('AuthProvider - Profile refreshed after login:', success);
+      });
     }
   }
 
@@ -136,60 +140,81 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (!response.ok) {
         if (response.status === 401) {
-          // Token might be expired, attempt refresh
-          const refreshToken = localStorage.getItem('refreshToken');
-          if (refreshToken) {
-            const refreshResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh-token`, {
-              method: 'POST',
+          console.error('Authentication failed: Token invalid or expired');
+          console.log('Solution: Clearing stored tokens and redirecting to login...');
+          
+          // Clear invalid tokens from localStorage
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('user');
+          }
+          
+          // Redirect to login after a short delay
+          setTimeout(() => {
+            if (typeof window !== 'undefined') {
+              window.location.href = '/login';
+            }
+          }, 1000);
+          
+          setIsLoading(false);
+          return false;
+        }
+        
+        // For other errors, try token refresh
+        const refreshToken = localStorage.getItem('refreshToken');
+        if (refreshToken) {
+          const refreshResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh-token`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ refreshToken })
+          });
+          
+          if (refreshResponse.ok) {
+            const refreshData = await refreshResponse.json();
+            localStorage.setItem('accessToken', refreshData.accessToken);
+            localStorage.setItem('refreshToken', refreshData.refreshToken);
+            
+            // Retry the profile request with new token
+            const retryResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
+              method: 'GET',
               headers: {
                 'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ refreshToken })
+                'Authorization': `Bearer ${refreshData.accessToken}`
+              }
             });
             
-            if (refreshResponse.ok) {
-              const refreshData = await refreshResponse.json();
-              localStorage.setItem('accessToken', refreshData.accessToken);
-              localStorage.setItem('refreshToken', refreshData.refreshToken);
-              
-              // Retry the profile request with new token
-              const retryResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
-                method: 'GET',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${refreshData.accessToken}`
-                }
-              });
-              
-              if (!retryResponse.ok) {
-                console.error('Failed to fetch user profile after token refresh');
-                setIsLoading(false);
-                return false;
-              }
-              
-              const updatedUserData = await retryResponse.json();
-              
-              // Ensure whatsappContact is a string, not an object
-              let whatsappContactValue = updatedUserData.whatsappContact || '';
-              if (typeof whatsappContactValue === 'object' && whatsappContactValue !== null) {
-                // If it's an object, extract the actual WhatsApp number
-                whatsappContactValue = (whatsappContactValue as any).whatsappContact || '';
-              }
-              
-              const completeUser = {
-                ...updatedUserData,
-                id: updatedUserData._id,
-                whatsappContact: whatsappContactValue
-              };
-              
-              console.log('fetchUserProfile - Profile refreshed successfully (after token refresh):', completeUser);
-              setUser(completeUser);
-              localStorage.setItem('user', JSON.stringify(completeUser));
+            if (!retryResponse.ok) {
+              console.error('Failed to fetch user profile after token refresh');
               setIsLoading(false);
-              return true;
+              return false;
             }
+            
+            const updatedUserData = await retryResponse.json();
+            
+            // Ensure whatsappContact is a string, not an object
+            let whatsappContactValue = updatedUserData.whatsappContact || '';
+            if (typeof whatsappContactValue === 'object' && whatsappContactValue !== null) {
+              // If it's an object, extract the actual WhatsApp number
+              whatsappContactValue = (whatsappContactValue as any).whatsappContact || '';
+            }
+            
+            const completeUser = {
+              ...updatedUserData,
+              id: updatedUserData._id,
+              whatsappContact: whatsappContactValue
+            };
+            
+            console.log('fetchUserProfile - Profile refreshed successfully (after token refresh):', completeUser);
+            setUser(completeUser);
+            localStorage.setItem('user', JSON.stringify(completeUser));
+            setIsLoading(false);
+            return true;
           }
         }
+        
         console.error('Failed to fetch user profile:', response.status);
         setIsLoading(false);
         return false;

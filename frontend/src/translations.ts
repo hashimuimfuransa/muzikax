@@ -685,6 +685,20 @@ export const translations = {
     openSoloPlayer: 'Fungura Solo Player',
     previousTrack: 'Indirimbo ibanza',
     nextTrack: 'Indirimbo ikurikira',
+    
+    // Home Page Components - New Keys
+    featuredTrack: 'Indirimbo Yagaragajwe',
+    chartToppers: 'Iziri Ku Isonga',
+    quickPicks: 'Izahiswemo Vuba',
+    browseArtists: 'Shakisha Abahanzi',
+    notFollowingAnyArtists: 'Ntabwo Urukurikirana Abahanzi Na Bamwe',
+    followArtistsToSeeTracks: 'Kurikirana abahanzi kugirango ubone indirimbo zabo hano',
+    noPlaylistsAvailable: 'Nta nzirambyo zihari.',
+    noAlbumsAvailable: 'Nta alubumu zihari.',
+    noBeatsAvailable: 'Nta beats zihari.',
+    voiceNote: 'Inyandiko y\'ijwi',
+    communityVibe: 'Vibe y\'umuryango',
+    viewPost: 'Reba Ubutumwa',
   },
   sw: {
     home: 'Nyumbani',
@@ -995,7 +1009,24 @@ export const translations = {
     openSoloPlayer: 'Fungua Kichezaji Pekee',
     previousTrack: 'Wimbo uliotangulia',
     nextTrack: 'Wimbo unaofuata',
-  }
+    
+    // Home Page Components - New Keys
+    featuredTrack: 'Wimbo Ulioonyeshwa',
+    seeAll: 'Tazama Zote',
+    chartToppers: 'Zinazoongoza Kwenye Chat',
+    quickPicks: 'Zilizochaguliwa Haraka',
+    browseArtists: 'Vinjari Wasanii',
+    notFollowingAnyArtists: 'Hufuati Wasanii Wowote Bado',
+    followArtistsToSeeTracks: 'Fuata wasanii ili kuona nyimbo zao hapa',
+    noPlaylistsAvailable: 'Hakuna orodha za kucheza zinazopatikana.',
+    noAlbumsAvailable: 'Hakuna albamu zinazopatikana.',
+    noBeatsAvailable: 'Hakuna beats zinazopatikana.',
+    continueListening: 'Endelea Kusikiliza',
+    trendingNow: 'Zinavuma Sasa',
+    voiceNote: 'Ujumbe wa Sauti',
+    communityVibe: 'Vibe ya Jamii',
+    viewPost: 'Tazama Ujumbe',
+  },
 };
 
 export type Language = 'en' | 'rw' | 'sw';

@@ -122,6 +122,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        {/* Google Fonts - Inter and Poppins */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet"
+        />
+        
         {/* Essential scripts only - removed ad redirect scripts */}
         <meta name="application-name" content="MuzikaX" />
         <meta name="mobile-web-app-capable" content="yes" />
@@ -157,7 +165,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-screen flex flex-col overflow-x-hidden w-full max-w-[100%]">
+      <body className="min-h-screen flex flex-col bg-gradient-to-b from-[#0a0604] via-[#0B0F14] to-[#0a0604] text-white w-full max-w-full overflow-x-hidden">
         {/* Structured Data for Rich Snippets */}
         <Script
           id="root-structured-data"
@@ -217,19 +225,20 @@ export default function RootLayout({
                                   {/* Conditional rendering - skip for admin routes */}
                                   <div className="admin-layout-wrapper" data-admin-routes={ADMIN_ROUTES.join(',')} style={{ display: 'contents' }}>
                                     <ConditionalSidebar />
-                                    <div className="w-full max-w-[100%] overflow-x-hidden">
+                                    <div className="w-full">
                                       <SidebarLayoutWrapper>
                                         <ConditionalNavbar />
                                         <PushNotificationInitializer />
-                                        <main className="flex-1 w-full overflow-x-hidden">
+                                        <main className="flex-1 w-full">
                                           {children}
                                         </main>
                                       </SidebarLayoutWrapper>
                                     </div>
                                     <ModernAudioPlayer />
                                     <PWAInstallPrompt />
-                                    <AIMusicAssistant />
-                                    <AIPopup />
+                                    {/* AI Assistant - Hidden on production (still in development) */}
+                                    {process.env.NEXT_PUBLIC_SHOW_AI_ASSISTANT === 'true' && <AIMusicAssistant />}
+                                    {process.env.NEXT_PUBLIC_SHOW_AI_ASSISTANT === 'true' && <AIPopup />}
                                     <Footer />
                                   </div>
                                 </OfflineProvider>

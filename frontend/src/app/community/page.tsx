@@ -60,9 +60,9 @@ const CommunityContent = () => {
       if (element) {
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
         // Highlight the post
-        element.classList.add('ring-2', 'ring-[#FF4D67]', 'ring-offset-4', 'ring-offset-gray-900');
+        element.classList.add('ring-2', 'ring-primary', 'ring-offset-4', 'ring-offset-background-deep');
         setTimeout(() => {
-          element.classList.remove('ring-2', 'ring-[#FF4D67]', 'ring-offset-4', 'ring-offset-gray-900');
+          element.classList.remove('ring-2', 'ring-primary', 'ring-offset-4', 'ring-offset-background-deep');
         }, 3000);
         setScrolledToPost(true);
       }
@@ -537,8 +537,8 @@ const CommunityContent = () => {
   // Show loading spinner while redirecting
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#FF4D67]"></div>
+      <div className="min-h-screen bg-gradient-to-br from-background-deep via-background to-surface flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -578,14 +578,14 @@ const CommunityContent = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
             <div className="text-center mb-6 sm:mb-8">
-              <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-[#FF4D67] to-[#FF8FA3] bg-clip-text text-transparent mb-2">{t('vibes')}</h1>
-              <p className="text-gray-400">{t('vibesSubtitle')}</p>
+              <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary to-primary-hover bg-clip-text text-transparent mb-2">{t('vibes')}</h1>
+              <p className="text-text-secondary">{t('vibesSubtitle')}</p>
             </div>
 
             <div className="mb-6 flex justify-center">
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="bg-gradient-to-r from-[#FF4D67] to-[#FF6B8B] text-white py-3 px-6 rounded-full font-medium flex items-center space-x-2 hover:from-[#FF6B8B] hover:to-[#FF8FA3] transition-all shadow-lg"
+                className="bg-gradient-to-r from-primary to-primary-hover text-white py-3 px-6 rounded-full font-medium flex items-center space-x-2 hover:from-primary-hover hover:to-primary transition-all shadow-lg"
               >
                 <FaPlus className="text-sm" />
                 <span>{t('shareVibe')}</span>
@@ -599,8 +599,8 @@ const CommunityContent = () => {
                     onClick={() => setSelectedCategory('all')}
                     className={`flex items-center px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm transition-colors whitespace-nowrap ${
                       selectedCategory === 'all' 
-                        ? 'bg-gradient-to-r from-[#FF4D67] to-[#FF6B8B] text-white shadow-lg' 
-                        : 'text-gray-400 hover:text-white'
+                        ? 'bg-gradient-to-r from-primary to-primary-hover text-white shadow-lg' 
+                        : 'text-text-secondary hover:text-text-primary'
                     }`}
                   >
                     <FaUserFriends className="mr-1 text-xs" /> <span className="hidden sm:inline">{t('allVibes')}</span><span className="inline sm:hidden">{t('vibes')}</span>
@@ -644,7 +644,7 @@ const CommunityContent = () => {
                         {vibe.userAvatar ? (
                           <img src={vibe.userAvatar} alt={vibe.userName} className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover" />
                         ) : (
-                          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-r from-[#FF4D67] to-[#FF6B8B] flex items-center justify-center">
+                          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-r from-primary to-primary-hot flex items-center justify-center">
                             <span className="text-white font-medium text-sm">{vibe.userName ? vibe.userName.charAt(0).toUpperCase() : '?'}</span>
                           </div>
                         )}
@@ -652,8 +652,8 @@ const CommunityContent = () => {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
                           <div>
-                            <a href={`/profile/${vibe.userId?._id || vibe.userId || ''}`} className="font-semibold text-white truncate hover:text-[#FF4D67] transition-colors">{vibe.userName}</a>
-                            <p className="text-xs text-gray-400">{formatTimeAgo(vibe.createdAt)}</p>
+                            <a href={`/profile/${vibe.userId?._id || vibe.userId || ''}`} className="font-semibold text-text-primary truncate hover:text-primary transition-colors">{vibe.userName}</a>
+                            <p className="text-xs text-text-secondary">{formatTimeAgo(vibe.createdAt)}</p>
                           </div>
                           <div className="flex items-center space-x-2">
                             {vibe.category === 'trending' && (
@@ -670,7 +670,7 @@ const CommunityContent = () => {
                             )}
                           </div>
                         </div>
-                        <p className="text-gray-200 mt-2 whitespace-pre-wrap">{vibe.content}</p>
+                        <p className="text-text-primary mt-2 whitespace-pre-wrap">{vibe.content}</p>
                         
                         {(vibe.mediaUrl) && (
                           <div className="mt-3 overflow-hidden rounded-lg border border-gray-700">
@@ -707,7 +707,7 @@ const CommunityContent = () => {
                           <div className="mt-4 pt-4 border-t border-gray-700">
                             {loadingComments[vibe.id] ? (
                               <div className="flex justify-center py-4">
-                                <div className="inline-block animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-[#FF4D67]"></div>
+                                <div className="inline-block animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-primary"></div>
                               </div>
                             ) : (
                               <div className="space-y-3">
@@ -716,7 +716,7 @@ const CommunityContent = () => {
                                     {comment.userId?.avatar || comment.userAvatar ? (
                                       <img src={comment.userId?.avatar || comment.userAvatar} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
                                     ) : (
-                                      <div className="w-8 h-8 rounded-full bg-gradient-to-r from-[#FF4D67] to-[#FF6B8B] flex items-center justify-center flex-shrink-0">
+                                      <div className="w-8 h-8 rounded-full bg-gradient-to-r from-primary to-primary-hot flex items-center justify-center flex-shrink-0">
                                         <span className="text-white text-xs font-medium">{(comment.userId?.name || comment.userName || '?').charAt(0).toUpperCase()}</span>
                                       </div>
                                     )}
@@ -735,7 +735,7 @@ const CommunityContent = () => {
                                     {user.avatar ? (
                                       <img src={user.avatar} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
                                     ) : (
-                                      <div className="w-8 h-8 rounded-full bg-gradient-to-r from-[#FF4D67] to-[#FF6B8B] flex items-center justify-center flex-shrink-0">
+                                      <div className="w-8 h-8 rounded-full bg-gradient-to-r from-primary to-primary-hot flex items-center justify-center flex-shrink-0">
                                         <span className="text-white text-xs font-medium">{user.name?.charAt(0).toUpperCase()}</span>
                                       </div>
                                     )}
@@ -745,9 +745,9 @@ const CommunityContent = () => {
                                         value={newComment[vibe.id] || ''}
                                         onChange={(e) => setNewComment(prev => ({ ...prev, [vibe.id]: e.target.value }))}
                                         placeholder={t('writeComment')}
-                                        className="flex-1 bg-gray-700 text-white rounded-l-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+                                        className="flex-1 bg-surface text-text-primary rounded-l-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                                       />
-                                      <button onClick={() => submitComment(vibe.id)} className="bg-gradient-to-r from-[#FF4D67] to-[#FF6B8B] text-white px-4 rounded-r-lg text-sm font-medium">{t('post')}</button>
+                                      <button onClick={() => submitComment(vibe.id)} className="bg-gradient-to-r from-primary to-primary-hover text-white px-4 rounded-r-lg text-sm font-medium hover:from-primary-hover hover:to-primary transition-colors">{t('post')}</button>
                                     </div>
                                   </div>
                                 )}
@@ -776,7 +776,7 @@ const CommunityContent = () => {
                     <button
                       key={filter}
                       onClick={() => setArtistFilter(filter)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${artistFilter === filter ? 'bg-[#FF4D67] text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${artistFilter === filter ? 'bg-primary text-text-primary' : 'bg-surface text-text-secondary hover:bg-surface-elevated'}`}
                     >
                       {t(filter as any)}
                     </button>
@@ -785,7 +785,7 @@ const CommunityContent = () => {
                 
                 {loadingArtists ? (
                   <div className="flex justify-center py-8">
-                    <div className="inline-block animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-[#FF4D67]"></div>
+                    <div className="inline-block animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-primary"></div>
                   </div>
                 ) : (
                   <div className="space-y-4 max-h-[600px] overflow-y-auto">
@@ -794,17 +794,17 @@ const CommunityContent = () => {
                         {artist.avatar ? (
                           <img src={artist.avatar} className="w-12 h-12 rounded-full object-cover" />
                         ) : (
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#FF4D67] to-[#FF6B8B] flex items-center justify-center">
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary-hot flex items-center justify-center">
                             <span className="text-white font-medium text-sm">{artist.name.charAt(0).toUpperCase()}</span>
                           </div>
                         )}
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-white text-sm truncate">{artist.name}</h3>
-                          <p className="text-xs text-gray-400">{t('followersCount', { count: artist.followersCount || 0 })}</p>
+                          <h3 className="font-semibold text-text-primary text-sm truncate">{artist.name}</h3>
+                          <p className="text-xs text-text-secondary">{t('followersCount', { count: artist.followersCount || 0 })}</p>
                         </div>
                         <button
                           onClick={() => toggleFollowArtist(artist._id || artist.id)}
-                          className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${followedArtists[artist._id || artist.id] ? 'bg-gray-700 text-white' : 'bg-[#FF4D67] text-white'}`}
+                          className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${followedArtists[artist._id || artist.id] ? 'bg-surface text-text-primary' : 'bg-primary text-text-primary hover:from-primary-hover hover:to-primary'}`}
                         >
                           {followedArtists[artist._id || artist.id] ? t('following') : t('follow')}
                         </button>
@@ -828,8 +828,8 @@ const CommunityContent = () => {
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">{t('category')}</label>
-                <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#FF4D67] outline-none">
+                <label className="block text-sm font-medium text-text-secondary mb-2">{t('category')}</label>
+                <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} className="w-full bg-surface text-text-primary rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary outline-none">
                   <option value="general">{t('general')}</option>
                   <option value="artist">{t('forArtists')}</option>
                   <option value="trending">{t('onTheFlip')}</option>
@@ -837,18 +837,18 @@ const CommunityContent = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">{t('yourVibe')}</label>
-                <textarea value={newVibe} onChange={(e) => setNewVibe(e.target.value)} placeholder={t('yourVibePlaceholder')} className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#FF4D67] outline-none h-32 resize-none" />
+                <label className="block text-sm font-medium text-text-secondary mb-2">{t('yourVibe')}</label>
+                <textarea value={newVibe} onChange={(e) => setNewVibe(e.target.value)} placeholder={t('yourVibePlaceholder')} className="w-full bg-surface text-text-primary rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary outline-none h-32 resize-none" />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">{t('addMedia')}</label>
+                <label className="block text-sm font-medium text-text-secondary mb-2">{t('addMedia')}</label>
                 {!previewUrl ? (
-                  <div className="relative border-2 border-dashed border-gray-600 rounded-xl p-4 text-center hover:border-[#FF4D67] transition-colors">
+                  <div className="relative border-2 border-dashed border-border-light rounded-xl p-4 text-center hover:border-primary transition-colors">
                     <input type="file" accept="image/*,video/*" onChange={handleMediaFileChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                     <div className="flex flex-col items-center">
-                      <FaPlus className="text-gray-400 mb-2" />
-                      <span className="text-sm text-gray-400">{t('clickToUpload')}</span>
+                      <FaPlus className="text-text-secondary mb-2" />
+                      <span className="text-sm text-text-secondary">{t('clickToUpload')}</span>
                     </div>
                   </div>
                 ) : (
@@ -873,7 +873,7 @@ const CommunityContent = () => {
                     
                     {/* Optional custom thumbnail upload for videos */}
                     {!mediaFile?.isImage && (
-                      <div className="relative border-2 border-dashed border-gray-600 rounded-xl p-3 text-center hover:border-[#FF4D67] transition-colors">
+                      <div className="relative border-2 border-dashed border-border-light rounded-xl p-3 text-center hover:border-primary transition-colors">
                         <input 
                           type="file" 
                           accept="image/*" 
@@ -921,12 +921,12 @@ const CommunityContent = () => {
                 )}
                 {isUploading && uploadProgress > 0 && uploadProgress < 100 && (
                   <div className="w-full mt-2">
-                    <div className="flex justify-between text-[10px] text-gray-400 mb-1">
+                    <div className="flex justify-between text-[10px] text-text-secondary mb-1">
                       <span>{t('uploadingVibe')}...</span>
                       <span>{Math.round(uploadProgress)}%</span>
                     </div>
-                    <div className="w-full bg-gray-700 rounded-full h-1.5 overflow-hidden">
-                      <div className="bg-[#FF4D67] h-1.5 rounded-full transition-all duration-300" style={{ width: `${uploadProgress}%` }}></div>
+                    <div className="w-full bg-surface rounded-full h-1.5 overflow-hidden">
+                      <div className="bg-primary h-1.5 rounded-full transition-all duration-300" style={{ width: `${uploadProgress}%` }}></div>
                     </div>
                   </div>
                 )}
@@ -935,7 +935,7 @@ const CommunityContent = () => {
               <button
                 onClick={createVibe}
                 disabled={isUploading || (!newVibe.trim() && !mediaFile)}
-                className="w-full bg-gradient-to-r from-[#FF4D67] to-[#FF6B8B] text-white py-3 rounded-xl font-bold hover:shadow-lg disabled:opacity-50 transition-all mt-2"
+                className="w-full bg-gradient-to-r from-primary to-primary-hover text-white py-3 rounded-xl font-bold hover:shadow-lg disabled:opacity-50 transition-all mt-2"
               >
                 {isUploading ? t('uploading') : t('postVibe')}
               </button>
@@ -954,12 +954,12 @@ const CommunityContent = () => {
                 <div key={artist._id} className="flex items-center gap-3 p-3 rounded-xl bg-gray-700/30">
                   <img src={artist.avatar || '/default-avatar.png'} className="w-12 h-12 rounded-full object-cover" />
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-white text-sm truncate">{artist.name}</h3>
-                    <p className="text-xs text-gray-400">{t('followersCount', { count: artist.followersCount || 0 })}</p>
+                    <h3 className="font-semibold text-text-primary text-sm truncate">{artist.name}</h3>
+                    <p className="text-xs text-text-secondary">{t('followersCount', { count: artist.followersCount || 0 })}</p>
                   </div>
                   <button
                     onClick={() => toggleFollowArtist(artist._id)}
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${followedArtists[artist._id] ? 'bg-gray-700 text-white' : 'bg-[#FF4D67] text-white'}`}
+                    className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${followedArtists[artist._id] ? 'bg-surface text-text-primary' : 'bg-primary text-text-primary hover:from-primary-hover hover:to-primary'}`}
                   >
                     {followedArtists[artist._id] ? t('following') : t('follow')}
                   </button>
@@ -976,8 +976,8 @@ const CommunityContent = () => {
 const CommunityPage = () => {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#FF4D67]"></div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
       </div>
     }>
       <CommunityContent />

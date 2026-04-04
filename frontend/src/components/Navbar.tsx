@@ -14,7 +14,7 @@ export default function Navbar() {
   const [showLanguageModal, setShowLanguageModal] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
   const userMenuRef = useRef<HTMLDivElement>(null)
-  const { isAuthenticated: actualAuth, userRole: actualRole, logout } = useAuth()
+  const { isAuthenticated: actualAuth, userRole: actualRole, logout, user } = useAuth()
   const { t, language: actualLanguage, setLanguage } = useLanguage()
   const router = useRouter()
   const pathname = usePathname()
@@ -154,54 +154,52 @@ export default function Navbar() {
     }
   }, [isAuthenticated]);
 
+  // Keyboard shortcut for search (Cmd/Ctrl + K)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Check for Cmd+K (Mac) or Ctrl+K (Windows/Linux)
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        // Focus on search input if it exists
+        const searchInput = document.querySelector('input[type="text"]') as HTMLInputElement;
+        if (searchInput) {
+          searchInput.focus();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   return (
     <>
-      <nav className="hidden md:block bg-gray-900/80 backdrop-blur-lg border-b border-gray-800 sticky top-0 z-40" data-testid="desktop-navbar">
-        {/* Categories Bar */}
-        <div 
-          ref={categoriesRef}
-          className={`bg-gray-900/95 backdrop-blur-lg border-b border-gray-800 transition-all duration-300 overflow-hidden ${
-            showCategories ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'
-          } md:hidden`}
-        >
-          <div className="px-4 py-3">
-            <div className="flex space-x-3 overflow-x-auto scrollbar-hide pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-              {categories.map((category) => (
-                <button
-                  key={category.id}
-                  onClick={() => {
-                    handleCategorySelect(category.id);
-                    setShowCategories(false); // Close categories after selection
-                  }}
-                  className={`flex flex-col items-center px-3 py-2 rounded-xl transition-all duration-200 whitespace-nowrap flex-shrink-0 ${
-                    'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50 hover:text-white'
-                  }`}
-                >
-                  <span className="text-lg mb-1">{category.icon}</span>
-                  <span className="text-xs font-medium">{category.name}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-        
-        <div className="w-full px-1 sm:px-3 lg:px-4">
-          <div className="flex items-center justify-between h-16 w-full">
-            {/* Logo */}
-            <div className="flex-shrink-0 flex items-center">
-              <Link href="/" className="flex items-center group">
-                <div className="w-9 h-9 rounded-lg overflow-hidden shadow-md">
-                  <img src="/muzikax.png" alt="MuzikaX Logo" className="w-full h-full object-cover rounded-lg transition-transform group-hover:scale-105" />
-                </div>
-                <span className="ml-2 text-2xl font-black text-white tracking-tighter">MuzikaX</span>
-              </Link>
-            </div>
+      {/* Desktop Navigation */}
+      <nav className="hidden md:block glass-strong sticky top-0 z-40">
+        <div className="max-w-[2000px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16 gap-4">
+            {/* Logo - Left Side */}
+            <Link href="/" className="flex items-center gap-3 group flex-shrink-0">
+              <div className="w-9 h-9 rounded-xl overflow-hidden shadow-lg ring-2 ring-[#F59E0B]/30 transition-all duration-300 group-hover:ring-[#FFB020]/50">
+                <img src="/muzikax.png" alt="MuzikaX Logo" className="w-full h-full object-cover" />
+              </div>
+              <span className="text-xl font-black text-white hidden lg:block">MuzikaX</span>
+            </Link>
 
-            {/* Desktop Search */}
-            <div className="hidden md:flex flex-1 justify-start px-12 max-w-2xl">
-              <form onSubmit={handleSearch} className="relative w-full">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            {/* Search Bar - Modern with Functionality */}
+            <form 
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (searchQuery.trim()) {
+                  router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+                  setSearchQuery('');
+                }
+              }}
+              className="flex-1 max-w-2xl hidden md:block"
+            >
+              <div className="relative group">
+                <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 group-focus-within:text-[#F59E0B] transition-colors">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                   </svg>
                 </div>
@@ -210,25 +208,80 @@ export default function Navbar() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={t('searchPlaceholder')}
-                  className="w-full pl-11 pr-4 py-2.5 bg-gray-800/40 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67]/50 focus:bg-gray-800/60 transition-all rounded-full border border-gray-700/50 text-sm"
+                  className="w-full pl-12 pr-24 py-2.5 bg-[#121821]/80 backdrop-blur-sm text-white placeholder-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#F59E0B]/40 focus:bg-[#1A2330] transition-all duration-300 rounded-full border border-[#1F2937] hover:border-[#374151] text-sm shadow-sm"
                 />
-              </form>
-            </div>
+                {searchQuery ? (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                  </button>
+                ) : (
+                  <div className="absolute right-4 top-1/2 transform -translate-y-1/2 hidden lg:flex items-center gap-1 pointer-events-none">
+                    <kbd className="px-2 py-0.5 text-xs font-medium text-gray-500 bg-gray-800/50 border border-gray-700 rounded">⌘</kbd>
+                    <kbd className="px-2 py-0.5 text-xs font-medium text-gray-500 bg-gray-800/50 border border-gray-700 rounded">K</kbd>
+                  </div>
+                )}
+              </div>
+            </form>
+            
+            {/* Mobile Search Button */}
+            <button
+              onClick={() => router.push('/search')}
+              className="md:hidden p-2.5 text-gray-400 hover:text-white hover:bg-[#121821] rounded-full transition-all"
+              aria-label="Search"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+            </button>
 
-            {/* Desktop Controls (Right) */}
-            <div className="hidden md:flex items-center space-x-3 bg-gray-800/40 px-3 py-1.5 rounded-2xl border border-gray-700/50">
-              {/* Login Button - Show when not authenticated */}
-              {!isAuthenticated && (
-                <button 
-                  onClick={() => router.push('/login?mode=login')}
-                  className="flex items-center px-4 py-2 bg-[#FF4D67] hover:bg-[#FF4D67]/90 text-white rounded-full text-sm font-bold transition-all active:scale-95 shadow-lg shadow-[#FF4D67]/20"
+            {/* Right Actions */}
+            <div className="flex items-center gap-3">
+              {/* Language Switcher */}
+              <button 
+                onClick={() => setShowLanguageModal(true)}
+                className="flex items-center gap-2 px-4 py-2.5 bg-[#121821] hover:bg-[#1A2330] border border-[#1F2937] text-white rounded-full text-sm font-medium transition-all duration-300 active:scale-95"
+              >
+                <span>{language === 'en' ? '🇬🇧' : language === 'rw' ? '🇷🇼' : '🇫🇷'}</span>
+                <span className="hidden lg:inline">{t('language')}</span>
+              </button>
+
+              {/* Authentication / Profile Buttons */}
+              {!mounted ? (
+                <div className="w-24 h-9 bg-[#121821] rounded-full animate-pulse"></div>
+              ) : isAuthenticated ? (
+                user?.role === 'admin' && !pathname?.startsWith('/admin') ? (
+                  <Link
+                    href="/admin"
+                    className="flex items-center px-5 py-2.5 bg-[#F59E0B] hover:bg-[#FFB020] text-black rounded-full text-sm font-bold transition-all duration-300 active:scale-95 shadow-lg shadow-[#F59E0B]/30"
+                  >
+                    {t('adminDashboard')}
+                  </Link>
+                ) : (
+                  <Link
+                    href="/library"
+                    className="flex items-center gap-2 px-5 py-2.5 bg-[#F59E0B] hover:bg-[#FFB020] text-black rounded-full text-sm font-bold transition-all duration-300 active:scale-95 shadow-lg shadow-[#F59E0B]/30"
+                  >
+                    {user?.avatar ? (
+                      <img src={user.avatar} alt={user.name} className="w-5 h-5 rounded-full object-cover" />
+                    ) : (
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" /></svg>
+                    )}
+                    <span className="hidden lg:inline">{user?.name || t('profile')}</span>
+                  </Link>
+                )
+              ) : (
+                <Link
+                  href="/login"
+                  className="flex items-center px-5 py-2.5 bg-[#F59E0B] hover:bg-[#FFB020] text-black rounded-full text-sm font-bold transition-all duration-300 active:scale-95 shadow-lg shadow-[#F59E0B]/30"
                 >
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16a1 1 0 110-2 1 1 0 010 2zM13 10a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                  </svg>
                   {t('login')}
-                </button>
+                </Link>
               )}
 
               {/* Upload Button - Show when authenticated */}
@@ -237,153 +290,13 @@ export default function Navbar() {
                   onClick={() => {
                     router.push('/upload');
                   }}
-                  className="flex items-center px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-full text-sm font-bold border border-white/10 transition-all"
+                  className="flex items-center px-5 py-2.5 bg-[#121821] hover:bg-[#1A2330] text-white border border-[#1F2937] rounded-full text-sm font-bold transition-all duration-300"
                 >
                   <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
                   </svg>
                   {t('upload')}
                 </button>
-              )}
-
-              {/* Language Switcher */}
-              <div className="relative">
-                <button 
-                  onClick={() => setShowLanguageModal(true)}
-                  className="p-2 text-gray-300 hover:text-white transition-colors rounded-full hover:bg-gray-800 flex items-center space-x-1.5"
-                  aria-label="Switch Language"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                  </svg>
-                  <span className="hidden sm:inline text-xs font-bold uppercase">{language === 'en' ? 'EN' : language === 'rw' ? 'RW' : 'SW'}</span>
-                </button>
-              </div>
-
-              {/* User Profile Dropdown - Only when authenticated */}
-              {isAuthenticated && userRole && (
-                <div className="relative">
-                  <button 
-                    onClick={() => setShowUserMenu(!showUserMenu)}
-                    className="flex items-center space-x-2 p-1.5 rounded-full hover:bg-gray-800 transition-all active:scale-95"
-                    aria-label="User Menu"
-                  >
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center text-white font-bold text-sm shadow-lg">
-                      {userRole === 'creator' ? '🎵' : userRole === 'admin' ? '⚡' : '👤'}
-                    </div>
-                  </button>
-
-                  {/* Dropdown Menu - Rendered outside navbar with fixed positioning */}
-                  {showUserMenu && (
-                    <div 
-                      ref={userMenuRef}
-                      className="fixed top-16 right-4 w-56 bg-gray-900/98 backdrop-blur-xl border border-gray-600/50 rounded-2xl shadow-2xl py-2 z-[9999] animate-in fade-in zoom-in-95 duration-200 ring-1 ring-white/10"
-                    >
-                      {/* User Info Header */}
-                      <div className="px-4 py-3 border-b border-gray-700/50 bg-gradient-to-br from-[#FF4D67]/10 to-[#FFCB2B]/5">
-                        <p className="text-sm font-bold text-white">My Account</p>
-                        <p className="text-xs text-gray-300 capitalize">{userRole}</p>
-                      </div>
-                      
-                      {/* Menu Items */}
-                      <div className="py-2">
-                        <button
-                          onClick={handleProfileClick}
-                          className="w-full flex items-center px-4 py-3 text-sm text-gray-200 hover:text-white hover:bg-gradient-to-r hover:from-[#FF4D67]/20 hover:to-[#FF4D67]/10 transition-all group"
-                        >
-                          <svg className="w-5 h-5 mr-3 text-[#FF4D67]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                          </svg>
-                          <span className="font-medium">Library</span>
-                        </button>
-                        
-                        {/* Profile Submenu Items - Desktop Only */}
-                        <div className="border-t border-gray-700/50 my-1"></div>
-                        
-                        <button
-                          onClick={() => {
-                            setShowUserMenu(false)
-                            router.push('/library?tab=tracks')
-                          }}
-                          className="w-full flex items-center px-4 py-3 text-sm text-gray-200 hover:text-white hover:bg-gradient-to-r hover:from-[#FF4D67]/20 hover:to-[#FF4D67]/10 transition-all group"
-                        >
-                          <svg className="w-5 h-5 mr-3 text-[#FFCB2B]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-                          </svg>
-                          <span className="font-medium">My Tracks</span>
-                        </button>
-                        
-                        <button
-                          onClick={() => {
-                            setShowUserMenu(false)
-                            router.push('/library?tab=analytics')
-                          }}
-                          className="w-full flex items-center px-4 py-3 text-sm text-gray-200 hover:text-white hover:bg-gradient-to-r hover:from-[#FF4D67]/20 hover:to-[#FF4D67]/10 transition-all group"
-                        >
-                          <svg className="w-5 h-5 mr-3 text-[#6366F1]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                          </svg>
-                          <span className="font-medium">Analytics</span>
-                        </button>
-                        
-                        <button
-                          onClick={() => {
-                            setShowUserMenu(false)
-                            router.push('/library?tab=followers')
-                          }}
-                          className="w-full flex items-center px-4 py-3 text-sm text-gray-200 hover:text-white hover:bg-gradient-to-r hover:from-[#FF4D67]/20 hover:to-[#FF4D67]/10 transition-all group"
-                        >
-                          <svg className="w-5 h-5 mr-3 text-[#10B981]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                          </svg>
-                          <span className="font-medium">Followers</span>
-                        </button>
-                        
-                        <button
-                          onClick={() => {
-                            setShowUserMenu(false)
-                            router.push('/library?tab=following')
-                          }}
-                          className="w-full flex items-center px-4 py-3 text-sm text-gray-200 hover:text-white hover:bg-gradient-to-r hover:from-[#FF4D67]/20 hover:to-[#FF4D67]/10 transition-all group"
-                        >
-                          <svg className="w-5 h-5 mr-3 text-[#EF4444]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                          </svg>
-                          <span className="font-medium">Following</span>
-                        </button>
-                        
-                        <div className="border-t border-gray-700/50 my-1"></div>
-                        
-                        <button
-                          onClick={() => {
-                            setShowUserMenu(false)
-                            router.push('/edit-profile')
-                          }}
-                          className="w-full flex items-center px-4 py-3 text-sm text-gray-200 hover:text-white hover:bg-gradient-to-r hover:from-[#FF4D67]/20 hover:to-[#FF4D67]/10 transition-all group"
-                        >
-                          <svg className="w-5 h-5 mr-3 text-[#FF4D67]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                          </svg>
-                          <span className="font-medium">Edit Profile</span>
-                        </button>
-                      </div>
-                      
-                      {/* Divider */}
-                      <div className="border-t border-gray-700/50 my-1"></div>
-                      
-                      {/* Logout */}
-                      <button
-                        onClick={handleLogout}
-                        className="w-full flex items-center px-4 py-3 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all group"
-                      >
-                        <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                        </svg>
-                        <span className="font-medium">Logout</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
               )}
             </div>
           </div>

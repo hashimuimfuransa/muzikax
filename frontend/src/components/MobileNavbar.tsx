@@ -155,7 +155,7 @@ export default function MobileNavbar() {
     <>
       {/* Native App-Style Top Header for Mobile */}
       <div 
-        className={`md:hidden fixed top-0 left-0 right-0 z-50 bg-gray-900/95 backdrop-blur-xl border-b border-gray-800 shadow-lg transition-transform duration-300 ease-in-out ${
+        className={`md:hidden fixed top-0 left-0 right-0 z-50 bg-[var(--card-bg)] backdrop-blur-xl border-b border-white/10 shadow-lg transition-transform duration-300 ease-in-out ${
           showHeader ? 'translate-y-0' : '-translate-y-full'
         }`} 
         style={{ paddingTop: 'env(safe-area-inset-top)', zIndex: 9999 }} 
@@ -222,7 +222,7 @@ export default function MobileNavbar() {
             onClick={() => setShowLanguageModal(false)}
           >
             <div 
-              className="bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl w-full max-w-md transform transition-all duration-200 scale-100 animate-in fade-in zoom-in-95 overflow-auto"
+              className="bg-[var(--card-bg)] backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl w-full max-w-md transform transition-all duration-200 scale-100 animate-in fade-in zoom-in-95 overflow-auto"
               onClick={(e) => e.stopPropagation()}
               role="dialog"
               aria-modal="true"
@@ -323,7 +323,7 @@ export default function MobileNavbar() {
 
       {/* Player bar when track is playing - Enhanced with gradient */}
       {currentTrack && (
-        <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-t border-gray-700/50 shadow-lg backdrop-blur-sm" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+        <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[var(--card-bg)] border-t border-white/10 shadow-lg backdrop-blur-sm" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
           <Link 
             href="/player" 
             className="flex items-center p-2.5 gap-3 active:scale-[0.98] transition-all duration-150 min-h-[60px]"
@@ -360,7 +360,7 @@ export default function MobileNavbar() {
 
       {/* Modern Bottom Navigation bar with glassmorphism */}
       <div 
-        className={`md:hidden fixed bottom-0 left-0 right-0 z-50 bg-gray-900/95 backdrop-blur-xl border-t border-gray-700/50 shadow-2xl transition-transform duration-300 ease-in-out ${
+        className={`md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[var(--card-bg)] backdrop-blur-xl border-t border-white/10 shadow-2xl transition-transform duration-300 ease-in-out ${
           showBottomNav ? 'translate-y-0' : 'translate-y-full'
         }`} 
         style={{ paddingBottom: 'env(safe-area-inset-bottom)', zIndex: currentTrack ? 51 : 9999 }} 

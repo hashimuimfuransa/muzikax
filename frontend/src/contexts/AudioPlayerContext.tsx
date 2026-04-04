@@ -58,6 +58,7 @@ interface AudioPlayerContextType {
   playbackRate: number;
   queue: Track[]; // Queue for upcoming tracks
   currentPlaylistName: string; // Name of the current playlist being played
+  setCurrentPlaylistName: (name: string) => void; // Function to set current playlist name
   playTrack: (track: Track, contextPlaylist?: Track[], albumContext?: { albumId: string, tracks: Track[] }) => void;
   playNextTrack: (isExplicit?: boolean) => Promise<void>;
   playPreviousTrack: (isExplicit?: boolean) => void;
@@ -1784,6 +1785,7 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
         setIsSoloPlayerOpen,
         queue,
         currentPlaylistName,
+        setCurrentPlaylistName,
         playTrack,
         playNextTrack,
         playPreviousTrack,

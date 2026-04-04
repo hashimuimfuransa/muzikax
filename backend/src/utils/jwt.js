@@ -73,11 +73,13 @@ var verifyAccessToken = function (token) {
         var secret = process.env['JWT_ACCESS_SECRET'] || 'access_secret';
         console.log('Verifying access token with secret:', secret.substring(0, 10) + '...');
         var decoded = jwt.verify(token, secret);
-        console.log('Token verified successfully');
+        console.log('Token verified successfully, user ID:', decoded.id);
         return decoded;
     }
     catch (error) {
-        console.error('Token verification failed:', error);
+        console.error('Token verification failed:', error.name, '-', error.message);
+        console.error('This usually means the token was generated with a different secret or has expired.');
+        console.error('Solution: Clear browser localStorage and login again to generate new tokens.');
         return null;
     }
 };

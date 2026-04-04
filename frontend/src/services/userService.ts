@@ -504,3 +504,35 @@ export const getCreatorTracks = async (): Promise<any[]> => {
     return [];
   }
 };
+
+/**
+ * Get public playlist by ID (for viewing other users' playlists)
+ */
+export const getPublicPlaylist = async (playlistId: string): Promise<any | null> => {
+  try {
+    const accessToken = localStorage.getItem('accessToken');
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+    };
+    
+    if (accessToken) {
+      headers['Authorization'] = `Bearer ${accessToken}`;
+    }
+
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/public/playlists/${playlistId}`, {
+      method: 'GET',
+      headers
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to fetch playlist');
+    }
+
+    const data = await response.json();
+    return data.playlist || data;
+  } catch (error) {
+    console.error('Error fetching public playlist:', error);
+    return null;
+  }
+};

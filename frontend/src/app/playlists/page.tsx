@@ -590,94 +590,116 @@ function PlaylistsContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black py-8 sm:py-12 overflow-x-hidden">
-      <div className="absolute -top-40 left-0 w-96 h-96 bg-[#FF4D67]/10 rounded-full blur-3xl -z-10"></div>
-      <div className="absolute -bottom-40 right-0 w-96 h-96 bg-[#FFCB2B]/10 rounded-full blur-3xl -z-10"></div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-[#0a0a0f] to-black py-8 sm:py-12 overflow-x-hidden relative">
+      {/* Animated background gradients */}
+      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-[#FF4D67]/15 rounded-full blur-[120px] animate-pulse -z-10"></div>
+      <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-[#FFCB2B]/10 rounded-full blur-[120px] animate-pulse delay-1000 -z-10"></div>
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-r from-[#FF4D67]/5 to-[#FFCB2B]/5 rounded-full blur-[150px] -z-10"></div>
       
-      <div className="container mx-auto px-4 sm:px-8 max-w-full">
-        {/* Header */}
-        <div className="mb-8 sm:mb-12 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-3xl sm:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] mb-3">
-              Your Playlists
-            </h1>
-            <p className="text-gray-400 text-lg">
-              Create and manage your own playlists. Share with the world or keep private.
-            </p>
-          </div>
-          <button 
-            onClick={() => {
-              if (isAuthenticated) {
-                setShowCreateModal(true);
-              } else {
-                router.push('/login');
-              }
-            }}
-            className="px-5 py-2.5 bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] hover:opacity-90 text-white font-medium rounded-lg transition-all self-start min-w-fit"
-          >
-            Create Playlist
-          </button>
-        </div>
-
-        {/* Search and Filters */}
-        <div className="card-bg rounded-2xl p-4 sm:p-6 mb-8">
-          <div className="space-y-6">
-            {/* Filter Tabs */}
-            <div className="flex flex-wrap gap-2 sm:gap-3">
-              <button
-                onClick={() => setFilterType('all')}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${filterType === 'all' ? 'bg-[#FF4D67] text-white shadow-lg shadow-[#FF4D67]/20' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl pt-20 sm:pt-16 md:pt-12 lg:pt-8">
+        {/* Modern Header with Gradient Background */}
+        <div className="mb-6 sm:mb-8 md:mb-10 lg:mb-12 relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-[#FF4D67]/20 to-[#FFCB2B]/20 rounded-2xl sm:rounded-3xl blur-xl -z-10"></div>
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 lg:p-10">
+            <div className="flex flex-col gap-4 sm:flex-row justify-between items-start sm:items-center gap-6">
+              <div className="space-y-2 sm:space-y-3 w-full">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] via-[#FF6B8A] to-[#FFCB2B] drop-shadow-lg leading-tight">
+                  Your Playlists
+                </h1>
+                <p className="text-gray-300 text-sm sm:text-base md:text-lg leading-relaxed">
+                  Curate your musical journey • Create, share & discover playlists
+                </p>
+              </div>
+              <button 
+                onClick={() => {
+                  if (isAuthenticated) {
+                    setShowCreateModal(true);
+                  } else {
+                    router.push('/login');
+                  }
+                }}
+                className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] hover:from-[#FF6B8A] hover:to-[#FFD54F] text-white font-bold rounded-xl sm:rounded-2xl transition-all duration-300 shadow-xl hover:shadow-2xl hover:shadow-[#FF4D67]/30 hover:scale-105 active:scale-95 min-w-fit overflow-hidden whitespace-nowrap"
               >
-                All Playlists
-              </button>
-              {isAuthenticated && (
-                <button
-                  onClick={() => setFilterType('mine')}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${filterType === 'mine' ? 'bg-[#FF4D67] text-white shadow-lg shadow-[#FF4D67]/20' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}
-                >
-                  My Playlists
-                </button>
-              )}
-              <button
-                onClick={() => setFilterType('muzikax')}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${filterType === 'muzikax' ? 'bg-[#FF4D67] text-white shadow-lg shadow-[#FF4D67]/20' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}
-              >
-                MuzikaX Playlists
-              </button>
-              <button
-                onClick={() => setFilterType('other')}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${filterType === 'other' ? 'bg-[#FF4D67] text-white shadow-lg shadow-[#FF4D67]/20' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}
-              >
-                Other Users
+                <span className="relative z-10 flex items-center gap-2">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                  </svg>
+                  Create Playlist
+                </span>
+                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
               </button>
             </div>
+          </div>
+        </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Search */}
+        {/* Modern Search and Filters Card */}
+        <div className="card-bg rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 mb-6 sm:mb-8 md:mb-10 backdrop-blur-xl bg-white/5 border border-white/10 shadow-2xl">
+          <div className="space-y-4 sm:space-y-6 md:space-y-8">
+            {/* Modern Filter Tabs with Pill Design */}
+            <div className="flex flex-wrap gap-2 sm:gap-3">
+              {[
+                { id: 'all', label: 'All' },
+                ...(isAuthenticated ? [{ id: 'mine', label: 'My Playlists' }] : []),
+                { id: 'muzikax', label: 'MuzikaX Picks' },
+                { id: 'other', label: 'Community' }
+              ].map((filter) => (
+                <button
+                  key={filter.id}
+                  onClick={() => setFilterType(filter.id)}
+                  className={`group relative px-3 sm:px-4 md:px-6 py-2 sm:py-3 rounded-full text-xs sm:text-sm font-bold transition-all duration-300 whitespace-nowrap ${
+                    filterType === filter.id 
+                      ? 'bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] text-white shadow-xl shadow-[#FF4D67]/30 scale-105' 
+                      : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white border border-white/10'
+                  }`}
+                >
+                  <span className="flex items-center gap-1 sm:gap-2">
+                    {filter.label}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            {/* Modern Search and Sort Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+              {/* Modern Search Input */}
               <div className="md:col-span-2">
-                <label htmlFor="search" className="block text-sm font-medium text-gray-400 mb-1">
+                <label htmlFor="search" className="block text-xs sm:text-sm font-bold text-gray-300 mb-2">
                   Search Playlists
                 </label>
-                <input
-                  type="text"
-                  id="search"
-                  placeholder="Search by playlist name, creator, or track..."
-                  className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
+                <div className="relative group">
+                  <input
+                    type="text"
+                    id="search"
+                    placeholder="Search by playlist name, creator, or tracks..."
+                    className="w-full px-4 sm:px-6 py-3 sm:py-4 bg-white/5 border border-white/20 rounded-xl sm:rounded-2xl text-white text-sm sm:text-base placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all group-hover:bg-white/10"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  <div className="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 text-gray-500 group-hover:text-[#FF4D67] transition-colors">
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                  </div>
+                </div>
               </div>
               
-              {/* Sort */}
+              {/* Modern Sort Dropdown */}
               <div>
-                <label htmlFor="sort" className="block text-sm font-medium text-gray-400 mb-1">
+                <label htmlFor="sort" className="block text-xs sm:text-sm font-bold text-gray-300 mb-2">
                   Sort By
                 </label>
                 <select
                   id="sort"
-                  className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+                  className="w-full px-4 sm:px-6 py-3 sm:py-4 bg-white/5 border border-white/20 rounded-xl sm:rounded-2xl text-white text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all cursor-pointer appearance-none"
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
+                  style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23FF4D67'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'right 0.75rem center',
+                    backgroundSize: '1em 1em',
+                    paddingRight: '2.5rem'
+                  }}
                 >
                   <option value="recommended">Recommended</option>
                   <option value="recent">Most Recent</option>
@@ -689,89 +711,104 @@ function PlaylistsContent() {
           </div>
         </div>
 
-        {/* Results Info */}
-        <div className="mb-6 flex justify-between items-center">
-          <p className="text-gray-400">
-            Showing {filteredPlaylists.length} playlists
-          </p>
+        {/* Results Info with Modern Badge */}
+        <div className="mb-6 sm:mb-8 flex justify-between items-center">
+          <div className="inline-flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-[#FF4D67]/20 to-[#FFCB2B]/20 border border-[#FF4D67]/30 rounded-full backdrop-blur-sm">
+            <p className="text-gray-200 font-semibold text-xs sm:text-sm md:text-base">
+              Showing <span className="text-[#FF4D67] font-bold">{filteredPlaylists.length}</span> playlists
+            </p>
+          </div>
         </div>
 
         {/* Playlists Grid */}
+        {/* Empty State with Modern Design */}
         {filteredPlaylists.length === 0 ? (
-          <div className="card-bg rounded-2xl p-12 text-center">
-            <div className="mx-auto w-16 h-16 rounded-full bg-gray-800/50 flex items-center justify-center mb-6">
-              <svg className="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="card-bg rounded-2xl sm:rounded-3xl p-8 sm:p-12 md:p-16 text-center backdrop-blur-xl bg-white/5 border border-white/10 shadow-2xl">
+            <div className="mx-auto w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-br from-[#FF4D67]/20 to-[#FFCB2B]/20 flex items-center justify-center mb-6 sm:mb-8 border-2 border-[#FF4D67]/30">
+              <svg className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-[#FF4D67]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
               </svg>
             </div>
-            <h3 className="text-xl font-bold text-white mb-2">No playlists found</h3>
-            <p className="text-gray-500 mb-6">
-              {searchQuery ? 'Try adjusting your search terms' : 'Be the first to create a public playlist!'}
+            <h3 className="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4">No playlists found</h3>
+            <p className="text-gray-400 mb-6 sm:mb-8 text-sm sm:text-base md:text-lg">
+              {searchQuery ? 'Try adjusting your search terms or filters' : 'Be the first to create an amazing playlist!'}
             </p>
+            {!searchQuery && (
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] hover:from-[#FF6B8A] hover:to-[#FFD54F] text-white font-bold rounded-xl sm:rounded-2xl transition-all shadow-xl hover:shadow-2xl hover:scale-105 text-sm sm:text-base"
+              >
+                Create Your First Playlist
+              </button>
+            )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <>
+            {/* Modern Playlists Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
             {filteredPlaylists.map((playlist) => (
               <div 
                 key={playlist._id} 
-                className="card-bg rounded-2xl p-4 transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 group cursor-pointer"
+                className="group relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-5 transition-all duration-500 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-[#FF4D67]/10 hover:to-[#FFCB2B]/10 hover:shadow-2xl hover:shadow-[#FF4D67]/20 cursor-pointer overflow-hidden"
                 onClick={() => handlePlayPlaylist(playlist)}
               >
+                {/* Animated gradient border on hover */}
+                <div className="absolute inset-0 bg-gradient-to-r from-[#FF4D67]/20 to-[#FFCB2B]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10 blur-xl"></div>
+                
                 {/* Playlist Cover */}
-                <div className="relative mb-4 rounded-xl overflow-hidden bg-gray-800 aspect-square">
+                <div className="relative mb-4 sm:mb-5 rounded-xl sm:rounded-2xl overflow-hidden bg-gray-900/50 aspect-square shadow-xl">
                   {playlist.tracks.length > 0 && playlist.tracks[0]?.coverURL ? (
                     <img 
                       src={playlist.tracks[0].coverURL}
                       alt={playlist.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                     />
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center">
-                      <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                    <div className="w-full h-full bg-gradient-to-br from-[#FF4D67] via-[#FF6B8A] to-[#FFCB2B] flex items-center justify-center">
+                      <svg className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 text-white/90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
                       </svg>
                     </div>
                   )}
                   
-                  {/* Play Overlay */}
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                    <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <svg className="w-6 h-6 text-gray-900 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                  {/* Play Overlay with Gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 shadow-2xl">
+                      <svg className="w-7 h-7 sm:w-8 sm:h-8 text-white ml-1" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
                       </svg>
                     </div>
                   </div>
                   
-                  {/* Track Count Badge */}
-                  <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full">
-                    {playlist.tracks.length} tracks
+                  {/* Track Count Badge with Modern Design */}
+                  <div className="absolute top-2 sm:top-3 right-2 sm:right-3 bg-black/80 backdrop-blur-md text-white text-xs font-bold px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border border-white/20 whitespace-nowrap">
+                    🎵 {playlist.tracks.length} tracks
                   </div>
                   
-                  {/* Owner Actions - Edit and Delete buttons for user's own playlists */}
+                  {/* Owner Actions */}
                   {user && playlist.userId._id === user.id && (
-                    <div className="absolute top-2 left-2 flex gap-1">
+                    <div className="absolute top-2 sm:top-3 left-2 sm:left-3 flex gap-1.5 sm:gap-2">
                       <button 
                         onClick={(e) => {
-                          e.stopPropagation(); // Prevent triggering the playlist click
-                          // Navigate to playlist edit page
+                          e.stopPropagation();
                           router.push(`/playlists/${playlist._id}`);
                         }}
-                        className="w-8 h-8 rounded-full bg-black/70 flex items-center justify-center hover:bg-blue-600 transition-colors"
+                        className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-blue-600/90 backdrop-blur-md flex items-center justify-center hover:bg-blue-500 transition-all hover:scale-110"
                         aria-label="Edit playlist"
                       >
-                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
                       </button>
                       <button 
                         onClick={(e) => {
-                          e.stopPropagation(); // Prevent triggering the playlist click
+                          e.stopPropagation();
                           handleDeletePlaylist(playlist._id, playlist.name);
                         }}
-                        className="w-8 h-8 rounded-full bg-black/70 flex items-center justify-center hover:bg-red-600 transition-colors"
+                        className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-red-600/90 backdrop-blur-md flex items-center justify-center hover:bg-red-500 transition-all hover:scale-110"
                         aria-label="Delete playlist"
                       >
-                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
                       </button>
@@ -781,13 +818,13 @@ function PlaylistsContent() {
                   {/* Share Button */}
                   <button 
                     onClick={(e) => {
-                      e.stopPropagation(); // Prevent triggering the playlist click
+                      e.stopPropagation();
                       handleSharePlaylist(playlist);
                     }}
-                    className="absolute top-2 right-10 w-8 h-8 rounded-full bg-black/70 flex items-center justify-center hover:bg-black/90 transition-colors"
+                    className="absolute bottom-2 sm:bottom-3 right-2 sm:right-3 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/70 backdrop-blur-md flex items-center justify-center hover:bg-[#FF4D67] transition-all hover:scale-110"
                     aria-label="Share playlist"
                   >
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                     </svg>
                   </button>
@@ -795,51 +832,70 @@ function PlaylistsContent() {
                   {/* View Tracks Button */}
                   <button 
                     onClick={(e) => {
-                      e.stopPropagation(); // Prevent triggering the playlist click
+                      e.stopPropagation();
                       setSelectedPlaylist(playlist);
                       setShowTracksModal(true);
                     }}
-                    className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/70 flex items-center justify-center hover:bg-black/90 transition-colors"
+                    className="absolute bottom-2 sm:bottom-3 right-12 sm:right-14 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/70 backdrop-blur-md flex items-center justify-center hover:bg-[#FFCB2B] hover:text-black transition-all hover:scale-110"
                     aria-label="View tracks"
                   >
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
                     </svg>
                   </button>
                 </div>
                 
                 {/* Playlist Info */}
-                <div className="mb-3">
-                  <h3 className="font-bold text-white text-lg mb-1 truncate group-hover:text-[#FF4D67] transition-colors">
-                    {playlist.name}
-                  </h3>
-                  <p className="text-gray-400 text-sm mb-2">
-                    by {playlist.userId?.name === 'admin' ? 'MuzikaX' : (playlist.userId?.name || 'MuzikaX')}
-                  </p>
+                <div className="space-y-2 sm:space-y-3">
+                  <div>
+                    <h3 className="font-bold text-white text-base sm:text-lg mb-1 truncate group-hover:text-[#FF4D67] transition-colors">
+                      {playlist.name}
+                    </h3>
+                    <p className="text-gray-400 text-xs sm:text-sm font-medium">
+                      by <span className="text-[#FFCB2B]">{playlist.userId?.name === 'admin' ? 'MuzikaX' : (playlist.userId?.name || 'MuzikaX')}</span>
+                    </p>
+                  </div>
                   {playlist.description && (
-                    <p className="text-gray-500 text-sm line-clamp-2">
+                    <p className="text-gray-500 text-xs sm:text-sm line-clamp-2 leading-relaxed">
                       {playlist.description}
                     </p>
                   )}
                 </div>
                 
-                {/* Stats */}
-                <div className="flex justify-between text-xs text-gray-500 pt-3 border-t border-gray-800">
-                  <span>{getTotalPlays(playlist).toLocaleString()} plays</span>
-                  <span>{formatDate(playlist.createdAt)}</span>
+                {/* Stats with Modern Design */}
+                <div className="flex justify-between items-center text-xs pt-3 sm:pt-4 mt-3 sm:mt-4 border-t border-white/10">
+                  <div className="flex items-center gap-1">
+                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                      <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/>
+                    </svg>
+                    <span className="font-semibold text-xs sm:text-sm">{getTotalPlays(playlist).toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"/>
+                    </svg>
+                    <span className="text-xs sm:text-sm">{formatDate(playlist.createdAt)}</span>
+                  </div>
                 </div>
               </div>
             ))}
-          </div>
+            </div>
+          </>
         )}
       </div>
       
-      {/* Create Playlist Modal */}
+      {/* Create Playlist Modal with Modern Design */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-900 rounded-2xl p-6 w-full max-w-md border border-gray-800">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold text-white">Create New Playlist</h3>
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-br from-gray-900 via-[#0a0a0f] to-black rounded-3xl p-8 w-full max-w-md border border-white/10 shadow-2xl relative overflow-hidden">
+            {/* Background gradient effect */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-[#FF4D67]/10 to-[#FFCB2B]/10 rounded-full blur-3xl -z-10"></div>
+            
+            <div className="flex justify-between items-center mb-8 relative">
+              <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B]">
+                ✨ Create New Playlist
+              </h3>
               <button 
                 onClick={() => {
                   setShowCreateModal(false);
@@ -847,7 +903,7 @@ function PlaylistsContent() {
                   setNewPlaylistDescription('');
                   setNewPlaylistPublic(true);
                 }}
-                className="text-gray-400 hover:text-white"
+                className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-full"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -855,61 +911,65 @@ function PlaylistsContent() {
               </button>
             </div>
             
-            <div className="space-y-4">
+            <div className="space-y-6 relative">
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1">Playlist Name *</label>
+                <label className="block text-sm font-bold text-gray-300 mb-2">
+                  🎵 Playlist Name *
+                </label>
                 <input
                   type="text"
                   value={newPlaylistName}
                   onChange={(e) => setNewPlaylistName(e.target.value)}
                   placeholder="Enter playlist name"
-                  className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+                  className="w-full px-5 py-3.5 bg-white/5 border border-white/20 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all hover:bg-white/10"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1">Description</label>
+                <label className="block text-sm font-bold text-gray-300 mb-2">
+                  📝 Description
+                </label>
                 <textarea
                   value={newPlaylistDescription}
                   onChange={(e) => setNewPlaylistDescription(e.target.value)}
-                  placeholder="Enter playlist description"
+                  placeholder="Tell people about your playlist..."
                   rows={3}
-                  className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] resize-none"
+                  className="w-full px-5 py-3.5 bg-white/5 border border-white/20 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all hover:bg-white/10 resize-none"
                 />
               </div>
               
-              <div className="flex items-center">
+              <div className="flex items-center p-4 bg-white/5 rounded-2xl border border-white/10">
                 <input
                   type="checkbox"
                   id="isPublic"
                   checked={newPlaylistPublic}
                   onChange={(e) => setNewPlaylistPublic(e.target.checked)}
-                  className="w-4 h-4 text-[#FF4D67] bg-gray-800 border-gray-700 rounded focus:ring-[#FF4D67]"
+                  className="w-5 h-5 text-[#FF4D67] bg-gray-800 border-gray-700 rounded focus:ring-[#FF4D67] cursor-pointer"
                 />
-                <label htmlFor="isPublic" className="ml-2 text-sm text-gray-300">
-                  Make this playlist public
+                <label htmlFor="isPublic" className="ml-3 text-sm text-gray-300 cursor-pointer select-none">
+                  🌍 Make this playlist public and shareable
                 </label>
               </div>
               
               {/* Selected Tracks Preview */}
               <div className="pt-2">
-                <div className="flex justify-between items-center mb-2">
-                  <label className="block text-sm font-medium text-gray-400">Selected Tracks</label>
-                  <span className="text-sm text-gray-500">{selectedTracksForNewPlaylist.length} tracks</span>
+                <div className="flex justify-between items-center mb-3">
+                  <label className="block text-sm font-bold text-gray-300">🎶 Selected Tracks</label>
+                  <span className="text-sm font-bold text-[#FF4D67] bg-[#FF4D67]/10 px-3 py-1 rounded-full">{selectedTracksForNewPlaylist.length} tracks</span>
                 </div>
                 
                 {selectedTracksForNewPlaylist.length > 0 ? (
-                  <div className="max-h-32 overflow-y-auto bg-gray-800 rounded-lg p-2">
+                  <div className="max-h-40 overflow-y-auto bg-white/5 rounded-2xl p-3 border border-white/10">
                     {selectedTracksForNewPlaylist.map((track, index) => (
-                      <div key={track._id} className="flex items-center justify-between py-2 px-2 hover:bg-gray-700 rounded">
-                        <div className="flex items-center">
-                          <span className="text-gray-500 text-xs mr-2">{index + 1}.</span>
-                          <span className="text-sm text-white truncate max-w-[160px]">{track.title}</span>
+                      <div key={track._id} className="flex items-center justify-between py-2.5 px-3 hover:bg-white/10 rounded-xl transition-colors">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[#FFCB2B] font-bold text-xs w-5">{(index + 1).toString().padStart(2, '0')}.</span>
+                          <span className="text-sm text-white truncate max-w-[180px] font-medium">{track.title}</span>
                         </div>
                         <button 
                           type="button"
                           onClick={() => toggleTrackSelection(track)}
-                          className="text-red-500 hover:text-red-400 p-1"
+                          className="text-red-400 hover:text-red-300 p-1.5 hover:bg-red-500/20 rounded-full transition-all"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -919,22 +979,22 @@ function PlaylistsContent() {
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-4 text-gray-500 text-sm">
-                    No tracks selected yet
+                  <div className="text-center py-6 text-gray-500 text-sm bg-white/5 rounded-2xl border border-white/10">
+                    🎵 No tracks selected yet
                   </div>
                 )}
                 
                 <button
                   type="button"
                   onClick={() => setShowTrackSelector(true)}
-                  className="mt-2 w-full py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors text-sm"
+                  className="mt-3 w-full py-3.5 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-2xl transition-all border border-white/10 hover:border-[#FF4D67]/50"
                 >
-                  {selectedTracksForNewPlaylist.length > 0 ? 'Add More Tracks' : 'Select Tracks'}
+                  {selectedTracksForNewPlaylist.length > 0 ? '➕ Add More Tracks' : '🎵 Select Tracks'}
                 </button>
               </div>
             </div>
             
-            <div className="flex space-x-3 mt-6">
+            <div className="flex space-x-4 mt-8 pt-6 border-t border-white/10">
               <button
                 onClick={() => {
                   setShowCreateModal(false);
@@ -943,60 +1003,63 @@ function PlaylistsContent() {
                   setNewPlaylistPublic(true);
                   setSelectedTracksForNewPlaylist([]);
                 }}
-                className="flex-1 px-4 py-2.5 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                className="flex-1 px-6 py-3.5 bg-white/10 hover:bg-white/20 text-white font-bold rounded-2xl transition-all border border-white/10"
               >
                 Cancel
               </button>
               <button
                 onClick={createPlaylist}
                 disabled={creatingPlaylist || selectedTracksForNewPlaylist.length === 0}
-                className="flex-1 px-4 py-2.5 bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] hover:opacity-90 text-white rounded-lg transition-opacity disabled:opacity-50"
+                className="flex-1 px-6 py-3.5 bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] hover:from-[#FF6B8A] hover:to-[#FFD54F] text-white font-bold rounded-2xl transition-all shadow-xl hover:shadow-2xl hover:shadow-[#FF4D67]/30 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {creatingPlaylist ? 'Creating...' : `Create (${selectedTracksForNewPlaylist.length} tracks)`}
+                {creatingPlaylist ? '⏳ Creating...' : `✨ Create (${selectedTracksForNewPlaylist.length} tracks)`}
               </button>
             </div>
           </div>
         </div>
       )}
       
-      {/* Tracks Modal */}
+      {/* Tracks Modal with Modern Design */}
       {showTracksModal && selectedPlaylist && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-900 rounded-2xl w-full max-w-sm sm:max-w-lg md:max-w-2xl border border-gray-800 max-h-[80vh] flex flex-col">
-            <div className="p-4 sm:p-6 pb-3">
-              <div className="flex justify-between items-center mb-2">
-                <h3 className="text-lg sm:text-xl font-bold text-white truncate">{selectedPlaylist.name} Tracks</h3>
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-br from-gray-900 via-[#0a0a0f] to-black rounded-3xl w-full max-w-sm sm:max-w-lg md:max-w-2xl border border-white/10 shadow-2xl max-h-[85vh] flex flex-col relative overflow-hidden">
+            {/* Background gradient effect */}
+            <div className="absolute top-0 left-0 w-64 h-64 bg-gradient-to-br from-[#FF4D67]/10 to-[#FFCB2B]/10 rounded-full blur-3xl -z-10"></div>
+            
+            <div className="p-6 sm:p-8 pb-4">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl sm:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] truncate">{selectedPlaylist.name} Tracks</h3>
                 <button 
                   onClick={() => {
                     setShowTracksModal(false);
                     setSelectedPlaylist(null);
                   }}
-                  className="text-gray-400 hover:text-white p-1"
+                  className="text-gray-400 hover:text-white p-2 hover:bg-white/10 rounded-full transition-all"
                 >
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
                   </svg>
                 </button>
               </div>
             </div>
             
-            <div className="flex-1 overflow-y-auto px-4 sm:px-6 pb-4">
+            <div className="flex-1 overflow-y-auto px-6 sm:px-8 pb-6">
               <div className="space-y-3">
                 {selectedPlaylist.tracks.map((track, index) => (
                   <div 
                     key={track._id}
-                    className="flex items-center p-3 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors"
+                    className="flex items-center p-4 bg-white/5 hover:bg-white/10 rounded-2xl transition-all border border-white/5 hover:border-[#FF4D67]/30 group"
                   >
-                    <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-md overflow-hidden mr-3 sm:mr-4">
+                    <div className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-xl overflow-hidden mr-4 shadow-lg">
                       {track.coverURL ? (
                         <img 
                           src={track.coverURL} 
                           alt={track.title}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                         />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center">
-                          <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <svg className="w-6 h-6 sm:w-7 sm:h-7 text-white" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
                           </svg>
                         </div>
@@ -1010,25 +1073,25 @@ function PlaylistsContent() {
                         setSelectedPlaylist(null);
                       }}
                     >
-                      <h4 className="font-medium text-white truncate text-sm sm:text-base">{track.title}</h4>
+                      <h4 className="font-bold text-white truncate text-sm sm:text-base group-hover:text-[#FF4D67] transition-colors">{track.title}</h4>
                       <p className="text-xs sm:text-sm text-gray-400 truncate">
                         by {selectedPlaylist.userId?.name === 'admin' || selectedPlaylist.userId?.name?.toLowerCase().includes('muzikax') ? 'MuzikaX' : track.creatorId?.name || 'MuzikaX'}
                       </p>
                     </div>
-                    <div className="ml-3 sm:ml-4 text-xs text-gray-500 mr-2">
-                      {index + 1}
+                    <div className="ml-4 text-xs text-[#FFCB2B] font-bold mr-3 bg-[#FFCB2B]/10 px-3 py-1.5 rounded-full">
+                      {(index + 1).toString().padStart(2, '0')}
                     </div>
                     {isAuthenticated && (
                       <button
                         onClick={() => handleAddTrackToPlaylist(track)}
                         disabled={addingTrackId === track._id}
-                        className="p-2 rounded-full bg-[#FF4D67] hover:bg-[#FF4D67]/90 text-white transition-colors disabled:opacity-50"
+                        className="p-3 rounded-full bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] hover:from-[#FF6B8A] hover:to-[#FFD54F] text-white transition-all hover:scale-110 disabled:opacity-50 shadow-lg"
                         title="Add to playlist"
                       >
                         {addingTrackId === track._id ? (
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                         ) : (
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                           </svg>
                         )}
@@ -1042,27 +1105,30 @@ function PlaylistsContent() {
         </div>
       )}
             
-      {/* Track Selector Modal */}
+      {/* Track Selector Modal with Modern Design */}
       {showTrackSelector && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-900 rounded-2xl w-full max-w-2xl border border-gray-800 max-h-[80vh] flex flex-col">
-            <div className="p-6 pb-3">
-              <div className="flex justify-between items-center mb-2">
-                <h3 className="text-xl font-bold text-white">Select Tracks for Playlist</h3>
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-br from-gray-900 via-[#0a0a0f] to-black rounded-3xl w-full max-w-2xl border border-white/10 shadow-2xl max-h-[85vh] flex flex-col relative overflow-hidden">
+            {/* Background gradient effect */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-[#FF4D67]/10 to-[#FFCB2B]/10 rounded-full blur-3xl -z-10"></div>
+                  
+            <div className="p-8 pb-4">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B]">Select Tracks for Playlist</h3>
                 <button 
                   onClick={() => {
                     setShowTrackSelector(false);
                   }}
-                  className="text-gray-400 hover:text-white"
+                  className="text-gray-400 hover:text-white p-2 hover:bg-white/10 rounded-full transition-all"
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
                   </svg>
                 </button>
               </div>
                     
               {/* Search Bar */}
-              <div className="mb-4">
+              <div className="mb-5">
                 <div className="relative">
                   <input
                     type="text"
@@ -1070,11 +1136,11 @@ function PlaylistsContent() {
                     onChange={(e) => setTrackSearchQuery(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && searchTracks()}
                     placeholder="Search tracks by title, artist..."
-                    className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+                    className="w-full px-6 py-4 bg-white/5 border border-white/20 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent transition-all hover:bg-white/10"
                   />
                   <button
                     onClick={searchTracks}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 text-gray-400 hover:text-white"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 p-2.5 bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] hover:from-[#FF6B8A] hover:to-[#FFD54F] text-white rounded-xl transition-all hover:scale-105"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
@@ -1084,22 +1150,26 @@ function PlaylistsContent() {
               </div>
                     
               {/* Selected Tracks Summary */}
-              <div className="mb-4 p-3 bg-gray-800 rounded-lg">
+              <div className="mb-5 p-4 bg-gradient-to-r from-[#FF4D67]/10 to-[#FFCB2B]/10 rounded-2xl border border-[#FF4D67]/30">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-300">Selected Tracks</span>
-                  <span className="text-sm font-medium text-white">{selectedTracksForNewPlaylist.length} tracks</span>
+                  <span className="text-sm font-bold text-gray-300">🎶 Selected Tracks</span>
+                  <span className="text-sm font-bold text-[#FF4D67] bg-[#FF4D67]/20 px-4 py-1.5 rounded-full">{selectedTracksForNewPlaylist.length} tracks</span>
                 </div>
               </div>
             </div>
                   
-            <div className="flex-1 overflow-y-auto px-6 pb-4">
+            <div className="flex-1 overflow-y-auto px-8 pb-4">
               <div className="space-y-3">
                 {(trackSearchQuery ? searchResults : selectedTracksForNewPlaylist).map((track) => (
                   <div 
                     key={track._id}
-                    className={`flex items-center p-3 rounded-lg transition-colors ${selectedTracksForNewPlaylist.some(t => t._id === track._id) ? 'bg-[#FF4D67]/20 border border-[#FF4D67]/50' : 'bg-gray-800 hover:bg-gray-700'}`}
+                    className={`flex items-center p-4 rounded-2xl transition-all border ${
+                      selectedTracksForNewPlaylist.some(t => t._id === track._id) 
+                        ? 'bg-gradient-to-r from-[#FF4D67]/20 to-[#FFCB2B]/20 border-[#FF4D67]/50 shadow-lg shadow-[#FF4D67]/20' 
+                        : 'bg-white/5 border-white/5 hover:bg-white/10 hover:border-[#FF4D67]/30'
+                    }`}
                   >
-                    <div className="flex-shrink-0 w-10 h-10 rounded-md overflow-hidden mr-3">
+                    <div className="flex-shrink-0 w-12 h-12 rounded-xl overflow-hidden mr-4 shadow-lg">
                       {track.coverURL ? (
                         <img 
                           src={track.coverURL} 
@@ -1108,28 +1178,32 @@ function PlaylistsContent() {
                         />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center">
-                          <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
                           </svg>
                         </div>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-white truncate">{track.title}</h4>
+                      <h4 className="font-bold text-white truncate">{track.title}</h4>
                       <p className="text-xs text-gray-400 truncate">
                         by {track.creatorId?.name || 'Unknown Artist'}
                       </p>
                     </div>
                     <button
                       onClick={() => toggleTrackSelection(track)}
-                      className={`p-2 rounded-full transition-colors ${selectedTracksForNewPlaylist.some(t => t._id === track._id) ? 'bg-[#FF4D67] text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
+                      className={`p-3 rounded-full transition-all hover:scale-110 ${
+                        selectedTracksForNewPlaylist.some(t => t._id === track._id) 
+                          ? 'bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] text-white shadow-lg' 
+                          : 'bg-white/10 text-gray-300 hover:bg-white/20'
+                      }`}
                     >
                       {selectedTracksForNewPlaylist.some(t => t._id === track._id) ? (
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
                         </svg>
                       ) : (
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                         </svg>
                       )}
@@ -1140,61 +1214,66 @@ function PlaylistsContent() {
                           
               {trackSearchQuery && searchResults.length === 0 && !searchLoading && (
                 <div className="text-center py-8 text-gray-500">
-                  No tracks found for "{trackSearchQuery}".
+                  😕 No tracks found for "{trackSearchQuery}".
                 </div>
               )}
                           
               {!trackSearchQuery && selectedTracksForNewPlaylist.length === 0 && (
                 <div className="text-center py-8 text-gray-500">
-                  No tracks selected yet. Search and add tracks to your playlist.
+                  🎵 No tracks selected yet. Search and add tracks to your playlist.
                 </div>
               )}
                           
               {searchLoading && (
                 <div className="text-center py-8">
-                  <div className="inline-block animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-[#FF4D67]"></div>
+                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#FF4D67]"></div>
                 </div>
               )}
             </div>
-                  
-            <div className="p-6 pt-3">
+                        
+            <div className="p-8 pt-4">
               <button
                 onClick={() => {
                   setShowTrackSelector(false);
                 }}
-                className="w-full px-4 py-2.5 bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] hover:opacity-90 text-white rounded-lg transition-opacity"
+                className="w-full px-6 py-4 bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] hover:from-[#FF6B8A] hover:to-[#FFD54F] text-white font-bold rounded-2xl transition-all shadow-xl hover:shadow-2xl hover:shadow-[#FF4D67]/30"
               >
-                Done ({selectedTracksForNewPlaylist.length} tracks)
+                ✅ Done ({selectedTracksForNewPlaylist.length} tracks)
               </button>
             </div>
           </div>
         </div>
       )}
             
-      {/* Add to Playlist Modal */}
+      {/* Add to Playlist Modal with Modern Design */}
       {showAddToPlaylistModal && selectedTrackToAdd && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-900 rounded-2xl p-6 w-full max-w-md border border-gray-800">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold text-white">Add to Playlist</h3>
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-br from-gray-900 via-[#0a0a0f] to-black rounded-3xl p-8 w-full max-w-md border border-white/10 shadow-2xl relative overflow-hidden">
+            {/* Background gradient effect */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-[#FF4D67]/10 to-[#FFCB2B]/10 rounded-full blur-3xl -z-10"></div>
+            
+            <div className="flex justify-between items-center mb-8 relative">
+              <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B]">
+                ➕ Add to Playlist
+              </h3>
               <button 
                 onClick={() => {
                   setShowAddToPlaylistModal(false);
                   setSelectedTrackToAdd(null);
                 }}
-                className="text-gray-400 hover:text-white"
+                className="text-gray-400 hover:text-white p-2 hover:bg-white/10 rounded-full transition-all"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
               </button>
             </div>
-                  
-            <div className="mb-4">
-              <p className="text-gray-300 mb-2">Select a playlist to add:</p>
-              <div className="p-3 bg-gray-800 rounded-lg">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0 w-10 h-10 rounded-md overflow-hidden mr-3">
+            
+            <div className="mb-6">
+              <p className="text-gray-300 mb-4 font-semibold">Select a playlist to add:</p>
+              <div className="p-4 bg-gradient-to-r from-[#FF4D67]/10 to-[#FFCB2B]/10 rounded-2xl border border-[#FF4D67]/30">
+                <div className="flex items-center gap-4">
+                  <div className="flex-shrink-0 w-14 h-14 rounded-xl overflow-hidden shadow-lg">
                     {selectedTrackToAdd.coverURL ? (
                       <img 
                         src={selectedTrackToAdd.coverURL} 
@@ -1203,23 +1282,23 @@ function PlaylistsContent() {
                       />
                     ) : (
                       <div className="w-full h-full bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center">
-                        <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
                         </svg>
                       </div>
                     )}
                   </div>
-                  <div>
-                    <h4 className="font-medium text-white">{selectedTrackToAdd.title}</h4>
-                    <p className="text-sm text-gray-400">
-                      by {selectedPlaylist?.userId?.name === 'admin' || selectedPlaylist?.userId?.name?.toLowerCase().includes('muzikax') ? 'MuzikaX' : selectedTrackToAdd.creatorId?.name || 'MuzikaX'}
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-bold text-white truncate">{selectedTrackToAdd.title}</h4>
+                    <p className="text-sm text-gray-400 truncate">
+                      by {selectedTrackToAdd.creatorId?.name || 'MuzikaX'}
                     </p>
                   </div>
                 </div>
               </div>
             </div>
-                  
-            <div className="space-y-3 max-h-60 overflow-y-auto mb-6">
+            
+            <div className="space-y-3 max-h-64 overflow-y-auto mb-8 pr-2 custom-scrollbar">
               {playlists.filter(pl => pl.userId?._id === user?.id).length > 0 ? (
                 playlists
                   .filter(pl => pl.userId?._id === user?.id)
@@ -1228,12 +1307,19 @@ function PlaylistsContent() {
                       key={playlist._id}
                       onClick={() => handleConfirmAddToPlaylist(playlist._id)}
                       disabled={addingTrackId === selectedTrackToAdd._id}
-                      className="w-full text-left p-3 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors disabled:opacity-50"
+                      className="w-full text-left p-4 bg-white/5 hover:bg-white/10 rounded-2xl transition-all border border-white/5 hover:border-[#FF4D67]/30 disabled:opacity-50 group"
                     >
                       <div className="flex justify-between items-center">
-                        <div>
-                          <h4 className="font-medium text-white">{playlist.name}</h4>
-                          <p className="text-sm text-gray-400">{playlist.tracks.length} tracks</p>
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center group-hover:scale-105 transition-transform">
+                            <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"/>
+                            </svg>
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-white group-hover:text-[#FF4D67] transition-colors">{playlist.name}</h4>
+                            <p className="text-xs text-gray-400">{playlist.tracks.length} tracks</p>
+                          </div>
                         </div>
                         {addingTrackId === selectedTrackToAdd._id && (
                           <div className="w-5 h-5 border-2 border-[#FF4D67] border-t-transparent rounded-full animate-spin"></div>
@@ -1242,33 +1328,33 @@ function PlaylistsContent() {
                     </button>
                   ))
               ) : (
-                <div className="text-center py-8">
-                  <div className="mx-auto w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center mb-3">
-                    <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="text-center py-10 bg-white/5 rounded-2xl border border-white/10">
+                  <div className="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-[#FF4D67]/20 to-[#FFCB2B]/20 flex items-center justify-center mb-4 border-2 border-[#FF4D67]/30">
+                    <svg className="w-8 h-8 text-[#FF4D67]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
                     </svg>
                   </div>
-                  <p className="text-gray-400 mb-4">You don't have any playlists yet</p>
+                  <p className="text-gray-400 mb-6">You don't have any playlists yet</p>
                   <button
                     onClick={() => {
                       setShowAddToPlaylistModal(false);
                       setSelectedTrackToAdd(null);
                       setShowCreateModal(true);
                     }}
-                    className="px-4 py-2 bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] hover:opacity-90 text-white rounded-lg transition-opacity"
+                    className="px-6 py-3 bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] hover:from-[#FF6B8A] hover:to-[#FFD54F] text-white font-bold rounded-2xl transition-all shadow-lg hover:shadow-xl"
                   >
-                    Create New Playlist
+                    ✨ Create New Playlist
                   </button>
                 </div>
               )}
             </div>
-                  
+            
             <button
               onClick={() => {
                 setShowAddToPlaylistModal(false);
                 setSelectedTrackToAdd(null);
               }}
-              className="w-full px-4 py-2.5 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors"
+              className="w-full px-6 py-3.5 bg-white/10 hover:bg-white/20 text-white font-bold rounded-2xl transition-all border border-white/10"
             >
               Cancel
             </button>

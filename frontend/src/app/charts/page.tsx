@@ -159,9 +159,9 @@ export default function ChartsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#1a1d29] to-[#0B0E14] text-white pb-20 md:pb-12">
+    <div className="min-h-screen bg-[var(--background)] text-white pb-20 md:pb-12">
       {/* Back Button & Title Header */}
-      <div className="sticky top-0 z-40 bg-[#1a1d29]/95 backdrop-blur-xl border-b border-gray-800/50">
+      <div className="sticky top-0 z-40 bg-[var(--card-bg)] backdrop-blur-xl border-b border-white/10">
         <div className="px-4 md:px-8 py-3 md:py-4">
           {/* Back Button Row */}
           <div className="flex items-center gap-3 mb-3">

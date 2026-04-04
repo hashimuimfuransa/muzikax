@@ -45,7 +45,7 @@ export default function AppLayout({
         <meta name="theme-color" content="#000000" />
         <link rel="manifest" href="/manifest.json" />
       </head>
-      <body className="pb-24 md:pb-0 flex flex-col min-h-screen overflow-hidden">
+      <body className="pb-24 md:pb-0 flex flex-col min-h-screen text-white overflow-hidden">
         <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"}>
           <AuthProvider>
             <AudioPlayerProvider>
