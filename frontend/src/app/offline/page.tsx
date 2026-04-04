@@ -7,6 +7,9 @@ import { useOffline } from '../../contexts/OfflineContext';
 import { useAudioPlayer } from '../../contexts/AudioPlayerContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 
+export const dynamic = 'force-static';
+export const revalidate = false;
+
 export default function OfflinePage() {
   const { isOnline, offlineTracks, isMobileApp } = useOffline();
   const { 

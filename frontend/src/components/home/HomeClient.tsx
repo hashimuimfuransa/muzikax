@@ -64,6 +64,48 @@ function initials(name: string) {
     .toUpperCase();
 }
 
+/* ── Scroll Animation Hook ── */
+function useScrollAnimation() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.unobserve(entry.target);
+        }
+      },
+      { threshold: 0.1, rootMargin: '50px' }
+    );
+
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  return { ref, isVisible };
+}
+
+/* ── Animated Section Wrapper ── */
+function AnimatedSection({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  const { ref, isVisible } = useScrollAnimation();
+  
+  return (
+    <div
+      ref={ref}
+      className={`transition-all duration-700 ${
+        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+      } ${className}`}
+    >
+      {children}
+    </div>
+  );
+}
+
 /* ─────────────────────── Sub-components ─────────────────────── */
 
 /** Skeleton pulse block */
@@ -108,17 +150,19 @@ function Avatar({
   src,
   name,
   size = 40,
+  className = "",
 }: {
   src: string;
   name: string;
   size?: number;
+  className?: string;
 }) {
   const [err, setErr] = useState(false);
   const style = { width: size, height: size, minWidth: size };
   return err || !src ? (
     <div
       style={style}
-      className="rounded-full bg-gradient-to-br from-[#F59E0B] to-[#FFB020] flex items-center justify-center text-black font-bold text-xs"
+      className={`rounded-full bg-gradient-to-br from-[#F59E0B] to-[#FFB020] flex items-center justify-center text-black font-bold text-xs ${className}`}
     >
       {initials(name)}
     </div>
@@ -128,7 +172,7 @@ function Avatar({
       alt={name}
       onError={() => setErr(true)}
       style={style}
-      className="rounded-full object-cover"
+      className={`rounded-full object-cover ${className}`}
     />
   );
 }
@@ -213,17 +257,22 @@ function TrackCard({
   return (
     <button
       onClick={onPlay}
-      className={`group flex flex-col gap-3 p-3 rounded-2xl transition-all duration-300 text-left w-full active:scale-[0.98] relative overflow-hidden ${
+      className={`group flex flex-col gap-3 p-3 rounded-2xl transition-all duration-500 text-left w-full active:scale-[0.98] relative overflow-hidden ${
         isActive 
-          ? "bg-[#1A2330] ring-2 ring-[#F59E0B] shadow-lg shadow-[#F59E0B]/30" 
-          : "bg-[#0a0604] hover:bg-[#121821] border border-[#1F2937] hover:border-[#374151]"
+          ? "bg-[#1A2330] ring-2 ring-[#F59E0B] shadow-lg shadow-[#F59E0B]/30 scale-[1.02]" 
+          : "bg-[#0a0604] hover:bg-[#121821] border border-[#1F2937] hover:border-[#374151] hover:-translate-y-1 hover:shadow-xl hover:shadow-[#F59E0B]/20"
       }`}
     >
       {/* Animated gradient border effect */}
       <div className="absolute inset-0 bg-gradient-to-r from-[#F59E0B]/20 via-[#FFB020]/20 to-[#F59E0B]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-gradient" />
       
+      {/* Shimmer effect on hover */}
+      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
+        <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+      </div>
+      
       <div className="relative aspect-square w-full rounded-xl overflow-hidden">
-        <Cover src={track.coverImage} alt={track.title} className="w-full h-full" />
+        <Cover src={track.coverImage} alt={track.title} className="w-full h-full transition-transform duration-500 group-hover:scale-110" />
         {/* Play button overlay with Modern Design */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300" />
         <div className="absolute bottom-2 right-2 w-10 h-10 bg-[#F59E0B] rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 shadow-lg shadow-[#F59E0B]/30 hover:shadow-[#F59E0B]/50 hover:scale-110">
@@ -238,7 +287,7 @@ function TrackCard({
         )}
       </div>
       <div className="relative z-10">
-        <p className={`text-sm font-semibold truncate ${isActive ? "text-[#F59E0B]" : "text-white group-hover:text-white"}`}>
+        <p className={`text-sm font-semibold truncate transition-all duration-300 ${isActive ? "text-[#F59E0B]" : "text-white group-hover:text-white"}`}>
           {track.title}
         </p>
         <p className="text-xs text-[#9CA3AF] truncate mt-0.5 group-hover:text-[#F5DEB3] transition-colors">{track.artist}</p>
@@ -253,20 +302,25 @@ function ArtistCard({ creator }: { creator: Creator }) {
   return (
     <button
       onClick={() => router.push(`/artists/${creator.id}`)}
-      className="group flex flex-col items-center gap-3 p-3 rounded-2xl hover:bg-gradient-to-br hover:from-[#F59E0B]/10 hover:to-[#FFB020]/10 transition-all duration-300 active:scale-[0.98] text-center w-full relative overflow-hidden border border-[#1F2937] hover:border-[#374151] bg-[#0a0604]"
+      className="group flex flex-col items-center gap-3 p-3 rounded-2xl hover:bg-gradient-to-br hover:from-[#F59E0B]/10 hover:to-[#FFB020]/10 transition-all duration-500 active:scale-[0.98] text-center w-full relative overflow-hidden border border-[#1F2937] hover:border-[#374151] bg-[#0a0604] hover:-translate-y-1 hover:shadow-xl hover:shadow-[#F59E0B]/20"
     >
       {/* Background gradient effect */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#F59E0B]/10 to-[#FFB020]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      
+      {/* Shimmer effect */}
+      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none">
+        <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+      </div>
       
       <div className="relative z-10">
         <div className="relative">
           {/* Animated ring effect */}
           <div className="absolute inset-0 rounded-full bg-[#F59E0B] blur-md opacity-0 group-hover:opacity-60 transition-opacity duration-300 animate-pulse" />
-          <Avatar src={creator.avatar} name={creator.name} size={64} />
+          <Avatar src={creator.avatar} name={creator.name} size={64} className="transition-transform duration-500 group-hover:scale-110" />
           {/* Decorative ring */}
           <div className="absolute -inset-0.5 rounded-full bg-[#F59E0B] opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-spin-slow" style={{ animationDuration: '3s' }} />
           {creator.verified && (
-            <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-[#F59E0B] rounded-full flex items-center justify-center shadow-lg shadow-[#F59E0B]/30">
+            <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-[#F59E0B] rounded-full flex items-center justify-center shadow-lg shadow-[#F59E0B]/30 transition-transform duration-300 group-hover:scale-110">
               <svg className="w-3.5 h-3.5 text-black" fill="currentColor" viewBox="0 0 20 20">
                 <path
                   fillRule="evenodd"
@@ -292,26 +346,31 @@ function AlbumCard({ album }: { album: Album }) {
   return (
     <button
       onClick={() => router.push(`/album/${album.id}`)}
-      className="group flex flex-col gap-3 p-3 rounded-2xl hover:bg-gradient-to-br hover:from-[#F59E0B]/10 hover:to-[#FFB020]/10 transition-all duration-300 active:scale-[0.98] text-left w-full relative overflow-hidden border border-[#1F2937] hover:border-[#374151] bg-[#0a0604]"
+      className="group flex flex-col gap-3 p-3 rounded-2xl hover:bg-gradient-to-br hover:from-[#F59E0B]/10 hover:to-[#FFB020]/10 transition-all duration-500 active:scale-[0.98] text-left w-full relative overflow-hidden border border-[#1F2937] hover:border-[#374151] bg-[#0a0604] hover:-translate-y-1 hover:shadow-xl hover:shadow-[#F59E0B]/20"
     >
       {/* Animated background glow */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#F59E0B]/15 to-[#FFB020]/15 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl" />
       
-      <div className="relative aspect-square w-full rounded-xl overflow-hidden shadow-lg group-hover:shadow-2xl group-hover:shadow-[#F59E0B]/30 transition-all duration-300">
+      {/* Shimmer effect */}
+      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none">
+        <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+      </div>
+      
+      <div className="relative aspect-square w-full rounded-xl overflow-hidden shadow-lg group-hover:shadow-2xl group-hover:shadow-[#F59E0B]/30 transition-all duration-500">
         {/* Main album cover */}
-        <Cover src={album.coverImage} alt={album.title} className="w-full h-full" />
+        <Cover src={album.coverImage} alt={album.title} className="w-full h-full transition-transform duration-500 group-hover:scale-110" />
         
         {/* Layered stack effect for multi-track albums */}
         {album.tracks > 1 && (
           <>
             {/* Second layer */}
-            <div className="absolute top-1 left-1 w-full h-full rounded-xl overflow-hidden shadow-lg border border-[#F59E0B]/20 pointer-events-none">
+            <div className="absolute top-1 left-1 w-full h-full rounded-xl overflow-hidden shadow-lg border border-[#F59E0B]/20 pointer-events-none transition-transform duration-500 group-hover:top-2 group-hover:left-2">
               <Cover src={album.coverImage} alt={album.title} className="w-full h-full opacity-80" />
             </div>
             
             {/* Third layer for albums with many tracks */}
             {album.tracks > 3 && (
-              <div className="absolute top-2 left-2 w-full h-full rounded-xl overflow-hidden shadow-lg border border-[#F59E0B]/15 pointer-events-none">
+              <div className="absolute top-2 left-2 w-full h-full rounded-xl overflow-hidden shadow-lg border border-[#F59E0B]/15 pointer-events-none transition-transform duration-500 group-hover:top-4 group-hover:left-4">
                 <Cover src={album.coverImage} alt={album.title} className="w-full h-full opacity-60" />
               </div>
             )}
@@ -332,7 +391,7 @@ function AlbumCard({ album }: { album: Album }) {
         
         {/* Track count badge */}
         {album.tracks > 1 && (
-          <div className="absolute bottom-2 right-2 bg-[#F59E0B] text-black text-xs font-bold px-2.5 py-1 rounded-full shadow-lg min-w-[24px] text-center">
+          <div className="absolute bottom-2 right-2 bg-[#F59E0B] text-black text-xs font-bold px-2.5 py-1 rounded-full shadow-lg min-w-[24px] text-center transition-transform duration-300 group-hover:scale-110">
             {album.tracks}
           </div>
         )}
@@ -356,17 +415,24 @@ function SectionHeader({
   t?: (key: any) => string;
 }) {
   return (
-    <div className="flex items-center justify-between mb-4">
-      <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight flex items-center gap-2">
-        <span className="bg-gradient-to-r from-amber-300 to-amber-500 bg-clip-text text-transparent">{title}</span>
-        <div className="h-px flex-1 max-w-[100px] bg-gradient-to-r from-amber-400/50 to-transparent hidden sm:block" />
+    <div className="flex items-center justify-between mb-4 group">
+      <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight flex items-center gap-2 relative">
+        {/* Animated gradient underline */}
+        <span className="relative inline-block">
+          <span className="bg-gradient-to-r from-amber-300 via-orange-400 to-amber-500 bg-clip-text text-transparent transition-all duration-300 group-hover:from-amber-400 group-hover:via-orange-500 group-hover:to-amber-600">
+            {title}
+          </span>
+          <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-amber-400 to-orange-500 transition-all duration-500 group-hover:w-full" />
+        </span>
+        <div className="h-px flex-1 max-w-[100px] bg-gradient-to-r from-amber-400/50 to-transparent hidden sm:block opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       </h2>
       {onSeeAll && t && (
         <button
           onClick={onSeeAll}
-          className="text-xs font-semibold text-white/70 hover:text-amber-300 transition-colors uppercase tracking-widest hover:underline decoration-amber-400 decoration-2 underline-offset-4"
+          className="text-xs font-semibold text-white/70 hover:text-amber-300 transition-all duration-300 uppercase tracking-widest hover:underline decoration-amber-400 decoration-2 underline-offset-4 relative group/btn overflow-hidden"
         >
-          {t('seeAll')}
+          <span className="relative z-10">{t('seeAll')}</span>
+          <span className="absolute inset-0 bg-gradient-to-r from-amber-500/20 to-orange-500/20 rounded transform scale-x-0 group-hover/btn:scale-x-100 transition-transform duration-300 origin-left" />
         </button>
       )}
     </div>
@@ -460,16 +526,18 @@ function HeroBanner({
         return (
           <div
             key={track.id}
-            className={`absolute inset-0 transition-all duration-700 ease-in-out ${
-              isCurrent ? "opacity-100" : "opacity-0"
+            className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
+              isCurrent ? "opacity-100 scale-100" : "opacity-0 scale-105"
             }`}
           >
             {/* Background */}
             <div
-              className="absolute inset-0 bg-cover bg-center scale-105"
+              className="absolute inset-0 bg-cover bg-center"
               style={{
                 backgroundImage: `url(${track.coverImage})`,
                 filter: "blur(20px) saturate(1.4)",
+                transform: isCurrent ? 'scale(1.05)' : 'scale(1)',
+                transition: 'transform 6s ease-out',
               }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#0d0d0d] via-black/50 to-transparent" />
@@ -481,10 +549,13 @@ function HeroBanner({
       <div className="relative z-10 flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-6 p-5 sm:p-7 lg:p-9 w-full">
         {currentTrack && (
           <>
-            <div className="shrink-0 w-24 h-24 sm:w-32 sm:h-32 lg:w-44 lg:h-44 rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10">
+            <div 
+              key={currentTrack.id}
+              className="shrink-0 w-24 h-24 sm:w-32 sm:h-32 lg:w-44 lg:h-44 rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10 animate-fade-in-up"
+            >
               <Cover src={currentTrack.coverImage} alt={currentTrack.title} className="w-full h-full" />
             </div>
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
               <p className="text-xs font-semibold text-amber-400 uppercase tracking-widest mb-1">
                 {t('featuredTrack')}
               </p>
@@ -495,7 +566,7 @@ function HeroBanner({
               <div className="flex items-center gap-3 mt-4">
                 <button
                   onClick={() => onPlay(currentIndex)}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-400 active:scale-95 text-black font-bold text-sm rounded-full transition-all duration-150 shadow-lg shadow-amber-500/25"
+                  className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-400 active:scale-95 text-black font-bold text-sm rounded-full transition-all duration-150 shadow-lg shadow-amber-500/25 hover:shadow-xl hover:shadow-amber-500/40 hover:-translate-y-0.5"
                 >
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M6.3 2.84A1.5 1.5 0 004 4.11v11.78a1.5 1.5 0 002.3 1.27l9.344-5.891a1.5 1.5 0 000-2.538L6.3 2.84z" />
@@ -505,7 +576,7 @@ function HeroBanner({
                 {!isAuthenticated && (
                   <button
                     onClick={() => router.push("/login")}
-                    className="px-5 py-2.5 border border-white/20 hover:border-white/40 text-white/80 hover:text-white font-semibold text-sm rounded-full transition-all duration-150"
+                    className="px-5 py-2.5 border border-white/20 hover:border-white/40 text-white/80 hover:text-white font-semibold text-sm rounded-full transition-all duration-150 hover:-translate-y-0.5"
                   >
                     {t('signIn')}
                   </button>
@@ -957,12 +1028,13 @@ function HomeContent() {
           <div className="lg:col-span-2 xl:col-span-3 space-y-6 sm:space-y-8 lg:space-y-10">
 
             {/* ── Trending Cards (horizontal scroll on mobile, grid on desktop) ── */}
-            <section className="space-y-3 sm:space-y-4">
-              <SectionHeader
-                title={t('trendingNow' as any)}
-                onSeeAll={() => router.push("/tracks")}
-                t={t}
-              />
+            <AnimatedSection>
+              <section className="space-y-3 sm:space-y-4">
+                <SectionHeader
+                  title={t('trendingNow' as any)}
+                  onSeeAll={() => router.push("/tracks")}
+                  t={t}
+                />
               {/* Mobile: horizontal scroll */}
               <div className="lg:hidden">
                 {activeTab === "following" && followingTracks.length === 0 ? (
@@ -1030,6 +1102,7 @@ function HomeContent() {
                 )}
               </div>
             </section>
+            </AnimatedSection>
 
             {/* ── Recently Played (Only for logged-in users) ── */}
             {isAuthenticated && (
@@ -1040,11 +1113,12 @@ function HomeContent() {
             )}
 
             {/* ── Featured Playlists - Prominent Section ── */}
-            <section className="space-y-3 sm:space-y-4">
-              <SectionHeader
-                title={t('featuredPlaylists')}
-                onSeeAll={() => router.push("/playlists")}
-              />
+            <AnimatedSection>
+              <section className="space-y-3 sm:space-y-4">
+                <SectionHeader
+                  title={t('featuredPlaylists')}
+                  onSeeAll={() => router.push("/playlists")}
+                />
               {playlistsLoading ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                   {Array.from({ length: 6 }).map((_, i) => (
@@ -1063,6 +1137,7 @@ function HomeContent() {
                 <p className="text-sm text-white/30 py-4">{t('noPlaylistsAvailable' as any)}</p>
               )}
             </section>
+            </AnimatedSection>
 
             {/* ── Track List ── */}
             <section className="space-y-3 sm:space-y-4">
@@ -1085,11 +1160,12 @@ function HomeContent() {
             </section>
 
             {/* ── Albums Section ── */}
-            <section className="space-y-3 sm:space-y-4">
-              <SectionHeader
-                title={t('popularAlbums')}
-                onSeeAll={() => router.push("/albums")}
-              />
+            <AnimatedSection>
+              <section className="space-y-3 sm:space-y-4">
+                <SectionHeader
+                  title={t('popularAlbums')}
+                  onSeeAll={() => router.push("/albums")}
+                />
               {albumsLoading ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3 lg:gap-4">
                   {Array.from({ length: 5 }).map((_, i) => (
@@ -1119,13 +1195,15 @@ function HomeContent() {
                 <p className="text-sm text-white/30 py-4">{t('noAlbumsAvailable' as any)}</p>
               )}
             </section>
+            </AnimatedSection>
 
             {/* ── Beats Section ── */}
-            <section className="space-y-3 sm:space-y-4">
-              <SectionHeader
-                title={t('popularBeats')}
-                onSeeAll={() => router.push("/beats")}
-              />
+            <AnimatedSection>
+              <section className="space-y-3 sm:space-y-4">
+                <SectionHeader
+                  title={t('popularBeats')}
+                  onSeeAll={() => router.push("/beats")}
+                />
               {beatsLoading ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3 lg:gap-4">
                   {Array.from({ length: 5 }).map((_, i) => (
@@ -1164,10 +1242,11 @@ function HomeContent() {
                 <p className="text-sm text-white/30 py-4">{t('noBeatsAvailable' as any)}</p>
               )}
             </section>
+            </AnimatedSection>
 
             {/* ── Mixes Section ── */}
             <section className="space-y-3 sm:space-y-4">
-              <MixesHorizontalScroll title={`🎧 ${t('popularMixes')}`} viewAllLink="/mixes" />
+              <MixesHorizontalScroll title={t('popularMixes')} viewAllLink="/mixes" />
             </section>
 
             {/* ── Trending Vibes Section ── */}

@@ -255,10 +255,10 @@ export default function LibraryPage() {
 
       {/* Profile Summary Card - Enhanced for Desktop */}
       <div className="container mx-auto px-4 py-6">
-        <div className="bg-gradient-to-br from-[#FF4D67]/10 to-[#FFCB2B]/10 backdrop-blur-sm rounded-2xl border border-[#FF4D67]/20 p-6 mb-6">
+        <div className="bg-gradient-to-br from-[#FF4D67]/10 via-[#8B5CF6]/5 to-[#FFCB2B]/10 backdrop-blur-xl rounded-3xl border border-white/10 p-6 mb-6 shadow-2xl">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-[#FF4D67]/40 flex-shrink-0">
+              <div className="w-20 h-20 rounded-full overflow-hidden border-3 border-gradient-to-r from-[#FF4D67] to-[#FFCB2B] flex-shrink-0 shadow-lg ring-2 ring-white/10">
                 {profile.avatar ? (
                   <img src={profile.avatar} alt={profile.name} className="w-full h-full object-cover" />
                 ) : (
@@ -268,10 +268,10 @@ export default function LibraryPage() {
                 )}
               </div>
               <div>
-                <h2 className="text-xl md:text-2xl font-bold text-white">{profile.name}</h2>
+                <h2 className="text-xl md:text-2xl font-black text-white">{profile.name}</h2>
                 <p className="text-sm text-gray-400">{profile.email}</p>
                 {profile.role === 'creator' && (
-                  <span className="inline-block mt-1 text-xs px-2 py-1 bg-[#FF4D67]/20 text-[#FF4D67] rounded-full font-medium">
+                  <span className="inline-block mt-2 text-xs px-3 py-1 bg-gradient-to-r from-[#FF4D67]/30 to-[#FFCB2B]/30 text-white rounded-full font-semibold border border-[#FF4D67]/40">
                     {profile.creatorType || 'Creator'}
                   </span>
                 )}
@@ -279,18 +279,18 @@ export default function LibraryPage() {
             </div>
             
             {/* Quick Stats - Desktop Layout */}
-            <div className="grid grid-cols-3 gap-4 md:gap-6 pt-4 md:pt-0 md:border-l md:border-[#FF4D67]/20 md:pl-6">
-              <div className="text-center cursor-pointer hover:scale-105 transition-transform" onClick={() => router.push('/library?tab=tracks')}>
-                <p className="text-2xl md:text-3xl font-black text-white">{tracks.length}</p>
-                <p className="text-xs text-gray-400 uppercase tracking-wider mt-1">Tracks</p>
+            <div className="grid grid-cols-3 gap-4 md:gap-6 pt-4 md:pt-0 md:border-l md:border-white/10 md:pl-6">
+              <div className="text-center cursor-pointer hover:scale-105 transition-transform group" onClick={() => router.push('/library?tab=tracks')}>
+                <p className="text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#FFCB2B] to-[#FF4D67] group-hover:from-[#FF4D67] group-hover:to-[#FFCB2B] transition-all">{tracks.length}</p>
+                <p className="text-xs text-gray-400 uppercase tracking-wider mt-1 font-medium">Tracks</p>
               </div>
-              <div className="text-center cursor-pointer hover:scale-105 transition-transform" onClick={() => router.push('/library?tab=followers')}>
-                <p className="text-2xl md:text-3xl font-black text-white">{(profile.followersCount || 0).toLocaleString()}</p>
-                <p className="text-xs text-gray-400 uppercase tracking-wider mt-1">Followers</p>
+              <div className="text-center cursor-pointer hover:scale-105 transition-transform group" onClick={() => router.push('/library?tab=followers')}>
+                <p className="text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#10B981] to-[#6366F1] group-hover:from-[#6366F1] group-hover:to-[#10B981] transition-all">{(profile.followersCount || 0).toLocaleString()}</p>
+                <p className="text-xs text-gray-400 uppercase tracking-wider mt-1 font-medium">Followers</p>
               </div>
-              <div className="text-center cursor-pointer hover:scale-105 transition-transform" onClick={() => router.push('/library?tab=following')}>
-                <p className="text-2xl md:text-3xl font-black text-white">{(profile.followingCount || 0).toLocaleString()}</p>
-                <p className="text-xs text-gray-400 uppercase tracking-wider mt-1">Following</p>
+              <div className="text-center cursor-pointer hover:scale-105 transition-transform group" onClick={() => router.push('/library?tab=following')}>
+                <p className="text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#8B5CF6] to-[#EF4444] group-hover:from-[#EF4444] group-hover:to-[#8B5CF6] transition-all">{(profile.followingCount || 0).toLocaleString()}</p>
+                <p className="text-xs text-gray-400 uppercase tracking-wider mt-1 font-medium">Following</p>
               </div>
             </div>
           </div>
@@ -309,7 +309,7 @@ export default function LibraryPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
                 </svg>
               </div>
-              <span className="text-sm font-semibold text-white">My Tracks</span>
+              <span className="text-sm font-semibold text-white">{t('myTracks')}</span>
               <span className="text-xs text-gray-400 mt-1">{tracks.length} songs</span>
             </div>
           </button>
@@ -325,7 +325,7 @@ export default function LibraryPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
               </div>
-              <span className="text-sm font-semibold text-white">Analytics</span>
+              <span className="text-sm font-semibold text-white">{t('analytics')}</span>
               <span className="text-xs text-gray-400 mt-1">Insights</span>
             </div>
           </button>
@@ -342,7 +342,7 @@ export default function LibraryPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <span className="text-sm font-semibold text-white">Monetization</span>
+                <span className="text-sm font-semibold text-white">{t('earn')}</span>
                 <span className="text-xs text-gray-400 mt-1">Earn money</span>
               </div>
             </button>
@@ -362,7 +362,7 @@ export default function LibraryPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
               </div>
-              <span className="text-sm font-semibold text-white">Settings</span>
+              <span className="text-sm font-semibold text-white">{t('settings')}</span>
               <span className="text-xs text-gray-400 mt-1">General</span>
             </div>
           </button>
@@ -378,10 +378,77 @@ export default function LibraryPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
               </div>
-              <span className="text-sm font-semibold text-white">Followers</span>
+              <span className="text-sm font-semibold text-white">{t('followers')}</span>
               <span className="text-xs text-gray-400 mt-1">{(profile.followersCount || 0).toLocaleString()}</span>
             </div>
           </button>
+        </div>
+
+        {/* Important Links - Privacy, Terms, Help */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          {/* Privacy Policy */}
+          <Link
+            href="/privacy"
+            className="p-3 rounded-xl bg-gradient-to-br from-gray-800/50 to-gray-800/30 border border-gray-700/30 hover:border-gray-600/50 transition-all group active:scale-[0.98] flex items-center gap-3"
+          >
+            <div className="w-10 h-10 rounded-full bg-gray-700/50 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <svg className="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+            <div className="text-left">
+              <span className="text-sm font-semibold text-white block">{t('privacyPolicy')}</span>
+              <span className="text-xs text-gray-400">Your data</span>
+            </div>
+          </Link>
+
+          {/* Terms of Use */}
+          <Link
+            href="/terms"
+            className="p-3 rounded-xl bg-gradient-to-br from-gray-800/50 to-gray-800/30 border border-gray-700/30 hover:border-gray-600/50 transition-all group active:scale-[0.98] flex items-center gap-3"
+          >
+            <div className="w-10 h-10 rounded-full bg-gray-700/50 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <svg className="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <div className="text-left">
+              <span className="text-sm font-semibold text-white block">{t('termsOfUse')}</span>
+              <span className="text-xs text-gray-400">Guidelines</span>
+            </div>
+          </Link>
+
+          {/* Help Center */}
+          <Link
+            href="/help"
+            className="p-3 rounded-xl bg-gradient-to-br from-gray-800/50 to-gray-800/30 border border-gray-700/30 hover:border-gray-600/50 transition-all group active:scale-[0.98] flex items-center gap-3"
+          >
+            <div className="w-10 h-10 rounded-full bg-gray-700/50 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <svg className="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div className="text-left">
+              <span className="text-sm font-semibold text-white block">{t('helpCenter')}</span>
+              <span className="text-xs text-gray-400">Support</span>
+            </div>
+          </Link>
+
+          {/* Contact Us */}
+          <Link
+            href="/contact"
+            className="p-3 rounded-xl bg-gradient-to-br from-gray-800/50 to-gray-800/30 border border-gray-700/30 hover:border-gray-600/50 transition-all group active:scale-[0.98] flex items-center gap-3"
+          >
+            <div className="w-10 h-10 rounded-full bg-gray-700/50 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <svg className="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <div className="text-left">
+              <span className="text-sm font-semibold text-white block">{t('contactUs')}</span>
+              <span className="text-xs text-gray-400">Get in touch</span>
+            </div>
+          </Link>
         </div>
 
         {/* Edit Profile & Settings Buttons */}
@@ -389,34 +456,40 @@ export default function LibraryPage() {
           {/* Edit Profile */}
           <button
             onClick={() => router.push('/edit-profile')}
-            className="w-full p-4 rounded-2xl bg-gradient-to-r from-[#FF4D67]/15 to-[#FF4D67]/5 border border-[#FF4D67]/30 hover:border-[#FF4D67]/50 transition-all group active:scale-[0.98] flex items-center gap-3"
+            className="w-full p-4 rounded-2xl bg-gradient-to-r from-[#FF4D67]/20 via-[#FF4D67]/10 to-transparent border border-[#FF4D67]/40 hover:border-[#FF4D67]/60 transition-all group active:scale-[0.98] flex items-center gap-3 shadow-lg"
           >
-            <div className="w-10 h-10 rounded-full bg-[#FF4D67]/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <svg className="w-5 h-5 text-[#FF4D67]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#FF4D67] to-[#FF3352] flex items-center justify-center group-hover:scale-110 transition-transform shadow-md">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
               </svg>
             </div>
-            <div className="text-left">
-              <span className="text-base font-semibold text-white">Edit Profile</span>
-              <p className="text-xs text-gray-400">Update your profile info</p>
+            <div className="text-left flex-1">
+              <span className="text-base font-bold text-white block">{t('editProfile')}</span>
+              <p className="text-xs text-gray-400 mt-0.5">{t('updateInfo')}</p>
             </div>
+            <svg className="w-5 h-5 text-gray-500 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
           </button>
 
           {/* General Settings */}
           <button
             onClick={() => router.push('/settings')}
-            className="w-full p-4 rounded-2xl bg-gradient-to-r from-[#6366F1]/15 to-[#6366F1]/5 border border-[#6366F1]/30 hover:border-[#6366F1]/50 transition-all group active:scale-[0.98] flex items-center gap-3"
+            className="w-full p-4 rounded-2xl bg-gradient-to-r from-[#6366F1]/20 via-[#6366F1]/10 to-transparent border border-[#6366F1]/40 hover:border-[#6366F1]/60 transition-all group active:scale-[0.98] flex items-center gap-3 shadow-lg"
           >
-            <div className="w-10 h-10 rounded-full bg-[#6366F1]/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <svg className="w-5 h-5 text-[#6366F1]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] flex items-center justify-center group-hover:scale-110 transition-transform shadow-md">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </div>
-            <div className="text-left">
-              <span className="text-base font-semibold text-white">General Settings</span>
-              <p className="text-xs text-gray-400">Manage account & preferences</p>
+            <div className="text-left flex-1">
+              <span className="text-base font-bold text-white block">{t('settings')}</span>
+              <p className="text-xs text-gray-400 mt-0.5">Manage account & preferences</p>
             </div>
+            <svg className="w-5 h-5 text-gray-500 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
           </button>
         </div>
 
@@ -460,105 +533,105 @@ export default function LibraryPage() {
         )}
 
         {/* Tab Navigation - Mobile Bottom Bar Style */}
-        <div className="fixed bottom-0 left-0 right-0 bg-gray-900/98 backdrop-blur-lg border-t border-gray-800 z-50 md:hidden">
-          <div className="grid grid-cols-6 gap-1 px-2 py-2">
+        <div className="fixed bottom-0 left-0 right-0 bg-gray-900/98 backdrop-blur-lg border-t border-gray-800 z-50 md:hidden safe-area-bottom">
+          <div className="grid grid-cols-6 gap-1 px-2 py-2 pb-safe">
             <button
               onClick={() => router.push('/library?tab=overview')}
-              className={`flex flex-col items-center p-2 rounded-xl transition-all ${
+              className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all min-h-[48px] ${
                 activeTab === 'overview' 
                   ? 'bg-[#FF4D67]/20 text-[#FF4D67]' 
                   : 'text-gray-400 hover:text-white'
               }`}
             >
-              <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
               </svg>
-              <span className="text-[10px] font-medium">{t('home')}</span>
+              <span className="text-[10px] font-medium leading-tight">{t('home')}</span>
             </button>
             
             <button
               onClick={() => router.push('/library?tab=tracks')}
-              className={`flex flex-col items-center p-2 rounded-xl transition-all ${
+              className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all min-h-[48px] ${
                 activeTab === 'tracks' 
                   ? 'bg-[#FFCB2B]/20 text-[#FFCB2B]' 
                   : 'text-gray-400 hover:text-white'
               }`}
             >
-              <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
               </svg>
-              <span className="text-[10px] font-medium">{t('yourTracks')}</span>
+              <span className="text-[10px] font-medium leading-tight">{t('yourTracks')}</span>
             </button>
             
             {profile.role === 'creator' && (
               <button
                 onClick={() => router.push('/monetization')}
-                className={`flex flex-col items-center p-2 rounded-xl transition-all ${
+                className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all min-h-[48px] ${
                   activeTab === 'analytics' 
                     ? 'bg-[#10B981]/20 text-[#10B981]' 
                     : 'text-gray-400 hover:text-white'
                 }`}
               >
-                <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span className="text-[10px] font-medium">{t('earn')}</span>
+                <span className="text-[10px] font-medium leading-tight">{t('earn')}</span>
               </button>
             )}
             
             <button
               onClick={() => router.push('/library?tab=recentlyPlayed')}
-              className={`flex flex-col items-center p-2 rounded-xl transition-all ${
+              className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all min-h-[48px] ${
                 activeTab === 'recentlyPlayed' 
                   ? 'bg-[#8B5CF6]/20 text-[#8B5CF6]' 
                   : 'text-gray-400 hover:text-white'
               }`}
             >
-              <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span className="text-[10px] font-medium">{t('recentlyPlayed')}</span>
+              <span className="text-[10px] font-medium leading-tight">{t('recentlyPlayed')}</span>
             </button>
             
             <button
               onClick={() => router.push('/settings')}
-              className={`flex flex-col items-center p-2 rounded-xl transition-all ${
+              className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all min-h-[48px] ${
                 activeTab === 'followers' 
                   ? 'bg-[#EF4444]/20 text-[#EF4444]' 
                   : 'text-gray-400 hover:text-white'
               }`}
             >
-              <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
-              <span className="text-[10px] font-medium">{t('settings')}</span>
+              <span className="text-[10px] font-medium leading-tight">{t('settings')}</span>
             </button>
             
             <button
               onClick={() => router.push('/library?tab=followers')}
-              className={`flex flex-col items-center p-2 rounded-xl transition-all ${
+              className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all min-h-[48px] ${
                 activeTab === 'following' 
                   ? 'bg-[#6366F1]/20 text-[#6366F1]' 
                   : 'text-gray-400 hover:text-white'
               }`}
             >
-              <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
-              <span className="text-[10px] font-medium">{t('fans')}</span>
+              <span className="text-[10px] font-medium leading-tight">{t('fans')}</span>
             </button>
           </div>
         </div>
 
-        {/* Tab Content */}
+        {/* Overview Tab Content */}
         {activeTab === 'overview' && (
           <div className="space-y-4">
             {/* Quick Actions */}
             <div className="grid grid-cols-2 gap-4">
               <button
                 onClick={() => router.push('/edit-profile')}
-                className="bg-gradient-to-br from-[#FF4D67]/20 to-[#FF4D67]/10 backdrop-blur-sm rounded-2xl p-5 border border-[#FF4D67]/30 hover:border-[#FF4D67]/50 transition-all active:scale-[0.98]"
+                className="bg-gradient-to-br from-[#FF4D67]/25 to-[#FF4D67]/10 backdrop-blur-sm rounded-2xl p-5 border border-[#FF4D67]/40 hover:border-[#FF4D67]/60 transition-all active:scale-[0.98] shadow-lg"
               >
                 <svg className="w-8 h-8 text-[#FF4D67] mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -569,7 +642,7 @@ export default function LibraryPage() {
               
               <button
                 onClick={() => router.push('/upload')}
-                className="bg-gradient-to-br from-[#FFCB2B]/20 to-[#FFCB2B]/10 backdrop-blur-sm rounded-2xl p-5 border border-[#FFCB2B]/30 hover:border-[#FFCB2B]/50 transition-all active:scale-[0.98]"
+                className="bg-gradient-to-br from-[#FFCB2B]/25 to-[#FFCB2B]/10 backdrop-blur-sm rounded-2xl p-5 border border-[#FFCB2B]/40 hover:border-[#FFCB2B]/60 transition-all active:scale-[0.98] shadow-lg"
               >
                 <svg className="w-8 h-8 text-[#FFCB2B] mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
@@ -581,10 +654,10 @@ export default function LibraryPage() {
 
             {/* Recently Played Section */}
             {recentlyPlayed.length > 0 && (
-              <div className="bg-gray-800/30 backdrop-blur-sm rounded-2xl border border-gray-700/30 p-5">
+              <div className="bg-gradient-to-br from-gray-800/40 to-gray-800/20 backdrop-blur-xl rounded-2xl border border-white/10 p-5 shadow-xl">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[#8B5CF6] to-[#6366F1] flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[#8B5CF6] to-[#6366F1] flex items-center justify-center shadow-lg">
                       <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
@@ -606,7 +679,7 @@ export default function LibraryPage() {
                         localStorage.removeItem('recentlyPlayed')
                         setRecentlyPlayed([])
                       }}
-                      className="text-gray-400 hover:text-[#EF4444] transition-colors"
+                      className="text-gray-400 hover:text-[#EF4444] transition-colors p-2 hover:bg-red-500/10 rounded-lg"
                       title="Clear History"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -620,7 +693,7 @@ export default function LibraryPage() {
                     <Link
                       key={`${track._id}-${index}`}
                       href={`/player?id=${track._id}`}
-                      className="group bg-gray-800/50 rounded-xl overflow-hidden border border-gray-700/30 hover:bg-gray-700/50 hover:border-[#8B5CF6]/40 transition-all duration-300"
+                      className="group bg-gray-800/50 rounded-xl overflow-hidden border border-white/5 hover:bg-gray-700/50 hover:border-[#8B5CF6]/40 transition-all duration-300 shadow-md"
                     >
                       <div className="aspect-square relative overflow-hidden">
                         <img
@@ -646,7 +719,7 @@ export default function LibraryPage() {
 
             {/* Recent Tracks Preview */}
             {tracks.length > 0 && (
-              <div className="bg-gray-800/30 backdrop-blur-sm rounded-2xl border border-gray-700/30 p-5">
+              <div className="bg-gradient-to-br from-gray-800/40 to-gray-800/20 backdrop-blur-xl rounded-2xl border border-white/10 p-5 shadow-xl">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-bold text-white">Your Tracks</h3>
                   <button
@@ -661,16 +734,16 @@ export default function LibraryPage() {
                     <Link
                       key={track._id}
                       href={`/tracks/${track._id}`}
-                      className="flex items-center gap-3 p-2 bg-gray-800/50 rounded-xl hover:bg-gray-700/50 transition-all"
+                      className="flex items-center gap-3 p-3 bg-gray-800/50 rounded-xl hover:bg-gray-700/50 transition-all border border-white/5 hover:border-[#FF4D67]/30"
                     >
-                      <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
+                      <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 shadow-md">
                         <img src={track.coverURL || '/placeholder-cover.jpg'} alt={track.title} className="w-full h-full object-cover" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-bold text-white truncate text-sm">{track.title}</p>
                         <p className="text-xs text-gray-400">{track.plays || 0} plays</p>
                       </div>
-                      <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 text-gray-500 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
                     </Link>
@@ -681,9 +754,9 @@ export default function LibraryPage() {
 
             {/* Analytics Preview */}
             {analytics && (
-              <div className="bg-gradient-to-br from-[#6366F1]/10 to-[#8B5CF6]/10 backdrop-blur-sm rounded-2xl border border-[#6366F1]/30 p-5">
+              <div className="bg-gradient-to-br from-[#6366F1]/15 via-[#8B5CF6]/10 to-[#6366F1]/5 backdrop-blur-xl rounded-2xl border border-[#6366F1]/40 p-5 shadow-xl">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-bold text-white">Analytics</h3>
+                  <h3 className="font-bold text-white">{t('analytics')}</h3>
                   <button
                     onClick={() => router.push('/library?tab=analytics')}
                     className="text-[#6366F1] text-sm font-bold hover:underline"
@@ -692,13 +765,13 @@ export default function LibraryPage() {
                   </button>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-gray-800/50 rounded-xl p-4">
-                    <p className="text-2xl font-black text-white">{analytics.totalPlays.toLocaleString()}</p>
-                    <p className="text-xs text-gray-400 uppercase tracking-wider mt-1">Total Plays</p>
+                  <div className="bg-gray-800/50 rounded-xl p-4 border border-white/5">
+                    <p className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B]">{analytics.totalPlays.toLocaleString()}</p>
+                    <p className="text-xs text-gray-400 uppercase tracking-wider mt-1 font-medium">Total Plays</p>
                   </div>
-                  <div className="bg-gray-800/50 rounded-xl p-4">
-                    <p className="text-2xl font-black text-white">{analytics.monthlyListeners.toLocaleString()}</p>
-                    <p className="text-xs text-gray-400 uppercase tracking-wider mt-1">Monthly</p>
+                  <div className="bg-gray-800/50 rounded-xl p-4 border border-white/5">
+                    <p className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#10B981] to-[#6366F1]">{analytics.monthlyListeners.toLocaleString()}</p>
+                    <p className="text-xs text-gray-400 uppercase tracking-wider mt-1 font-medium">Monthly</p>
                   </div>
                 </div>
               </div>
@@ -710,14 +783,14 @@ export default function LibraryPage() {
           <div>
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
               <div>
-                <h2 className="text-xl font-bold text-white">Your Tracks</h2>
+                <h2 className="text-xl font-black text-white">{t('yourTracks')}</h2>
                 <p className="text-sm text-gray-400 mt-1">
                   {tracks.length} {tracks.length === 1 ? 'track' : 'tracks'} uploaded
                 </p>
               </div>
               <button
                 onClick={() => router.push('/upload')}
-                className="bg-[#FF4D67] hover:bg-[#FF4D67]/90 text-white font-bold py-2 px-4 rounded-lg transition-all active:scale-95 text-sm flex items-center gap-2 w-full sm:w-auto justify-center"
+                className="bg-gradient-to-r from-[#FF4D67] to-[#FF3352] hover:from-[#FF3352] hover:to-[#FF4D67] text-white font-bold py-2 px-4 rounded-lg transition-all active:scale-95 text-sm flex items-center gap-2 w-full sm:w-auto justify-center shadow-lg"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -756,15 +829,16 @@ export default function LibraryPage() {
                   <Link
                     key={track._id}
                     href={`/tracks/${track._id}`}
-                    className="group bg-gray-800/30 backdrop-blur-sm rounded-2xl overflow-hidden border border-gray-700/30 hover:bg-gray-800/50 hover:border-[#FF4D67]/40 transition-all duration-300"
+                    className="group bg-gradient-to-br from-gray-800/40 to-gray-800/20 backdrop-blur-xl rounded-2xl overflow-hidden border border-white/10 hover:bg-gray-800/60 hover:border-[#FF4D67]/50 transition-all duration-300 shadow-lg"
                   >
                     <div className="aspect-square relative overflow-hidden">
                       <img src={track.coverURL || '/placeholder-cover.jpg'} alt={track.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                       <div className="absolute bottom-2 left-2">
-                        <span className="px-2 py-1 bg-[#FF4D67] text-[10px] md:text-xs font-black text-white uppercase rounded">
+                        <span className="px-2 py-1 bg-gradient-to-r from-[#FF4D67] to-[#FF3352] text-[10px] md:text-xs font-black text-white uppercase rounded shadow-md">
                           {track.type || 'Track'}
                         </span>
                       </div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                     </div>
                     <div className="p-3 md:p-4">
                       <h3 className="font-bold text-white group-hover:text-[#FF4D67] transition-colors truncate text-sm md:text-base">
@@ -779,7 +853,7 @@ export default function LibraryPage() {
               </div>
               </>
             ) : (
-              <div className="text-center py-16 bg-gray-800/10 rounded-2xl border border-dashed border-gray-700/50">
+              <div className="text-center py-16 bg-gradient-to-br from-gray-800/20 to-gray-800/10 rounded-2xl border border-dashed border-gray-700/50">
                 <div className="w-16 h-16 mx-auto mb-4 bg-gray-800 rounded-full flex items-center justify-center text-gray-600">
                   <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
@@ -789,7 +863,7 @@ export default function LibraryPage() {
                 <p className="text-gray-500 text-sm mb-4">Start uploading your music!</p>
                 <button
                   onClick={() => router.push('/upload')}
-                  className="bg-[#FF4D67] hover:bg-[#FF4D67]/90 text-white font-bold py-3 px-8 rounded-xl transition-all active:scale-95"
+                  className="bg-gradient-to-r from-[#FF4D67] to-[#FF3352] hover:from-[#FF3352] hover:to-[#FF4D67] text-white font-bold py-3 px-8 rounded-xl transition-all active:scale-95 shadow-lg"
                 >
                   Upload First Track
                 </button>
@@ -802,34 +876,34 @@ export default function LibraryPage() {
           <div>
             {analytics ? (
               <>
-                <h2 className="text-xl font-bold text-white mb-4">Analytics Dashboard</h2>
+                <h2 className="text-xl font-black text-white mb-4">{t('analytics')} Dashboard</h2>
                 
                 {/* Overview Stats - Responsive Grid */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                  <div className="bg-gradient-to-br from-[#FF4D67]/10 to-[#FF4D67]/5 rounded-2xl p-5 border border-[#FF4D67]/20">
-                    <p className="text-2xl font-black text-white mb-1">{analytics.totalPlays.toLocaleString()}</p>
-                    <p className="text-xs text-gray-400 uppercase tracking-wider">Total Plays</p>
+                  <div className="bg-gradient-to-br from-[#FF4D67]/15 to-[#FF4D67]/5 rounded-2xl p-5 border border-[#FF4D67]/30 shadow-lg">
+                    <p className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] mb-1">{analytics.totalPlays.toLocaleString()}</p>
+                    <p className="text-xs text-gray-400 uppercase tracking-wider font-medium">Total Plays</p>
                   </div>
                   
-                  <div className="bg-gradient-to-br from-[#10B981]/10 to-[#10B981]/5 rounded-2xl p-5 border border-[#10B981]/20">
-                    <p className="text-2xl font-black text-white mb-1">{analytics.monthlyListeners.toLocaleString()}</p>
-                    <p className="text-xs text-gray-400 uppercase tracking-wider">Monthly Listeners</p>
+                  <div className="bg-gradient-to-br from-[#10B981]/15 to-[#10B981]/5 rounded-2xl p-5 border border-[#10B981]/30 shadow-lg">
+                    <p className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#10B981] to-[#6366F1] mb-1">{analytics.monthlyListeners.toLocaleString()}</p>
+                    <p className="text-xs text-gray-400 uppercase tracking-wider font-medium">Monthly Listeners</p>
                   </div>
                   
-                  <div className="bg-gradient-to-br from-[#EF4444]/10 to-[#EF4444]/5 rounded-2xl p-5 border border-[#EF4444]/20">
-                    <p className="text-2xl font-black text-white mb-1">{analytics.totalUniquePlays.toLocaleString()}</p>
-                    <p className="text-xs text-gray-400 uppercase tracking-wider">Unique Listeners</p>
+                  <div className="bg-gradient-to-br from-[#EF4444]/15 to-[#EF4444]/5 rounded-2xl p-5 border border-[#EF4444]/30 shadow-lg">
+                    <p className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#EF4444] to-[#8B5CF6] mb-1">{analytics.totalUniquePlays.toLocaleString()}</p>
+                    <p className="text-xs text-gray-400 uppercase tracking-wider font-medium">Unique Listeners</p>
                   </div>
                   
-                  <div className="bg-gradient-to-br from-[#8B5CF6]/10 to-[#8B5CF6]/5 rounded-2xl p-5 border border-[#8B5CF6]/20">
-                    <p className="text-2xl font-black text-white mb-1">{analytics.totalLikes.toLocaleString()}</p>
-                    <p className="text-xs text-gray-400 uppercase tracking-wider">Total Likes</p>
+                  <div className="bg-gradient-to-br from-[#8B5CF6]/15 to-[#8B5CF6]/5 rounded-2xl p-5 border border-[#8B5CF6]/30 shadow-lg">
+                    <p className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#8B5CF6] to-[#6366F1] mb-1">{analytics.totalLikes.toLocaleString()}</p>
+                    <p className="text-xs text-gray-400 uppercase tracking-wider font-medium">Total Likes</p>
                   </div>
                 </div>
 
                 {/* Top Countries - Responsive Layout */}
                 {analytics.topCountries && analytics.topCountries.length > 0 && (
-                  <div className="bg-gray-800/30 backdrop-blur-sm rounded-2xl border border-gray-700/30 p-5">
+                  <div className="bg-gradient-to-br from-gray-800/40 to-gray-800/20 backdrop-blur-xl rounded-2xl border border-white/10 p-5 shadow-xl">
                     <h3 className="font-bold text-white mb-4">Top Countries</h3>
                     <div className="space-y-3">
                       {analytics.topCountries.slice(0, 5).map((item, idx) => (
@@ -838,7 +912,7 @@ export default function LibraryPage() {
                             <span className="text-sm font-bold text-white">{item.country}</span>
                             <span className="text-xs text-gray-400">{item.count.toLocaleString()}</span>
                           </div>
-                          <div className="h-1.5 bg-gray-700 rounded-full overflow-hidden">
+                          <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
                             <div 
                               className="h-full bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] rounded-full"
                               style={{ width: `${(item.count / analytics.topCountries[0].count) * 100}%` }}
@@ -850,7 +924,7 @@ export default function LibraryPage() {
                 )}
               </>
             ) : (
-              <div className="text-center py-16 bg-gray-800/10 rounded-2xl border border-dashed border-gray-700/50">
+              <div className="text-center py-16 bg-gradient-to-br from-gray-800/20 to-gray-800/10 rounded-2xl border border-dashed border-gray-700/50">
                 <div className="w-16 h-16 mx-auto mb-4 bg-gray-800 rounded-full flex items-center justify-center text-gray-600">
                   <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -867,7 +941,7 @@ export default function LibraryPage() {
           <div>
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
               <div>
-                <h2 className="text-xl font-bold text-white">Your Followers</h2>
+                <h2 className="text-xl font-black text-white">{t('followers')}</h2>
                 <p className="text-sm text-gray-400 mt-1">
                   {followers.length} {followers.length === 1 ? 'follower' : 'followers'}
                 </p>
@@ -901,9 +975,9 @@ export default function LibraryPage() {
                   <Link
                     key={follower._id}
                     href={`/profile/${follower._id}`}
-                    className="flex items-center gap-3 p-4 bg-gray-800/30 backdrop-blur-sm rounded-2xl border border-gray-700/30 hover:bg-gray-800/50 hover:border-[#FF4D67]/40 transition-all"
+                    className="flex items-center gap-3 p-4 bg-gradient-to-br from-gray-800/40 to-gray-800/20 backdrop-blur-xl rounded-2xl border border-white/10 hover:bg-gray-800/60 hover:border-[#FF4D67]/40 transition-all shadow-lg"
                   >
-                    <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-gray-700">
+                    <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-gray-700 flex-shrink-0">
                       {follower.avatar ? (
                         <img src={follower.avatar} alt={follower.name} className="w-full h-full object-cover" />
                       ) : (
@@ -916,19 +990,19 @@ export default function LibraryPage() {
                       <h3 className="font-bold text-white truncate">{follower.name}</h3>
                       <p className="text-xs text-gray-400 truncate">{follower.email}</p>
                       {follower.role === 'creator' && (
-                        <span className="inline-block mt-1 text-xs px-2 py-0.5 bg-[#FF4D67]/20 text-[#FF4D67] rounded-full font-medium">
+                        <span className="inline-block mt-1 text-xs px-2 py-0.5 bg-gradient-to-r from-[#FF4D67]/30 to-[#FFCB2B]/30 text-white rounded-full font-semibold border border-[#FF4D67]/40">
                           {follower.creatorType || 'Creator'}
                         </span>
                       )}
                     </div>
-                    <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-gray-500 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </Link>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-16 bg-gray-800/10 rounded-2xl border border-dashed border-gray-700/50">
+              <div className="text-center py-16 bg-gradient-to-br from-gray-800/20 to-gray-800/10 rounded-2xl border border-dashed border-gray-700/50">
                 <div className="w-16 h-16 mx-auto mb-4 bg-gray-800 rounded-full flex items-center justify-center text-gray-600">
                   <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -938,7 +1012,7 @@ export default function LibraryPage() {
                 <p className="text-gray-500 text-sm mb-4">Keep creating great music!</p>
                 <button
                   onClick={() => router.push('/upload')}
-                  className="bg-[#FF4D67] hover:bg-[#FF4D67]/90 text-white font-bold py-3 px-8 rounded-xl transition-all active:scale-95"
+                  className="bg-gradient-to-r from-[#FF4D67] to-[#FF3352] hover:from-[#FF3352] hover:to-[#FF4D67] text-white font-bold py-3 px-8 rounded-xl transition-all active:scale-95 shadow-lg"
                 >
                   Upload Music
                 </button>
@@ -951,7 +1025,7 @@ export default function LibraryPage() {
           <div>
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
               <div>
-                <h2 className="text-xl font-bold text-white">Following</h2>
+                <h2 className="text-xl font-black text-white">Following</h2>
                 <p className="text-sm text-gray-400 mt-1">
                   {following.length} {following.length === 1 ? 'creator' : 'creators'}
                 </p>
@@ -978,7 +1052,6 @@ export default function LibraryPage() {
                 Refresh
               </button>
             </div>
-            <h2 className="text-xl font-bold text-white mb-4 hidden"></h2>
             
             {following.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
@@ -986,9 +1059,9 @@ export default function LibraryPage() {
                   <Link
                     key={creator._id}
                     href={`/profile/${creator._id}`}
-                    className="flex items-center gap-3 p-4 bg-gray-800/30 backdrop-blur-sm rounded-2xl border border-gray-700/30 hover:bg-gray-800/50 hover:border-[#FF4D67]/40 transition-all"
+                    className="flex items-center gap-3 p-4 bg-gradient-to-br from-gray-800/40 to-gray-800/20 backdrop-blur-xl rounded-2xl border border-white/10 hover:bg-gray-800/60 hover:border-[#FF4D67]/40 transition-all shadow-lg"
                   >
-                    <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-gray-700">
+                    <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-gray-700 flex-shrink-0">
                       {creator.avatar ? (
                         <img src={creator.avatar} alt={creator.name} className="w-full h-full object-cover" />
                       ) : (
@@ -1001,19 +1074,19 @@ export default function LibraryPage() {
                       <h3 className="font-bold text-white truncate">{creator.name}</h3>
                       <p className="text-xs text-gray-400 truncate">{creator.email}</p>
                       {creator.role === 'creator' && (
-                        <span className="inline-block mt-1 text-xs px-2 py-0.5 bg-[#FF4D67]/20 text-[#FF4D67] rounded-full font-medium">
+                        <span className="inline-block mt-1 text-xs px-2 py-0.5 bg-gradient-to-r from-[#FF4D67]/30 to-[#FFCB2B]/30 text-white rounded-full font-semibold border border-[#FF4D67]/40">
                           {creator.creatorType || 'Creator'}
                         </span>
                       )}
                     </div>
-                    <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-gray-500 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </Link>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-16 bg-gray-800/10 rounded-2xl border border-dashed border-gray-700/50">
+              <div className="text-center py-16 bg-gradient-to-br from-gray-800/20 to-gray-800/10 rounded-2xl border border-dashed border-gray-700/50">
                 <div className="w-16 h-16 mx-auto mb-4 bg-gray-800 rounded-full flex items-center justify-center text-gray-600">
                   <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -1023,7 +1096,7 @@ export default function LibraryPage() {
                 <p className="text-gray-500 text-sm mb-4">Discover amazing creators!</p>
                 <button
                   onClick={() => router.push('/explore')}
-                  className="bg-[#FF4D67] hover:bg-[#FF4D67]/90 text-white font-bold py-3 px-8 rounded-xl transition-all active:scale-95"
+                  className="bg-gradient-to-r from-[#FF4D67] to-[#FF3352] hover:from-[#FF3352] hover:to-[#FF4D67] text-white font-bold py-3 px-8 rounded-xl transition-all active:scale-95 shadow-lg"
                 >
                   Discover Creators
                 </button>
@@ -1037,7 +1110,7 @@ export default function LibraryPage() {
           <div>
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
               <div>
-                <h2 className="text-xl font-bold text-white">Recently Played</h2>
+                <h2 className="text-xl font-black text-white">{t('recentlyPlayed')}</h2>
                 <p className="text-sm text-gray-400 mt-1">
                   {recentlyPlayed.length} {recentlyPlayed.length === 1 ? 'track' : 'tracks'}
                 </p>
@@ -1063,7 +1136,7 @@ export default function LibraryPage() {
                   <Link
                     key={`${track._id}-${index}`}
                     href={`/player?id=${track._id}`}
-                    className="group bg-gray-800/30 backdrop-blur-sm rounded-xl overflow-hidden border border-gray-700/30 hover:bg-gray-800/50 hover:border-[#FF4D67]/40 transition-all duration-300"
+                    className="group bg-gradient-to-br from-gray-800/40 to-gray-800/20 backdrop-blur-xl rounded-xl overflow-hidden border border-white/10 hover:bg-gray-800/60 hover:border-[#FF4D67]/40 transition-all duration-300 shadow-lg"
                   >
                     <div className="aspect-square relative overflow-hidden">
                       <img
@@ -1088,7 +1161,7 @@ export default function LibraryPage() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-16 bg-gray-800/10 rounded-2xl border border-dashed border-gray-700/50">
+              <div className="text-center py-16 bg-gradient-to-br from-gray-800/20 to-gray-800/10 rounded-2xl border border-dashed border-gray-700/50">
                 <div className="w-16 h-16 mx-auto mb-4 bg-gray-800 rounded-full flex items-center justify-center text-gray-600">
                   <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -1098,7 +1171,7 @@ export default function LibraryPage() {
                 <p className="text-gray-500 text-sm mb-4">Start listening to build your history!</p>
                 <button
                   onClick={() => router.push('/explore')}
-                  className="bg-[#FF4D67] hover:bg-[#FF4D67]/90 text-white font-bold py-3 px-8 rounded-xl transition-all active:scale-95"
+                  className="bg-gradient-to-r from-[#FF4D67] to-[#FF3352] hover:from-[#FF3352] hover:to-[#FF4D67] text-white font-bold py-3 px-8 rounded-xl transition-all active:scale-95 shadow-lg"
                 >
                   Discover Music
                 </button>
@@ -1109,7 +1182,7 @@ export default function LibraryPage() {
       </div>
 
       {/* Floating Action Button - Quick Actions */}
-      <div className="fixed bottom-20 right-4 z-50 md:hidden">
+      <div className="fixed bottom-24 right-4 z-50 md:hidden">
         <button
           onClick={() => router.push('/upload')}
           className="w-14 h-14 bg-gradient-to-r from-[#FF4D67] to-[#FF3352] rounded-full shadow-lg shadow-[#FF4D67]/40 flex items-center justify-center active:scale-90 transition-transform border-2 border-white/20"
@@ -1120,6 +1193,9 @@ export default function LibraryPage() {
           </svg>
         </button>
       </div>
+
+      {/* Add extra padding at bottom for mobile to account for fixed nav */}
+      <div className="h-20 md:hidden"></div>
     </div>
   )
 }

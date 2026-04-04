@@ -11,6 +11,7 @@ const API_CACHE_NAME = 'muzikax-api-v1';
 const APP_SHELL = [
   '/',
   '/offline',
+  '/offline.html',
   '/manifest.json',
   '/app.png',
   '/favicon.ico',
@@ -37,6 +38,13 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_NAME).then((cache) => {
       console.log('[ServiceWorker] Caching app shell');
       return cache.addAll(APP_SHELL);
+    }).then(() => {
+      // Also try to cache the offline route specifically
+      return caches.open(CACHE_NAME).then((cache) => {
+        return cache.add('/offline').catch(err => {
+          console.log('[ServiceWorker] Could not cache /offline route, will use fallback:', err);
+        });
+      });
     })
   );
   self.skipWaiting();
@@ -88,9 +96,93 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Handle navigation requests specially when offline
+  if (request.mode === 'navigate' || (request.headers.get('accept') && request.headers.get('accept').includes('text/html'))) {
+    event.respondWith(handleNavigationRequest(request));
+    return;
+  }
+
   // Default: network first with cache fallback
   event.respondWith(handleDefaultRequest(request));
 });
+
+/**
+ * Handle navigation requests - special handling for offline mode
+ */
+async function handleNavigationRequest(request) {
+  try {
+    // Try network first
+    const networkResponse = await fetch(request);
+    return networkResponse;
+  } catch (error) {
+    console.error('[ServiceWorker] Navigation request failed, serving offline page:', error);
+    
+    // When offline, serve the offline page for all navigation requests
+    const cache = await caches.open(CACHE_NAME);
+    
+    // Try to serve the React offline page first
+    const offlinePage = await cache.match('/offline');
+    if (offlinePage) {
+      console.log('[ServiceWorker] Serving cached /offline page');
+      return offlinePage;
+    }
+    
+    // Fallback to offline.html
+    const fallbackOffline = await cache.match('/offline.html');
+    if (fallbackOffline) {
+      console.log('[ServiceWorker] Serving cached offline.html');
+      return fallbackOffline;
+    }
+    
+    // Last resort: create a minimal offline response
+    return new Response(`
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Offline - MuzikaX</title>
+        <style>
+          body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 20px;
+          }
+          .container { text-align: center; max-width: 500px; }
+          h1 { font-size: 2rem; margin-bottom: 15px; color: #FF4D67; }
+          p { font-size: 1.1rem; line-height: 1.6; color: #a0a0a0; margin-bottom: 30px; }
+          button { 
+            padding: 15px 40px;
+            background: linear-gradient(90deg, #FF4D67, #FF6B8A);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <h1>You're Offline</h1>
+          <p>Connect to the internet to access all features.</p>
+          <button onclick="window.location.reload()">Try Again</button>
+        </div>
+      </body>
+      </html>
+    `, {
+      status: 200,
+      headers: { 'Content-Type': 'text/html' }
+    });
+  }
+}
 
 /**
  * Check if request is for audio file
@@ -237,20 +329,6 @@ async function handleDefaultRequest(request) {
       return cachedResponse;
     }
 
-    // Return offline page for navigation requests
-    if (request.mode === 'navigate') {
-      // Redirect to the React offline page instead of static HTML
-      const offlinePage = await cache.match('/offline');
-      if (offlinePage) {
-        return offlinePage;
-      }
-      // Fallback to offline.html if /offline not cached
-      const fallbackOffline = await cache.match('/offline.html');
-      if (fallbackOffline) {
-        return fallbackOffline;
-      }
-    }
-
     // Don't return 503 for API requests, let them fail naturally
     // This prevents false 503 errors when backend is temporarily unavailable
     if (request.url.includes('/api/')) {
@@ -275,7 +353,29 @@ self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'PRECACHE_ROUTES') {
     precacheRoutes(event.data.routes);
   }
+  
+  if (event.data && event.data.type === 'CACHE_OFFLINE_PAGE') {
+    cacheOfflinePage();
+  }
 });
+
+/**
+ * Cache the offline page specifically
+ */
+async function cacheOfflinePage() {
+  const cache = await caches.open(CACHE_NAME);
+  try {
+    // Try to fetch and cache the offline page
+    const response = await fetch('/offline');
+    if (response.ok) {
+      await cache.put('/offline', response.clone());
+      console.log('[ServiceWorker] Offline page cached successfully');
+    }
+  } catch (error) {
+    console.log('[ServiceWorker] Could not cache offline page via fetch, using fallback');
+    // If fetch fails, we'll rely on the install-time caching
+  }
+}
 
 /**
  * Cache audio file from IndexedDB data

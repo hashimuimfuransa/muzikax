@@ -156,6 +156,17 @@ export default function RootLayout({
                 window.addEventListener('load', function() {
                   navigator.serviceWorker.register('/sw-muzikax.js').then(function(registration) {
                     console.log('ServiceWorker registration successful:', registration.scope);
+                    
+                    // Wait for service worker to be ready and then cache the offline page
+                    if (registration.active) {
+                      // Send message to cache offline page
+                      registration.active.postMessage({ type: 'CACHE_OFFLINE_PAGE' });
+                    } else {
+                      // If not active yet, wait for it
+                      navigator.serviceWorker.ready.then(function(reg) {
+                        reg.active.postMessage({ type: 'CACHE_OFFLINE_PAGE' });
+                      });
+                    }
                   }, function(err) {
                     console.log('ServiceWorker registration failed:', err);
                   });
