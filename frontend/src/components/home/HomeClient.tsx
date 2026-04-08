@@ -1047,7 +1047,7 @@ function HomeContent() {
                     <h3 className="text-lg font-bold text-white mb-2">{t('notFollowingAnyArtists' as any)}</h3>
                     <p className="text-sm text-white/50 mb-4">{t('followArtistsToSeeTracks' as any)}</p>
                     <button
-                      onClick={() => router.push("/artists/spotlight")}
+                      onClick={() => router.push("/artists")}
                       className="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-black font-bold text-sm rounded-full transition-all shadow-lg"
                     >
                       {t('discoverArtists')}
@@ -1083,7 +1083,7 @@ function HomeContent() {
                     <h3 className="text-lg font-bold text-white mb-2">{t('notFollowingAnyArtists' as any)}</h3>
                     <p className="text-sm text-white/50 mb-4">{t('followArtistsToSeeTracks' as any)}</p>
                     <button
-                      onClick={() => router.push("/artists/spotlight")}
+                      onClick={() => router.push("/artists")}
                       className="inline-flex px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-black font-bold text-sm rounded-full transition-all shadow-lg"
                     >
                       {t('discoverArtists')}

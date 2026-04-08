@@ -1,5 +1,46 @@
 const User = require('../models/User');
 const { generateAccessToken, generateRefreshToken } = require('../utils/jwt');
+const https = require('https');
+const http = require('http');
+
+// Create custom agents with longer timeout
+const httpsAgent = new https.Agent({
+  keepAlive: true,
+  timeout: 30000, // 30 seconds timeout
+});
+
+const httpAgent = new http.Agent({
+  keepAlive: true,
+  timeout: 30000,
+});
+
+// Helper function to fetch with retry logic
+async function fetchWithRetry(url, options, retries = 3, backoff = 1000) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+      
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal,
+        dispatcher: url.startsWith('https') ? httpsAgent : httpAgent,
+      });
+      
+      clearTimeout(timeoutId);
+      return response;
+    } catch (error) {
+      console.log(`Attempt ${i + 1} failed for ${url}:`, error.message);
+      
+      if (i === retries - 1) {
+        throw error; // Throw on last attempt
+      }
+      
+      // Wait before retrying (exponential backoff)
+      await new Promise(resolve => setTimeout(resolve, backoff * Math.pow(2, i)));
+    }
+  }
+}
 
 // Google login
 const googleLogin = async (req, res) => {
@@ -26,8 +67,9 @@ const googleLogin = async (req, res) => {
                        (process.env.NODE_ENV === 'production' ? 'https://muzikax.com' : 'http://localhost:3000');
     console.log('Using redirect URI:', redirectUri);
 
-    // Exchange authorization code for access token
-    const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+    // Exchange authorization code for access token with retry logic
+    console.log('Exchanging authorization code for tokens...');
+    const tokenResponse = await fetchWithRetry('https://oauth2.googleapis.com/token', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -62,8 +104,9 @@ const googleLogin = async (req, res) => {
     const tokenData = await tokenResponse.json();
     console.log('Token exchange successful:', tokenData);
 
-    // Get user info using the access token
-    const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+    // Get user info using the access token with retry logic
+    console.log('Retrieving user info from Google...');
+    const userInfoResponse = await fetchWithRetry('https://www.googleapis.com/oauth2/v2/userinfo', {
       headers: {
         'Authorization': `Bearer ${tokenData.access_token}`
       }
@@ -118,7 +161,30 @@ const googleLogin = async (req, res) => {
     });
   } catch (error) {
     console.error('Google login error:', error);
-    return res.status(500).json({ message: error.message || 'Google login failed' });
+    
+    // Provide more specific error messages based on error type
+    let errorMessage = 'Google login failed';
+    let statusCode = 500;
+    
+    if (error.name === 'AbortError') {
+      errorMessage = 'Request to Google servers timed out. Please check your internet connection and try again.';
+      statusCode = 504; // Gateway Timeout
+    } else if (error.code === 'UND_ERR_CONNECT_TIMEOUT' || error.code === 'ETIMEDOUT') {
+      errorMessage = 'Cannot connect to Google authentication servers. This may be due to network restrictions or firewall settings.';
+      statusCode = 503; // Service Unavailable
+    } else if (error.code === 'ECONNREFUSED') {
+      errorMessage = 'Connection refused. Please check your network configuration.';
+      statusCode = 503;
+    } else if (error.message?.includes('fetch failed')) {
+      errorMessage = 'Network error while connecting to Google. Please verify your internet connection.';
+      statusCode = 503;
+    }
+    
+    return res.status(statusCode).json({ 
+      message: errorMessage,
+      error: error.code || error.name || 'unknown_error',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 
