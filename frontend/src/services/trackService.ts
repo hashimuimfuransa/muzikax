@@ -349,6 +349,83 @@ export const fetchTracksByType = async (type: string, limit: number = 10): Promi
   }
 };
 
+export const fetchRecommendations = async (limit: number = 20, personalized: boolean = true): Promise<ITrack[]> => {
+  try {
+    // Try personalized recommendations first if user is authenticated
+    if (personalized) {
+      const accessToken = localStorage.getItem('accessToken');
+      if (accessToken) {
+        try {
+          // Try ML-powered personalized recommendations first
+          const mlResponse = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/api/recommendations/ml-recommendations/personalized?limit=${limit}`,
+            {
+              headers: {
+                'Authorization': `Bearer ${accessToken}`,
+              },
+            }
+          );
+          
+          if (mlResponse.ok) {
+            const data = await mlResponse.json();
+            return data.tracks || data.recommendations || [];
+          }
+          
+          // Fallback to traditional personalized recommendations
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/api/recommendations/personalized?limit=${limit}`,
+            {
+              headers: {
+                'Authorization': `Bearer ${accessToken}`,
+              },
+            }
+          );
+          
+          if (response.ok) {
+            const data = await response.json();
+            return data.tracks || data.recommendations || [];
+          }
+        } catch (err) {
+          console.warn('Personalized recommendations failed, falling back to general:', err);
+        }
+      }
+    }
+    
+    // Fallback to general recommendations
+    try {
+      // Try ML-powered general recommendations first
+      const mlResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/recommendations/ml-recommendations/general?limit=${limit}`
+      );
+      
+      if (mlResponse.ok) {
+        const data = await mlResponse.json();
+        return data.tracks || data.recommendations || [];
+      }
+    } catch (err) {
+      console.warn('ML general recommendations failed, trying traditional:', err);
+    }
+    
+    // Fallback to traditional general recommendations
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/recommendations/general?limit=${limit}`
+    );
+    
+    if (!response.ok) {
+      // If all recommendation endpoints fail, fall back to trending tracks
+      console.warn('General recommendations failed, falling back to trending tracks');
+      return fetchTrendingTracks(limit);
+    }
+    
+    const data = await response.json();
+    return data.tracks || data.recommendations || [];
+  } catch (error) {
+    console.error('Error fetching recommendations:', error);
+    // Final fallback to trending tracks
+    return fetchTrendingTracks(limit);
+  }
+};
+
 export const fetchPopularCreators = async (limit: number = 10): Promise<any[]> => {
   try {
     // Use the new public creators endpoint that doesn't require any authentication

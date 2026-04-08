@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ITrack } from '../types';
-import { fetchAllTracks, fetchTrendingTracks, fetchPopularCreators, fetchTracksByType } from '../services/trackService';
+import { fetchAllTracks, fetchTrendingTracks, fetchPopularCreators, fetchTracksByType, fetchRecommendations } from '../services/trackService';
 import { isNetworkError } from '../utils/errorMessages';
 import { useLoadingTimeout } from './useLoadingTimeout';
 
@@ -163,6 +163,40 @@ export const useTracksByType = (type: string, limit: number = 10): UseTracksResu
   useEffect(() => {
     fetchTracks();
   }, [type, limit]);
+
+  return { tracks, loading: isLoading, error, refresh: fetchTracks };
+};
+
+export const useRecommendations = (limit: number = 20, personalized: boolean = true): UseTracksResult => {
+  const [tracks, setTracks] = useState<ITrack[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const { isLoading, setLoading, isTimedOut, dismissTimeout } = useLoadingTimeout({
+    initialLoading: true,
+    timeout: 30000, // 30 seconds timeout
+    onTimeout: () => {
+      console.warn('Loading recommendations timed out after 30 seconds');
+    },
+  });
+
+  const fetchTracks = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await fetchRecommendations(limit, personalized);
+      setTracks(data);
+      if (isTimedOut) dismissTimeout();
+    } catch (err: any) {
+      const errorMessage = err.userMessage || err.message || 'Failed to fetch recommendations';
+      setError(errorMessage);
+      console.error('Error fetching recommendations:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTracks();
+  }, [limit, personalized]);
 
   return { tracks, loading: isLoading, error, refresh: fetchTracks };
 };

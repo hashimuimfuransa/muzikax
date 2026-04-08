@@ -951,6 +951,8 @@ exports.getTracksByType = getTracksByType;
 // Get tracks from creators that the user follows
 const getTracksFromFollowedArtists = async (req, res) => {
     console.log('--- TRACK FOLLOWING ENDPOINT HIT ---');
+    console.log('Request headers:', req.headers);
+    console.log('Request query:', req.query);
     try {
         if (!req.user) {
             console.log('Error: req.user is missing in getTracksFromFollowedArtists');
@@ -961,6 +963,7 @@ const getTracksFromFollowedArtists = async (req, res) => {
         const userId = req.user._id;
         console.log(`User ID from request: ${userId}`);
         const limit = parseInt(req.query.limit) || 20;
+        console.log(`Limit: ${limit}`);
         
         // Use a direct require to be absolutely sure we're getting the model
         const User = require('../models/User');
@@ -968,6 +971,7 @@ const getTracksFromFollowedArtists = async (req, res) => {
         
         const user = await User.findById(userId).select('following').lean();
         console.log('User fetched from DB');
+        console.log('User following:', user?.following);
         
         if (!user || !user.following || !Array.isArray(user.following) || user.following.length === 0) {
             console.log(`User ${userId} has no followed artists or following is not an array`);
@@ -976,6 +980,7 @@ const getTracksFromFollowedArtists = async (req, res) => {
         }
         
         console.log(`Fetching tracks for following: ${user.following.length} artists`);
+        console.log('Following IDs:', user.following);
         
         // Use a direct require to be absolutely sure we're getting the model
         const Track = require('../models/Track');
@@ -990,7 +995,10 @@ const getTracksFromFollowedArtists = async (req, res) => {
         .populate('creatorId', 'name avatar')
         .lean();
         
-        console.log(`Found ${tracks.length} tracks to sign`);
+        console.log(`Found ${tracks.length} tracks from followed artists`);
+        if (tracks.length > 0) {
+            console.log('Sample track:', tracks[0]);
+        }
         
         // Sign track URLs
         const signedTracks = await Promise.all(tracks.map(async (trackObj) => {

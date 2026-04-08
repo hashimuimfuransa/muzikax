@@ -4,7 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../contexts/AuthContext";
 import { useLanguage } from "../../contexts/LanguageContext";
-import { useTrendingTracks, usePopularCreators, useTracksByType } from "../../hooks/useTracks";
+import { useTrendingTracks, usePopularCreators, useTracksByType, useRecommendations } from "../../hooks/useTracks";
+import { useFollowedTracks } from "../../hooks/useFollowedTracks";
 import { useAudioPlayer } from "../../contexts/AudioPlayerContext";
 import { followCreator, unfollowCreator } from "../../services/trackService";
 import AudioPlayerErrorBoundary from "./AudioPlayerErrorBoundary";
@@ -727,8 +728,10 @@ function HomeContent() {
   const { currentTrack, isPlaying, playTrack, setCurrentPlaylist } = useAudioPlayer();
 
   const { tracks: trendingTracksData, loading: trendingLoading } = useTrendingTracks(0);
+  const { tracks: recommendedTracksData, loading: recommendationsLoading } = useRecommendations(20, isAuthenticated);
   const { creators: popularCreatorsData, loading: creatorsLoading } = usePopularCreators(10);
   const { tracks: beatsData, loading: beatsLoading } = useTracksByType('beat', 10);
+  const { tracks: followedTracksData, loading: followedTracksLoading } = useFollowedTracks(20);
 
   const [popularAlbums, setPopularAlbums] = useState<Album[]>([]);
   const [albumsLoading, setAlbumsLoading] = useState(true);
@@ -757,6 +760,27 @@ function HomeContent() {
         : t.creatorId,
   }));
 
+  // Transform recommended tracks
+  const recommendedTracks: Track[] = recommendedTracksData.map((t) => ({
+    id: t._id,
+    title: t.title,
+    artist:
+      typeof t.creatorId === "object" && t.creatorId !== null
+        ? (t.creatorId as any).name
+        : "Unknown Artist",
+    plays: t.plays,
+    likes: t.likes,
+    coverImage: t.coverURL || "",
+    audioUrl: t.audioURL || "",
+    duration: 0,
+    category: t.type,
+    type: (t.type as 'song' | 'beat' | 'mix') || 'song',
+    creatorId:
+      typeof t.creatorId === "object" && t.creatorId !== null
+        ? (t.creatorId as any)._id
+        : t.creatorId,
+  }));
+
   const uniqueTracks: Track[] = Array.from(
     new Map(allTracks.map((t) => [t.id, t])).values()
   );
@@ -765,17 +789,20 @@ function HomeContent() {
     b.id.localeCompare(a.id)
   );
 
-  // Filter tracks from followed artists
-  const followingTracks: Track[] = [];
-  if (user && user.following && user.following.length > 0) {
-    const followingIds = user.following.map((id: any) => 
-      (typeof id === 'object' && id !== null ? (id._id || id.id) : id).toString()
-    );
-    const tracksFromFollowing = allTracks.filter(track => 
-      track.creatorId && followingIds.includes(track.creatorId.toString())
-    );
-    followingTracks.push(...tracksFromFollowing);
-  }
+  // Transform followed tracks from the API
+  const followingTracks: Track[] = followedTracksData.map((t) => ({
+    id: t.id || t._id,
+    title: t.title,
+    artist: t.artist || "Unknown Artist",
+    plays: t.plays || 0,
+    likes: t.likes || 0,
+    coverImage: t.coverImage || t.coverURL || "",
+    audioUrl: t.audioUrl || t.audioURL || "",
+    duration: t.duration || 0,
+    category: t.category || t.type || "song",
+    type: (t.type || t.category || 'song') as 'song' | 'beat' | 'mix',
+    creatorId: t.creatorId,
+  }));
 
   const popularCreators: Creator[] = popularCreatorsData.map((c) => ({
     id: c._id,
@@ -952,10 +979,10 @@ function HomeContent() {
     activeTab === "new"
       ? newTracks
       : activeTab === "popular"
-      ? [...trendingTracks].sort((a, b) => b.plays - a.plays)
+      ? [...allTracks].filter((t) => t.category !== "beat").sort((a, b) => b.plays - a.plays) // Most played tracks
       : activeTab === "following"
       ? followingTracks
-      : trendingTracks;
+      : recommendedTracks.length > 0 ? recommendedTracks : trendingTracks; // Recommendations (fallback to trending)
 
   const featuredTrack = currentTabTracks[0];
   const isHeroActive =
@@ -966,8 +993,15 @@ function HomeContent() {
     playTrack(tracks[index]);
   };
 
+  // Quick Picks dedicated track list and handler - uses tracks from position 10-16 of current tab
+  const quickPicksTracks = currentTabTracks.length > 10 ? currentTabTracks.slice(10, 16) : currentTabTracks.slice(0, Math.min(6, currentTabTracks.length));
+  const handleQuickPickPlay = (index: number) => {
+    setCurrentPlaylist(quickPicksTracks);
+    playTrack(quickPicksTracks[index]);
+  };
+
   /* ── Loading state ── */
-  if (trendingLoading) {
+  if (trendingLoading || (isAuthenticated && recommendationsLoading)) {
     return (
       <div className="flex flex-col gap-6 sm:gap-8 lg:gap-10 p-4 sm:p-6 lg:p-8 xl:p-10 animate-pulse">
         <Skeleton className="h-[220px] sm:h-[280px] lg:h-[340px] w-full rounded-3xl" />
@@ -1037,7 +1071,14 @@ function HomeContent() {
                 />
               {/* Mobile: horizontal scroll */}
               <div className="lg:hidden">
-                {activeTab === "following" && followingTracks.length === 0 ? (
+                {followedTracksLoading ? (
+                  <div className="text-center py-12 px-4">
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-white/5 flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-400"></div>
+                    </div>
+                    <p className="text-sm text-white/50">Loading tracks from artists you follow...</p>
+                  </div>
+                ) : activeTab === "following" && followingTracks.length === 0 ? (
                   <div className="text-center py-12 px-4">
                     <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-white/5 flex items-center justify-center">
                       <svg className="w-8 h-8 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1073,7 +1114,14 @@ function HomeContent() {
               </div>
               {/* Desktop: 4-col grid */}
               <div className="hidden lg:grid grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-3 lg:gap-4">
-                {activeTab === "following" && followingTracks.length === 0 ? (
+                {followedTracksLoading ? (
+                  <div className="col-span-full text-center py-12 px-4">
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-white/5 flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-400"></div>
+                    </div>
+                    <p className="text-sm text-white/50">Loading tracks from artists you follow...</p>
+                  </div>
+                ) : activeTab === "following" && followingTracks.length === 0 ? (
                   <div className="col-span-full text-center py-12 px-4">
                     <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-white/5 flex items-center justify-center">
                       <svg className="w-8 h-8 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1118,6 +1166,7 @@ function HomeContent() {
                 <SectionHeader
                   title={t('featuredPlaylists')}
                   onSeeAll={() => router.push("/playlists")}
+                  t={t}
                 />
               {playlistsLoading ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
@@ -1165,6 +1214,7 @@ function HomeContent() {
                 <SectionHeader
                   title={t('popularAlbums')}
                   onSeeAll={() => router.push("/albums")}
+                  t={t}
                 />
               {albumsLoading ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3 lg:gap-4">
@@ -1203,6 +1253,7 @@ function HomeContent() {
                 <SectionHeader
                   title={t('popularBeats')}
                   onSeeAll={() => router.push("/beats")}
+                  t={t}
                 />
               {beatsLoading ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3 lg:gap-4">
@@ -1272,14 +1323,18 @@ function HomeContent() {
 
             {/* ── Quick Picks (small list) ── */}
             <section className="space-y-3 sm:space-y-4">
-              <SectionHeader title={t('quickPicks' as any)} />
+              <SectionHeader
+                title={t('quickPicks' as any)}
+                onSeeAll={() => router.push("/tracks")}
+                t={t}
+              />
               <div className="space-y-1 sm:space-y-2">
-                {currentTabTracks.slice(10, 16).map((track, i) => (
+                {quickPicksTracks.map((track, i) => (
                   <TrackRow
                     key={track.id}
                     track={track}
                     index={i}
-                    onPlay={() => handlePlay(currentTabTracks, currentTabTracks.indexOf(track))}
+                    onPlay={() => handleQuickPickPlay(i)}
                     isActive={currentTrack?.id === track.id && isPlaying}
                   />
                 ))}

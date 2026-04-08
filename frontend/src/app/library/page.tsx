@@ -7,6 +7,7 @@ import { useLanguage } from '../../contexts/LanguageContext'
 import Link from 'next/link'
 import { FaArrowLeft } from 'react-icons/fa'
 import { getUserProfile, getUserFollowers, getUserFollowing, getCreatorTracks } from '@/services/userService'
+import { getRecentlyPlayed } from '@/services/recentlyPlayedService'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'
 
@@ -165,15 +166,25 @@ export default function LibraryPage() {
           }
         }
 
-        // Fetch recently played from localStorage
+        // Fetch recently played tracks from API
         try {
-          const storedRecentlyPlayed = localStorage.getItem('recentlyPlayed')
-          if (storedRecentlyPlayed) {
-            const parsed = JSON.parse(storedRecentlyPlayed)
-            if (isMounted) setRecentlyPlayed(parsed.slice(0, 10)) // Get last 10
+          const recentlyPlayedData = await getRecentlyPlayed()
+          if (isMounted && recentlyPlayedData && recentlyPlayedData.length > 0) {
+            // Transform API data to match Track interface
+            const transformedTracks = recentlyPlayedData.slice(0, 10).map((track: any) => ({
+              _id: track._id || track.id,
+              title: track.title,
+              artist: typeof track.creatorId === 'object' && track.creatorId !== null ? track.creatorId.name : (track.artist || 'Unknown Artist'),
+              coverURL: track.coverURL || track.coverImage,
+              plays: track.plays || 0,
+              likes: track.likes || 0,
+              type: track.type || 'song'
+            }))
+            setRecentlyPlayed(transformedTracks)
           }
         } catch (err) {
           console.error('Error fetching recently played:', err)
+          // Silently fail - recently played is not critical
         }
 
       } catch (err) {
@@ -224,7 +235,7 @@ export default function LibraryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black pb-20 pt-14 md:pt-0">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black pb-24 md:pb-8 pt-14 md:pt-0">
       {/* Header - Desktop & Mobile */}
       <div className="sticky top-0 z-50 bg-gray-900/95 backdrop-blur-lg border-b border-gray-800">
         <div className="container mx-auto px-4 py-4">
@@ -532,94 +543,63 @@ export default function LibraryPage() {
           </div>
         )}
 
-        {/* Tab Navigation - Mobile Bottom Bar Style */}
-        <div className="fixed bottom-0 left-0 right-0 bg-gray-900/98 backdrop-blur-lg border-t border-gray-800 z-50 md:hidden safe-area-bottom">
-          <div className="grid grid-cols-6 gap-1 px-2 py-2 pb-safe">
+        {/* Tab Navigation - Inline Tabs for Mobile (Not Fixed Bottom) */}
+        <div className="md:hidden sticky top-14 z-40 bg-gray-900/95 backdrop-blur-lg border-b border-gray-800 -mx-4 px-4 mb-6">
+          <div className="flex gap-2 py-3 overflow-x-auto scrollbar-hide">
             <button
               onClick={() => router.push('/library?tab=overview')}
-              className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all min-h-[48px] ${
+              className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-full transition-all text-sm font-medium ${
                 activeTab === 'overview' 
-                  ? 'bg-[#FF4D67]/20 text-[#FF4D67]' 
-                  : 'text-gray-400 hover:text-white'
+                  ? 'bg-[#FF4D67] text-white' 
+                  : 'bg-gray-800 text-gray-400 hover:text-white'
               }`}
             >
-              <svg className="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
               </svg>
-              <span className="text-[10px] font-medium leading-tight">{t('home')}</span>
+              <span>{t('home')}</span>
             </button>
             
             <button
               onClick={() => router.push('/library?tab=tracks')}
-              className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all min-h-[48px] ${
+              className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-full transition-all text-sm font-medium ${
                 activeTab === 'tracks' 
-                  ? 'bg-[#FFCB2B]/20 text-[#FFCB2B]' 
-                  : 'text-gray-400 hover:text-white'
+                  ? 'bg-[#FFCB2B] text-gray-900' 
+                  : 'bg-gray-800 text-gray-400 hover:text-white'
               }`}
             >
-              <svg className="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
               </svg>
-              <span className="text-[10px] font-medium leading-tight">{t('yourTracks')}</span>
+              <span>{t('yourTracks')}</span>
             </button>
-            
-            {profile.role === 'creator' && (
-              <button
-                onClick={() => router.push('/monetization')}
-                className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all min-h-[48px] ${
-                  activeTab === 'analytics' 
-                    ? 'bg-[#10B981]/20 text-[#10B981]' 
-                    : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                <svg className="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span className="text-[10px] font-medium leading-tight">{t('earn')}</span>
-              </button>
-            )}
             
             <button
               onClick={() => router.push('/library?tab=recentlyPlayed')}
-              className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all min-h-[48px] ${
+              className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-full transition-all text-sm font-medium ${
                 activeTab === 'recentlyPlayed' 
-                  ? 'bg-[#8B5CF6]/20 text-[#8B5CF6]' 
-                  : 'text-gray-400 hover:text-white'
+                  ? 'bg-[#8B5CF6] text-white' 
+                  : 'bg-gray-800 text-gray-400 hover:text-white'
               }`}
             >
-              <svg className="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span className="text-[10px] font-medium leading-tight">{t('recentlyPlayed')}</span>
-            </button>
-            
-            <button
-              onClick={() => router.push('/settings')}
-              className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all min-h-[48px] ${
-                activeTab === 'followers' 
-                  ? 'bg-[#EF4444]/20 text-[#EF4444]' 
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              <svg className="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              <span className="text-[10px] font-medium leading-tight">{t('settings')}</span>
+              <span>{t('recentlyPlayed')}</span>
             </button>
             
             <button
               onClick={() => router.push('/library?tab=followers')}
-              className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all min-h-[48px] ${
-                activeTab === 'following' 
-                  ? 'bg-[#6366F1]/20 text-[#6366F1]' 
-                  : 'text-gray-400 hover:text-white'
+              className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-full transition-all text-sm font-medium ${
+                activeTab === 'followers' || activeTab === 'following'
+                  ? 'bg-[#10B981] text-white' 
+                  : 'bg-gray-800 text-gray-400 hover:text-white'
               }`}
             >
-              <svg className="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
-              <span className="text-[10px] font-medium leading-tight">{t('fans')}</span>
+              <span>{t('followers')}</span>
             </button>
           </div>
         </div>
@@ -669,22 +649,10 @@ export default function LibraryPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => router.push('/library?tab=recentlyPlayed')}
+                      onClick={() => router.push('/recently-played')}
                       className="text-[#8B5CF6] text-sm font-bold hover:underline"
                     >
                       View All
-                    </button>
-                    <button
-                      onClick={() => {
-                        localStorage.removeItem('recentlyPlayed')
-                        setRecentlyPlayed([])
-                      }}
-                      className="text-gray-400 hover:text-[#EF4444] transition-colors p-2 hover:bg-red-500/10 rounded-lg"
-                      title="Clear History"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
                     </button>
                   </div>
                 </div>

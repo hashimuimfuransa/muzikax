@@ -85,6 +85,10 @@ var UserSchema = new mongoose_1.Schema({
         type: String,
         default: ''
     },
+    googleId: {
+        type: String,
+        default: null
+    },
     // Two-Factor Authentication fields
     is2FAEnabled: {
         type: Boolean,

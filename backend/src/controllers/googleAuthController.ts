@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import User from '../models/User';
 import { generateAccessToken, generateRefreshToken } from '../utils/jwt';
 import { setOAuthResponseHeaders } from '../utils/oauthUtils';
+import crypto from 'crypto';
 
 // Google login
 export const googleLogin = async (req: Request, res: Response): Promise<void> => {
@@ -71,10 +72,13 @@ export const googleLogin = async (req: Request, res: Response): Promise<void> =>
 
     if (!user) {
       // Create new user if doesn't exist
+      // Generate a random password for Google users (they won't use it)
+      const randomPassword = crypto.randomBytes(16).toString('hex');
+      
       user = await User.create({
         name: name || email?.split('@')[0] || 'User',
         email: email || '',
-        password: '', // No password for Google users
+        password: randomPassword,
         role: 'fan',
         avatar: picture || '',
         googleId: googleId

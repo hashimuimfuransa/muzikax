@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const { generateAccessToken, generateRefreshToken } = require('../utils/jwt');
 const axios = require('axios');
+const crypto = require('crypto');
 
 // Helper function to fetch with retry logic using axios
 async function fetchWithRetry(url, options, retries = 3, backoff = 1000) {
@@ -130,10 +131,13 @@ const googleLogin = async (req, res) => {
 
     if (!user) {
       // Create new user if doesn't exist
+      // Generate a random password for Google users (they won't use it)
+      const randomPassword = crypto.randomBytes(16).toString('hex');
+      
       user = await User.create({
         name: name || email?.split('@')[0] || 'User',
         email: email || '',
-        password: '', // No password for Google users
+        password: randomPassword,
         role: 'fan',
         avatar: picture || '',
         googleId: googleId
