@@ -431,45 +431,47 @@ function LoginContent() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background-deep via-background to-surface-elevated p-4 relative">
-      <div className="absolute top-1/3 left-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -z-10 opacity-70 md:w-48 md:h-48 md:top-1/4 md:left-1/4"></div>
-      <div className="absolute bottom-1/3 right-0 w-32 h-32 bg-primary-hover/10 rounded-full blur-3xl -z-10 opacity-70 md:w-48 md:h-48 md:bottom-1/4 md:right-1/4"></div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background-deep via-background to-surface-elevated p-4 relative overflow-hidden">
+      {/* Enhanced background effects */}
+      <div className="absolute top-1/4 left-0 w-48 h-48 sm:w-64 sm:h-64 bg-primary/15 rounded-full blur-3xl -z-10 opacity-60 animate-pulse-slow"></div>
+      <div className="absolute bottom-1/4 right-0 w-48 h-48 sm:w-64 sm:h-64 bg-primary-hover/15 rounded-full blur-3xl -z-10 opacity-60 animate-pulse-slow"></div>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-[#FFD700]/5 to-[#FF8C00]/5 rounded-full blur-3xl -z-10"></div>
       
-      <div className="w-full max-w-md space-y-4 sm:space-y-5 card-bg rounded-2xl p-5 sm:p-7 border border-border-light shadow-2xl shadow-primary-glow relative z-10">
+      <div className="w-full max-w-md space-y-6 sm:space-y-8 card-bg rounded-3xl p-6 sm:p-10 border border-border-light/50 shadow-2xl shadow-primary-glow/20 relative z-10">
         <div className="text-center animate-fade-in">
-          <div className="flex justify-center mb-2 items-center">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden shadow-xl bg-black">
+          <div className="flex justify-center mb-4 items-center">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden shadow-2xl shadow-glow-gold bg-black ring-2 ring-primary/30">
               <img 
                 src="/muzikax.png" 
                 alt="MuzikaX - Rwanda's Digital Music Ecosystem" 
-                className="w-full h-full object-cover rounded-xl transition-transform duration-300 hover:scale-105"
+                className="w-full h-full object-cover rounded-2xl transition-transform duration-500 hover:scale-110"
               />
             </div>
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-white mb-1">
+          <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-[#FFD700] via-[#FFA500] to-[#FF8C00] bg-clip-text text-transparent mb-2 tracking-tight">
             MuzikaX
           </h1>
-          <h2 className="mt-1 sm:mt-1.5 text-lg sm:text-xl font-bold text-white">
+          <h2 className="text-xl sm:text-2xl font-semibold text-white mb-3">
             {isLogin ? (t('login') || 'Welcome back') : (t('signUp') || 'Create account')}
           </h2>
-          <p className="mt-1 sm:mt-1.5 text-gray-300 text-xs sm:text-sm max-w-md mx-auto">
+          <p className="text-gray-300 text-sm sm:text-base max-w-sm mx-auto leading-relaxed">
             {isLogin 
-              ? 'Sign in to your account to continue' 
+              ? 'Sign in to your account to continue your musical journey' 
               : 'Join our community of Rwandan music creators and fans'}
           </p>
           {!isLogin && (
-            <p className="mt-1 text-gray-400 text-[10px] sm:text-xs max-w-md mx-auto">
+            <p className="mt-2 text-gray-400 text-xs sm:text-sm max-w-sm mx-auto">
               New accounts start as regular users. Upgrade to creator later.
             </p>
           )}
         </div>
 
-        <div className="flex bg-gray-800/50 rounded-lg p-1">
+        <div className="flex bg-gray-800/60 backdrop-blur-sm rounded-xl p-1.5 shadow-inner">
           <button
-            className={`flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition-colors ${
+            className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold transition-all duration-300 ${
               isLogin 
-                ? 'bg-gradient-to-r from-[#FFD700] to-[#FF8C00] text-white' 
-                : 'text-gray-400 hover:text-white'
+                ? 'bg-gradient-to-r from-[#FFD700] to-[#FF8C00] text-white shadow-lg shadow-primary/30' 
+                : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
             }`}
             onClick={() => {
               setIsLogin(true)
@@ -479,10 +481,10 @@ function LoginContent() {
             {t('login') || 'Login'}
           </button>
           <button
-            className={`flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition-colors ${
+            className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold transition-all duration-300 ${
               !isLogin 
-                ? 'bg-gradient-to-r from-[#FFD700] to-[#FF8C00] text-white' 
-                : 'text-gray-400 hover:text-white'
+                ? 'bg-gradient-to-r from-[#FFD700] to-[#FF8C00] text-white shadow-lg shadow-primary/30' 
+                : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
             }`}
             onClick={() => {
               setIsLogin(false)
@@ -495,9 +497,9 @@ function LoginContent() {
 
         {/* Step 1: Email */}
         {step === 1 && (
-          <form className="mt-4 sm:mt-5 space-y-4" onSubmit={handleEmailSubmit}>
+          <form className="space-y-5" onSubmit={handleEmailSubmit}>
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">
+              <label htmlFor="email" className="block text-sm font-semibold text-gray-200 mb-2">
                 Email address
               </label>
               <input
@@ -508,13 +510,13 @@ function LoginContent() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2 sm:px-4 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FFD700] focus:border-transparent transition-all text-sm sm:text-base"
+                className="w-full px-4 py-3.5 bg-gray-800/60 backdrop-blur-sm border border-gray-700/70 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FFD700] focus:border-transparent transition-all duration-300 text-base shadow-sm hover:border-gray-600"
                 placeholder="you@example.com"
               />
             </div>
     
             {error && (
-              <div className="text-red-500 text-xs py-1">
+              <div className="text-red-400 text-sm py-2 px-3 bg-red-500/10 rounded-lg border border-red-500/20">
                 {error}
               </div>
             )}
@@ -523,11 +525,11 @@ function LoginContent() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-2 sm:py-2.5 px-4 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FFD700] focus:ring-offset-gray-900 text-sm sm:text-base flex items-center justify-center disabled:opacity-70"
+                className="w-full py-3.5 px-6 bg-gradient-to-r from-[#FFD700] via-[#FFA500] to-[#FF8C00] rounded-xl text-white font-semibold hover:opacity-95 hover:shadow-lg hover:shadow-primary/40 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FFD700] focus:ring-offset-gray-900 text-base flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed transform hover:-translate-y-0.5 active:translate-y-0"
               >
                 {isLoading ? (
                   <>
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
@@ -541,21 +543,19 @@ function LoginContent() {
 
         {/* Step 2: Password (Login) */}
         {step === 2 && isLogin && !requires2FA && (
-          <form className="mt-6 sm:mt-8 space-y-6" onSubmit={handleLoginSubmit}>
+          <form className="space-y-6" onSubmit={handleLoginSubmit}>
             <div>
-              <div className="flex items-center justify-between mb-1">
-                <label htmlFor="password" className="block text-sm font-medium text-gray-300">
+              <div className="flex items-center justify-between mb-2">
+                <label htmlFor="password" className="block text-sm font-semibold text-gray-200">
                   Password
                 </label>
-                <div className="text-sm">
-                  <button
-                    type="button"
-                    onClick={() => setShowForgotPassword(true)}
-                    className="font-medium text-[#FFD700] hover:text-[#FF8C00] transition-colors"
-                  >
-                    Forgot password?
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowForgotPassword(true)}
+                  className="text-sm font-medium text-[#FFD700] hover:text-[#FF8C00] transition-colors duration-300"
+                >
+                  Forgot password?
+                </button>
               </div>
               <div className="relative">
                 <input
@@ -566,13 +566,13 @@ function LoginContent() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FFD700] focus:border-transparent transition-all text-sm sm:text-base pr-10"
+                  className="w-full px-4 py-3.5 bg-gray-800/60 backdrop-blur-sm border border-gray-700/70 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FFD700] focus:border-transparent transition-all duration-300 text-base pr-12 shadow-sm hover:border-gray-600"
                   placeholder="••••••••"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-300"
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-300 transition-colors"
                 >
                   {showPassword ? (
                     <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -587,12 +587,12 @@ function LoginContent() {
                 </button>
               </div>
               {password && password.length < 6 && (
-                <p className="mt-1 text-xs text-red-400">Password must be at least 6 characters</p>
+                <p className="mt-2 text-sm text-red-400">Password must be at least 6 characters</p>
               )}
             </div>
     
             {error && (
-              <div className="text-red-500 text-sm py-2">
+              <div className="text-red-400 text-sm py-2 px-3 bg-red-500/10 rounded-lg border border-red-500/20">
                 {error}
               </div>
             )}
@@ -601,11 +601,11 @@ function LoginContent() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-2.5 sm:py-3 px-4 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FFD700] focus:ring-offset-gray-900 text-sm sm:text-base flex items-center justify-center disabled:opacity-70"
+                className="w-full py-3.5 px-6 gradient-primary rounded-xl text-white font-semibold hover:opacity-95 hover:shadow-lg hover:shadow-primary/40 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FFD700] focus:ring-offset-gray-900 text-base flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed transform hover:-translate-y-0.5 active:translate-y-0"
               >
                 {isLoading ? (
                   <>
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
@@ -715,9 +715,9 @@ function LoginContent() {
 
         {/* Step 3: Name and Password (Signup) */}
         {step === 3 && !isLogin && (
-          <form className="mt-6 sm:mt-8 space-y-6" onSubmit={handleSignupSubmit}>
+          <form className="space-y-6" onSubmit={handleSignupSubmit}>
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-1">
+              <label htmlFor="name" className="block text-sm font-semibold text-gray-200 mb-2">
                 Full name
               </label>
               <input
@@ -728,13 +728,13 @@ function LoginContent() {
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FFD700] focus:border-transparent transition-all text-sm sm:text-base"
+                className="w-full px-4 py-3.5 bg-gray-800/60 backdrop-blur-sm border border-gray-700/70 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FFD700] focus:border-transparent transition-all duration-300 text-base shadow-sm hover:border-gray-600"
                 placeholder="John Doe"
               />
             </div>
 
             <div>
-              <label htmlFor="signup-password" className="block text-sm font-medium text-gray-300 mb-1">
+              <label htmlFor="signup-password" className="block text-sm font-semibold text-gray-200 mb-2">
                 Password
               </label>
               <div className="relative">
@@ -746,13 +746,13 @@ function LoginContent() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FFD700] focus:border-transparent transition-all text-sm sm:text-base pr-10"
+                  className="w-full px-4 py-3.5 bg-gray-800/60 backdrop-blur-sm border border-gray-700/70 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FFD700] focus:border-transparent transition-all duration-300 text-base pr-12 shadow-sm hover:border-gray-600"
                   placeholder="••••••••"
                 />
                 <button
                   type="button"
                   onClick={() => setShowSignupPassword(!showSignupPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-300"
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-300 transition-colors"
                 >
                   {showSignupPassword ? (
                     <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -766,58 +766,58 @@ function LoginContent() {
                   )}
                 </button>
               </div>
-              <div className="mt-2 space-y-1">
-                <p className="text-xs text-gray-500">Password requirements:</p>
-                <ul className="text-xs space-y-1">
-                  <li className={password.length >= 8 ? "text-green-400" : "text-gray-500"}>
-                    • At least 8 characters
+              <div className="mt-3 space-y-2 bg-gray-800/40 rounded-lg p-3">
+                <p className="text-xs font-medium text-gray-400">Password requirements:</p>
+                <ul className="text-xs space-y-1.5">
+                  <li className={password.length >= 8 ? "text-green-400 font-medium" : "text-gray-500"}>
+                    ✓ At least 8 characters
                   </li>
-                  <li className={/[a-zA-Z]/.test(password) ? "text-green-400" : "text-gray-500"}>
-                    • Contains letters
+                  <li className={/[a-zA-Z]/.test(password) ? "text-green-400 font-medium" : "text-gray-500"}>
+                    ✓ Contains letters
                   </li>
-                  <li className={/[0-9]/.test(password) ? "text-green-400" : "text-gray-500"}>
-                    • Contains numbers
+                  <li className={/[0-9]/.test(password) ? "text-green-400 font-medium" : "text-gray-500"}>
+                    ✓ Contains numbers
                   </li>
-                  <li className={/[!@#$%^&*(),.?":{}|<>]/.test(password) ? "text-green-400" : "text-gray-500"}>
-                    • Contains special characters
+                  <li className={/[!@#$%^&*(),.?":{}|<>]/.test(password) ? "text-green-400 font-medium" : "text-gray-500"}>
+                    ✓ Contains special characters
                   </li>
                 </ul>
               </div>
             </div>
     
             {error && (
-              <div className="text-red-500 text-sm py-2">
+              <div className="text-red-400 text-sm py-2 px-3 bg-red-500/10 rounded-lg border border-red-500/20">
                 {error}
               </div>
             )}
 
             {/* Terms and Privacy Checkbox */}
-            <div className="flex items-start">
-              <div className="flex items-center h-5">
+            <div className="flex items-start space-x-3">
+              <div className="flex items-center h-5 mt-0.5">
                 <input
                   id="terms"
                   name="terms"
                   type="checkbox"
                   checked={agreeToTerms}
                   onChange={(e) => setAgreeToTerms(e.target.checked)}
-                  className="h-4 w-4 text-[#FFD700] focus:ring-[#FFD700] border-gray-600 rounded bg-gray-700"
+                  className="h-4 w-4 text-[#FFD700] focus:ring-[#FFD700] border-gray-600 rounded bg-gray-700 cursor-pointer"
                 />
               </div>
-              <div className="ml-3 text-sm">
-                <label htmlFor="terms" className="text-gray-300">
+              <div className="text-sm">
+                <label htmlFor="terms" className="text-gray-300 cursor-pointer">
                   I agree to the{' '}
-                  <Link href="/terms" className="text-[#FFD700] hover:text-[#FF8C00]">
+                  <Link href="/terms" className="text-[#FFD700] hover:text-[#FF8C00] font-medium transition-colors">
                     Terms of Service
                   </Link>
                   {' '}and{' '}
-                  <Link href="/privacy" className="text-[#FFD700] hover:text-[#FF8C00]">
+                  <Link href="/privacy" className="text-[#FFD700] hover:text-[#FF8C00] font-medium transition-colors">
                     Privacy Policy
                   </Link>
                 </label>
               </div>
             </div>
             
-            <div className="text-sm text-gray-400">
+            <div className="text-sm text-gray-400 bg-gray-800/40 rounded-lg p-3">
               By signing up, you'll be registered as a regular user. You can upgrade to a creator account when you're ready to upload music.
             </div>
 
@@ -825,11 +825,11 @@ function LoginContent() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-2.5 sm:py-3 px-4 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FFD700] focus:ring-offset-gray-900 text-sm sm:text-base flex items-center justify-center disabled:opacity-70"
+                className="w-full py-3.5 px-6 gradient-primary rounded-xl text-white font-semibold hover:opacity-95 hover:shadow-lg hover:shadow-primary/40 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FFD700] focus:ring-offset-gray-900 text-base flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed transform hover:-translate-y-0.5 active:translate-y-0"
               >
                 {isLoading ? (
                   <>
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
@@ -841,25 +841,25 @@ function LoginContent() {
           </form>
         )}
 
-        <div className="mt-4 sm:mt-6">
+        <div className="mt-2">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-700"></div>
+              <div className="w-full border-t border-gray-700/60"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-gray-900 text-gray-400">
+              <span className="px-3 bg-gradient-to-b from-transparent via-[#0B0F14] to-transparent text-gray-400 font-medium">
                 Or continue with
               </span>
             </div>
           </div>
 
-          <div className="mt-4 sm:mt-6">
+          <div className="mt-5">
             <button 
               onClick={() => googleLogin()}
               disabled={isLoading}
-              className="w-full inline-flex justify-center py-2 px-4 rounded-lg bg-gray-800/50 text-gray-300 hover:text-white transition-colors border border-gray-700 items-center"
+              className="w-full inline-flex justify-center py-3 px-4 rounded-xl bg-gray-800/60 backdrop-blur-sm text-gray-300 hover:text-white hover:bg-gray-700/70 transition-all duration-300 border border-gray-700/60 items-center font-medium shadow-sm hover:shadow-md disabled:opacity-50"
             >
-              <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <svg className="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"></path>
               </svg>
               Continue with Google
@@ -867,7 +867,7 @@ function LoginContent() {
           </div>
         </div>
 
-        <div className="text-center mt-4 sm:mt-6">
+        <div className="text-center mt-2">
           <p className="text-sm text-gray-400">
             {isLogin ? "Don't have an account? " : "Already have an account? "}
             <button
@@ -875,7 +875,7 @@ function LoginContent() {
                 setIsLogin(!isLogin)
                 setStep(1)
               }}
-              className="font-medium text-[#FFD700] hover:text-[#FF8C00] transition-colors"
+              className="font-semibold text-[#FFD700] hover:text-[#FF8C00] transition-colors duration-300"
             >
               {isLogin ? 'Sign up' : 'Sign in'}
             </button>
@@ -885,16 +885,16 @@ function LoginContent() {
 
       {/* Forgot Password Modal */}
       {showForgotPassword && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
           <div 
-            className="bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl w-full max-w-md transform transition-all duration-200 animate-in fade-in zoom-in-95 overflow-auto"
+            className="bg-gradient-to-b from-gray-900/95 to-gray-900/98 backdrop-blur-xl border border-gray-700/50 rounded-3xl shadow-2xl w-full max-w-md transform transition-all duration-300 animate-in fade-in zoom-in-95 overflow-auto"
             onClick={(e) => e.stopPropagation()}
             role="dialog"
             aria-modal="true"
           >
             {/* Header */}
-            <div className="px-6 py-4 border-b border-gray-800/50 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-white">Reset Password</h2>
+            <div className="px-6 sm:px-8 py-5 border-b border-gray-800/50 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-white">Reset Password</h2>
               <button
                 onClick={() => {
                   setShowForgotPassword(false)
@@ -902,7 +902,7 @@ function LoginContent() {
                   setResetEmail('')
                   setResetError('')
                 }}
-                className="p-1.5 rounded-full text-gray-400 hover:bg-gray-800 transition-colors"
+                className="p-2 rounded-full text-gray-400 hover:bg-gray-800 hover:text-white transition-all duration-300"
                 aria-label="Close"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -912,16 +912,16 @@ function LoginContent() {
             </div>
 
             {/* Content */}
-            <div className="p-6">
+            <div className="px-6 sm:px-8 py-6">
               {!resetSent ? (
                 <>
-                  <p className="text-sm text-gray-300 mb-4">
+                  <p className="text-sm text-gray-300 mb-5 leading-relaxed">
                     Enter your email address and we'll send you a link to reset your password.
                   </p>
                   
-                  <form onSubmit={handleForgotPasswordSubmit} className="space-y-4">
+                  <form onSubmit={handleForgotPasswordSubmit} className="space-y-5">
                     <div>
-                      <label htmlFor="resetEmail" className="block text-sm font-medium text-gray-300 mb-2">
+                      <label htmlFor="resetEmail" className="block text-sm font-semibold text-gray-200 mb-2">
                         Email Address
                       </label>
                       <input
@@ -931,13 +931,13 @@ function LoginContent() {
                         required
                         value={resetEmail}
                         onChange={(e) => setResetEmail(e.target.value)}
-                        className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FFD700] focus:border-transparent transition-all text-sm"
+                        className="w-full px-4 py-3.5 bg-gray-800/60 backdrop-blur-sm border border-gray-700/70 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FFD700] focus:border-transparent transition-all duration-300 text-base shadow-sm hover:border-gray-600"
                         placeholder="you@example.com"
                       />
                     </div>
 
                     {resetError && (
-                      <div className="text-red-500 text-xs py-1">
+                      <div className="text-red-400 text-sm py-2 px-3 bg-red-500/10 rounded-lg border border-red-500/20">
                         {resetError}
                       </div>
                     )}
@@ -945,11 +945,11 @@ function LoginContent() {
                     <button
                       type="submit"
                       disabled={isLoading || !resetEmail}
-                      className="w-full py-3 px-4 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FFD700] focus:ring-offset-gray-900 text-sm flex items-center justify-center disabled:opacity-70"
+                      className="w-full py-3.5 px-6 gradient-primary rounded-xl text-white font-semibold hover:opacity-95 hover:shadow-lg hover:shadow-primary/40 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FFD700] focus:ring-offset-gray-900 text-base flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed transform hover:-translate-y-0.5 active:translate-y-0"
                     >
                       {isLoading ? (
                         <>
-                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                           </svg>
@@ -960,14 +960,14 @@ function LoginContent() {
                   </form>
                 </>
               ) : (
-                <div className="text-center py-4">
-                  <div className="w-16 h-16 bg-gradient-to-r from-[#FFD700] to-[#FF8C00] rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                <div className="text-center py-6">
+                  <div className="w-20 h-20 bg-gradient-to-r from-[#FFD700] to-[#FF8C00] rounded-full flex items-center justify-center mx-auto mb-5 shadow-lg shadow-primary/30">
+                    <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-bold text-white mb-2">Email Sent!</h3>
-                  <p className="text-sm text-gray-300 mb-4">
+                  <h3 className="text-2xl font-bold text-white mb-3">Email Sent!</h3>
+                  <p className="text-sm text-gray-300 mb-5 leading-relaxed">
                     Check your inbox for password reset instructions.
                   </p>
                   <button
@@ -976,7 +976,7 @@ function LoginContent() {
                       setResetSent(false)
                       setResetEmail('')
                     }}
-                    className="w-full py-2.5 px-4 bg-gray-800 hover:bg-gray-700 text-white rounded-lg font-medium transition-all text-sm"
+                    className="w-full py-3.5 px-6 bg-gray-800/80 hover:bg-gray-700/80 backdrop-blur-sm text-white rounded-xl font-semibold transition-all duration-300 text-base shadow-sm hover:shadow-md"
                   >
                     Back to Login
                   </button>
@@ -989,23 +989,23 @@ function LoginContent() {
 
       {/* 2FA Verification Modal */}
       {requires2FA && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
           <div 
-            className="bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl w-full max-w-md transform transition-all duration-200 animate-in fade-in zoom-in-95 overflow-auto"
+            className="bg-gradient-to-b from-gray-900/95 to-gray-900/98 backdrop-blur-xl border border-gray-700/50 rounded-3xl shadow-2xl w-full max-w-md transform transition-all duration-300 animate-in fade-in zoom-in-95 overflow-auto"
             onClick={(e) => e.stopPropagation()}
             role="dialog"
             aria-modal="true"
           >
             {/* Header */}
-            <div className="px-6 py-4 border-b border-gray-800/50 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-white">Two-Factor Authentication</h2>
+            <div className="px-6 sm:px-8 py-5 border-b border-gray-800/50 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-white">Two-Factor Authentication</h2>
               <button
                 onClick={() => {
                   setRequires2FA(false)
                   setOtp('')
                   setOtpError('')
                 }}
-                className="p-1.5 rounded-full text-gray-400 hover:bg-gray-800 transition-colors"
+                className="p-2 rounded-full text-gray-400 hover:bg-gray-800 hover:text-white transition-all duration-300"
                 aria-label="Close"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1015,10 +1015,10 @@ function LoginContent() {
             </div>
 
             {/* Content */}
-            <div className="p-6">
+            <div className="px-6 sm:px-8 py-6">
               <div className="text-center mb-6">
-                <div className="w-16 h-16 bg-gradient-to-r from-[#FFD700] to-[#FF8C00] rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-20 h-20 bg-gradient-to-r from-[#FFD700] to-[#FF8C00] rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary/30">
+                  <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                   </svg>
                 </div>
@@ -1028,14 +1028,14 @@ function LoginContent() {
                 <p className="text-base font-semibold text-white">
                   {email}
                 </p>
-                <p className="text-xs text-gray-500 mt-2">
+                <p className="text-xs text-gray-500 mt-3">
                   Check your inbox and spam folder. Code expires in 10 minutes.
                 </p>
               </div>
 
-              <form onSubmit={handleOTPVerify} className="space-y-4">
+              <form onSubmit={handleOTPVerify} className="space-y-5">
                 <div>
-                  <label htmlFor="otp-modal" className="block text-sm font-medium text-gray-300 mb-2 text-center">
+                  <label htmlFor="otp-modal" className="block text-sm font-semibold text-gray-200 mb-3 text-center">
                     Enter Verification Code
                   </label>
                   <input
@@ -1048,12 +1048,12 @@ function LoginContent() {
                     required
                     value={otp}
                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                    className="w-full px-4 py-3 bg-gray-800/50 border-2 border-gray-700 rounded-lg text-white text-center text-2xl tracking-widest focus:outline-none focus:ring-2 focus:ring-[#FFD700] focus:border-transparent transition-all"
+                    className="w-full px-4 py-4 bg-gray-800/60 backdrop-blur-sm border-2 border-gray-700/70 rounded-xl text-white text-center text-3xl tracking-[0.3em] focus:outline-none focus:ring-2 focus:ring-[#FFD700] focus:border-transparent transition-all duration-300 font-mono shadow-sm hover:border-gray-600"
                     placeholder="000000"
                     autoComplete="off"
                   />
                   {otpError && (
-                    <p className="text-red-500 text-xs mt-2 text-center">
+                    <p className="text-red-400 text-sm mt-3 text-center py-2 px-3 bg-red-500/10 rounded-lg border border-red-500/20">
                       {otpError}
                     </p>
                   )}
@@ -1062,11 +1062,11 @@ function LoginContent() {
                 <button
                   type="submit"
                   disabled={isLoading || otp.length !== 6}
-                  className="w-full py-3 px-4 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FFD700] focus:ring-offset-gray-900 text-sm flex items-center justify-center disabled:opacity-70"
+                  className="w-full py-3.5 px-6 gradient-primary rounded-xl text-white font-semibold hover:opacity-95 hover:shadow-lg hover:shadow-primary/40 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FFD700] focus:ring-offset-gray-900 text-base flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed transform hover:-translate-y-0.5 active:translate-y-0"
                 >
                   {isLoading ? (
                     <>
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
@@ -1077,11 +1077,11 @@ function LoginContent() {
               </form>
 
               {/* Resend OTP */}
-              <div className="mt-4 text-center">
+              <div className="mt-5 text-center">
                 <button
                   onClick={handleResendOTP}
                   disabled={isLoading}
-                  className="text-sm text-[#FFD700] hover:text-[#FFD700]/80 transition-colors font-medium disabled:opacity-50"
+                  className="text-sm text-[#FFD700] hover:text-[#FF8C00] transition-colors duration-300 font-semibold disabled:opacity-50"
                 >
                   Didn't receive the code? Resend
                 </button>

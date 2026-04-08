@@ -34,7 +34,8 @@ export default function Footer() {
     { 
       title: 'Support', 
       links: [
-        { name: t('helpCenter'), href: '/faq' },
+        { name: t('helpCenter'), href: '/help' },
+        { name: 'FAQ', href: '/faq' },
         { name: t('contactUs'), href: '/contact' },
         { name: t('termsOfUse'), href: '/terms' },
         { name: t('privacyPolicy'), href: '/privacy' },

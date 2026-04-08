@@ -1,39 +1,38 @@
 const User = require('../models/User');
 const { generateAccessToken, generateRefreshToken } = require('../utils/jwt');
-const https = require('https');
-const http = require('http');
+const axios = require('axios');
 
-// Create custom agents with longer timeout
-const httpsAgent = new https.Agent({
-  keepAlive: true,
-  timeout: 30000, // 30 seconds timeout
-});
-
-const httpAgent = new http.Agent({
-  keepAlive: true,
-  timeout: 30000,
-});
-
-// Helper function to fetch with retry logic
+// Helper function to fetch with retry logic using axios
 async function fetchWithRetry(url, options, retries = 3, backoff = 1000) {
   for (let i = 0; i < retries; i++) {
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
-      
-      const response = await fetch(url, {
-        ...options,
-        signal: controller.signal,
-        dispatcher: url.startsWith('https') ? httpsAgent : httpAgent,
+      const response = await axios({
+        url,
+        method: options.method || 'GET',
+        headers: options.headers,
+        data: options.body,
+        timeout: 30000, // 30 seconds timeout
       });
-      
-      clearTimeout(timeoutId);
-      return response;
+      return {
+        ok: true,
+        status: response.status,
+        json: async () => response.data,
+        text: async () => typeof response.data === 'string' ? response.data : JSON.stringify(response.data),
+      };
     } catch (error) {
       console.log(`Attempt ${i + 1} failed for ${url}:`, error.message);
       
       if (i === retries - 1) {
-        throw error; // Throw on last attempt
+        // Return error response object to maintain compatibility
+        if (error.response) {
+          return {
+            ok: false,
+            status: error.response.status,
+            json: async () => error.response.data,
+            text: async () => typeof error.response.data === 'string' ? error.response.data : JSON.stringify(error.response.data),
+          };
+        }
+        throw error; // Throw on last attempt if no response
       }
       
       // Wait before retrying (exponential backoff)
@@ -69,18 +68,21 @@ const googleLogin = async (req, res) => {
 
     // Exchange authorization code for access token with retry logic
     console.log('Exchanging authorization code for tokens...');
+    
+    // Prepare form data for axios
+    const formData = new URLSearchParams();
+    formData.append('client_id', process.env['GOOGLE_CLIENT_ID']);
+    formData.append('client_secret', process.env['GOOGLE_CLIENT_SECRET']);
+    formData.append('code', code);
+    formData.append('grant_type', 'authorization_code');
+    formData.append('redirect_uri', redirectUri);
+    
     const tokenResponse = await fetchWithRetry('https://oauth2.googleapis.com/token', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: new URLSearchParams({
-        client_id: process.env['GOOGLE_CLIENT_ID'],
-        client_secret: process.env['GOOGLE_CLIENT_SECRET'],
-        code: code,
-        grant_type: 'authorization_code',
-        redirect_uri: redirectUri
-      })
+      body: formData.toString()
     });
 
     if (!tokenResponse.ok) {
@@ -166,16 +168,19 @@ const googleLogin = async (req, res) => {
     let errorMessage = 'Google login failed';
     let statusCode = 500;
     
-    if (error.name === 'AbortError') {
+    if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
       errorMessage = 'Request to Google servers timed out. Please check your internet connection and try again.';
       statusCode = 504; // Gateway Timeout
-    } else if (error.code === 'UND_ERR_CONNECT_TIMEOUT' || error.code === 'ETIMEDOUT') {
+    } else if (error.code === 'ETIMEDOUT' || error.code === 'ESOCKETTIMEDOUT') {
       errorMessage = 'Cannot connect to Google authentication servers. This may be due to network restrictions or firewall settings.';
       statusCode = 503; // Service Unavailable
     } else if (error.code === 'ECONNREFUSED') {
       errorMessage = 'Connection refused. Please check your network configuration.';
       statusCode = 503;
-    } else if (error.message?.includes('fetch failed')) {
+    } else if (error.code === 'ENOTFOUND') {
+      errorMessage = 'Cannot resolve Google servers. Please check your DNS settings and internet connection.';
+      statusCode = 503;
+    } else if (error.message?.includes('Network Error')) {
       errorMessage = 'Network error while connecting to Google. Please verify your internet connection.';
       statusCode = 503;
     }

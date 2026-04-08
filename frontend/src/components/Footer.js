@@ -17,10 +17,10 @@ export default function Footer() {
             { name: 'Press', href: '#' },
         ],
         support: [
-            { name: 'Help Center', href: '/faq' },
+            { name: 'Help Center', href: '/help' },
+            { name: 'FAQ', href: '/faq' },
             { name: 'Contact Us', href: '/contact' },
-            { name: 'Community', href: '#' },
-            { name: 'Status', href: '#' },
+            { name: 'Community', href: '/community' },
         ],
         legal: [
             { name: 'Terms of Use', href: '/terms' },
