@@ -280,7 +280,7 @@ Copyright duration varies by jurisdiction but typically lasts for the life of th
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       {/* Header */}
-      <div className="bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] py-16">
+      <div className="bg-gradient-to-r from-[#FF8C00] to-[#FFB020] py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">Artist Resources</h1>
@@ -300,7 +300,7 @@ Copyright duration varies by jurisdiction but typically lasts for the life of th
               onClick={() => setActiveCategory(category)}
               className={`px-6 py-2 rounded-full font-medium transition-all ${
                 activeCategory === category
-                  ? "bg-[#FF4D67] text-white"
+                  ? "bg-[#FF8C00] text-white"
                   : "bg-gray-800 text-gray-300 hover:bg-gray-700"
               }`}
             >
@@ -319,8 +319,8 @@ Copyright duration varies by jurisdiction but typically lasts for the life of th
                   onClick={() => setActiveResource(resource.id)}
                   className={`bg-gray-800/30 backdrop-blur-lg rounded-xl p-6 border cursor-pointer transition-all ${
                     selectedResource.id === resource.id
-                      ? "border-[#FF4D67] bg-gray-700/30"
-                      : "border-gray-700 hover:border-[#FF4D67]/50"
+                      ? "border-[#FF8C00] bg-gray-700/30"
+                      : "border-gray-700 hover:border-[#FF8C00]/50"
                   }`}
                 >
                   <div className="flex items-start justify-between mb-3">
@@ -352,7 +352,7 @@ Copyright duration varies by jurisdiction but typically lasts for the life of th
                   </div>
                   
                   <h3 className={`font-semibold mb-2 ${
-                    selectedResource.id === resource.id ? "text-[#FF4D67]" : "text-white"
+                    selectedResource.id === resource.id ? "text-[#FF8C00]" : "text-white"
                   }`}>
                     {resource.title}
                   </h3>
@@ -394,7 +394,7 @@ Copyright duration varies by jurisdiction but typically lasts for the life of th
                 </span>
               </div>
 
-              <h2 className="text-3xl font-bold mb-6 text-[#FF4D67]">
+              <h2 className="text-3xl font-bold mb-6 text-[#FF8C00]">
                 {selectedResource.title}
               </h2>
 
@@ -414,7 +414,7 @@ Copyright duration varies by jurisdiction but typically lasts for the life of th
                   <a
                     href={selectedResource.downloadUrl}
                     download
-                    className="flex-1 bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] text-white px-6 py-3 rounded-lg font-semibold hover:from-[#ff3a55] hover:to-[#ffb819] transition-all text-center"
+                    className="flex-1 bg-gradient-to-r from-[#FF8C00] to-[#FFB020] text-white px-6 py-3 rounded-lg font-semibold hover:from-[#FF7A00] hover:to-[#FFA010] transition-all text-center"
                   >
                     Download Resource
                   </a>
@@ -472,8 +472,8 @@ Copyright duration varies by jurisdiction but typically lasts for the life of th
         </div>
 
         {/* Resource Categories Overview */}
-        <div className="mt-16 bg-gradient-to-r from-[#FF4D67]/10 to-[#FFCB2B]/10 rounded-xl p-8 border border-[#FF4D67]/20">
-          <h2 className="text-2xl font-bold mb-6 text-center text-[#FF4D67]">Resource Categories</h2>
+        <div className="mt-16 bg-gradient-to-r from-[#FF8C00]/10 to-[#FFB020]/10 rounded-xl p-8 border border-[#FF8C00]/20">
+          <h2 className="text-2xl font-bold mb-6 text-center text-[#FF8C00]">Resource Categories</h2>
           <div className="grid md:grid-cols-4 gap-6">
             <div className="text-center">
               <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">

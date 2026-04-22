@@ -83,14 +83,14 @@ export default function CommentSection({ trackId }: CommentSectionProps) {
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             placeholder="Add a comment..."
-            className="flex-1 px-3 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent"
+            className="flex-1 px-3 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FF8C00] focus:border-transparent"
           />
           <button
             type="submit"
             disabled={!newComment.trim() || !activeTrackId}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
               newComment.trim() && activeTrackId
-                ? 'bg-[#FF4D67] text-white hover:bg-[#FF4D67]/80'
+                ? 'bg-[#FF8C00] text-white hover:bg-[#FF8C00]/80'
                 : 'bg-gray-700 text-gray-400 cursor-not-allowed'
             }`}
           >
@@ -101,7 +101,7 @@ export default function CommentSection({ trackId }: CommentSectionProps) {
         <div className="text-gray-400 text-sm text-center py-2">
           <button 
             onClick={() => window.location.href = '/login'}
-            className="text-[#FF4D67] hover:underline"
+            className="text-[#FF8C00] hover:underline"
           >
             Log in
           </button> to post a comment

@@ -72,7 +72,7 @@ export default function SettingsPage() {
   if (!authChecked) {
     return (
       <div className="flex min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF4D67]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF8C00]"></div>
       </div>
     )
   }
@@ -86,8 +86,8 @@ export default function SettingsPage() {
     <div className="flex min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black">
       
       <main className="flex-1 flex flex-col w-full min-h-screen transition-all duration-300">
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#FF4D67]/10 rounded-full blur-3xl -z-10"></div>
-        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-[#FFCB2B]/10 rounded-full blur-3xl -z-10"></div>
+        <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#FF8C00]/10 rounded-full blur-3xl -z-10"></div>
+        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-[#FFB020]/10 rounded-full blur-3xl -z-10"></div>
         
         <div className="container mx-auto px-4 sm:px-8 py-6 sm:py-8">
           <div className="mb-6 sm:mb-8">
@@ -110,7 +110,7 @@ export default function SettingsPage() {
                     onClick={() => setActiveTab(tab.id)}
                     className={`py-2 px-1 text-sm sm:text-base font-medium border-b-2 ${
                       activeTab === tab.id
-                        ? 'border-[#FF4D67] text-white'
+                        ? 'border-[#FF8C00] text-white'
                         : 'border-transparent text-gray-500 hover:text-gray-300 hover:border-gray-300'
                     }`}
                   >
@@ -133,7 +133,7 @@ export default function SettingsPage() {
                       <input
                         type="text"
                         id="siteName"
-                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF8C00]"
                         value={generalSettings.siteName}
                         onChange={(e) => setGeneralSettings({...generalSettings, siteName: e.target.value})}
                       />
@@ -146,7 +146,7 @@ export default function SettingsPage() {
                       <textarea
                         id="siteDescription"
                         rows={3}
-                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF8C00]"
                         value={generalSettings.siteDescription}
                         onChange={(e) => setGeneralSettings({...generalSettings, siteDescription: e.target.value})}
                       ></textarea>
@@ -159,7 +159,7 @@ export default function SettingsPage() {
                       <input
                         type="email"
                         id="contactEmail"
-                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF8C00]"
                         value={generalSettings.contactEmail}
                         onChange={(e) => setGeneralSettings({...generalSettings, contactEmail: e.target.value})}
                       />
@@ -169,7 +169,7 @@ export default function SettingsPage() {
                       <input
                         type="checkbox"
                         id="maintenanceMode"
-                        className="h-4 w-4 text-[#FF4D67] focus:ring-[#FF4D67] border-gray-700 rounded bg-gray-800"
+                        className="h-4 w-4 text-[#FF8C00] focus:ring-[#FF8C00] border-gray-700 rounded bg-gray-800"
                         checked={generalSettings.maintenanceMode}
                         onChange={(e) => setGeneralSettings({...generalSettings, maintenanceMode: e.target.checked})}
                       />
@@ -181,7 +181,7 @@ export default function SettingsPage() {
                     <div className="pt-4">
                       <button
                         type="submit"
-                        className="px-4 py-2 bg-[#FF4D67] hover:bg-[#FF4D67]/80 text-white rounded-lg transition-colors"
+                        className="px-4 py-2 bg-[#FF8C00] hover:bg-[#FF8C00]/80 text-white rounded-lg transition-colors"
                       >
                         Save General Settings
                       </button>
@@ -198,7 +198,7 @@ export default function SettingsPage() {
                       <input
                         type="checkbox"
                         id="twoFactorAuth"
-                        className="h-4 w-4 text-[#FF4D67] focus:ring-[#FF4D67] border-gray-700 rounded bg-gray-800"
+                        className="h-4 w-4 text-[#FF8C00] focus:ring-[#FF8C00] border-gray-700 rounded bg-gray-800"
                         checked={securitySettings.twoFactorAuth}
                         onChange={(e) => setSecuritySettings({...securitySettings, twoFactorAuth: e.target.checked})}
                       />
@@ -216,7 +216,7 @@ export default function SettingsPage() {
                         id="passwordMinLength"
                         min="6"
                         max="20"
-                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF8C00]"
                         value={securitySettings.passwordMinLength}
                         onChange={(e) => setSecuritySettings({...securitySettings, passwordMinLength: parseInt(e.target.value) || 8})}
                       />
@@ -231,7 +231,7 @@ export default function SettingsPage() {
                         id="sessionTimeout"
                         min="5"
                         max="120"
-                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF8C00]"
                         value={securitySettings.sessionTimeout}
                         onChange={(e) => setSecuritySettings({...securitySettings, sessionTimeout: parseInt(e.target.value) || 30})}
                       />
@@ -240,7 +240,7 @@ export default function SettingsPage() {
                     <div className="pt-4">
                       <button
                         type="submit"
-                        className="px-4 py-2 bg-[#FF4D67] hover:bg-[#FF4D67]/80 text-white rounded-lg transition-colors"
+                        className="px-4 py-2 bg-[#FF8C00] hover:bg-[#FF8C00]/80 text-white rounded-lg transition-colors"
                       >
                         Save Security Settings
                       </button>
@@ -257,7 +257,7 @@ export default function SettingsPage() {
                       <input
                         type="checkbox"
                         id="emailNotifications"
-                        className="h-4 w-4 text-[#FF4D67] focus:ring-[#FF4D67] border-gray-700 rounded bg-gray-800"
+                        className="h-4 w-4 text-[#FF8C00] focus:ring-[#FF8C00] border-gray-700 rounded bg-gray-800"
                         checked={notificationSettings.emailNotifications}
                         onChange={(e) => setNotificationSettings({...notificationSettings, emailNotifications: e.target.checked})}
                       />
@@ -270,7 +270,7 @@ export default function SettingsPage() {
                       <input
                         type="checkbox"
                         id="userReports"
-                        className="h-4 w-4 text-[#FF4D67] focus:ring-[#FF4D67] border-gray-700 rounded bg-gray-800"
+                        className="h-4 w-4 text-[#FF8C00] focus:ring-[#FF8C00] border-gray-700 rounded bg-gray-800"
                         checked={notificationSettings.userReports}
                         onChange={(e) => setNotificationSettings({...notificationSettings, userReports: e.target.checked})}
                       />
@@ -283,7 +283,7 @@ export default function SettingsPage() {
                       <input
                         type="checkbox"
                         id="systemAlerts"
-                        className="h-4 w-4 text-[#FF4D67] focus:ring-[#FF4D67] border-gray-700 rounded bg-gray-800"
+                        className="h-4 w-4 text-[#FF8C00] focus:ring-[#FF8C00] border-gray-700 rounded bg-gray-800"
                         checked={notificationSettings.systemAlerts}
                         onChange={(e) => setNotificationSettings({...notificationSettings, systemAlerts: e.target.checked})}
                       />
@@ -295,7 +295,7 @@ export default function SettingsPage() {
                     <div className="pt-4">
                       <button
                         type="submit"
-                        className="px-4 py-2 bg-[#FF4D67] hover:bg-[#FF4D67]/80 text-white rounded-lg transition-colors"
+                        className="px-4 py-2 bg-[#FF8C00] hover:bg-[#FF8C00]/80 text-white rounded-lg transition-colors"
                       >
                         Save Notification Settings
                       </button>

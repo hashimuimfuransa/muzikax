@@ -301,13 +301,13 @@ const ModernAudioPlayer = () => {
           min-w-[300px] sm:min-w-[340px]
           max-w-[420px]
           rounded-2xl 
-          ${isBeat ? 'bg-gradient-to-br from-gray-900 to-black backdrop-blur-xl border border-[#FF4D67]/30 shadow-2xl shadow-[#FF4D67]/20' : 'bg-black/70 backdrop-blur-xl border border-white/10 shadow-[0_10px_40px_rgba(0,0,0,0.6)]'} 
+          ${isBeat ? 'bg-gradient-to-br from-gray-900 to-black backdrop-blur-xl border border-[#FF8C00]/30 shadow-2xl shadow-[#FF8C00]/20' : 'bg-black/70 backdrop-blur-xl border border-white/10 shadow-[0_10px_40px_rgba(0,0,0,0.6)]'} 
           z-40 animate-[fadeInUp_0.3s_ease-out]
           sm:z-50
         `}>
           {/* Beat-specific styling */}
           {isBeat && (
-            <div className="absolute inset-0 bg-gradient-to-r from-[#FF4D67]/20 via-[#FFCB2B]/20 to-[#8B5CF6]/20 rounded-2xl"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-[#FF8C00]/20 via-[#FFB020]/20 to-[#8B5CF6]/20 rounded-2xl"></div>
           )}
           
           {/* Player Content */}
@@ -326,11 +326,11 @@ const ModernAudioPlayer = () => {
               />
               {/* Beat-specific glow effect */}
               {isBeat && (
-                <div className="absolute -inset-1 bg-[#FF4D67] rounded-lg blur opacity-30 animate-pulse"></div>
+                <div className="absolute -inset-1 bg-[#FF8C00] rounded-lg blur opacity-30 animate-pulse"></div>
               )}
               {/* Regular glow effect for non-beats */}
               {!isBeat && (
-                <div className="absolute -inset-1 bg-gradient-to-r from-pink-500 to-purple-500 blur opacity-30 rounded-xl"></div>
+                <div className="absolute -inset-1 bg-gradient-to-r from-#FF8C00 to-purple-500 blur opacity-30 rounded-xl"></div>
               )}
             </button>
             
@@ -338,9 +338,9 @@ const ModernAudioPlayer = () => {
               {isBeat ? (
                 <>
                   <h4 className="text-white font-bold text-sm truncate">{currentTrack.title}</h4>
-                  <p className="text-[#FFCB2B] text-xs truncate">{currentTrack.artist}</p>
+                  <p className="text-[#FFB020] text-xs truncate">{currentTrack.artist}</p>
                   <div className="flex items-center gap-1 mt-1 flex-wrap">
-                    <span className="text-[#FF4D67] text-xs font-medium">{t('beat')}</span>
+                    <span className="text-[#FF8C00] text-xs font-medium">{t('beat')}</span>
                     {(() => {
                       // Handle missing or null paymentType by defaulting to 'free'
                       const paymentType = currentTrack.paymentType || 'free';
@@ -377,7 +377,7 @@ const ModernAudioPlayer = () => {
                 className="mt-1 h-1.5 sm:h-1 w-full bg-white/10 rounded-full cursor-pointer touch-manipulation"
               >
                 <div
-                  className="h-full bg-gradient-to-r from-[#FF4D67] to-[#8B5CF6] rounded-full transition-all"
+                  className="h-full bg-gradient-to-r from-[#FF8C00] to-[#8B5CF6] rounded-full transition-all"
                   style={{ width: `${(progress / duration) * 100 || 0}%` }}
                 />
               </div>

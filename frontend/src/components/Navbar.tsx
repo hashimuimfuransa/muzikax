@@ -258,14 +258,14 @@ export default function Navbar() {
                 user?.role === 'admin' && !pathname?.startsWith('/admin') ? (
                   <Link
                     href="/admin"
-                    className="flex items-center px-5 py-2.5 bg-[#F59E0B] hover:bg-[#FFB020] text-black rounded-full text-sm font-bold transition-all duration-300 active:scale-95 shadow-lg shadow-[#F59E0B]/30"
+                    className="flex items-center px-5 py-2.5 bg-gradient-to-r from-[#FF8C00] to-[#FFB020] hover:from-[#FF7A00] hover:to-[#FFA010] text-black rounded-full text-sm font-bold transition-all duration-300 active:scale-95 shadow-lg shadow-[#FF8C00]/30"
                   >
                     {t('adminDashboard')}
                   </Link>
                 ) : (
                   <Link
                     href="/library"
-                    className="flex items-center gap-2 px-5 py-2.5 bg-[#F59E0B] hover:bg-[#FFB020] text-black rounded-full text-sm font-bold transition-all duration-300 active:scale-95 shadow-lg shadow-[#F59E0B]/30"
+                    className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#FF8C00] to-[#FFB020] hover:from-[#FF7A00] hover:to-[#FFA010] text-black rounded-full text-sm font-bold transition-all duration-300 active:scale-95 shadow-lg shadow-[#FF8C00]/30"
                   >
                     {user?.avatar ? (
                       <img src={user.avatar} alt={user.name} className="w-5 h-5 rounded-full object-cover" />
@@ -278,7 +278,7 @@ export default function Navbar() {
               ) : (
                 <Link
                   href="/login"
-                  className="flex items-center px-5 py-2.5 bg-[#F59E0B] hover:bg-[#FFB020] text-black rounded-full text-sm font-bold transition-all duration-300 active:scale-95 shadow-lg shadow-[#F59E0B]/30"
+                  className="flex items-center px-5 py-2.5 bg-gradient-to-r from-[#FF8C00] to-[#FFB020] hover:from-[#FF7A00] hover:to-[#FFA010] text-black rounded-full text-sm font-bold transition-all duration-300 active:scale-95 shadow-lg shadow-[#FF8C00]/30"
                 >
                   {t('login')}
                 </Link>

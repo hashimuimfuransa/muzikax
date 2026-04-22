@@ -132,7 +132,7 @@ export default function ReportDetailsModal({
                 <select
                   name="status"
                   defaultValue={report.status}
-                  className="w-full px-3 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+                  className="w-full px-3 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF8C00]"
                 >
                   <option value="pending">Pending</option>
                   <option value="reviewed">Reviewed</option>
@@ -147,7 +147,7 @@ export default function ReportDetailsModal({
                   name="adminNotes"
                   defaultValue={report.adminNotes || ''}
                   rows={3}
-                  className="w-full px-3 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+                  className="w-full px-3 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF8C00]"
                   placeholder="Add notes about this report..."
                 />
               </div>
@@ -162,7 +162,7 @@ export default function ReportDetailsModal({
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[#FF4D67] hover:bg-[#FF4D67]/90 rounded-lg text-white transition-colors"
+                  className="px-4 py-2 bg-[#FF8C00] hover:bg-[#FF8C00]/90 rounded-lg text-white transition-colors"
                 >
                   Update Status
                 </button>

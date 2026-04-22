@@ -107,7 +107,7 @@ export default function NotificationSettingsPage() {
       <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white pt-24 px-4">
         <div className="max-w-3xl mx-auto">
           <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#FF4D67]"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#FF8C00]"></div>
           </div>
         </div>
       </div>
@@ -119,7 +119,7 @@ export default function NotificationSettingsPage() {
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-[#FF4D67] to-[#FF6B6B] bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-[#FF8C00] to-[#FF6B6B] bg-clip-text text-transparent">
             Email Notifications
           </h1>
           <p className="text-gray-400">
@@ -143,8 +143,8 @@ export default function NotificationSettingsPage() {
               </div>
               <button
                 onClick={() => handleToggleChange('newTrackFromFollowing')}
-                className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:ring-offset-2 focus:ring-offset-gray-900 ${
-                  preferences.newTrackFromFollowing ? 'bg-[#FF4D67]' : 'bg-gray-600'
+                className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#FF8C00] focus:ring-offset-2 focus:ring-offset-gray-900 ${
+                  preferences.newTrackFromFollowing ? 'bg-[#FF8C00]' : 'bg-gray-600'
                 }`}
               >
                 <span
@@ -170,8 +170,8 @@ export default function NotificationSettingsPage() {
               </div>
               <button
                 onClick={() => handleToggleChange('newPlaylist')}
-                className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:ring-offset-2 focus:ring-offset-gray-900 ${
-                  preferences.newPlaylist ? 'bg-[#FF4D67]' : 'bg-gray-600'
+                className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#FF8C00] focus:ring-offset-2 focus:ring-offset-gray-900 ${
+                  preferences.newPlaylist ? 'bg-[#FF8C00]' : 'bg-gray-600'
                 }`}
               >
                 <span
@@ -197,8 +197,8 @@ export default function NotificationSettingsPage() {
               </div>
               <button
                 onClick={() => handleToggleChange('trendingOfWeek')}
-                className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:ring-offset-2 focus:ring-offset-gray-900 ${
-                  preferences.trendingOfWeek ? 'bg-[#FF4D67]' : 'bg-gray-600'
+                className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#FF8C00] focus:ring-offset-2 focus:ring-offset-gray-900 ${
+                  preferences.trendingOfWeek ? 'bg-[#FF8C00]' : 'bg-gray-600'
                 }`}
               >
                 <span
@@ -224,8 +224,8 @@ export default function NotificationSettingsPage() {
               </div>
               <button
                 onClick={() => handleToggleChange('recommendedArtists')}
-                className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:ring-offset-2 focus:ring-offset-gray-900 ${
-                  preferences.recommendedArtists ? 'bg-[#FF4D67]' : 'bg-gray-600'
+                className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#FF8C00] focus:ring-offset-2 focus:ring-offset-gray-900 ${
+                  preferences.recommendedArtists ? 'bg-[#FF8C00]' : 'bg-gray-600'
                 }`}
               >
                 <span
@@ -254,8 +254,8 @@ export default function NotificationSettingsPage() {
               </div>
               <button
                 onClick={() => handleToggleChange('accountUpdates')}
-                className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:ring-offset-2 focus:ring-offset-gray-900 ${
-                  preferences.accountUpdates ? 'bg-[#FF4D67]' : 'bg-gray-600'
+                className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#FF8C00] focus:ring-offset-2 focus:ring-offset-gray-900 ${
+                  preferences.accountUpdates ? 'bg-[#FF8C00]' : 'bg-gray-600'
                 }`}
               >
                 <span
@@ -273,7 +273,7 @@ export default function NotificationSettingsPage() {
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className="px-8 py-3 bg-gradient-to-r from-[#FF4D67] to-[#FF6B6B] rounded-lg font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="px-8 py-3 bg-gradient-to-r from-[#FF8C00] to-[#FF6B6B] rounded-lg font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {isSaving ? (
               <>

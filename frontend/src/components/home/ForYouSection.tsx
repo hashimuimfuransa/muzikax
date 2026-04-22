@@ -95,7 +95,7 @@ export default function ForYouSection({ tracks, rawTracks }: ForYouSectionProps)
         </h2>
         <a
           href="/foryou"
-          className="text-[#FF4D67] hover:text-[#FFCB2B] text-xs md:text-sm lg:text-base transition-colors font-semibold hover:underline"
+          className="text-[#FF8C00] hover:text-[#FFB020] text-xs md:text-sm lg:text-base transition-colors font-semibold hover:underline"
         >
           View All →
         </a>
@@ -113,7 +113,7 @@ export default function ForYouSection({ tracks, rawTracks }: ForYouSectionProps)
               {track.coverImage && track.coverImage.trim() !== '' ? (
                 <img src={track.coverImage} alt={track.title} className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center">
+                <div className="w-full h-full bg-gradient-to-br from-[#FF8C00] to-[#FFB020] flex items-center justify-center">
                   <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
                   </svg>
@@ -193,7 +193,7 @@ export default function ForYouSection({ tracks, rawTracks }: ForYouSectionProps)
                 {track.coverImage && track.coverImage.trim() !== '' ? (
                   <img src={track.coverImage} alt={track.title} className="w-full aspect-square object-cover transition-transform duration-500 group-hover:scale-110 scanline-overlay" />
                 ) : (
-                  <div className="w-full aspect-square bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center neon-glow">
+                  <div className="w-full aspect-square bg-gradient-to-br from-[#FF8C00] to-[#FFB020] flex items-center justify-center neon-glow">
                     <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
                     </svg>
@@ -202,7 +202,7 @@ export default function ForYouSection({ tracks, rawTracks }: ForYouSectionProps)
                 <div className="absolute inset-0 bg-gradient-to-t from-[var(--card-bg)] via-[var(--card-bg)]/40 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-center justify-center gap-2 backdrop-blur-sm">
                   <button
                     onClick={() => handlePlayTrack(track.id, track)}
-                    className="w-12 h-12 sm:w-14 sm:h-14 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 fab-spring shadow-2xl hover:shadow-[#FF4D67]/50 pulse-ring"
+                    className="w-12 h-12 sm:w-14 sm:h-14 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 fab-spring shadow-2xl hover:shadow-[#FF8C00]/50 pulse-ring"
                   >
                     {currentTrack?.id === track.id && isPlaying ? (
                       <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 20 20">
@@ -246,14 +246,14 @@ export default function ForYouSection({ tracks, rawTracks }: ForYouSectionProps)
                 
                 <div className="flex justify-between items-center mt-3 pt-2 border-t border-white/10">
                   <div className="flex items-center gap-1.5">
-                    <svg className="w-3 h-3 text-[#FF4D67]" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-3 h-3 text-[#FF8C00]" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
                       <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
                     </svg>
                     <span className="text-gray-400 text-xs font-semibold">{track.plays?.toLocaleString() || '0'}</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <svg className="w-3.5 h-3.5 text-[#FFCB2B]" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-3.5 h-3.5 text-[#FFB020]" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd"></path>
                     </svg>
                     <span className="text-gray-400 text-xs font-semibold">{track.likes || 0}</span>

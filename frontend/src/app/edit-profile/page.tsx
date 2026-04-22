@@ -176,7 +176,7 @@ export default function EditProfile() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#FF4D67]"></div>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#FF8C00]"></div>
           <p className="mt-4 text-gray-400">Loading...</p>
         </div>
       </div>
@@ -191,7 +191,7 @@ export default function EditProfile() {
         <div className="mb-6">
           <button
             onClick={() => router.back()}
-            className="text-gray-400 hover:text-[#FF4D67] text-sm font-bold uppercase tracking-widest inline-flex items-center gap-2 transition-all active:scale-95"
+            className="text-gray-400 hover:text-[#FF8C00] text-sm font-bold uppercase tracking-widest inline-flex items-center gap-2 transition-all active:scale-95"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -240,7 +240,7 @@ export default function EditProfile() {
                   {avatarPreview ? (
                     <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center">
+                    <div className="w-full h-full bg-gradient-to-br from-[#FF8C00] to-[#FFB020] flex items-center justify-center">
                       <span className="text-4xl sm:text-5xl font-black text-white">
                         {formData.name.charAt(0).toUpperCase()}
                       </span>
@@ -292,7 +292,7 @@ export default function EditProfile() {
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[#FF4D67] focus:ring-1 focus:ring-[#FF4D67] transition-all"
+                  className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[#FF8C00] focus:ring-1 focus:ring-[#FF8C00] transition-all"
                   placeholder="Your stage name or display name"
                   required
                 />
@@ -309,7 +309,7 @@ export default function EditProfile() {
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[#FF4D67] focus:ring-1 focus:ring-[#FF4D67] transition-all"
+                  className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[#FF8C00] focus:ring-1 focus:ring-[#FF8C00] transition-all"
                   placeholder="your@email.com"
                   required
                 />
@@ -326,7 +326,7 @@ export default function EditProfile() {
                   value={formData.bio}
                   onChange={handleInputChange}
                   rows={4}
-                  className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[#FF4D67] focus:ring-1 focus:ring-[#FF4D67] transition-all resize-none"
+                  className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[#FF8C00] focus:ring-1 focus:ring-[#FF8C00] transition-all resize-none"
                   placeholder="Tell fans about yourself, your music, and your journey..."
                 />
                 <p className="text-xs text-gray-500 mt-1">{formData.bio.length}/500 characters</p>
@@ -348,7 +348,7 @@ export default function EditProfile() {
                     onClick={() => handleGenreToggle(genre)}
                     className={`px-3 py-1.5 rounded-xl text-sm font-medium transition-all ${
                       formData.genres.includes(genre)
-                        ? 'bg-[#FF4D67] text-white'
+                        ? 'bg-[#FF8C00] text-white'
                         : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                     }`}
                   >
@@ -365,7 +365,7 @@ export default function EditProfile() {
                 value={customGenre}
                 onChange={(e) => setCustomGenre(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddCustomGenre())}
-                className="flex-1 px-4 py-2 bg-gray-900/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[#FF4D67] focus:ring-1 focus:ring-[#FF4D67] transition-all"
+                className="flex-1 px-4 py-2 bg-gray-900/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[#FF8C00] focus:ring-1 focus:ring-[#FF8C00] transition-all"
                 placeholder="Add custom genre..."
               />
               <button
@@ -385,7 +385,7 @@ export default function EditProfile() {
                   {formData.genres.map((genre) => (
                     <span
                       key={genre}
-                      className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#FF4D67]/20 text-[#FF4D67] text-sm rounded-xl border border-[#FF4D67]/30"
+                      className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#FF8C00]/20 text-[#FF8C00] text-sm rounded-xl border border-[#FF8C00]/30"
                     >
                       {genre}
                       <button
@@ -418,7 +418,7 @@ export default function EditProfile() {
                 name="whatsappContact"
                 value={formData.whatsappContact}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[#FF4D67] focus:ring-1 focus:ring-[#FF4D67] transition-all"
+                className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[#FF8C00] focus:ring-1 focus:ring-[#FF8C00] transition-all"
                 placeholder="+1 234 567 8900"
               />
               <p className="text-xs text-gray-500 mt-1">Fans can contact you via WhatsApp for bookings and collaborations</p>
@@ -430,7 +430,7 @@ export default function EditProfile() {
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 bg-[#FF4D67] hover:bg-[#FF4D67]/90 disabled:bg-[#FF4D67]/50 text-white font-bold py-3.5 px-6 rounded-2xl transition-all active:scale-95 shadow-lg shadow-[#FF4D67]/20 flex items-center justify-center gap-2"
+              className="flex-1 bg-[#FF8C00] hover:bg-[#FF8C00]/90 disabled:bg-[#FF8C00]/50 text-white font-bold py-3.5 px-6 rounded-2xl transition-all active:scale-95 shadow-lg shadow-[#FF8C00]/20 flex items-center justify-center gap-2"
             >
               {saving ? (
                 <>

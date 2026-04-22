@@ -292,7 +292,7 @@ export default function HomepageManagement() {
   if (!authChecked || loading) {
     return (
       <div className="flex min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF4D67]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF8C00]"></div>
       </div>
     )
   }
@@ -301,7 +301,7 @@ export default function HomepageManagement() {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black text-white p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B]">
+          <h1 className="text-4xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-[#FF8C00] to-[#FFB020]">
             Homepage Management
           </h1>
           <p className="text-gray-400">Manage hero section slider and homepage content</p>
@@ -330,7 +330,7 @@ export default function HomepageManagement() {
                     type="text"
                     value={newSlide.title}
                     onChange={(e) => setNewSlide({ ...newSlide, title: e.target.value })}
-                    className="w-full px-4 py-2 bg-gray-600 rounded-lg border border-gray-500 focus:border-[#FF4D67] focus:ring-1 focus:ring-[#FF4D67]"
+                    className="w-full px-4 py-2 bg-gray-600 rounded-lg border border-gray-500 focus:border-[#FF8C00] focus:ring-1 focus:ring-[#FF8C00]"
                     placeholder="Enter slide title"
                   />
                 </div>
@@ -340,7 +340,7 @@ export default function HomepageManagement() {
                     type="text"
                     value={newSlide.subtitle}
                     onChange={(e) => setNewSlide({ ...newSlide, subtitle: e.target.value })}
-                    className="w-full px-4 py-2 bg-gray-600 rounded-lg border border-gray-500 focus:border-[#FF4D67] focus:ring-1 focus:ring-[#FF4D67]"
+                    className="w-full px-4 py-2 bg-gray-600 rounded-lg border border-gray-500 focus:border-[#FF8C00] focus:ring-1 focus:ring-[#FF8C00]"
                     placeholder="Enter slide subtitle"
                   />
                 </div>
@@ -350,7 +350,7 @@ export default function HomepageManagement() {
                     type="url"
                     value={newSlide.image}
                     onChange={(e) => setNewSlide({ ...newSlide, image: e.target.value })}
-                    className="w-full px-4 py-2 bg-gray-600 rounded-lg border border-gray-500 focus:border-[#FF4D67] focus:ring-1 focus:ring-[#FF4D67]"
+                    className="w-full px-4 py-2 bg-gray-600 rounded-lg border border-gray-500 focus:border-[#FF8C00] focus:ring-1 focus:ring-[#FF8C00]"
                     placeholder="https://share.google/FILE_ID or Google Drive link"
                   />
                   <p className="text-xs text-gray-400 mt-1">
@@ -363,7 +363,7 @@ export default function HomepageManagement() {
                     type="text"
                     value={newSlide.cta}
                     onChange={(e) => setNewSlide({ ...newSlide, cta: e.target.value })}
-                    className="w-full px-4 py-2 bg-gray-600 rounded-lg border border-gray-500 focus:border-[#FF4D67] focus:ring-1 focus:ring-[#FF4D67]"
+                    className="w-full px-4 py-2 bg-gray-600 rounded-lg border border-gray-500 focus:border-[#FF8C00] focus:ring-1 focus:ring-[#FF8C00]"
                     placeholder="Enter CTA text"
                   />
                 </div>
@@ -372,7 +372,7 @@ export default function HomepageManagement() {
                   <select
                     value={newSlide.type}
                     onChange={(e) => setNewSlide({ ...newSlide, type: e.target.value as any })}
-                    className="w-full px-4 py-2 bg-gray-600 rounded-lg border border-gray-500 focus:border-[#FF4D67] focus:ring-1 focus:ring-[#FF4D67]"
+                    className="w-full px-4 py-2 bg-gray-600 rounded-lg border border-gray-500 focus:border-[#FF8C00] focus:ring-1 focus:ring-[#FF8C00]"
                   >
                     <option value="explore">Explore</option>
                     <option value="upload">Upload</option>
@@ -392,7 +392,7 @@ export default function HomepageManagement() {
                         setNewSlide({ ...newSlide, link: selectedValue });
                       }
                     }}
-                    className="w-full px-4 py-2 bg-gray-600 rounded-lg border border-gray-500 focus:border-[#FF4D67] focus:ring-1 focus:ring-[#FF4D67] mb-2"
+                    className="w-full px-4 py-2 bg-gray-600 rounded-lg border border-gray-500 focus:border-[#FF8C00] focus:ring-1 focus:ring-[#FF8C00] mb-2"
                   >
                     {navigationPresets.map((preset) => (
                       <option key={preset.value} value={preset.value}>
@@ -404,7 +404,7 @@ export default function HomepageManagement() {
                     type="text"
                     value={newSlide.link}
                     onChange={(e) => setNewSlide({ ...newSlide, link: e.target.value })}
-                    className="w-full px-4 py-2 bg-gray-600 rounded-lg border border-gray-500 focus:border-[#FF4D67] focus:ring-1 focus:ring-[#FF4D67]"
+                    className="w-full px-4 py-2 bg-gray-600 rounded-lg border border-gray-500 focus:border-[#FF8C00] focus:ring-1 focus:ring-[#FF8C00]"
                     placeholder="/custom-path"
                   />
                   <p className="text-xs text-gray-400 mt-1">
@@ -445,7 +445,7 @@ export default function HomepageManagement() {
                         <h3 className="font-semibold text-lg">{slide.title}</h3>
                         <p className="text-gray-400 text-sm">{slide.subtitle}</p>
                         <div className="flex gap-2 mt-2 text-xs">
-                          <span className="px-2 py-1 bg-[#FF4D67]/20 text-[#FF4D67] rounded">
+                          <span className="px-2 py-1 bg-[#FF8C00]/20 text-[#FF8C00] rounded">
                             {slide.type}
                           </span>
                           <span className={`px-2 py-1 rounded ${slide.isActive ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'}`}>
@@ -481,7 +481,7 @@ export default function HomepageManagement() {
                           type="text"
                           defaultValue={slide.title}
                           onChange={(e) => handleUpdateSlide(slide.id, { title: e.target.value })}
-                          className="w-full px-4 py-2 bg-gray-600 rounded-lg border border-gray-500 focus:border-[#FF4D67]"
+                          className="w-full px-4 py-2 bg-gray-600 rounded-lg border border-gray-500 focus:border-[#FF8C00]"
                         />
                       </div>
                       <div>
@@ -490,7 +490,7 @@ export default function HomepageManagement() {
                           type="text"
                           defaultValue={slide.subtitle}
                           onChange={(e) => handleUpdateSlide(slide.id, { subtitle: e.target.value })}
-                          className="w-full px-4 py-2 bg-gray-600 rounded-lg border border-gray-500 focus:border-[#FF4D67]"
+                          className="w-full px-4 py-2 bg-gray-600 rounded-lg border border-gray-500 focus:border-[#FF8C00]"
                         />
                       </div>
                       <div>
@@ -499,7 +499,7 @@ export default function HomepageManagement() {
                           type="url"
                           defaultValue={slide.image}
                           onChange={(e) => handleUpdateSlide(slide.id, { image: e.target.value })}
-                          className="w-full px-4 py-2 bg-gray-600 rounded-lg border border-gray-500 focus:border-[#FF4D67]"
+                          className="w-full px-4 py-2 bg-gray-600 rounded-lg border border-gray-500 focus:border-[#FF8C00]"
                         />
                       </div>
                       <div>
@@ -508,7 +508,7 @@ export default function HomepageManagement() {
                           type="text"
                           defaultValue={slide.cta}
                           onChange={(e) => handleUpdateSlide(slide.id, { cta: e.target.value })}
-                          className="w-full px-4 py-2 bg-gray-600 rounded-lg border border-gray-500 focus:border-[#FF4D67]"
+                          className="w-full px-4 py-2 bg-gray-600 rounded-lg border border-gray-500 focus:border-[#FF8C00]"
                         />
                       </div>
                       <div>
@@ -516,7 +516,7 @@ export default function HomepageManagement() {
                         <select
                           defaultValue={slide.type}
                           onChange={(e) => handleUpdateSlide(slide.id, { type: e.target.value as any })}
-                          className="w-full px-4 py-2 bg-gray-600 rounded-lg border border-gray-500 focus:border-[#FF4D67]"
+                          className="w-full px-4 py-2 bg-gray-600 rounded-lg border border-gray-500 focus:border-[#FF8C00]"
                         >
                           <option value="explore">Explore</option>
                           <option value="upload">Upload</option>
@@ -536,7 +536,7 @@ export default function HomepageManagement() {
                               handleUpdateSlide(slide.id, { link: selectedValue });
                             }
                           }}
-                          className="w-full px-4 py-2 bg-gray-600 rounded-lg border border-gray-500 focus:border-[#FF4D67] mb-2"
+                          className="w-full px-4 py-2 bg-gray-600 rounded-lg border border-gray-500 focus:border-[#FF8C00] mb-2"
                         >
                           {navigationPresets.map((preset) => (
                             <option key={preset.value} value={preset.value}>
@@ -548,7 +548,7 @@ export default function HomepageManagement() {
                           type="text"
                           defaultValue={slide.link}
                           onChange={(e) => handleUpdateSlide(slide.id, { link: e.target.value })}
-                          className="w-full px-4 py-2 bg-gray-600 rounded-lg border border-gray-500 focus:border-[#FF4D67]"
+                          className="w-full px-4 py-2 bg-gray-600 rounded-lg border border-gray-500 focus:border-[#FF8C00]"
                           placeholder="/custom-path"
                         />
                         <p className="text-xs text-gray-400 mt-1">
@@ -560,7 +560,7 @@ export default function HomepageManagement() {
                         <select
                           defaultValue={slide.isActive ? 'true' : 'false'}
                           onChange={(e) => handleUpdateSlide(slide.id, { isActive: e.target.value === 'true' })}
-                          className="w-full px-4 py-2 bg-gray-600 rounded-lg border border-gray-500 focus:border-[#FF4D67]"
+                          className="w-full px-4 py-2 bg-gray-600 rounded-lg border border-gray-500 focus:border-[#FF8C00]"
                         >
                           <option value="true">Active</option>
                           <option value="false">Inactive</option>
@@ -591,7 +591,7 @@ export default function HomepageManagement() {
               </div>
               <button
                 onClick={() => handleSectionToggle('showForYou')}
-                className={`w-12 h-6 rounded-full transition-colors ${content.sections.showForYou ? 'bg-[#FF4D67]' : 'bg-gray-600'}`}
+                className={`w-12 h-6 rounded-full transition-colors ${content.sections.showForYou ? 'bg-[#FF8C00]' : 'bg-gray-600'}`}
               >
                 <div className={`w-5 h-5 bg-white rounded-full transform transition-transform ${content.sections.showForYou ? 'translate-x-6' : 'translate-x-1'}`} />
               </button>
@@ -603,7 +603,7 @@ export default function HomepageManagement() {
               </div>
               <button
                 onClick={() => handleSectionToggle('showPopularBeats')}
-                className={`w-12 h-6 rounded-full transition-colors ${content.sections.showPopularBeats ? 'bg-[#FF4D67]' : 'bg-gray-600'}`}
+                className={`w-12 h-6 rounded-full transition-colors ${content.sections.showPopularBeats ? 'bg-[#FF8C00]' : 'bg-gray-600'}`}
               >
                 <div className={`w-5 h-5 bg-white rounded-full transform transition-transform ${content.sections.showPopularBeats ? 'translate-x-6' : 'translate-x-1'}`} />
               </button>
@@ -615,7 +615,7 @@ export default function HomepageManagement() {
               </div>
               <button
                 onClick={() => handleSectionToggle('showRecommendedPlaylists')}
-                className={`w-12 h-6 rounded-full transition-colors ${content.sections.showRecommendedPlaylists ? 'bg-[#FF4D67]' : 'bg-gray-600'}`}
+                className={`w-12 h-6 rounded-full transition-colors ${content.sections.showRecommendedPlaylists ? 'bg-[#FF8C00]' : 'bg-gray-600'}`}
               >
                 <div className={`w-5 h-5 bg-white rounded-full transform transition-transform ${content.sections.showRecommendedPlaylists ? 'translate-x-6' : 'translate-x-1'}`} />
               </button>
@@ -627,7 +627,7 @@ export default function HomepageManagement() {
               </div>
               <button
                 onClick={() => handleSectionToggle('showTrendingArtists')}
-                className={`w-12 h-6 rounded-full transition-colors ${content.sections.showTrendingArtists ? 'bg-[#FF4D67]' : 'bg-gray-600'}`}
+                className={`w-12 h-6 rounded-full transition-colors ${content.sections.showTrendingArtists ? 'bg-[#FF8C00]' : 'bg-gray-600'}`}
               >
                 <div className={`w-5 h-5 bg-white rounded-full transform transition-transform ${content.sections.showTrendingArtists ? 'translate-x-6' : 'translate-x-1'}`} />
               </button>
@@ -645,7 +645,7 @@ export default function HomepageManagement() {
                 type="number"
                 value={content.autoPlayInterval}
                 onChange={(e) => setContent({ ...content, autoPlayInterval: parseInt(e.target.value) })}
-                className="w-full px-4 py-2 bg-gray-600 rounded-lg border border-gray-500 focus:border-[#FF4D67] focus:ring-1 focus:ring-[#FF4D67]"
+                className="w-full px-4 py-2 bg-gray-600 rounded-lg border border-gray-500 focus:border-[#FF8C00] focus:ring-1 focus:ring-[#FF8C00]"
               />
               <p className="text-xs text-gray-400 mt-1">Default: 5000ms (5 seconds)</p>
             </div>
@@ -655,7 +655,7 @@ export default function HomepageManagement() {
                 type="number"
                 value={content.currentSlide}
                 onChange={(e) => setContent({ ...content, currentSlide: parseInt(e.target.value) })}
-                className="w-full px-4 py-2 bg-gray-600 rounded-lg border border-gray-500 focus:border-[#FF4D67] focus:ring-1 focus:ring-[#FF4D67]"
+                className="w-full px-4 py-2 bg-gray-600 rounded-lg border border-gray-500 focus:border-[#FF8C00] focus:ring-1 focus:ring-[#FF8C00]"
               />
               <p className="text-xs text-gray-400 mt-1">Starting slide when page loads</p>
             </div>

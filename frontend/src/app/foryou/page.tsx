@@ -257,25 +257,25 @@ export default function ForYouPage() {
             <div className="flex bg-gray-800 rounded-lg p-1">
               <button 
                 onClick={() => setFilterBy('music')}
-                className={`px-3 py-1 rounded-md text-sm transition-colors ${filterBy === 'music' ? 'bg-[#FF4D67] text-white' : 'text-gray-300 hover:text-white'}`}
+                className={`px-3 py-1 rounded-md text-sm transition-colors ${filterBy === 'music' ? 'bg-[#FF8C00] text-white' : 'text-gray-300 hover:text-white'}`}
               >
                 Music
               </button>
               <button 
                 onClick={() => setFilterBy('beats')}
-                className={`px-3 py-1 rounded-md text-sm transition-colors ${filterBy === 'beats' ? 'bg-[#FF4D67] text-white' : 'text-gray-300 hover:text-white'}`}
+                className={`px-3 py-1 rounded-md text-sm transition-colors ${filterBy === 'beats' ? 'bg-[#FF8C00] text-white' : 'text-gray-300 hover:text-white'}`}
               >
                 Beats
               </button>
               <button 
                 onClick={() => setFilterBy('mixes')}
-                className={`px-3 py-1 rounded-md text-sm transition-colors ${filterBy === 'mixes' ? 'bg-[#FF4D67] text-white' : 'text-gray-300 hover:text-white'}`}
+                className={`px-3 py-1 rounded-md text-sm transition-colors ${filterBy === 'mixes' ? 'bg-[#FF8C00] text-white' : 'text-gray-300 hover:text-white'}`}
               >
                 Mixes
               </button>
               <button 
                 onClick={() => setFilterBy('all')}
-                className={`px-3 py-1 rounded-md text-sm transition-colors ${filterBy === 'all' ? 'bg-[#FF4D67] text-white' : 'text-gray-300 hover:text-white'}`}
+                className={`px-3 py-1 rounded-md text-sm transition-colors ${filterBy === 'all' ? 'bg-[#FF8C00] text-white' : 'text-gray-300 hover:text-white'}`}
               >
                 All
               </button>
@@ -287,7 +287,7 @@ export default function ForYouPage() {
             <select 
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
-              className="bg-gray-800 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+              className="bg-gray-800 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF8C00]"
             >
               <option value="new_and_popular">New & Popular</option>
               <option value="popular">Most Popular</option>
@@ -300,12 +300,12 @@ export default function ForYouPage() {
         
         {loading ? (
           <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#FF4D67]"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#FF8C00]"></div>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {sortedTracks.map((track) => (
-              <div key={track.id} className="group card-bg rounded-xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10">
+              <div key={track.id} className="group card-bg rounded-xl overflow-hidden transition-all duration-300 hover:border-[#FF8C00]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF8C00]/10">
                 <div className="relative">
                   <img 
                     src={track.coverImage} 

@@ -141,7 +141,7 @@ export default function AlbumsManagementPage() {
   if (!authChecked) {
     return (
       <div className="flex min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF4D67]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF8C00]"></div>
       </div>
     )
   }
@@ -153,8 +153,8 @@ export default function AlbumsManagementPage() {
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black">
       <main className="flex-1 flex flex-col w-full min-h-screen transition-all duration-300">
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#FF4D67]/10 rounded-full blur-3xl -z-10"></div>
-        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-[#FFCB2B]/10 rounded-full blur-3xl -z-10"></div>
+        <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#FF8C00]/10 rounded-full blur-3xl -z-10"></div>
+        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-[#FFB020]/10 rounded-full blur-3xl -z-10"></div>
         
         <div className="container mx-auto px-4 sm:px-8 py-6 sm:py-8">
           <div className="mb-6 sm:mb-8">
@@ -173,7 +173,7 @@ export default function AlbumsManagementPage() {
                   type="text"
                   id="search"
                   placeholder="Search by title..."
-                  className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FFCB2B]"
+                  className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FFB020]"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -185,7 +185,7 @@ export default function AlbumsManagementPage() {
                 </label>
                 <select
                   id="genre-filter"
-                  className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FFCB2B]"
+                  className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FFB020]"
                   value={genreFilter}
                   onChange={(e) => setGenreFilter(e.target.value)}
                 >
@@ -222,7 +222,7 @@ export default function AlbumsManagementPage() {
           <div className="card-bg rounded-2xl p-4 sm:p-6">
             {loading ? (
               <div className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FFCB2B]"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FFB020]"></div>
               </div>
             ) : error ? (
               <div className="text-red-500 text-center py-8">{error}</div>
@@ -351,7 +351,7 @@ export default function AlbumsManagementPage() {
                 value={deletionReason}
                 onChange={(e) => setDeletionReason(e.target.value)}
                 placeholder="Enter reason for deleting this album..."
-                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FFCB2B] min-h-[100px]"
+                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FFB020] min-h-[100px]"
               />
             </div>
                   

@@ -234,14 +234,14 @@ export default function AdminMonetization() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black py-8 md:ml-20 transition-all duration-300">
       <AdminSidebar />
-      <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#FF4D67]/10 rounded-full blur-3xl -z-10"></div>
-      <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-[#FFCB2B]/10 rounded-full blur-3xl -z-10"></div>
+      <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#FF8C00]/10 rounded-full blur-3xl -z-10"></div>
+      <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-[#FFB020]/10 rounded-full blur-3xl -z-10"></div>
       
       <div className="container mx-auto px-4">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] mb-2">
+            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF8C00] to-[#FFB020] mb-2">
               Monetization Management
             </h1>
             <p className="text-gray-400">
@@ -260,7 +260,7 @@ export default function AdminMonetization() {
             <button
               className={`py-3 px-6 font-medium transition-colors ${
                 activeTab === 'pending'
-                  ? 'text-[#FF4D67] border-b-2 border-[#FF4D67]'
+                  ? 'text-[#FF8C00] border-b-2 border-[#FF8C00]'
                   : 'text-gray-500 hover:text-gray-300'
               }`}
               onClick={() => setActiveTab('pending')}
@@ -270,7 +270,7 @@ export default function AdminMonetization() {
             <button
               className={`py-3 px-6 font-medium transition-colors ${
                 activeTab === 'all'
-                  ? 'text-[#FF4D67] border-b-2 border-[#FF4D67]'
+                  ? 'text-[#FF8C00] border-b-2 border-[#FF8C00]'
                   : 'text-gray-500 hover:text-gray-300'
               }`}
               onClick={() => setActiveTab('all')}
@@ -333,7 +333,7 @@ export default function AdminMonetization() {
                         <div className="flex gap-2">
                           <button
                             onClick={() => handleApprove(record)}
-                            className="px-4 py-2 bg-[#FF4D67] hover:bg-[#FF4D67]/90 text-white rounded-lg transition-colors"
+                            className="px-4 py-2 bg-[#FF8C00] hover:bg-[#FF8C00]/90 text-white rounded-lg transition-colors"
                           >
                             Approve
                           </button>
@@ -436,7 +436,7 @@ export default function AdminMonetization() {
                   max="10.00"
                   value={earningsRate}
                   onChange={(e) => setEarningsRate(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+                  className="w-full px-3 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF8C00]"
                   required
                 />
               </div>
@@ -449,7 +449,7 @@ export default function AdminMonetization() {
                   max="50"
                   value={platformCommission}
                   onChange={(e) => setPlatformCommission(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+                  className="w-full px-3 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF8C00]"
                   required
                 />
               </div>
@@ -459,7 +459,7 @@ export default function AdminMonetization() {
                 <textarea
                   value={adminNotes}
                   onChange={(e) => setAdminNotes(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+                  className="w-full px-3 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF8C00]"
                   rows={3}
                   placeholder="Add any notes for this approval..."
                 ></textarea>
@@ -501,7 +501,7 @@ export default function AdminMonetization() {
                 <textarea
                   value={rejectionReason}
                   onChange={(e) => setRejectionReason(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+                  className="w-full px-3 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF8C00]"
                   rows={3}
                   placeholder="Explain why this application is being rejected..."
                   required
@@ -513,7 +513,7 @@ export default function AdminMonetization() {
                 <textarea
                   value={adminNotes}
                   onChange={(e) => setAdminNotes(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+                  className="w-full px-3 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF8C00]"
                   rows={2}
                   placeholder="Additional notes..."
                 ></textarea>
@@ -559,7 +559,7 @@ export default function AdminMonetization() {
                   max="10.00"
                   value={earningsRate}
                   onChange={(e) => setEarningsRate(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+                  className="w-full px-3 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF8C00]"
                   required
                 />
               </div>
@@ -572,7 +572,7 @@ export default function AdminMonetization() {
                   max="50"
                   value={platformCommission}
                   onChange={(e) => setPlatformCommission(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+                  className="w-full px-3 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF8C00]"
                   required
                 />
               </div>
@@ -582,7 +582,7 @@ export default function AdminMonetization() {
                 <textarea
                   value={adminNotes}
                   onChange={(e) => setAdminNotes(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+                  className="w-full px-3 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF8C00]"
                   rows={3}
                   placeholder="Reason for changes..."
                 ></textarea>
@@ -599,7 +599,7 @@ export default function AdminMonetization() {
                 <button
                   type="submit"
                   disabled={actionLoading}
-                  className="flex-1 px-4 py-2 bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+                  className="flex-1 px-4 py-2 bg-gradient-to-r from-[#FF8C00] to-[#FFB020] text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
                 >
                   {actionLoading ? 'Updating...' : 'Update'}
                 </button>

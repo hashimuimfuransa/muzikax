@@ -111,7 +111,7 @@ const PlaylistSelectionModal = ({ isOpen, onClose, onTrackAdded }: PlaylistSelec
                   <select
                     value={selectedPlaylistId}
                     onChange={(e) => setSelectedPlaylistId(e.target.value)}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-[#FF8C00]"
                   >
                     <option value="">Choose a playlist</option>
                     {playlists.map((playlist) => (
@@ -129,7 +129,7 @@ const PlaylistSelectionModal = ({ isOpen, onClose, onTrackAdded }: PlaylistSelec
                     className={`flex-1 px-4 py-2 rounded-lg font-medium ${
                       loading || !selectedPlaylistId
                         ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
-                        : 'bg-[#FF4D67] text-white hover:bg-[#FF4D67]/90'
+                        : 'bg-[#FF8C00] text-white hover:bg-[#FF8C00]/90'
                     } transition-colors`}
                   >
                     {loading ? 'Adding...' : 'Add to Playlist'}
@@ -153,7 +153,7 @@ const PlaylistSelectionModal = ({ isOpen, onClose, onTrackAdded }: PlaylistSelec
                     router.push('/playlists?create=true');
                     onClose();
                   }}
-                  className="px-4 py-2 bg-[#FF4D67] text-white rounded-lg font-medium hover:bg-[#FF4D67]/90 transition-colors"
+                  className="px-4 py-2 bg-[#FF8C00] text-white rounded-lg font-medium hover:bg-[#FF8C00]/90 transition-colors"
                 >
                   Create New Playlist
                 </button>
@@ -171,7 +171,7 @@ const PlaylistSelectionModal = ({ isOpen, onClose, onTrackAdded }: PlaylistSelec
                 value={newPlaylistName}
                 onChange={(e) => setNewPlaylistName(e.target.value)}
                 placeholder="Enter playlist name"
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-[#FF8C00]"
               />
             </div>
 
@@ -182,7 +182,7 @@ const PlaylistSelectionModal = ({ isOpen, onClose, onTrackAdded }: PlaylistSelec
                 className={`flex-1 px-4 py-2 rounded-lg font-medium ${
                   loading || !newPlaylistName.trim()
                     ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
-                    : 'bg-[#FF4D67] text-white hover:bg-[#FF4D67]/90'
+                    : 'bg-[#FF8C00] text-white hover:bg-[#FF8C00]/90'
                 } transition-colors`}
               >
                 {loading ? 'Creating...' : 'Create Playlist'}

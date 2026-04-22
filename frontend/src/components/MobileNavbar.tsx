@@ -206,7 +206,7 @@ export default function MobileNavbar() {
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
-                <span className="absolute -top-0.5 -right-0.5 text-[8px] font-black uppercase bg-[#FF4D67] text-white px-1 rounded-sm border border-gray-900 shadow-sm leading-none py-0.5 min-w-[16px] text-center">
+                <span className="absolute -top-0.5 -right-0.5 text-[8px] font-black uppercase bg-gradient-to-r from-[#FF8C00] to-[#FFB020] text-white px-1 rounded-sm border border-gray-900 shadow-sm leading-none py-0.5 min-w-[16px] text-center">
                   {language === 'en' ? 'EN' : language === 'rw' ? 'RW' : 'SW'}
                 </span>
               </button>
@@ -342,7 +342,7 @@ export default function MobileNavbar() {
                 e.preventDefault();
                 togglePlayPause();
               }}
-              className="w-9 h-9 rounded-full bg-gradient-to-br from-[#FF4D67] to-[#FF3352] flex items-center justify-center active:scale-90 transition-transform duration-150 shadow-lg shadow-[#FF4D67]/30 flex-shrink-0"
+              className="w-9 h-9 rounded-full bg-gradient-to-br from-[#FF8C00] to-[#FFA500] flex items-center justify-center active:scale-90 transition-transform duration-150 shadow-lg shadow-[#FF8C00]/30 flex-shrink-0"
             >
               {isPlaying ? (
                 <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -375,13 +375,13 @@ export default function MobileNavbar() {
                 href={item.href}
                 className={`relative flex flex-col items-center justify-center py-3 px-1.5 flex-1 active:scale-90 transition-all duration-200 group ${
                   active
-                    ? 'text-[#FF4D67]'
+                    ? 'text-[#FF8C00]'
                     : 'text-gray-400 hover:text-gray-200'
                 }`}
               >
                 {/* Active indicator background glow */}
                 {active && (
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#FF4D67]/10 to-transparent rounded-t-lg" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#FF8C00]/10 to-transparent rounded-t-lg" />
                 )}
                 
                 {/* Icon with scale animation */}
@@ -393,14 +393,14 @@ export default function MobileNavbar() {
                 
                 {/* Label with active state */}
                 <span className={`relative z-10 text-[10px] mt-1 font-medium transition-all duration-200 ${
-                  active ? 'text-[#FF4D67] font-semibold tracking-wide' : 'text-gray-400'
+                  active ? 'text-[#FF8C00] font-semibold tracking-wide' : 'text-gray-400'
                 }`}>
                   {item.name}
                 </span>
                 
                 {/* Active dot indicator */}
                 {active && (
-                  <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-[#FF4D67] rounded-full shadow-lg shadow-[#FF4D67]/50" />
+                  <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-[#FF8C00] rounded-full shadow-lg shadow-[#FF8C00]/50" />
                 )}
               </Link>
             );

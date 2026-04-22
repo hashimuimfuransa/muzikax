@@ -189,7 +189,7 @@ export default function RecommendedPlaylists({
           } ${titleClassName}`}>{t('recommendedPlaylists')}</h2>
         <button 
           onClick={handleViewAll}
-          className="text-[#FF4D67] hover:text-[#FF4D67]/80 text-sm font-medium transition-colors"
+          className="text-[#FF8C00] hover:text-[#FF8C00]/80 text-sm font-medium transition-colors"
         >
           {t('viewAll')}
         </button>
@@ -216,7 +216,7 @@ export default function RecommendedPlaylists({
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center">
+                  <div className="w-full h-full bg-gradient-to-br from-[#FF8C00] to-[#FFB020] flex items-center justify-center">
                     <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
                     </svg>
@@ -239,7 +239,7 @@ export default function RecommendedPlaylists({
               </div>
               
               {/* Playlist Info */}
-              <h3 className="font-semibold text-white truncate mb-1 group-hover:text-[#FF4D67] transition-colors">
+              <h3 className="font-semibold text-white truncate mb-1 group-hover:text-[#FF8C00] transition-colors">
                 {playlist.name}
               </h3>
               <p className="text-gray-400 text-sm truncate">

@@ -275,7 +275,7 @@ export default function NotificationsPage() {
   if (!isAuthenticated) {
     return (
       <div className="flex min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF4D67]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF8C00]"></div>
       </div>
     )
   }
@@ -318,7 +318,7 @@ export default function NotificationsPage() {
               </button>
               <Link 
                 href="/profile" 
-                className="px-4 py-2 bg-[#FF4D67] hover:bg-[#FF4D67]/80 text-white rounded-lg transition-colors text-sm"
+                className="px-4 py-2 bg-[#FF8C00] hover:bg-[#FF8C00]/80 text-white rounded-lg transition-colors text-sm"
               >
                 Back to Profile
               </Link>
@@ -334,7 +334,7 @@ export default function NotificationsPage() {
 
         {loading ? (
           <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF4D67]"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF8C00]"></div>
           </div>
         ) : notifications.length === 0 ? (
           <div className="text-center py-12">
@@ -371,7 +371,7 @@ export default function NotificationsPage() {
                           {notification.title}
                         </h3>
                         {!notification.read && (
-                          <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#FF4D67] text-white">
+                          <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#FF8C00] text-white">
                             New
                           </span>
                         )}
@@ -405,7 +405,7 @@ export default function NotificationsPage() {
                                     className={`h-3 rounded-full transition-all duration-500 ${
                                       status === 'completed' ? 'bg-gradient-to-r from-green-500 to-emerald-600' :
                                       status === 'failed' ? 'bg-gradient-to-r from-red-500 to-orange-600' :
-                                      'bg-gradient-to-r from-[#FF4D67] to-purple-600 animate-pulse'
+                                      'bg-gradient-to-r from-[#FF8C00] to-purple-600 animate-pulse'
                                     }`}
                                     style={{ width: `${progress}%` }}
                                   ></div>
@@ -464,14 +464,14 @@ export default function NotificationsPage() {
                                 value={replyMessage}
                                 onChange={(e) => setReplyMessage(e.target.value)}
                                 placeholder="Write your reply..."
-                                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+                                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FF8C00]"
                                 rows={3}
                               />
                               <div className="flex items-center space-x-2">
                                 <button
                                   onClick={() => handleReply(notification._id)}
                                   disabled={replyLoading || !replyMessage.trim()}
-                                  className="px-4 py-2 bg-[#FF4D67] hover:bg-[#FF4D67]/80 disabled:opacity-50 text-white rounded-lg transition-colors text-sm"
+                                  className="px-4 py-2 bg-[#FF8C00] hover:bg-[#FF8C00]/80 disabled:opacity-50 text-white rounded-lg transition-colors text-sm"
                                 >
                                   {replyLoading ? 'Sending...' : 'Send Reply'}
                                 </button>

@@ -35,7 +35,7 @@ export default function SettingsPage() {
           <p className="text-gray-400 mb-6">You need to be logged in to view settings</p>
           <button
             onClick={() => router.push('/auth/login')}
-            className="inline-block bg-[#FF4D67] hover:bg-[#FF4D67]/80 text-white py-2 px-6 rounded-lg transition-colors"
+            className="inline-block bg-[#FF8C00] hover:bg-[#FF8C00]/80 text-white py-2 px-6 rounded-lg transition-colors"
           >
             Go to Login
           </button>
@@ -68,10 +68,10 @@ export default function SettingsPage() {
 
       <div className="container mx-auto px-4 py-6 max-w-4xl">
         {/* Account Settings */}
-        <div className="bg-gradient-to-br from-[#FF4D67]/10 to-[#FF4D67]/5 backdrop-blur-sm rounded-2xl border border-[#FF4D67]/20 p-6 mb-6">
+        <div className="bg-gradient-to-br from-[#FF8C00]/10 to-[#FF8C00]/5 backdrop-blur-sm rounded-2xl border border-[#FF8C00]/20 p-6 mb-6">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-full bg-[#FF4D67]/20 flex items-center justify-center">
-              <svg className="w-5 h-5 text-[#FF4D67]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-10 h-10 rounded-full bg-[#FF8C00]/20 flex items-center justify-center">
+              <svg className="w-5 h-5 text-[#FF8C00]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
             </div>
@@ -85,7 +85,7 @@ export default function SettingsPage() {
               className="w-full p-4 bg-gray-800/50 rounded-xl hover:bg-gray-700/50 transition-all flex items-center justify-between group"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center">
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#FF8C00] to-[#FFB020] flex items-center justify-center">
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                   </svg>
@@ -140,10 +140,10 @@ export default function SettingsPage() {
 
         {/* Creator Settings (for creators only) */}
         {user.role === 'creator' && (
-          <div className="bg-gradient-to-br from-[#FFCB2B]/10 to-[#FFCB2B]/5 backdrop-blur-sm rounded-2xl border border-[#FFCB2B]/20 p-6 mb-6">
+          <div className="bg-gradient-to-br from-[#FFB020]/10 to-[#FFB020]/5 backdrop-blur-sm rounded-2xl border border-[#FFB020]/20 p-6 mb-6">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-[#FFCB2B]/20 flex items-center justify-center">
-                <svg className="w-5 h-5 text-[#FFCB2B]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-10 h-10 rounded-full bg-[#FFB020]/20 flex items-center justify-center">
+                <svg className="w-5 h-5 text-[#FFB020]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
                 </svg>
               </div>
@@ -157,7 +157,7 @@ export default function SettingsPage() {
                 className="w-full p-4 bg-gray-800/50 rounded-xl hover:bg-gray-700/50 transition-all flex items-center justify-between group"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#FFCB2B] to-[#FF9500] flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#FFB020] to-[#FF9500] flex items-center justify-center">
                     <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>

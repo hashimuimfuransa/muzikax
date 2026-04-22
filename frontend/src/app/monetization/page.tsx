@@ -192,8 +192,8 @@ export default function Monetization() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black py-8 overflow-x-hidden relative pt-14 md:pt-0">
-      <div className="absolute -top-40 -left-20 w-64 h-64 sm:w-96 sm:h-96 bg-[#FF4D67]/10 rounded-full blur-3xl -z-10"></div>
-      <div className="absolute -bottom-40 -right-20 w-64 h-64 sm:w-96 sm:h-96 bg-[#FFCB2B]/10 rounded-full blur-3xl -z-10"></div>
+      <div className="absolute -top-40 -left-20 w-64 h-64 sm:w-96 sm:h-96 bg-[#FF8C00]/10 rounded-full blur-3xl -z-10"></div>
+      <div className="absolute -bottom-40 -right-20 w-64 h-64 sm:w-96 sm:h-96 bg-[#FFB020]/10 rounded-full blur-3xl -z-10"></div>
       
       {/* Mobile Header with Back Button */}
       <div className="md:hidden sticky top-0 z-50 bg-gray-900/95 backdrop-blur-lg border-b border-gray-800">
@@ -220,7 +220,7 @@ export default function Monetization() {
           <div className="w-full overflow-x-hidden">
           {/* Desktop Header */}
           <div className="hidden md:block text-center mb-8">
-            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] mb-2">
+            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF8C00] to-[#FFB020] mb-2">
               Monetization Center
             </h1>
             <p className="text-gray-400">
@@ -243,7 +243,7 @@ export default function Monetization() {
               {/* How Monetization Works (Beta Phase) - NEW SECTION */}
               <div className="card-bg rounded-2xl p-4 sm:p-6 mb-6 border border-gray-700/50 bg-gradient-to-br from-gray-800/50 to-gray-900/50">
                 <div className="flex flex-col sm:flex-row items-start gap-4 mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] rounded-full flex items-center justify-center flex-shrink-0">
+                  <div className="w-12 h-12 bg-gradient-to-r from-[#FF8C00] to-[#FFB020] rounded-full flex items-center justify-center flex-shrink-0">
                     <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
@@ -345,7 +345,7 @@ export default function Monetization() {
                         <button
                           onClick={handleApply}
                           disabled={loading}
-                          className="px-6 py-3 bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] text-white font-medium rounded-lg hover:opacity-90 transition-opacity"
+                          className="px-6 py-3 bg-gradient-to-r from-[#FF8C00] to-[#FFB020] text-white font-medium rounded-lg hover:opacity-90 transition-opacity"
                         >
                           {loading ? 'Applying...' : 'Apply for Monetization'}
                         </button>
@@ -440,7 +440,7 @@ export default function Monetization() {
                     <button
                       onClick={handleApply}
                       disabled={loading}
-                      className="px-6 py-3 bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] text-white font-medium rounded-lg hover:opacity-90 transition-opacity"
+                      className="px-6 py-3 bg-gradient-to-r from-[#FF8C00] to-[#FFB020] text-white font-medium rounded-lg hover:opacity-90 transition-opacity"
                     >
                       {loading ? 'Reapplying...' : 'Reapply'}
                     </button>
@@ -549,7 +549,7 @@ export default function Monetization() {
                   max={status?.earnings?.pendingEarnings}
                   value={payoutAmount}
                   onChange={(e) => setPayoutAmount(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+                  className="w-full px-3 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF8C00]"
                   placeholder="0.00"
                   required
                 />
@@ -563,7 +563,7 @@ export default function Monetization() {
                 <select
                   value={payoutMethod}
                   onChange={(e) => setPayoutMethod(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+                  className="w-full px-3 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF8C00]"
                 >
                   <option value="mobile_money">Mobile Money</option>
                   <option value="bank_transfer">Bank Transfer</option>
@@ -582,7 +582,7 @@ export default function Monetization() {
                 <button
                   type="submit"
                   disabled={payoutLoading}
-                  className="flex-1 px-4 py-2 bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+                  className="flex-1 px-4 py-2 bg-gradient-to-r from-[#FF8C00] to-[#FFB020] text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
                 >
                   {payoutLoading ? 'Processing...' : 'Request Payout'}
                 </button>

@@ -88,7 +88,7 @@ export default function ChartTrackCard({
 
   const showToast = (message: string) => {
     const toast = document.createElement('div');
-    toast.className = 'fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-[#FF4D67] text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in';
+    toast.className = 'fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-[#FF8C00] text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in';
     toast.textContent = message;
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
@@ -205,7 +205,7 @@ export default function ChartTrackCard({
                 }
               }}
               disabled={isSharing}
-              className="p-2 rounded-full bg-gray-700/50 hover:bg-[#FF4D67] transition-colors disabled:opacity-50"
+              className="p-2 rounded-full bg-gray-700/50 hover:bg-[#FF8C00] transition-colors disabled:opacity-50"
               title="Share track"
             >
               <svg

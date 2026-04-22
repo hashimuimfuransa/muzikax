@@ -15,11 +15,12 @@
   --surface: #121821;
   --elevated: #1A2330;
   
-  /* Accent Colors - Modern Amber */
+  /* Accent Colors - Modern Orange Gradient */
   --primary: #F59E0B;
   --primary-hover: #FFB020;
   --primary-light: #FDE68A;
   --primary-glow: rgba(245, 158, 11, 0.3);
+  --primary-gradient: linear-gradient(135deg, #FF8C00 0%, #FFA500 50%, #FFB020 100%);
   
   /* Text Colors */
   --text-primary: #FFFFFF;
@@ -43,6 +44,7 @@
     --primary: #F59E0B;
     --primary-hover: #FFB020;
     --primary-glow: rgba(245, 158, 11, 0.3);
+    --primary-gradient: linear-gradient(135deg, #FF8C00 0%, #FFA500 50%, #FFB020 100%);
     --text-primary: #FFFFFF;
     --text-secondary: #9CA3AF;
     --text-muted: #6B7280;
@@ -302,7 +304,7 @@ img, video, canvas {
   
   /* Animated gradient background */
   .animate-gradient-bg {
-    background: linear-gradient(-45deg, #0f172a, #1e293b, #FF4D67, #FFCB2B, #1e293b, #0f172a);
+    background: linear-gradient(-45deg, #0f172a, #1e293b, #FF8C00, #FFB020, #1e293b, #0f172a);
     background-size: 400% 400%;
     animation: gradient 8s ease infinite;
   }
@@ -489,7 +491,7 @@ img, video, canvas {
 /* Custom utility classes */
 .gradient-border {
   position: relative;
-  background: linear-gradient(90deg, #FF4D67, #FFCB2B);
+  background: linear-gradient(90deg, #FF8C00, #FFB020);
   padding: 2px;
   border-radius: 16px;
 }
@@ -696,7 +698,7 @@ img, video, canvas {
   .gradient-border-animated {
     position: relative;
     background: linear-gradient(#0f172a, #0f172a) padding-box,
-                linear-gradient(45deg, #FF4D67, #FFCB2B, #FF4D67) border-box;
+                linear-gradient(45deg, #FF8C00, #FFB020, #FF8C00) border-box;
     border: 2px solid transparent;
     border-radius: 16px;
     background-size: 200% 200%;
@@ -883,7 +885,7 @@ img, video, canvas {
   
   /* Gradient text animated */
   .gradient-text-animated {
-    background: linear-gradient(90deg, #FF4D67, #FFCB2B, #FF4D67);
+    background: linear-gradient(90deg, #FF8C00, #FFB020, #FF8C00);
     background-size: 200% auto;
     color: transparent;
     -webkit-background-clip: text;
@@ -938,7 +940,7 @@ img, video, canvas {
   
   /* Progress bar gradient */
   .progress-gradient {
-    background: linear-gradient(90deg, #FF4D67 0%, #FFCB2B 100%);
+    background: linear-gradient(90deg, #FF8C00 0%, #FFB020 100%);
     position: relative;
     overflow: hidden;
   }

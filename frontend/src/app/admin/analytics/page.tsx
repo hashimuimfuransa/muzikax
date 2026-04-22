@@ -201,7 +201,7 @@ export default function AnalyticsPage() {
   if (!authChecked) {
     return (
       <div className="flex min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF4D67]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF8C00]"></div>
       </div>
     )
   }
@@ -212,14 +212,14 @@ export default function AnalyticsPage() {
   }
 
   // Prepare data for charts
-  const userRoleColors = ['#FF4D67', '#FFCB2B', '#6366F1'];
+  const userRoleColors = ['#FF8C00', '#FFB020', '#6366F1'];
   const creatorTypeColors = ['#10B981', '#8B5CF6', '#EC4899'];
   const trackTypeColors = ['#3B82F6', '#10B981', '#EF4444', '#F59E0B', '#8B5CF6'];
 
   // Stats cards data
   const statsCards = [
-    { title: 'Total Users', value: totalUsers.toLocaleString(), change: '+12%', icon: 'users', color: 'from-[#FF4D67] to-[#FF4D67]' },
-    { title: 'Total Creators', value: totalCreators.toLocaleString(), change: '+8%', icon: 'creator', color: 'from-[#FFCB2B] to-[#FFCB2B]' },
+    { title: 'Total Users', value: totalUsers.toLocaleString(), change: '+12%', icon: 'users', color: 'from-[#FF8C00] to-[#FF8C00]' },
+    { title: 'Total Creators', value: totalCreators.toLocaleString(), change: '+8%', icon: 'creator', color: 'from-[#FFB020] to-[#FFB020]' },
     { title: 'Total Tracks', value: totalTracks.toLocaleString(), change: '+15%', icon: 'music', color: 'from-[#6366F1] to-[#6366F1]' },
     { title: 'Total Plays', value: totalPlays.toLocaleString(), change: '+18%', icon: 'play', color: 'from-[#10B981] to-[#10B981]' },
   ];
@@ -230,8 +230,8 @@ export default function AnalyticsPage() {
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black">
       <main className="flex-1 flex flex-col w-full min-h-screen transition-all duration-300">
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#FF4D67]/10 rounded-full blur-3xl -z-10"></div>
-        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-[#FFCB2B]/10 rounded-full blur-3xl -z-10"></div>
+        <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#FF8C00]/10 rounded-full blur-3xl -z-10"></div>
+        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-[#FFB020]/10 rounded-full blur-3xl -z-10"></div>
         
         <div className="container mx-auto px-4 sm:px-8 py-6 sm:py-8">
           <div className="mb-6 sm:mb-8">
@@ -248,7 +248,7 @@ export default function AnalyticsPage() {
                   type="button"
                   className={`px-2 py-1 sm:px-3 sm:py-1.5 text-xs sm:text-sm font-medium rounded-md transition-colors ${
                     timeRange === range
-                      ? 'bg-[#FF4D67] text-white'
+                      ? 'bg-[#FF8C00] text-white'
                       : 'text-gray-400 hover:text-white'
                   }`}
                   onClick={() => setTimeRange(range)}
@@ -262,7 +262,7 @@ export default function AnalyticsPage() {
           {/* Stats Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
             {statsCards.map((stat, index) => (
-              <div key={index} className="card-bg rounded-2xl p-4 sm:p-6 transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10">
+              <div key={index} className="card-bg rounded-2xl p-4 sm:p-6 transition-all duration-300 hover:border-[#FF8C00]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF8C00]/10">
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="text-gray-400 text-xs sm:text-sm mb-1">{stat.title}</p>
@@ -298,7 +298,7 @@ export default function AnalyticsPage() {
               </div>
             ))}
             {/* Unique Listeners Card */}
-            <div className="card-bg rounded-2xl p-4 sm:p-6 transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10">
+            <div className="card-bg rounded-2xl p-4 sm:p-6 transition-all duration-300 hover:border-[#FF8C00]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF8C00]/10">
               <div className="flex justify-between items-start">
                 <div>
                   <p className="text-gray-400 text-xs sm:text-sm mb-1">Unique Listeners</p>
@@ -323,7 +323,7 @@ export default function AnalyticsPage() {
             <div className="chart-container">
               {loading ? (
                 <div className="flex justify-center items-center h-64">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF4D67]"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF8C00]"></div>
                 </div>
               ) : error ? (
                 <div className="text-red-500 text-center py-8">{error}</div>
@@ -354,7 +354,7 @@ export default function AnalyticsPage() {
                     type="monotone" 
                     dataKey="plays" 
                     name="Total Plays"
-                    stroke="#FF4D67" 
+                    stroke="#FF8C00" 
                     fill="url(#colorPlays)" 
                     strokeWidth={2}
                   />
@@ -368,8 +368,8 @@ export default function AnalyticsPage() {
                   />
                   <defs>
                     <linearGradient id="colorPlays" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#FF4D67" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#FF4D67" stopOpacity={0.1}/>
+                      <stop offset="5%" stopColor="#FF8C00" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#FF8C00" stopOpacity={0.1}/>
                     </linearGradient>
                     <linearGradient id="colorUnique" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#6366F1" stopOpacity={0.8}/>
@@ -393,7 +393,7 @@ export default function AnalyticsPage() {
               <div className="chart-container">
                 {loading ? (
                 <div className="flex justify-center items-center h-64">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF4D67]"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF8C00]"></div>
                 </div>
               ) : error ? (
                 <div className="text-red-500 text-center py-8">{error}</div>
@@ -419,14 +419,14 @@ export default function AnalyticsPage() {
                     <Area 
                       type="monotone" 
                       dataKey="count" 
-                      stroke="#FF4D67" 
+                      stroke="#FF8C00" 
                       fill="url(#colorGradient)" 
                       strokeWidth={2}
                     />
                     <defs>
                       <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#FF4D67" stopOpacity={0.8}/>
-                        <stop offset="95%" stopColor="#FF4D67" stopOpacity={0.1}/>
+                        <stop offset="5%" stopColor="#FF8C00" stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor="#FF8C00" stopOpacity={0.1}/>
                       </linearGradient>
                     </defs>
                   </AreaChart>
@@ -442,7 +442,7 @@ export default function AnalyticsPage() {
               <div className="chart-container">
                 {loading ? (
                 <div className="flex justify-center items-center h-64">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF4D67]"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF8C00]"></div>
                 </div>
               ) : error ? (
                 <div className="text-red-500 text-center py-8">{error}</div>
@@ -487,7 +487,7 @@ export default function AnalyticsPage() {
               <div className="chart-container">
                 {loading ? (
                 <div className="flex justify-center items-center h-64">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF4D67]"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF8C00]"></div>
                 </div>
               ) : error ? (
                 <div className="text-red-500 text-center py-8">{error}</div>
@@ -522,7 +522,7 @@ export default function AnalyticsPage() {
               <div className="chart-container">
                 {loading ? (
                 <div className="flex justify-center items-center h-64">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF4D67]"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF8C00]"></div>
                 </div>
               ) : error ? (
                 <div className="text-red-500 text-center py-8">{error}</div>
@@ -550,7 +550,7 @@ export default function AnalyticsPage() {
                       itemStyle={{ color: 'white' }}
                       formatter={(value: number | undefined) => [value ? value.toLocaleString() : '0', 'Plays']}
                     />
-                    <Bar dataKey="totalPlays" name="Plays" fill="#FF4D67" />
+                    <Bar dataKey="totalPlays" name="Plays" fill="#FF8C00" />
                   </BarChart>
                 </ResponsiveContainer>
               )}
@@ -566,7 +566,7 @@ export default function AnalyticsPage() {
               
               {loading ? (
                 <div className="flex justify-center items-center h-64">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF4D67]"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF8C00]"></div>
                 </div>
               ) : error ? (
                 <div className="text-red-500 text-center py-8">{error}</div>
@@ -619,7 +619,7 @@ export default function AnalyticsPage() {
               <div className="chart-container">
                 {loading ? (
                 <div className="flex justify-center items-center h-64">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF4D67]"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF8C00]"></div>
                 </div>
               ) : error ? (
                 <div className="text-red-500 text-center py-8">{error}</div>
@@ -662,7 +662,7 @@ export default function AnalyticsPage() {
             <div className="chart-container">
               {loading ? (
               <div className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF4D67]"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF8C00]"></div>
               </div>
             ) : error ? (
               <div className="text-red-500 text-center py-8">{error}</div>
@@ -701,7 +701,7 @@ export default function AnalyticsPage() {
                       labelFormatter={(value) => `Country: ${value}`}
                     />
                     <Legend />
-                    <Bar dataKey="playCount" name="Play Count" fill="#FF4D67" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="playCount" name="Play Count" fill="#FF8C00" radius={[4, 4, 0, 0]} />
                     <Bar dataKey="uniqueListeners" name="Unique Listeners" fill="#6366F1" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>

@@ -212,7 +212,7 @@ export default function AdminNotificationsPage() {
   if (!isAuthenticated || userRole !== 'admin') {
     return (
       <div className="flex min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF4D67]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF8C00]"></div>
       </div>
     )
   }
@@ -221,8 +221,8 @@ export default function AdminNotificationsPage() {
     <div className="flex min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black">
       
       <main className="flex-1 flex flex-col w-full min-h-screen transition-all duration-300">
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#FF4D67]/10 rounded-full blur-3xl -z-10"></div>
-        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-[#FFCB2B]/10 rounded-full blur-3xl -z-10"></div>
+        <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#FF8C00]/10 rounded-full blur-3xl -z-10"></div>
+        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-[#FFB020]/10 rounded-full blur-3xl -z-10"></div>
         
         <div className="container mx-auto px-4 sm:px-8 py-6 sm:py-8">
           <div className="mb-6 sm:mb-8">
@@ -249,7 +249,7 @@ export default function AdminNotificationsPage() {
                   <select
                     value={notificationType}
                     onChange={(e) => setNotificationType(e.target.value as any)}
-                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF8C00]"
                   >
                     <option value="info">Info</option>
                     <option value="warning">Warning</option>
@@ -268,7 +268,7 @@ export default function AdminNotificationsPage() {
                         setSendToAllCreators(e.target.checked);
                         if (e.target.checked) setSendToAllUsers(false);
                       }}
-                      className="h-4 w-4 text-[#FF4D67] focus:ring-[#FF4D67] border-gray-700 rounded bg-gray-800"
+                      className="h-4 w-4 text-[#FF8C00] focus:ring-[#FF8C00] border-gray-700 rounded bg-gray-800"
                     />
                     <label htmlFor="sendToAllCreators" className="ml-2 block text-sm text-gray-400">
                       Send to all creators
@@ -284,7 +284,7 @@ export default function AdminNotificationsPage() {
                         setSendToAllUsers(e.target.checked);
                         if (e.target.checked) setSendToAllCreators(false);
                       }}
-                      className="h-4 w-4 text-[#FF4D67] focus:ring-[#FF4D67] border-gray-700 rounded bg-gray-800"
+                      className="h-4 w-4 text-[#FF8C00] focus:ring-[#FF8C00] border-gray-700 rounded bg-gray-800"
                     />
                     <label htmlFor="sendToAllUsers" className="ml-2 block text-sm text-gray-400">
                       Send to all users (fans & creators)
@@ -303,13 +303,13 @@ export default function AdminNotificationsPage() {
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Search users by name or email..."
-                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF8C00]"
                       />
                     </div>
                     <select
                       value={selectedUser}
                       onChange={(e) => setSelectedUser(e.target.value)}
-                      className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+                      className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF8C00]"
                     >
                       <option value="">Select a user</option>
                       {filteredUsers.map((user) => (
@@ -336,7 +336,7 @@ export default function AdminNotificationsPage() {
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="Enter notification title"
-                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF8C00]"
                   />
                 </div>
 
@@ -349,14 +349,14 @@ export default function AdminNotificationsPage() {
                     onChange={(e) => setMessage(e.target.value)}
                     placeholder="Enter notification message"
                     rows={4}
-                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF8C00]"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={sending}
-                  className="w-full px-4 py-3 bg-[#FF4D67] hover:bg-[#FF4D67]/80 disabled:opacity-50 text-white rounded-lg transition-colors font-medium"
+                  className="w-full px-4 py-3 bg-[#FF8C00] hover:bg-[#FF8C00]/80 disabled:opacity-50 text-white rounded-lg transition-colors font-medium"
                 >
                   {sending ? 'Sending...' : 'Send Notification'}
                 </button>
@@ -369,7 +369,7 @@ export default function AdminNotificationsPage() {
               
               {loading ? (
                 <div className="flex justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF4D67]"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF8C00]"></div>
                 </div>
               ) : notifications.length === 0 ? (
                 <div className="text-center py-8">

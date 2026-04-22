@@ -64,7 +64,7 @@ export default function PopularAlbumsSection({ albums, loading }: PopularAlbumsS
         </h2>
         <a
           href="/albums"
-          className="text-[#FF4D67] hover:text-[#FFCB2B] text-xs md:text-sm lg:text-base transition-colors font-semibold hover:underline"
+          className="text-[#FF8C00] hover:text-[#FFB020] text-xs md:text-sm lg:text-base transition-colors font-semibold hover:underline"
         >
           View All →
         </a>
@@ -102,7 +102,7 @@ export default function PopularAlbumsSection({ albums, loading }: PopularAlbumsS
                   {album.coverImage && album.coverImage.trim() !== '' ? (
                     <img src={album.coverImage} alt={album.title} className="w-full aspect-square object-cover transition-transform duration-500 group-hover:scale-110 reflective-surface" />
                   ) : (
-                    <div className="w-full aspect-square bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center neon-glow">
+                    <div className="w-full aspect-square bg-gradient-to-br from-[#FF8C00] to-[#FFB020] flex items-center justify-center neon-glow">
                       <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
                       </svg>
@@ -110,7 +110,7 @@ export default function PopularAlbumsSection({ albums, loading }: PopularAlbumsS
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-[var(--card-bg)] via-[var(--card-bg)]/40 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-center justify-center backdrop-blur-sm">
                     <button 
-                      className="w-12 h-12 sm:w-14 sm:h-14 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 fab-spring shadow-2xl hover:shadow-[#FF4D67]/50 pulse-ring"
+                      className="w-12 h-12 sm:w-14 sm:h-14 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 fab-spring shadow-2xl hover:shadow-[#FF8C00]/50 pulse-ring"
                       onClick={(e) => {
                         e.stopPropagation();
                         handlePlayAlbum(album.id, album);

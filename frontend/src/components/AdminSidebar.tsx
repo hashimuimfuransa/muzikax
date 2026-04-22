@@ -33,13 +33,13 @@ export default function AdminSidebar() {
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className={`mb-8 flex items-center ${isHovered ? 'px-2' : 'justify-center'}`}>
-        <h1 className={`font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] transition-all duration-300 ${
+        <h1 className={`font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF8C00] to-[#FFB020] transition-all duration-300 ${
           isHovered ? 'text-2xl opacity-100' : 'text-xs opacity-0 hidden'
         }`}>
           ADMIN PANEL
         </h1>
         {!isHovered && (
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center text-white font-black text-xl shadow-lg">
+          <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-[#FF8C00] to-[#FFB020] flex items-center justify-center text-white font-black text-xl shadow-lg">
             A
           </div>
         )}
@@ -52,7 +52,7 @@ export default function AdminSidebar() {
             href={item.href}
             className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200 ${
               pathname === item.href
-                ? 'bg-[#FF4D67]/10 text-white border-l-4 border-[#FF4D67]'
+                ? 'bg-[#FF8C00]/10 text-white border-l-4 border-[#FF8C00]'
                 : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
             } ${!isHovered && 'justify-center border-l-0'}`}
             title={item.name}

@@ -28,7 +28,7 @@ export default function CopyrightPage() {
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       {/* Header */}
-      <div className="bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] py-16">
+      <div className="bg-gradient-to-r from-[#FF8C00] to-[#FFB020] py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">Copyright Policy</h1>
@@ -47,7 +47,7 @@ export default function CopyrightPage() {
           {/* Table of Contents - Sidebar */}
           <div className="lg:w-1/4">
             <div className="sticky top-24 bg-gray-800/50 backdrop-blur-lg rounded-xl p-6 border border-gray-700">
-              <h2 className="text-lg font-semibold mb-4 text-[#FF4D67]">Table of Contents</h2>
+              <h2 className="text-lg font-semibold mb-4 text-[#FF8C00]">Table of Contents</h2>
               <nav className="space-y-2">
                 {sections.map((section) => (
                   <button
@@ -55,7 +55,7 @@ export default function CopyrightPage() {
                     onClick={() => scrollToSection(section.id)}
                     className={`block text-left w-full px-3 py-2 rounded-lg transition-all ${
                       activeSection === section.id
-                        ? "bg-[#FF4D67] text-white"
+                        ? "bg-[#FF8C00] text-white"
                         : "text-gray-300 hover:text-white hover:bg-gray-700/50"
                     }`}
                   >
@@ -71,7 +71,7 @@ export default function CopyrightPage() {
             <div className="bg-gray-800/30 backdrop-blur-lg rounded-xl p-8 border border-gray-700">
               
               <section id="overview" className="mb-12 scroll-mt-24">
-                <h2 className="text-2xl font-bold mb-4 text-[#FF4D67]">1. Copyright Overview</h2>
+                <h2 className="text-2xl font-bold mb-4 text-[#FF8C00]">1. Copyright Overview</h2>
                 <p className="text-gray-300 mb-4">
                   MuzikaX respects the intellectual property rights of others and expects users of our platform to do the same. 
                   We operate in compliance with the Digital Millennium Copyright Act (DMCA) and other applicable copyright laws.
@@ -83,7 +83,7 @@ export default function CopyrightPage() {
               </section>
 
               <section id="user-content" className="mb-12 scroll-mt-24">
-                <h2 className="text-2xl font-bold mb-4 text-[#FF4D67]">2. User-Generated Content</h2>
+                <h2 className="text-2xl font-bold mb-4 text-[#FF8C00]">2. User-Generated Content</h2>
                 <h3 className="text-xl font-semibold mb-3 text-white">2.1 Content Ownership</h3>
                 <p className="text-gray-300 mb-4">
                   Users retain ownership of the content they upload to MuzikaX, including music, lyrics, artwork, and other creative works. 
@@ -99,7 +99,7 @@ export default function CopyrightPage() {
               </section>
 
               <section id="platform-content" className="mb-12 scroll-mt-24">
-                <h2 className="text-2xl font-bold mb-4 text-[#FF4D67]">3. Platform Content</h2>
+                <h2 className="text-2xl font-bold mb-4 text-[#FF8C00]">3. Platform Content</h2>
                 <p className="text-gray-300 mb-4">
                   All platform elements including but not limited to:
                 </p>
@@ -116,7 +116,7 @@ export default function CopyrightPage() {
               </section>
 
               <section id="licensing" className="mb-12 scroll-mt-24">
-                <h2 className="text-2xl font-bold mb-4 text-[#FF4D67]">4. Licensing</h2>
+                <h2 className="text-2xl font-bold mb-4 text-[#FF8C00]">4. Licensing</h2>
                 <h3 className="text-xl font-semibold mb-3 text-white">4.1 User Content License</h3>
                 <p className="text-gray-300 mb-4">
                   When you upload content to MuzikaX, you grant us a worldwide, non-exclusive, royalty-free license to:
@@ -137,7 +137,7 @@ export default function CopyrightPage() {
               </section>
 
               <section id="dmca" className="mb-12 scroll-mt-24">
-                <h2 className="text-2xl font-bold mb-4 text-[#FF4D67]">5. DMCA Policy</h2>
+                <h2 className="text-2xl font-bold mb-4 text-[#FF8C00]">5. DMCA Policy</h2>
                 <h3 className="text-xl font-semibold mb-3 text-white">5.1 Reporting Claims</h3>
                 <p className="text-gray-300 mb-4">
                   If you believe that your copyrighted work has been copied in a way that constitutes copyright infringement, 
@@ -153,7 +153,7 @@ export default function CopyrightPage() {
               </section>
 
               <section id="report-violation" className="mb-12 scroll-mt-24">
-                <h2 className="text-2xl font-bold mb-4 text-[#FF4D67]">6. Reporting Violations</h2>
+                <h2 className="text-2xl font-bold mb-4 text-[#FF8C00]">6. Reporting Violations</h2>
                 <p className="text-gray-300 mb-4">
                   To report copyright infringement, please contact our designated agent with the following information:
                 </p>
@@ -168,7 +168,7 @@ export default function CopyrightPage() {
               </section>
 
               <section id="permissions" className="mb-12 scroll-mt-24">
-                <h2 className="text-2xl font-bold mb-4 text-[#FF4D67]">7. Permissions</h2>
+                <h2 className="text-2xl font-bold mb-4 text-[#FF8C00]">7. Permissions</h2>
                 <p className="text-gray-300 mb-4">
                   If you wish to use any platform content for purposes outside the scope of the granted license, 
                   you must obtain explicit written permission from MuzikaX.
@@ -179,7 +179,7 @@ export default function CopyrightPage() {
               </section>
 
               <section id="contact" className="mb-12 scroll-mt-24">
-                <h2 className="text-2xl font-bold mb-4 text-[#FF4D67]">8. Contact Information</h2>
+                <h2 className="text-2xl font-bold mb-4 text-[#FF8C00]">8. Contact Information</h2>
                 <div className="bg-gray-700/50 rounded-lg p-6">
                   <h3 className="font-semibold text-white mb-2">Copyright Agent</h3>
                   <p className="text-gray-300"><strong>Name:</strong> MuzikaX Copyright Agent</p>
@@ -198,7 +198,7 @@ export default function CopyrightPage() {
 
               {/* Related Links */}
               <div className="mt-12 pt-8 border-t border-gray-700">
-                <h2 className="text-2xl font-bold mb-4 text-[#FF4D67]">Related Policies</h2>
+                <h2 className="text-2xl font-bold mb-4 text-[#FF8C00]">Related Policies</h2>
                 <div className="grid md:grid-cols-2 gap-4">
                   <Link href="/terms" className="bg-gray-700/30 hover:bg-gray-700/50 p-4 rounded-lg border border-gray-600 transition-colors">
                     <h3 className="font-semibold text-white flex items-center">

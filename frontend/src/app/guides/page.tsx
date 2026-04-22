@@ -171,7 +171,7 @@ Proper tagging, consistent naming conventions, and organized project files strea
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       {/* Header */}
-      <div className="bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] py-16">
+      <div className="bg-gradient-to-r from-[#FF8C00] to-[#FFB020] py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">Music Guides & Resources</h1>
@@ -191,7 +191,7 @@ Proper tagging, consistent naming conventions, and organized project files strea
               onClick={() => setActiveCategory(category)}
               className={`px-6 py-2 rounded-full font-medium transition-all ${
                 activeCategory === category
-                  ? "bg-[#FF4D67] text-white"
+                  ? "bg-[#FF8C00] text-white"
                   : "bg-gray-800 text-gray-300 hover:bg-gray-700"
               }`}
             >
@@ -210,8 +210,8 @@ Proper tagging, consistent naming conventions, and organized project files strea
                   onClick={() => setActiveGuide(guide.id)}
                   className={`bg-gray-800/30 backdrop-blur-lg rounded-xl p-6 border cursor-pointer transition-all ${
                     selectedGuide.id === guide.id
-                      ? "border-[#FF4D67] bg-gray-700/30"
-                      : "border-gray-700 hover:border-[#FF4D67]/50"
+                      ? "border-[#FF8C00] bg-gray-700/30"
+                      : "border-gray-700 hover:border-[#FF8C00]/50"
                   }`}
                 >
                   <div className="flex items-start justify-between mb-3">
@@ -228,7 +228,7 @@ Proper tagging, consistent naming conventions, and organized project files strea
                   </div>
                   
                   <h3 className={`font-semibold mb-2 ${
-                    selectedGuide.id === guide.id ? "text-[#FF4D67]" : "text-white"
+                    selectedGuide.id === guide.id ? "text-[#FF8C00]" : "text-white"
                   }`}>
                     {guide.title}
                   </h3>
@@ -245,7 +245,7 @@ Proper tagging, consistent naming conventions, and organized project files strea
           <div className="lg:col-span-2">
             <div className="bg-gray-800/30 backdrop-blur-lg rounded-xl p-8 border border-gray-700">
               <div className="flex items-center gap-4 mb-6">
-                <span className="px-4 py-2 bg-[#FF4D67]/20 text-[#FF4D67] font-medium rounded-full">
+                <span className="px-4 py-2 bg-[#FF8C00]/20 text-[#FF8C00] font-medium rounded-full">
                   {selectedGuide.category}
                 </span>
                 <div className="flex items-center gap-2">
@@ -262,7 +262,7 @@ Proper tagging, consistent naming conventions, and organized project files strea
                 </div>
               </div>
 
-              <h2 className="text-3xl font-bold mb-6 text-[#FF4D67]">
+              <h2 className="text-3xl font-bold mb-6 text-[#FF8C00]">
                 {selectedGuide.title}
               </h2>
 
@@ -282,7 +282,7 @@ Proper tagging, consistent naming conventions, and organized project files strea
                   <ol className="space-y-3">
                     {selectedGuide.steps.map((step, index) => (
                       <li key={index} className="flex items-start">
-                        <span className="flex-shrink-0 w-8 h-8 bg-[#FF4D67] rounded-full flex items-center justify-center text-white font-bold text-sm mr-3 mt-1">
+                        <span className="flex-shrink-0 w-8 h-8 bg-[#FF8C00] rounded-full flex items-center justify-center text-white font-bold text-sm mr-3 mt-1">
                           {index + 1}
                         </span>
                         <span className="text-gray-300 pt-1">{step}</span>
@@ -298,7 +298,7 @@ Proper tagging, consistent naming conventions, and organized project files strea
                   <ul className="space-y-2">
                     {selectedGuide.tips.map((tip, index) => (
                       <li key={index} className="flex items-start">
-                        <span className="text-[#FF4D67] mr-3 mt-1">•</span>
+                        <span className="text-[#FF8C00] mr-3 mt-1">•</span>
                         <span className="text-gray-300">{tip}</span>
                       </li>
                     ))}
@@ -309,7 +309,7 @@ Proper tagging, consistent naming conventions, and organized project files strea
               {/* Related Actions */}
               <div className="mt-12 pt-8 border-t border-gray-700">
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <button className="flex-1 bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] text-white px-6 py-3 rounded-lg font-semibold hover:from-[#ff3a55] hover:to-[#ffb819] transition-all">
+                  <button className="flex-1 bg-gradient-to-r from-[#FF8C00] to-[#FFB020] text-white px-6 py-3 rounded-lg font-semibold hover:from-[#FF7A00] hover:to-[#FFA010] transition-all">
                     Save Guide for Later
                   </button>
                   <button className="flex-1 border border-gray-600 text-gray-300 px-6 py-3 rounded-lg font-semibold hover:bg-gray-700/50 transition-colors">
@@ -322,8 +322,8 @@ Proper tagging, consistent naming conventions, and organized project files strea
         </div>
 
         {/* Additional Resources */}
-        <div className="mt-16 bg-gradient-to-r from-[#FF4D67]/10 to-[#FFCB2B]/10 rounded-xl p-8 border border-[#FF4D67]/20">
-          <h2 className="text-2xl font-bold mb-4 text-center text-[#FF4D67]">Additional Learning Resources</h2>
+        <div className="mt-16 bg-gradient-to-r from-[#FF8C00]/10 to-[#FFB020]/10 rounded-xl p-8 border border-[#FF8C00]/20">
+          <h2 className="text-2xl font-bold mb-4 text-center text-[#FF8C00]">Additional Learning Resources</h2>
           <div className="grid md:grid-cols-3 gap-6">
             <div className="text-center">
               <div className="text-4xl mb-3">🎓</div>

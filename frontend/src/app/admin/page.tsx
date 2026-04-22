@@ -93,7 +93,7 @@ export default function AdminDashboard() {
   if (!authChecked) {
     return (
       <div className="flex min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF4D67]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF8C00]"></div>
       </div>
     )
   }
@@ -105,8 +105,8 @@ export default function AdminDashboard() {
   
   // Stats data based on real analytics
   const stats = analytics ? [
-    { title: 'Total Users', value: analytics.totalUsers.toString(), change: '+12%', icon: 'users', color: 'from-[#FF4D67] to-[#FF4D67]' },
-    { title: 'Active Creators', value: analytics.totalCreators.toString(), change: '+8%', icon: 'creator', color: 'from-[#FFCB2B] to-[#FFCB2B]' },
+    { title: 'Total Users', value: analytics.totalUsers.toString(), change: '+12%', icon: 'users', color: 'from-[#FF8C00] to-[#FF8C00]' },
+    { title: 'Active Creators', value: analytics.totalCreators.toString(), change: '+8%', icon: 'creator', color: 'from-[#FFB020] to-[#FFB020]' },
     { title: 'Total Tracks', value: analytics.totalTracks.toString(), change: '+15%', icon: 'music', color: 'from-[#6366F1] to-[#6366F1]' },
     { title: 'Total Plays', value: analytics.totalPlays.toLocaleString(), change: '+18%', icon: 'play', color: 'from-[#10B981] to-[#10B981]' }
   ] : []
@@ -127,7 +127,7 @@ export default function AdminDashboard() {
                   type="button"
                   className={`px-2 py-1 sm:px-3 sm:py-1.5 text-xs sm:text-sm font-medium rounded-md transition-colors ${
                     timeRange === range
-                      ? 'bg-[#FF4D67] text-white'
+                      ? 'bg-[#FF8C00] text-white'
                       : 'text-gray-400 hover:text-white'
                   }`}
                   onClick={() => setTimeRange(range)}
@@ -141,7 +141,7 @@ export default function AdminDashboard() {
           {/* Stats Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
             {stats.map((stat, index) => (
-              <div key={index} className="card-bg rounded-2xl p-4 sm:p-6 transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10">
+              <div key={index} className="card-bg rounded-2xl p-4 sm:p-6 transition-all duration-300 hover:border-[#FF8C00]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF8C00]/10">
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="text-gray-400 text-xs sm:text-sm mb-1">{stat.title}</p>
@@ -184,7 +184,7 @@ export default function AdminDashboard() {
               <h2 className="text-lg sm:text-xl font-bold text-white">Recent Users</h2>
               <button 
                 onClick={() => router.push('/admin/users')}
-                className="text-xs sm:text-sm text-[#FF4D67] hover:text-[#FF4D67]/80 transition-colors"
+                className="text-xs sm:text-sm text-[#FF8C00] hover:text-[#FF8C00]/80 transition-colors"
               >
                 View All Users
               </button>
@@ -192,7 +192,7 @@ export default function AdminDashboard() {
             
             {loading ? (
               <div className="flex justify-center items-center h-32">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF4D67]"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF8C00]"></div>
               </div>
             ) : error ? (
               <div className="text-red-500 text-center py-4">{error}</div>
@@ -248,7 +248,7 @@ export default function AdminDashboard() {
               <h2 className="text-lg sm:text-xl font-bold text-white">Trending Tracks</h2>
               <button 
                 onClick={() => router.push('/admin/content')}
-                className="text-xs sm:text-sm text-[#FF4D67] hover:text-[#FF4D67]/80 transition-colors"
+                className="text-xs sm:text-sm text-[#FF8C00] hover:text-[#FF8C00]/80 transition-colors"
               >
                 View All Content
               </button>
@@ -256,7 +256,7 @@ export default function AdminDashboard() {
             
             {loading ? (
               <div className="flex justify-center items-center h-32">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF4D67]"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF8C00]"></div>
               </div>
             ) : error ? (
               <div className="text-red-500 text-center py-4">{error}</div>

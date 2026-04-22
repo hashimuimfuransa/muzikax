@@ -141,12 +141,12 @@ export default function PopularMixes() {
           </div>
                 
           {/* Decorative elements - smaller on mobile */}
-          <div className="absolute -top-10 -left-10 sm:-top-20 sm:-left-20 w-32 h-32 sm:w-64 sm:h-64 bg-[#FF4D67]/10 rounded-full blur-2xl sm:blur-3xl -z-10"></div>
-          <div className="absolute -bottom-10 -right-10 sm:-bottom-20 sm:-right-20 w-32 h-32 sm:w-64 sm:h-64 bg-[#FFCB2B]/10 rounded-full blur-2xl sm:blur-3xl -z-10"></div>
+          <div className="absolute -top-10 -left-10 sm:-top-20 sm:-left-20 w-32 h-32 sm:w-64 sm:h-64 bg-[#FF8C00]/10 rounded-full blur-2xl sm:blur-3xl -z-10"></div>
+          <div className="absolute -bottom-10 -right-10 sm:-bottom-20 sm:-right-20 w-32 h-32 sm:w-64 sm:h-64 bg-[#FFB020]/10 rounded-full blur-2xl sm:blur-3xl -z-10"></div>
                 
           <div className="container mx-auto px-3 sm:px-6 lg:px-8 relative z-10">
             <div className="max-w-3xl mx-auto text-center">
-              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] mb-2 sm:mb-3 md:mb-4">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#FF8C00] to-[#FFB020] mb-2 sm:mb-3 md:mb-4">
                 Popular Mixes
               </h1>
               <p className="text-sm sm:text-base lg:text-lg text-gray-300 max-w-2xl mx-auto mb-4 sm:mb-6 md:mb-8 px-2">
@@ -191,7 +191,7 @@ export default function PopularMixes() {
           <p className="text-red-500 mb-4">Error: {error}</p>
           <button 
             onClick={() => window.location.reload()} 
-            className="px-4 py-2 bg-[#FF4D67] text-white rounded-lg hover:bg-[#FFCB2B] transition-colors"
+            className="px-4 py-2 bg-[#FF8C00] text-white rounded-lg hover:bg-[#FFB020] transition-colors"
           >
             Retry
           </button>
@@ -211,12 +211,12 @@ export default function PopularMixes() {
         </div>
         
         {/* Decorative elements - smaller on mobile */}
-        <div className="absolute -top-10 -left-10 sm:-top-20 sm:-left-20 w-32 h-32 sm:w-64 sm:h-64 bg-[#FF4D67]/10 rounded-full blur-2xl sm:blur-3xl -z-10"></div>
-        <div className="absolute -bottom-10 -right-10 sm:-bottom-20 sm:-right-20 w-32 h-32 sm:w-64 sm:h-64 bg-[#FFCB2B]/10 rounded-full blur-2xl sm:blur-3xl -z-10"></div>
+        <div className="absolute -top-10 -left-10 sm:-top-20 sm:-left-20 w-32 h-32 sm:w-64 sm:h-64 bg-[#FF8C00]/10 rounded-full blur-2xl sm:blur-3xl -z-10"></div>
+        <div className="absolute -bottom-10 -right-10 sm:-bottom-20 sm:-right-20 w-32 h-32 sm:w-64 sm:h-64 bg-[#FFB020]/10 rounded-full blur-2xl sm:blur-3xl -z-10"></div>
         
         <div className="container mx-auto px-3 sm:px-6 lg:px-8 relative z-10">
           <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] mb-2 sm:mb-3 md:mb-4">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#FF8C00] to-[#FFB020] mb-2 sm:mb-3 md:mb-4">
               Popular Mixes
             </h1>
             <p className="text-sm sm:text-base lg:text-lg text-gray-300 max-w-2xl mx-auto mb-4 sm:mb-6 md:mb-8 px-2">
@@ -248,7 +248,7 @@ export default function PopularMixes() {
               return (
                 <div 
                   key={track._id} 
-                  className="group card-bg rounded-xl sm:rounded-2xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10 active:scale-[0.98]"
+                  className="group card-bg rounded-xl sm:rounded-2xl overflow-hidden transition-all duration-300 hover:border-[#FF8C00]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF8C00]/10 active:scale-[0.98]"
                 >
                   <div className="relative">
                     {track.coverURL ? (
@@ -258,7 +258,7 @@ export default function PopularMixes() {
                         className="w-full h-40 sm:h-44 md:h-48 object-cover"
                       />
                     ) : (
-                      <div className="w-full h-40 sm:h-44 md:h-48 bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center">
+                      <div className="w-full h-40 sm:h-44 md:h-48 bg-gradient-to-br from-[#FF8C00] to-[#FFB020] flex items-center justify-center">
                         <span className="text-xl sm:text-2xl font-bold text-white">
                           {track.title.charAt(0).toUpperCase()}
                         </span>

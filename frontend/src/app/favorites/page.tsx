@@ -178,15 +178,15 @@ export default function FavoritesPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black py-8 sm:py-12">
-      <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#FF4D67]/10 rounded-full blur-3xl -z-10"></div>
-      <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-[#FFCB2B]/10 rounded-full blur-3xl -z-10"></div>
+      <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#FF8C00]/10 rounded-full blur-3xl -z-10"></div>
+      <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-[#FFB020]/10 rounded-full blur-3xl -z-10"></div>
       
       <div className="container mx-auto px-4 sm:px-8">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="flex items-center justify-between mb-8 sm:mb-12">
             <div>
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] mb-2">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF8C00] to-[#FFB020] mb-2">
                 Your Favorites
               </h1>
               <p className="text-gray-400 text-sm sm:text-base">
@@ -195,7 +195,7 @@ export default function FavoritesPage() {
             </div>
             <button 
               onClick={() => router.push('/explore')}
-              className="px-3 py-1.5 sm:px-4 sm:py-2 bg-transparent border border-[#FF4D67] text-[#FF4D67] hover:bg-[#FF4D67]/10 rounded-full text-xs sm:text-sm font-medium transition-colors"
+              className="px-3 py-1.5 sm:px-4 sm:py-2 bg-transparent border border-[#FF8C00] text-[#FF8C00] hover:bg-[#FF8C00]/10 rounded-full text-xs sm:text-sm font-medium transition-colors"
             >
               Add More
             </button>
@@ -224,7 +224,7 @@ export default function FavoritesPage() {
             // Favorites List
             <div className="space-y-4">
               {tracks.map((track) => (
-                <div key={track.id || track._id} className="card-bg rounded-2xl p-4 sm:p-5 flex items-center gap-4 transition-all hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50">
+                <div key={track.id || track._id} className="card-bg rounded-2xl p-4 sm:p-5 flex items-center gap-4 transition-all hover:border-[#FF8C00]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50">
                   <div className="relative">
                     <img 
                       src={track.coverImage || track.coverURL || '/placeholder-track.png'} 

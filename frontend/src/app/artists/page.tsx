@@ -17,7 +17,7 @@ interface Creator {
 const generateAvatar = (name: string) => {
   const firstLetter = name.charAt(0).toUpperCase()
   return (
-    <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center mx-auto">
+    <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-br from-[#FF8C00] to-[#FFB020] flex items-center justify-center mx-auto">
       <span className="text-3xl font-bold text-white">{firstLetter}</span>
     </div>
   )
@@ -172,13 +172,13 @@ export default function ArtistsPage() {
             <input
               type="text"
               placeholder="Search artists..."
-              className="px-4 py-2 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+              className="px-4 py-2 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF8C00]"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
             
             <select
-              className="px-4 py-2 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+              className="px-4 py-2 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF8C00]"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as 'popular' | 'alphabetical')}
             >
@@ -216,7 +216,7 @@ export default function ArtistsPage() {
                     )}
                   </div>
                   <h3 className="font-bold text-white text-base truncate w-full">{creator.name}</h3>
-                  <p className="text-[#FFCB2B] text-sm mb-3 capitalize">
+                  <p className="text-[#FFB020] text-sm mb-3 capitalize">
                     {creator.creatorType || 'Artist'}
                   </p>
                   <p className="text-gray-500 text-xs mb-4">
@@ -226,7 +226,7 @@ export default function ArtistsPage() {
                     className={`w-full px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                       followedArtists[creator._id]
                         ? 'bg-gray-700 text-white hover:bg-gray-600'
-                        : 'bg-transparent border border-[#FFCB2B] text-[#FFCB2B] hover:bg-[#FFCB2B]/10'
+                        : 'bg-transparent border border-[#FFB020] text-[#FFB020] hover:bg-[#FFB020]/10'
                     }`}
                     onClick={(e) => handleFollowClick(creator._id, e)}
                   >

@@ -69,7 +69,7 @@ export default function ChartsPage() {
       console.log('📡 Received real-time chart update:', latestUpdate);
       // Optionally refresh charts or show notification
       const toast = document.createElement('div');
-      toast.className = 'fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-[#FF4D67] text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in';
+      toast.className = 'fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-[#FF8C00] text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in';
       toast.textContent = 'Charts updated in real-time! 🎵';
       document.body.appendChild(toast);
       setTimeout(() => toast.remove(), 3000);
@@ -196,7 +196,7 @@ export default function ChartsPage() {
                 onClick={() => setChartType(type)}
                 className={`px-4 py-2 rounded-lg font-medium capitalize whitespace-nowrap transition-all text-sm md:text-base flex-shrink-0 ${
                   chartType === type
-                    ? "bg-[#FF4D67] text-white"
+                    ? "bg-[#FF8C00] text-white"
                     : "bg-gray-800/50 text-gray-400 hover:text-white hover:bg-gray-700/50"
                 }`}
               >
@@ -218,7 +218,7 @@ export default function ChartsPage() {
                     onClick={() => setTimeWindow(window)}
                     className={`px-3 py-1.5 rounded-md text-xs md:text-sm font-medium capitalize transition-all whitespace-nowrap ${
                       timeWindow === window
-                        ? "bg-white text-[#FF4D67]"
+                        ? "bg-white text-[#FF8C00]"
                         : "bg-gray-800/50 text-gray-400 hover:text-white"
                     }`}
                   >
@@ -235,7 +235,7 @@ export default function ChartsPage() {
               <select
                 value={selectedCountry}
                 onChange={(e) => setSelectedCountry(e.target.value as CountryCode)}
-                className="bg-gray-800/50 text-white px-4 py-2 rounded-lg border border-gray-700 focus:border-[#FF4D67] focus:outline-none w-full md:w-auto text-sm md:text-base appearance-none cursor-pointer active:scale-95 transition-transform"
+                className="bg-gray-800/50 text-white px-4 py-2 rounded-lg border border-gray-700 focus:border-[#FF8C00] focus:outline-none w-full md:w-auto text-sm md:text-base appearance-none cursor-pointer active:scale-95 transition-transform"
                 style={{ minHeight: '44px' }}
               >
                 {COUNTRIES.map((country) => (
@@ -250,7 +250,7 @@ export default function ChartsPage() {
               <select
                 value={selectedGenre}
                 onChange={(e) => setSelectedGenre(e.target.value)}
-                className="bg-gray-800/50 text-white px-4 py-2 rounded-lg border border-gray-700 focus:border-[#FF4D67] focus:outline-none w-full md:w-auto text-sm md:text-base appearance-none cursor-pointer active:scale-95 transition-transform"
+                className="bg-gray-800/50 text-white px-4 py-2 rounded-lg border border-gray-700 focus:border-[#FF8C00] focus:outline-none w-full md:w-auto text-sm md:text-base appearance-none cursor-pointer active:scale-95 transition-transform"
                 style={{ minHeight: '44px' }}
               >
                 {GENRES.map((genre) => (

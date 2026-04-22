@@ -179,7 +179,7 @@ const MixesHorizontalScroll = ({ title, viewAllLink = '/mixes' }: MixesHorizonta
       <section className="px-4 md:px-6 py-8">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-white">{displayTitle}</h2>
-          <Link href={viewAllLink} className="text-[#FF4D67] hover:text-[#FFCB2B] transition-colors">
+          <Link href={viewAllLink} className="text-[#FF8C00] hover:text-[#FFB020] transition-colors">
             {t('viewAll')}
           </Link>
         </div>
@@ -205,7 +205,7 @@ const MixesHorizontalScroll = ({ title, viewAllLink = '/mixes' }: MixesHorizonta
       <section className="px-4 md:px-6 py-8">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-white">{displayTitle}</h2>
-          <Link href={viewAllLink} className="text-[#FF4D67] hover:text-[#FFCB2B] transition-colors">
+          <Link href={viewAllLink} className="text-[#FF8C00] hover:text-[#FFB020] transition-colors">
             {t('viewAll')}
           </Link>
         </div>

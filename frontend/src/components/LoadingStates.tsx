@@ -58,7 +58,7 @@ export const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
           <div className="space-y-3">
             <button
               onClick={() => setTimedOut(false)}
-              className="w-full bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-all duration-300"
+              className="w-full bg-gradient-to-r from-[#FF8C00] to-[#FFB020] text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-all duration-300"
             >
               Keep Waiting
             </button>
@@ -79,7 +79,7 @@ export const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
       <div className="text-center">
         <div className="mb-4">
-          <div className="inline-block w-12 h-12 border-4 border-[#FF4D67] border-t-transparent rounded-full animate-spin"></div>
+          <div className="inline-block w-12 h-12 border-4 border-[#FF8C00] border-t-transparent rounded-full animate-spin"></div>
         </div>
         <p className="text-white text-lg font-medium">{message}</p>
         {timeout && (
@@ -213,7 +213,7 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
       {showRetryButton && onRetry && (
         <button
           onClick={onRetry}
-          className="bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] text-white font-semibold py-2 px-6 rounded-lg hover:opacity-90 transition-all duration-300"
+          className="bg-gradient-to-r from-[#FF8C00] to-[#FFB020] text-white font-semibold py-2 px-6 rounded-lg hover:opacity-90 transition-all duration-300"
         >
           Try Again
         </button>

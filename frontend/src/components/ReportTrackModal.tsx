@@ -75,7 +75,7 @@ export default function ReportTrackModal({ trackId, isOpen, onClose }: ReportTra
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               required
-              className="w-full px-3 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent"
+              className="w-full px-3 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF8C00] focus:border-transparent"
             >
               <option value="">Select a reason</option>
               <option value="copyright">Copyright infringement</option>
@@ -92,7 +92,7 @@ export default function ReportTrackModal({ trackId, isOpen, onClose }: ReportTra
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={4}
-              className="w-full px-3 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF4D67] focus:border-transparent"
+              className="w-full px-3 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF8C00] focus:border-transparent"
               placeholder="Provide more details about why you're reporting this track..."
             />
           </div>
@@ -117,7 +117,7 @@ export default function ReportTrackModal({ trackId, isOpen, onClose }: ReportTra
               className={`px-4 py-2 rounded-lg text-white transition-colors ${
                 isSubmitting || !reason
                   ? 'bg-gray-700 cursor-not-allowed'
-                  : 'bg-[#FF4D67] hover:bg-[#FF4D67]/90'
+                  : 'bg-[#FF8C00] hover:bg-[#FF8C00]/90'
               }`}
             >
               {isSubmitting ? 'Submitting...' : 'Submit Report'}

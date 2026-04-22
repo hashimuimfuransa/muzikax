@@ -72,19 +72,19 @@ export class LoadingErrorBoundary extends Component<Props, State> {
               <p className="text-gray-300 font-semibold text-sm mb-2">Try these steps:</p>
               <ul className="space-y-2 text-gray-400 text-xs">
                 <li className="flex items-start">
-                  <span className="text-[#FF4D67] mr-2">•</span>
+                  <span className="text-[#FF8C00] mr-2">•</span>
                   Check your internet connection
                 </li>
                 <li className="flex items-start">
-                  <span className="text-[#FF4D67] mr-2">•</span>
+                  <span className="text-[#FF8C00] mr-2">•</span>
                   Clear your browser cache and cookies
                 </li>
                 <li className="flex items-start">
-                  <span className="text-[#FF4D67] mr-2">•</span>
+                  <span className="text-[#FF8C00] mr-2">•</span>
                   Disable browser extensions temporarily
                 </li>
                 <li className="flex items-start">
-                  <span className="text-[#FF4D67] mr-2">•</span>
+                  <span className="text-[#FF8C00] mr-2">•</span>
                   Try using a different browser
                 </li>
               </ul>
@@ -94,7 +94,7 @@ export class LoadingErrorBoundary extends Component<Props, State> {
             <div className="space-y-3">
               <button
                 onClick={this.handleRetry}
-                className="w-full bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-all duration-300 shadow-lg"
+                className="w-full bg-gradient-to-r from-[#FF8C00] to-[#FFB020] text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-all duration-300 shadow-lg"
               >
                 Reload Page
               </button>

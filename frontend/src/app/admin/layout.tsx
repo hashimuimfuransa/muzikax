@@ -71,12 +71,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           {/* Logo Section */}
           <div className={`p-6 flex items-center ${isCollapsed ? 'justify-center' : ''} border-b border-gray-800/50`}>
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-[#FF4D67]/30">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#FF8C00] to-[#FFB020] flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-[#FF8C00]/30">
                 A
               </div>
               {!isCollapsed && (
                 <div>
-                  <h1 className="font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] text-xl">
+                  <h1 className="font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF8C00] to-[#FFB020] text-xl">
                     MuzikaX
                   </h1>
                   <p className="text-xs text-gray-500 font-medium">Admin Panel</p>
@@ -93,14 +93,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 href={item.href}
                 className={`group flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-200 relative overflow-hidden ${
                   pathname === item.href
-                    ? 'bg-gradient-to-r from-[#FF4D67]/20 to-[#FFCB2B]/10 text-white border border-[#FF4D67]/30 shadow-lg shadow-[#FF4D67]/10'
+                    ? 'bg-gradient-to-r from-[#FF8C00]/20 to-[#FFB020]/10 text-white border border-[#FF8C00]/30 shadow-lg shadow-[#FF8C00]/10'
                     : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
                 } ${isCollapsed ? 'justify-center' : ''}`}
                 title={isCollapsed ? item.name : undefined}
               >
                 {/* Active Indicator */}
                 {pathname === item.href && !isCollapsed && (
-                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-[#FF4D67] to-[#FFCB2B] rounded-r-full" />
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-[#FF8C00] to-[#FFB020] rounded-r-full" />
                 )}
                 
                 <svg 
@@ -147,7 +147,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           {/* Collapse Toggle */}
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="absolute -right-3 top-20 w-6 h-6 bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] rounded-full flex items-center justify-center text-white shadow-lg hover:scale-110 transition-transform duration-200 z-50"
+            className="absolute -right-3 top-20 w-6 h-6 bg-gradient-to-r from-[#FF8C00] to-[#FFB020] rounded-full flex items-center justify-center text-white shadow-lg hover:scale-110 transition-transform duration-200 z-50"
             title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             <svg 
@@ -212,7 +212,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={`group flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-200 relative overflow-hidden ${
                     pathname === item.href
-                      ? 'bg-gradient-to-r from-[#FF4D67]/20 to-[#FFCB2B]/10 text-white border border-[#FF4D67]/30 shadow-lg shadow-[#FF4D67]/10'
+                      ? 'bg-gradient-to-r from-[#FF8C00]/20 to-[#FFB020]/10 text-white border border-[#FF8C00]/30 shadow-lg shadow-[#FF8C00]/10'
                       : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
                   }`}
                 >
@@ -253,8 +253,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         
         {/* Background Decorative Elements - Fixed positioning to prevent overflow */}
         <div className="relative w-full overflow-hidden">
-          <div className="absolute top-0 left-0 w-64 h-64 sm:w-96 sm:h-96 bg-[#FF4D67]/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
-          <div className="absolute bottom-0 right-0 w-64 h-64 sm:w-96 sm:h-96 bg-[#FFCB2B]/10 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
+          <div className="absolute top-0 left-0 w-64 h-64 sm:w-96 sm:h-96 bg-[#FF8C00]/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+          <div className="absolute bottom-0 right-0 w-64 h-64 sm:w-96 sm:h-96 bg-[#FFB020]/10 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
           
           <div className="container mx-auto px-4 sm:px-8 py-6 sm:py-8 relative z-10">
             {children}

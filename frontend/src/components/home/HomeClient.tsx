@@ -194,20 +194,20 @@ function TrackRow({
     <button
       onClick={onPlay}
       className={`group flex items-center gap-3 w-full px-3 py-2.5 rounded-xl transition-all duration-300 text-left hover:bg-gradient-to-r hover:from-white/8 hover:to-white/3 active:scale-[0.99] relative overflow-hidden ${
-        isActive ? "bg-gradient-to-r from-amber-500/20 to-orange-600/20 ring-1 ring-amber-400" : ""
+        isActive ? "bg-gradient-to-r from-white/15 to-white/10 ring-1 ring-white/30" : ""
       }`}
     >
       {/* Animated gradient border for active state */}
       {isActive && (
-        <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 animate-gradient opacity-50" />
+        <div className="absolute inset-0 bg-gradient-to-r from-white/10 via-white/15 to-white/10 animate-gradient opacity-50" />
       )}
       
       {/* Index / play indicator */}
       <span
         className={`w-6 text-center text-sm shrink-0 relative z-10 ${
           isActive
-            ? "text-amber-400 font-bold"
-            : "text-white/30 group-hover:text-amber-400/80 transition-colors"
+            ? "text-white font-bold"
+            : "text-white/30 group-hover:text-white/60 transition-colors"
         }`}
       >
         {isActive ? "▶" : index + 1}
@@ -227,7 +227,7 @@ function TrackRow({
       <div className="flex-1 min-w-0 relative z-10">
         <p
           className={`text-sm font-medium truncate transition-colors duration-300 ${
-            isActive ? "text-amber-400 font-semibold" : "text-white group-hover:text-amber-100"
+            isActive ? "text-white font-semibold" : "text-white group-hover:text-white/90"
           }`}
         >
           {track.title}
@@ -236,7 +236,7 @@ function TrackRow({
       </div>
 
       {/* Plays */}
-      <span className="text-xs text-white/30 shrink-0 hidden sm:block group-hover:text-amber-400/80 transition-colors relative z-10">
+      <span className="text-xs text-white/30 shrink-0 hidden sm:block group-hover:text-white/50 transition-colors relative z-10">
         {formatPlays(track.plays)}
       </span>
     </button>
@@ -260,12 +260,12 @@ function TrackCard({
       onClick={onPlay}
       className={`group flex flex-col gap-3 p-3 rounded-2xl transition-all duration-500 text-left w-full active:scale-[0.98] relative overflow-hidden ${
         isActive 
-          ? "bg-[#1A2330] ring-2 ring-[#F59E0B] shadow-lg shadow-[#F59E0B]/30 scale-[1.02]" 
-          : "bg-[#0a0604] hover:bg-[#121821] border border-[#1F2937] hover:border-[#374151] hover:-translate-y-1 hover:shadow-xl hover:shadow-[#F59E0B]/20"
+          ? "bg-[#1A2330] ring-2 ring-white/40 shadow-lg shadow-white/10 scale-[1.02]" 
+          : "bg-[#0a0604] hover:bg-[#121821] border border-[#1F2937] hover:border-[#374151] hover:-translate-y-1 hover:shadow-xl hover:shadow-white/10"
       }`}
     >
       {/* Animated gradient border effect */}
-      <div className="absolute inset-0 bg-gradient-to-r from-[#F59E0B]/20 via-[#FFB020]/20 to-[#F59E0B]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-gradient" />
+      <div className="absolute inset-0 bg-gradient-to-r from-white/10 via-white/15 to-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-gradient" />
       
       {/* Shimmer effect on hover */}
       <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
@@ -276,22 +276,22 @@ function TrackCard({
         <Cover src={track.coverImage} alt={track.title} className="w-full h-full transition-transform duration-500 group-hover:scale-110" />
         {/* Play button overlay with Modern Design */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300" />
-        <div className="absolute bottom-2 right-2 w-10 h-10 bg-[#F59E0B] rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 shadow-lg shadow-[#F59E0B]/30 hover:shadow-[#F59E0B]/50 hover:scale-110">
-          <svg className="w-5 h-5 text-black ml-0.5" fill="currentColor" viewBox="0 0 20 20">
+        <div className="absolute bottom-2 right-2 w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-110 border border-white/30">
+          <svg className="w-5 h-5 text-white ml-0.5" fill="currentColor" viewBox="0 0 20 20">
             <path d="M6.3 2.84A1.5 1.5 0 004 4.11v11.78a1.5 1.5 0 002.3 1.27l9.344-5.891a1.5 1.5 0 000-2.538L6.3 2.84z" />
           </svg>
         </div>
         {isActive && (
-          <div className="absolute top-2 left-2 px-2 py-1 bg-[#F59E0B] text-black text-[10px] font-bold rounded-full shadow-lg animate-pulse">
+          <div className="absolute top-2 left-2 px-2 py-1 bg-white/20 backdrop-blur-sm text-white text-[10px] font-bold rounded-full shadow-lg border border-white/30 animate-pulse">
             ▶ {t('nowPlaying')}
           </div>
         )}
       </div>
       <div className="relative z-10">
-        <p className={`text-sm font-semibold truncate transition-all duration-300 ${isActive ? "text-[#F59E0B]" : "text-white group-hover:text-white"}`}>
+        <p className={`text-sm font-semibold truncate transition-all duration-300 ${isActive ? "text-white" : "text-white group-hover:text-white/90"}`}>
           {track.title}
         </p>
-        <p className="text-xs text-[#9CA3AF] truncate mt-0.5 group-hover:text-[#F5DEB3] transition-colors">{track.artist}</p>
+        <p className="text-xs text-[#9CA3AF] truncate mt-0.5 group-hover:text-white/70 transition-colors">{track.artist}</p>
       </div>
     </button>
   );
@@ -303,10 +303,10 @@ function ArtistCard({ creator }: { creator: Creator }) {
   return (
     <button
       onClick={() => router.push(`/artists/${creator.id}`)}
-      className="group flex flex-col items-center gap-3 p-3 rounded-2xl hover:bg-gradient-to-br hover:from-[#F59E0B]/10 hover:to-[#FFB020]/10 transition-all duration-500 active:scale-[0.98] text-center w-full relative overflow-hidden border border-[#1F2937] hover:border-[#374151] bg-[#0a0604] hover:-translate-y-1 hover:shadow-xl hover:shadow-[#F59E0B]/20"
+      className="group flex flex-col items-center gap-3 p-3 rounded-2xl hover:bg-gradient-to-br hover:from-white/10 hover:to-white/5 transition-all duration-500 active:scale-[0.98] text-center w-full relative overflow-hidden border border-[#1F2937] hover:border-[#374151] bg-[#0a0604] hover:-translate-y-1 hover:shadow-xl hover:shadow-white/10"
     >
       {/* Background gradient effect */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#F59E0B]/10 to-[#FFB020]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       
       {/* Shimmer effect */}
       <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none">
@@ -316,13 +316,13 @@ function ArtistCard({ creator }: { creator: Creator }) {
       <div className="relative z-10">
         <div className="relative">
           {/* Animated ring effect */}
-          <div className="absolute inset-0 rounded-full bg-[#F59E0B] blur-md opacity-0 group-hover:opacity-60 transition-opacity duration-300 animate-pulse" />
+          <div className="absolute inset-0 rounded-full bg-white/20 blur-md opacity-0 group-hover:opacity-40 transition-opacity duration-300 animate-pulse" />
           <Avatar src={creator.avatar} name={creator.name} size={64} className="transition-transform duration-500 group-hover:scale-110" />
           {/* Decorative ring */}
-          <div className="absolute -inset-0.5 rounded-full bg-[#F59E0B] opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-spin-slow" style={{ animationDuration: '3s' }} />
+          <div className="absolute -inset-0.5 rounded-full bg-white/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-spin-slow" style={{ animationDuration: '3s' }} />
           {creator.verified && (
-            <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-[#F59E0B] rounded-full flex items-center justify-center shadow-lg shadow-[#F59E0B]/30 transition-transform duration-300 group-hover:scale-110">
-              <svg className="w-3.5 h-3.5 text-black" fill="currentColor" viewBox="0 0 20 20">
+            <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg border border-white/30 transition-transform duration-300 group-hover:scale-110">
+              <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 20 20">
                 <path
                   fillRule="evenodd"
                   d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -333,8 +333,8 @@ function ArtistCard({ creator }: { creator: Creator }) {
           )}
         </div>
         <div className="mt-2">
-          <p className="text-sm font-semibold text-white group-hover:text-[#F5DEB3] transition-colors truncate max-w-[120px]">{creator.name}</p>
-          <p className="text-xs text-[#9CA3AF] group-hover:text-[#F5DEB3] transition-colors">{formatPlays(creator.followers)} followers</p>
+          <p className="text-sm font-semibold text-white group-hover:text-white/90 transition-colors truncate max-w-[120px]">{creator.name}</p>
+          <p className="text-xs text-[#9CA3AF] group-hover:text-white/60 transition-colors">{formatPlays(creator.followers)} followers</p>
         </div>
       </div>
     </button>
@@ -347,17 +347,17 @@ function AlbumCard({ album }: { album: Album }) {
   return (
     <button
       onClick={() => router.push(`/album/${album.id}`)}
-      className="group flex flex-col gap-3 p-3 rounded-2xl hover:bg-gradient-to-br hover:from-[#F59E0B]/10 hover:to-[#FFB020]/10 transition-all duration-500 active:scale-[0.98] text-left w-full relative overflow-hidden border border-[#1F2937] hover:border-[#374151] bg-[#0a0604] hover:-translate-y-1 hover:shadow-xl hover:shadow-[#F59E0B]/20"
+      className="group flex flex-col gap-3 p-3 rounded-2xl hover:bg-gradient-to-br hover:from-white/10 hover:to-white/5 transition-all duration-500 active:scale-[0.98] text-left w-full relative overflow-hidden border border-[#1F2937] hover:border-[#374151] bg-[#0a0604] hover:-translate-y-1 hover:shadow-xl hover:shadow-white/10"
     >
       {/* Animated background glow */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#F59E0B]/15 to-[#FFB020]/15 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl" />
+      <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl" />
       
       {/* Shimmer effect */}
       <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none">
         <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
       </div>
       
-      <div className="relative aspect-square w-full rounded-xl overflow-hidden shadow-lg group-hover:shadow-2xl group-hover:shadow-[#F59E0B]/30 transition-all duration-500">
+      <div className="relative aspect-square w-full rounded-xl overflow-hidden shadow-lg group-hover:shadow-2xl group-hover:shadow-white/15 transition-all duration-500">
         {/* Main album cover */}
         <Cover src={album.coverImage} alt={album.title} className="w-full h-full transition-transform duration-500 group-hover:scale-110" />
         
@@ -365,13 +365,13 @@ function AlbumCard({ album }: { album: Album }) {
         {album.tracks > 1 && (
           <>
             {/* Second layer */}
-            <div className="absolute top-1 left-1 w-full h-full rounded-xl overflow-hidden shadow-lg border border-[#F59E0B]/20 pointer-events-none transition-transform duration-500 group-hover:top-2 group-hover:left-2">
+            <div className="absolute top-1 left-1 w-full h-full rounded-xl overflow-hidden shadow-lg border border-white/15 pointer-events-none transition-transform duration-500 group-hover:top-2 group-hover:left-2">
               <Cover src={album.coverImage} alt={album.title} className="w-full h-full opacity-80" />
             </div>
             
             {/* Third layer for albums with many tracks */}
             {album.tracks > 3 && (
-              <div className="absolute top-2 left-2 w-full h-full rounded-xl overflow-hidden shadow-lg border border-[#F59E0B]/15 pointer-events-none transition-transform duration-500 group-hover:top-4 group-hover:left-4">
+              <div className="absolute top-2 left-2 w-full h-full rounded-xl overflow-hidden shadow-lg border border-white/10 pointer-events-none transition-transform duration-500 group-hover:top-4 group-hover:left-4">
                 <Cover src={album.coverImage} alt={album.title} className="w-full h-full opacity-60" />
               </div>
             )}
@@ -383,8 +383,8 @@ function AlbumCard({ album }: { album: Album }) {
         
         {/* Play button overlay */}
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
-          <div className="w-14 h-14 bg-[#F59E0B] rounded-full flex items-center justify-center shadow-lg shadow-[#F59E0B]/30 transform scale-50 group-hover:scale-100 transition-all duration-300 hover:scale-110">
-            <svg className="w-6 h-6 text-black ml-1" fill="currentColor" viewBox="0 0 20 20">
+          <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg transform scale-50 group-hover:scale-100 transition-all duration-300 hover:scale-110 border border-white/30">
+            <svg className="w-6 h-6 text-white ml-1" fill="currentColor" viewBox="0 0 20 20">
               <path d="M6.3 2.84A1.5 1.5 0 004 4.11v11.78a1.5 1.5 0 002.3 1.27l9.344-5.891a1.5 1.5 0 000-2.538L6.3 2.84z" />
             </svg>
           </div>
@@ -392,14 +392,14 @@ function AlbumCard({ album }: { album: Album }) {
         
         {/* Track count badge */}
         {album.tracks > 1 && (
-          <div className="absolute bottom-2 right-2 bg-[#F59E0B] text-black text-xs font-bold px-2.5 py-1 rounded-full shadow-lg min-w-[24px] text-center transition-transform duration-300 group-hover:scale-110">
+          <div className="absolute bottom-2 right-2 bg-white/20 backdrop-blur-sm text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-lg min-w-[24px] text-center transition-transform duration-300 group-hover:scale-110 border border-white/30">
             {album.tracks}
           </div>
         )}
       </div>
       <div>
-        <p className="text-sm font-semibold text-white group-hover:text-[#F5DEB3] transition-colors truncate">{album.title}</p>
-        <p className="text-xs text-[#9CA3AF] group-hover:text-[#F5DEB3] transition-colors truncate">{album.artist} · {album.year}</p>
+        <p className="text-sm font-semibold text-white group-hover:text-white/90 transition-colors truncate">{album.title}</p>
+        <p className="text-xs text-[#9CA3AF] group-hover:text-white/60 transition-colors truncate">{album.artist} · {album.year}</p>
       </div>
     </button>
   );
@@ -420,20 +420,20 @@ function SectionHeader({
       <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight flex items-center gap-2 relative">
         {/* Animated gradient underline */}
         <span className="relative inline-block">
-          <span className="bg-gradient-to-r from-amber-300 via-orange-400 to-amber-500 bg-clip-text text-transparent transition-all duration-300 group-hover:from-amber-400 group-hover:via-orange-500 group-hover:to-amber-600">
+          <span className="text-white transition-all duration-300 group-hover:text-white/90">
             {title}
           </span>
-          <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-amber-400 to-orange-500 transition-all duration-500 group-hover:w-full" />
+          <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-white/60 to-white/30 transition-all duration-500 group-hover:w-full" />
         </span>
-        <div className="h-px flex-1 max-w-[100px] bg-gradient-to-r from-amber-400/50 to-transparent hidden sm:block opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        <div className="h-px flex-1 max-w-[100px] bg-gradient-to-r from-white/30 to-transparent hidden sm:block opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       </h2>
       {onSeeAll && t && (
         <button
           onClick={onSeeAll}
-          className="text-xs font-semibold text-white/70 hover:text-amber-300 transition-all duration-300 uppercase tracking-widest hover:underline decoration-amber-400 decoration-2 underline-offset-4 relative group/btn overflow-hidden"
+          className="text-xs font-semibold text-white/70 hover:text-white transition-all duration-300 uppercase tracking-widest hover:underline decoration-white/40 decoration-2 underline-offset-4 relative group/btn overflow-hidden"
         >
           <span className="relative z-10">{t('seeAll')}</span>
-          <span className="absolute inset-0 bg-gradient-to-r from-amber-500/20 to-orange-500/20 rounded transform scale-x-0 group-hover/btn:scale-x-100 transition-transform duration-300 origin-left" />
+          <span className="absolute inset-0 bg-gradient-to-r from-white/10 to-white/5 rounded transform scale-x-0 group-hover/btn:scale-x-100 transition-transform duration-300 origin-left" />
         </button>
       )}
     </div>
@@ -557,7 +557,7 @@ function HeroBanner({
               <Cover src={currentTrack.coverImage} alt={currentTrack.title} className="w-full h-full" />
             </div>
             <div className="flex-1 min-w-0 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-              <p className="text-xs font-semibold text-amber-400 uppercase tracking-widest mb-1">
+              <p className="text-xs font-semibold text-white/70 uppercase tracking-widest mb-1">
                 {t('featuredTrack')}
               </p>
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white leading-tight truncate">
@@ -567,7 +567,7 @@ function HeroBanner({
               <div className="flex items-center gap-3 mt-4">
                 <button
                   onClick={() => onPlay(currentIndex)}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-400 active:scale-95 text-black font-bold text-sm rounded-full transition-all duration-150 shadow-lg shadow-amber-500/25 hover:shadow-xl hover:shadow-amber-500/40 hover:-translate-y-0.5"
+                  className="flex items-center gap-2 px-5 py-2.5 bg-white/10 hover:bg-white/20 active:scale-95 text-white font-bold text-sm rounded-full transition-all duration-150 shadow-lg hover:shadow-xl hover:-translate-y-0.5 border border-white/20"
                 >
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M6.3 2.84A1.5 1.5 0 004 4.11v11.78a1.5 1.5 0 002.3 1.27l9.344-5.891a1.5 1.5 0 000-2.538L6.3 2.84z" />
@@ -597,7 +597,7 @@ function HeroBanner({
               onClick={() => goToSlide(index)}
               className={`transition-all duration-300 rounded-full ${
                 index === currentIndex
-                  ? "w-8 h-2 bg-amber-500"
+                  ? "w-8 h-2 bg-white/80"
                   : "w-2 h-2 bg-white/40 hover:bg-white/60"
               }`}
               aria-label={`Go to slide ${index + 1}`}
@@ -610,7 +610,7 @@ function HeroBanner({
       {featuredTracks.length > 1 && (
         <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/10 z-20">
           <div
-            className="h-full bg-gradient-to-r from-amber-500 to-orange-500 transition-all duration-100"
+            className="h-full bg-gradient-to-r from-white/60 to-white/40 transition-all duration-100"
             style={{
               width: `${(progressRef.current / SLIDE_DURATION) * 100}%`,
             }}
@@ -647,9 +647,9 @@ function ArtistCardWithFollow({ creator, t }: { creator: Creator; t: (key: any) 
   };
 
   return (
-    <div className="group flex flex-col items-center gap-3 p-3 rounded-2xl hover:bg-gradient-to-br hover:from-white/10 hover:to-white/5 transition-all duration-300 active:scale-[0.98] text-center w-full relative overflow-hidden border border-white/10 hover:border-amber-400/40">
+    <div className="group flex flex-col items-center gap-3 p-3 rounded-2xl hover:bg-gradient-to-br hover:from-white/10 hover:to-white/5 transition-all duration-300 active:scale-[0.98] text-center w-full relative overflow-hidden border border-white/10 hover:border-white/20">
       {/* Background gradient effect */}
-      <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 to-orange-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       
       {/* Clickable area for navigation */}
       <button
@@ -662,13 +662,13 @@ function ArtistCardWithFollow({ creator, t }: { creator: Creator; t: (key: any) 
       <div className="relative z-10 flex flex-col items-center w-full">
         <div className="relative">
           {/* Animated ring effect */}
-          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 blur-md opacity-0 group-hover:opacity-60 transition-opacity duration-300 animate-pulse" />
+          <div className="absolute inset-0 rounded-full bg-white/20 blur-md opacity-0 group-hover:opacity-40 transition-opacity duration-300 animate-pulse" />
           <Avatar src={creator.avatar} name={creator.name} size={64} />
           {/* Decorative African-inspired border */}
-          <div className="absolute -inset-0.5 rounded-full bg-gradient-to-br from-amber-400 via-orange-500 to-amber-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-spin-slow" style={{ animationDuration: '3s' }} />
+          <div className="absolute -inset-0.5 rounded-full bg-white/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-spin-slow" style={{ animationDuration: '3s' }} />
           {creator.verified && (
-            <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg shadow-amber-500/50 border-2 border-black">
-              <svg className="w-3.5 h-3.5 text-black" fill="currentColor" viewBox="0 0 20 20">
+            <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg border border-white/30">
+              <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 20 20">
                 <path
                   fillRule="evenodd"
                   d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -679,7 +679,7 @@ function ArtistCardWithFollow({ creator, t }: { creator: Creator; t: (key: any) 
           )}
         </div>
         <div className="w-full mt-2">
-          <p className="text-sm font-semibold text-white/90 group-hover:text-amber-300 transition-colors truncate max-w-[120px]">
+          <p className="text-sm font-semibold text-white/90 group-hover:text-white transition-colors truncate max-w-[120px]">
             {creator.name}
           </p>
           <p className="text-xs text-white/35 group-hover:text-white/60 transition-colors">
@@ -693,8 +693,8 @@ function ArtistCardWithFollow({ creator, t }: { creator: Creator; t: (key: any) 
         onClick={handleFollow}
         className={`relative z-10 w-full px-3 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-bold transition-all shadow-md hover:shadow-lg min-h-[32px] sm:min-h-[36px] ${
           isFollowing
-            ? 'bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white border border-amber-400/30'
-            : 'bg-gradient-to-r from-amber-300 to-amber-500 hover:from-amber-400 hover:to-amber-600 text-black shadow-amber-400/30'
+            ? 'bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white border border-white/20'
+            : 'bg-gradient-to-r from-white/20 to-white/10 hover:from-white/30 hover:to-white/20 text-white shadow-white/10 border border-white/20'
         }`}
       >
         {isFollowing ? t('unfollow') : t('follow')}
@@ -1023,8 +1023,8 @@ function HomeContent() {
         aria-hidden
         className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
       >
-        <div className="absolute -top-40 -left-40 w-[600px] h-[600px] bg-amber-500/5 rounded-full blur-[120px]" />
-        <div className="absolute -bottom-40 -right-40 w-[500px] h-[500px] bg-orange-600/5 rounded-full blur-[120px]" />
+        <div className="absolute -top-40 -left-40 w-[600px] h-[600px] bg-white/5 rounded-full blur-[120px]" />
+        <div className="absolute -bottom-40 -right-40 w-[500px] h-[500px] bg-white/3 rounded-full blur-[120px]" />
       </div>
 
       <main className="flex-1 w-full max-w-[1600px] mx-auto px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10 pt-16 sm:pt-20 md:pt-16 lg:pt-8 pb-32 space-y-8 sm:space-y-10 lg:space-y-12">
@@ -1046,7 +1046,7 @@ function HomeContent() {
               onClick={() => setActiveTab(tab.id)}
               className={`px-3 sm:px-4 md:px-5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 whitespace-nowrap flex-shrink-0 ${
                 activeTab === tab.id
-                  ? "bg-gradient-to-r from-amber-500 to-orange-500 text-black shadow-md"
+                  ? "bg-white/15 text-white shadow-md border border-white/20"
                   : "text-white/50 hover:text-white/80"
               }`}
             >
@@ -1074,7 +1074,7 @@ function HomeContent() {
                 {followedTracksLoading ? (
                   <div className="text-center py-12 px-4">
                     <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-white/5 flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-400"></div>
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white/60"></div>
                     </div>
                     <p className="text-sm text-white/50">Loading tracks from artists you follow...</p>
                   </div>
@@ -1089,7 +1089,7 @@ function HomeContent() {
                     <p className="text-sm text-white/50 mb-4">{t('followArtistsToSeeTracks' as any)}</p>
                     <button
                       onClick={() => router.push("/artists")}
-                      className="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-black font-bold text-sm rounded-full transition-all shadow-lg"
+                      className="px-6 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold text-sm rounded-full transition-all shadow-lg border border-white/20"
                     >
                       {t('discoverArtists')}
                     </button>
@@ -1117,7 +1117,7 @@ function HomeContent() {
                 {followedTracksLoading ? (
                   <div className="col-span-full text-center py-12 px-4">
                     <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-white/5 flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-400"></div>
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white/60"></div>
                     </div>
                     <p className="text-sm text-white/50">Loading tracks from artists you follow...</p>
                   </div>
@@ -1132,7 +1132,7 @@ function HomeContent() {
                     <p className="text-sm text-white/50 mb-4">{t('followArtistsToSeeTracks' as any)}</p>
                     <button
                       onClick={() => router.push("/artists")}
-                      className="inline-flex px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-black font-bold text-sm rounded-full transition-all shadow-lg"
+                      className="inline-flex px-6 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold text-sm rounded-full transition-all shadow-lg border border-white/20"
                     >
                       {t('discoverArtists')}
                     </button>

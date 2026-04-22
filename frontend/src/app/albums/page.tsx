@@ -68,14 +68,14 @@ export default function AlbumsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black py-8 sm:py-12 px-4 overflow-x-hidden relative">
       <div className="absolute inset-0 overflow-hidden -z-10">
-        <div className="absolute -top-40 left-0 w-96 h-96 bg-[#FF4D67]/10 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-40 right-0 w-96 h-96 bg-[#FFCB2B]/10 rounded-full blur-3xl"></div>
+        <div className="absolute -top-40 left-0 w-96 h-96 bg-[#FF8C00]/10 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-40 right-0 w-96 h-96 bg-[#FFB020]/10 rounded-full blur-3xl"></div>
       </div>
       
       <div className="w-full max-w-6xl mx-auto relative">
         {/* Header */}
         <div className="mb-8 sm:mb-12">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] mb-3 sm:mb-4">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF8C00] to-[#FFB020] mb-3 sm:mb-4">
             Albums
           </h1>
           <p className="text-gray-400 max-w-2xl">
@@ -90,7 +90,7 @@ export default function AlbumsPage() {
             <select 
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
-              className="bg-gray-800 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+              className="bg-gray-800 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF8C00]"
             >
               <option value="popular">Most Popular</option>
               <option value="recent">Most Recent</option>
@@ -125,7 +125,7 @@ export default function AlbumsPage() {
             {sortedAlbums.map((album) => (
               <div 
                 key={album.id} 
-                className="group card-bg rounded-xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10 cursor-pointer"
+                className="group card-bg rounded-xl overflow-hidden transition-all duration-300 hover:border-[#FF8C00]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF8C00]/10 cursor-pointer"
                 onClick={() => router.push(`/album/${album.id}`)}
               >
                 <div className="relative">
@@ -136,7 +136,7 @@ export default function AlbumsPage() {
                       className="w-full aspect-square object-cover"
                     />
                   ) : (
-                    <div className="w-full aspect-square bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center">
+                    <div className="w-full aspect-square bg-gradient-to-br from-[#FF8C00] to-[#FFB020] flex items-center justify-center">
                       <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                         <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
                       </svg>

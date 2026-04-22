@@ -118,7 +118,7 @@ function SearchResultsContent() {
 
   // Browse categories for empty state (Spotify-style)
   const browseCategories = [
-    { id: 'trending', name: 'Trending Now', color: 'from-[#FF4D67] to-[#FFCB2B]', description: 'Hot tracks right now' },
+    { id: 'trending', name: 'Trending Now', color: 'from-[#FF8C00] to-[#FFB020]', description: 'Hot tracks right now' },
     { id: 'new-releases', name: 'New Releases', color: 'from-purple-600 to-pink-600', description: 'Fresh drops this week' },
     { id: 'charts', name: 'Top Charts', color: 'from-blue-600 to-cyan-500', description: 'Most played songs' },
     { id: 'playlists', name: 'Curated Playlists', color: 'from-green-500 to-emerald-600', description: 'Handpicked collections' },
@@ -261,14 +261,14 @@ function SearchResultsContent() {
         </div>
       </div>
 
-      <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#FF4D67]/10 rounded-full blur-3xl -z-10"></div>
-      <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-[#FFCB2B]/10 rounded-full blur-3xl -z-10"></div>
+      <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#FF8C00]/10 rounded-full blur-3xl -z-10"></div>
+      <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-[#FFB020]/10 rounded-full blur-3xl -z-10"></div>
       
       <div className="w-full max-w-full px-3 sm:px-6 md:px-8">
         <div className="max-w-6xl mx-auto">
           {/* Search Header - Desktop */}
           <div className="hidden sm:block text-center mb-8 sm:mb-12">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] via-[#FFCB2B] to-[#FF4D67] mb-2 animate-gradient">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-[#FF8C00] via-[#FFB020] to-[#FF8C00] mb-2 animate-gradient">
               {t('searchResults')}
             </h1>
             <p className="text-gray-400 text-sm sm:text-base mb-6">Discover music, artists, and playlists</p>
@@ -281,16 +281,16 @@ function SearchResultsContent() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={t('searchPlaceholder')}
-                  className="w-full px-6 py-4 pl-14 pr-24 bg-gray-800/60 backdrop-blur-lg border-2 border-gray-700 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:border-[#FF4D67] focus:ring-4 focus:ring-[#FF4D67]/20 text-base transition-all shadow-xl group-hover:border-gray-600"
+                  className="w-full px-6 py-4 pl-14 pr-24 bg-gray-800/60 backdrop-blur-lg border-2 border-gray-700 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:border-[#FF8C00] focus:ring-4 focus:ring-[#FF8C00]/20 text-base transition-all shadow-xl group-hover:border-gray-600"
                 />
-                <div className="absolute left-5 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-[#FF4D67] transition-colors">
+                <div className="absolute left-5 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-[#FF8C00] transition-colors">
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                   </svg>
                 </div>
                 <button 
                   type="submit"
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 px-6 py-2 bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] hover:from-[#FF4D67]/90 hover:to-[#FFCB2B]/90 text-white rounded-xl text-sm font-bold transition-all shadow-lg hover:shadow-xl hover:scale-105"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 px-6 py-2 bg-gradient-to-r from-[#FF8C00] to-[#FFB020] hover:from-[#FF8C00]/90 hover:to-[#FFB020]/90 text-white rounded-xl text-sm font-bold transition-all shadow-lg hover:shadow-xl hover:scale-105"
                 >
                   {t('search')}
                 </button>
@@ -303,7 +303,7 @@ function SearchResultsContent() {
                 <button
                   className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-colors ${
                     selectedGenre === null
-                      ? 'bg-[#FF4D67] text-white'
+                      ? 'bg-[#FF8C00] text-white'
                       : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50'
                   }`}
                   onClick={() => setSelectedGenre(null)}
@@ -316,7 +316,7 @@ function SearchResultsContent() {
                     key={genre.id}
                     className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-colors ${
                       selectedGenre === genre.id
-                        ? 'bg-[#FF4D67] text-white'
+                        ? 'bg-[#FF8C00] text-white'
                         : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50'
                     }`}
                     onClick={() => setSelectedGenre(genre.id)}
@@ -330,7 +330,7 @@ function SearchResultsContent() {
                   <select 
                     value={selectedGenre || ''}
                     onChange={(e) => setSelectedGenre(e.target.value || null)}
-                    className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium bg-gray-800/50 text-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+                    className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium bg-gray-800/50 text-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FF8C00]"
                   >
                     <option value="">{t('allGenres')}</option>
                     {genres.map((genre) => (
@@ -354,7 +354,7 @@ function SearchResultsContent() {
                             key={genre.id}
                             className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                               selectedGenre === genre.id
-                                ? 'bg-[#FF4D67] text-white'
+                                ? 'bg-[#FF8C00] text-white'
                                 : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
                             }`}
                             onClick={() => {
@@ -384,7 +384,7 @@ function SearchResultsContent() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={t('searchPlaceholder')}
-                  className="w-full px-4 py-3 pl-12 pr-20 bg-gray-800/60 backdrop-blur-lg border-2 border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[#FF4D67] focus:ring-2 focus:ring-[#FF4D67]/20 text-sm transition-all shadow-lg"
+                  className="w-full px-4 py-3 pl-12 pr-20 bg-gray-800/60 backdrop-blur-lg border-2 border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[#FF8C00] focus:ring-2 focus:ring-[#FF8C00]/20 text-sm transition-all shadow-lg"
                 />
                 <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -393,7 +393,7 @@ function SearchResultsContent() {
                 </div>
                 <button 
                   type="submit"
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 px-4 py-1.5 bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] text-white rounded-lg text-xs font-bold transition-all shadow-md active:scale-95"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 px-4 py-1.5 bg-gradient-to-r from-[#FF8C00] to-[#FFB020] text-white rounded-lg text-xs font-bold transition-all shadow-md active:scale-95"
                 >
                   {t('search')}
                 </button>
@@ -407,7 +407,7 @@ function SearchResultsContent() {
               <button
                 className={`flex-shrink-0 px-3 py-2 rounded-full text-xs font-medium transition-all ${
                   selectedGenre === null
-                    ? 'bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] text-white shadow-md'
+                    ? 'bg-gradient-to-r from-[#FF8C00] to-[#FFB020] text-white shadow-md'
                     : 'bg-gray-800/60 text-gray-300 border border-gray-700'
                 }`}
                 onClick={() => setSelectedGenre(null)}
@@ -420,7 +420,7 @@ function SearchResultsContent() {
                   key={genre.id}
                   className={`flex-shrink-0 px-3 py-2 rounded-full text-xs font-medium transition-all flex items-center gap-1 ${
                     selectedGenre === genre.id
-                      ? 'bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] text-white shadow-md'
+                      ? 'bg-gradient-to-r from-[#FF8C00] to-[#FFB020] text-white shadow-md'
                       : 'bg-gray-800/60 text-gray-300 border border-gray-700'
                   }`}
                   onClick={() => setSelectedGenre(genre.id)}
@@ -453,7 +453,7 @@ function SearchResultsContent() {
                 <button
                   className={`py-2 px-3 sm:px-4 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap ${
                     activeTab === 'tracks'
-                      ? 'text-[#FF4D67] border-b-2 border-[#FF4D67]'
+                      ? 'text-[#FF8C00] border-b-2 border-[#FF8C00]'
                       : 'text-gray-500 hover:text-gray-300'
                   }`}
                   onClick={() => setActiveTab('tracks')}
@@ -463,7 +463,7 @@ function SearchResultsContent() {
                 <button
                   className={`py-2 px-3 sm:px-4 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap ${
                     activeTab === 'artists'
-                      ? 'text-[#FF4D67] border-b-2 border-[#FF4D67]'
+                      ? 'text-[#FF8C00] border-b-2 border-[#FF8C00]'
                       : 'text-gray-500 hover:text-gray-300'
                   }`}
                   onClick={() => setActiveTab('artists')}
@@ -473,7 +473,7 @@ function SearchResultsContent() {
                 <button
                   className={`py-2 px-3 sm:px-4 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap ${
                     activeTab === 'albums'
-                      ? 'text-[#FF4D67] border-b-2 border-[#FF4D67]'
+                      ? 'text-[#FF8C00] border-b-2 border-[#FF8C00]'
                       : 'text-gray-500 hover:text-gray-300'
                   }`}
                   onClick={() => setActiveTab('albums')}
@@ -483,7 +483,7 @@ function SearchResultsContent() {
                 <button
                   className={`py-2 px-3 sm:px-4 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap ${
                     activeTab === 'playlists'
-                      ? 'text-[#FF4D67] border-b-2 border-[#FF4D67]'
+                      ? 'text-[#FF8C00] border-b-2 border-[#FF8C00]'
                       : 'text-gray-500 hover:text-gray-300'
                   }`}
                   onClick={() => setActiveTab('playlists')}
@@ -493,7 +493,7 @@ function SearchResultsContent() {
                 <button
                   className={`py-2 px-3 sm:px-4 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap ${
                     activeTab === 'mixes'
-                      ? 'text-[#FF4D67] border-b-2 border-[#FF4D67]'
+                      ? 'text-[#FF8C00] border-b-2 border-[#FF8C00]'
                       : 'text-gray-500 hover:text-gray-300'
                   }`}
                   onClick={() => setActiveTab('mixes')}
@@ -507,7 +507,7 @@ function SearchResultsContent() {
           {/* Search Results */}
           {loading ? (
             <div className="text-center py-12">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#FF4D67]"></div>
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#FF8C00]"></div>
               <p className="mt-4 text-gray-400">Searching for "{query}"...</p>
             </div>
           ) : error ? (
@@ -519,7 +519,7 @@ function SearchResultsContent() {
               <p className="mt-2 text-gray-400">{error}</p>
               <button 
                 onClick={() => fetchSearchResults(query)}
-                className="mt-4 px-4 py-2 bg-[#FF4D67] hover:bg-[#FF4D67]/80 text-white rounded-full text-sm font-medium transition-colors"
+                className="mt-4 px-4 py-2 bg-[#FF8C00] hover:bg-[#FF8C00]/80 text-white rounded-full text-sm font-medium transition-colors"
               >
                 Try Again
               </button>
@@ -533,7 +533,7 @@ function SearchResultsContent() {
                     tracks.map((track, index) => (
                       <div 
                         key={track.id} 
-                        className="group flex items-center gap-4 p-3 sm:p-4 bg-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-xl hover:bg-gray-800/60 hover:border-[#FF4D67]/50 transition-all duration-300 cursor-pointer"
+                        className="group flex items-center gap-4 p-3 sm:p-4 bg-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-xl hover:bg-gray-800/60 hover:border-[#FF8C00]/50 transition-all duration-300 cursor-pointer"
                         onClick={() => {
                           const formattedTrack: PlayerTrack = {
                             id: track.id,
@@ -591,7 +591,7 @@ function SearchResultsContent() {
                         
                         {/* Track Info */}
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-bold text-white truncate group-hover:text-[#FF4D67] transition-colors">{track.title}</h3>
+                          <h3 className="font-bold text-white truncate group-hover:text-[#FF8C00] transition-colors">{track.title}</h3>
                           <p className="text-gray-400 text-sm truncate">{track.artist}</p>
                           {track.album && <p className="text-gray-500 text-xs truncate mt-0.5">{track.album}</p>}
                         </div>
@@ -621,7 +621,7 @@ function SearchResultsContent() {
                     ))
                   ) : (
                     <div className="text-center py-16 card-bg rounded-xl border border-gray-800">
-                      <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-[#FF4D67]/20 to-[#FFCB2B]/20 flex items-center justify-center">
+                      <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-[#FF8C00]/20 to-[#FFB020]/20 flex items-center justify-center">
                         <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
@@ -633,7 +633,7 @@ function SearchResultsContent() {
                           setSearchQuery('');
                           setSelectedGenre(null);
                         }}
-                        className="px-6 py-2 bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] text-white rounded-full font-medium hover:shadow-lg transition-all"
+                        className="px-6 py-2 bg-gradient-to-r from-[#FF8C00] to-[#FFB020] text-white rounded-full font-medium hover:shadow-lg transition-all"
                       >
                         Browse All
                       </button>
@@ -650,27 +650,27 @@ function SearchResultsContent() {
                       <Link 
                         key={artist._id || artist.id} 
                         href={`/artists/${artist._id || artist.id}`} 
-                        className="group relative card-bg rounded-lg sm:rounded-xl p-3 sm:p-4 transition-all duration-300 hover:border-[#FFCB2B]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FFCB2B]/10 block overflow-hidden active:scale-95"
+                        className="group relative card-bg rounded-lg sm:rounded-xl p-3 sm:p-4 transition-all duration-300 hover:border-[#FFB020]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FFB020]/10 block overflow-hidden active:scale-95"
                       >
                         {/* Background gradient on hover */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-[#FFCB2B]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div className="absolute inset-0 bg-gradient-to-br from-[#FFB020]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                         
                         <div className="relative flex flex-col items-center text-center">
                           <div className="relative mb-3">
                             <img 
                               src={artist.avatar || '/placeholder-avatar.png'} 
                               alt={artist.name} 
-                              className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover mx-auto ring-2 ring-transparent group-hover:ring-[#FFCB2B] transition-all duration-300"
+                              className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover mx-auto ring-2 ring-transparent group-hover:ring-[#FFB020] transition-all duration-300"
                             />
                             {artist.verified && (
-                              <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] border-2 border-gray-900 flex items-center justify-center shadow-lg">
+                              <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-gradient-to-r from-[#FF8C00] to-[#FFB020] border-2 border-gray-900 flex items-center justify-center shadow-lg">
                                 <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
                                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
                                 </svg>
                               </div>
                             )}
                           </div>
-                          <h3 className="font-bold text-white text-sm sm:text-base truncate w-full group-hover:text-[#FFCB2B] transition-colors">{artist.name}</h3>
+                          <h3 className="font-bold text-white text-sm sm:text-base truncate w-full group-hover:text-[#FFB020] transition-colors">{artist.name}</h3>
                           <p className="text-gray-400 text-xs sm:text-sm mb-2">{artist.type}</p>
                           <div className="flex items-center gap-1 text-gray-500 text-xs mb-3">
                             <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
@@ -686,9 +686,9 @@ function SearchResultsContent() {
                             disabled={!isAuthenticated}
                             className={`mt-auto w-full px-3 py-2 rounded-full text-xs font-medium transition-all duration-300 ${
                               following[artist._id || artist.id || ''] 
-                                ? 'bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] text-white shadow-lg' 
+                                ? 'bg-gradient-to-r from-[#FF8C00] to-[#FFB020] text-white shadow-lg' 
                                 : isAuthenticated
-                                  ? 'bg-transparent border-2 border-[#FFCB2B] text-[#FFCB2B] hover:bg-[#FFCB2B] hover:text-gray-900 hover:shadow-lg'
+                                  ? 'bg-transparent border-2 border-[#FFB020] text-[#FFB020] hover:bg-[#FFB020] hover:text-gray-900 hover:shadow-lg'
                                   : 'bg-gray-700 text-gray-400 cursor-not-allowed'
                             }`}
                           >
@@ -731,7 +731,7 @@ function SearchResultsContent() {
                     albums.map((album) => (
                       <div 
                         key={album.id} 
-                        className="group card-bg rounded-lg sm:rounded-xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10 cursor-pointer active:scale-95"
+                        className="group card-bg rounded-lg sm:rounded-xl overflow-hidden transition-all duration-300 hover:border-[#FF8C00]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF8C00]/10 cursor-pointer active:scale-95"
                         onClick={() => {
                           alert('Album playback coming soon!');
                         }}
@@ -745,7 +745,7 @@ function SearchResultsContent() {
                           {/* Play overlay */}
                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4">
                             <button 
-                              className="w-12 h-12 rounded-full bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center text-white shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 hover:scale-110"
+                              className="w-12 h-12 rounded-full bg-gradient-to-r from-[#FF8C00] to-[#FFB020] flex items-center justify-center text-white shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 hover:scale-110"
                             >
                               <svg className="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path>
@@ -755,7 +755,7 @@ function SearchResultsContent() {
                         </div>
                         
                         <div className="p-3">
-                          <h3 className="font-bold text-white text-sm sm:text-base mb-1 truncate group-hover:text-[#FF4D67] transition-colors">{album.title}</h3>
+                          <h3 className="font-bold text-white text-sm sm:text-base mb-1 truncate group-hover:text-[#FF8C00] transition-colors">{album.title}</h3>
                           <p className="text-gray-400 text-xs sm:text-sm truncate mb-2">{album.artist}</p>
                           <div className="flex justify-between items-center text-xs text-gray-500">
                             <span>{album.year}</span>
@@ -799,7 +799,7 @@ function SearchResultsContent() {
                     playlists.map((playlist) => (
                       <div 
                         key={playlist.id} 
-                        className="group card-bg rounded-lg sm:rounded-xl overflow-hidden transition-all duration-300 hover:border-[#FF4D67]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF4D67]/10 cursor-pointer active:scale-95"
+                        className="group card-bg rounded-lg sm:rounded-xl overflow-hidden transition-all duration-300 hover:border-[#FF8C00]/50 hover:bg-gradient-to-br hover:from-gray-900/70 hover:to-gray-900/50 hover:shadow-xl hover:shadow-[#FF8C00]/10 cursor-pointer active:scale-95"
                         onClick={() => handlePlayPlaylist(playlist)}
                       >
                         <div className="relative aspect-square overflow-hidden">
@@ -810,7 +810,7 @@ function SearchResultsContent() {
                               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                             />
                           ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center">
+                            <div className="w-full h-full bg-gradient-to-br from-[#FF8C00] to-[#FFB020] flex items-center justify-center">
                               <svg className="w-16 h-16 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
                               </svg>
@@ -819,7 +819,7 @@ function SearchResultsContent() {
                           
                           {/* Play Overlay */}
                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4">
-                            <button className="w-12 h-12 rounded-full bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center text-white shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 hover:scale-110">
+                            <button className="w-12 h-12 rounded-full bg-gradient-to-r from-[#FF8C00] to-[#FFB020] flex items-center justify-center text-white shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 hover:scale-110">
                               <svg className="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
                               </svg>
@@ -833,7 +833,7 @@ function SearchResultsContent() {
                         </div>
                         
                         <div className="p-3">
-                          <h3 className="font-bold text-white text-sm sm:text-base mb-1 truncate group-hover:text-[#FF4D67] transition-colors">
+                          <h3 className="font-bold text-white text-sm sm:text-base mb-1 truncate group-hover:text-[#FF8C00] transition-colors">
                             {playlist.name}
                           </h3>
                           <p className="text-gray-400 text-[10px] sm:text-xs truncate mb-1">
@@ -877,7 +877,7 @@ function SearchResultsContent() {
                     mixes.map((mix, index) => (
                       <div 
                         key={mix.id} 
-                        className="group flex items-center gap-4 p-3 sm:p-4 bg-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-xl hover:bg-gray-800/60 hover:border-[#FFCB2B]/50 transition-all duration-300 cursor-pointer"
+                        className="group flex items-center gap-4 p-3 sm:p-4 bg-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-xl hover:bg-gray-800/60 hover:border-[#FFB020]/50 transition-all duration-300 cursor-pointer"
                         onClick={() => {
                           const formattedTrack: PlayerTrack = {
                             id: mix.id,
@@ -912,7 +912,7 @@ function SearchResultsContent() {
                           />
                           {/* Mix badge */}
                           <div className="absolute -top-2 -left-2">
-                            <span className="px-2 py-1 bg-gradient-to-r from-[#FFCB2B] to-orange-500 text-white text-[10px] font-bold rounded-full shadow-lg">
+                            <span className="px-2 py-1 bg-gradient-to-r from-[#FFB020] to-orange-500 text-white text-[10px] font-bold rounded-full shadow-lg">
                               MIX
                             </span>
                           </div>
@@ -920,7 +920,7 @@ function SearchResultsContent() {
                         
                         {/* Mix Info */}
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-bold text-white truncate group-hover:text-[#FFCB2B] transition-colors">{mix.title}</h3>
+                          <h3 className="font-bold text-white truncate group-hover:text-[#FFB020] transition-colors">{mix.title}</h3>
                           <p className="text-gray-400 text-sm truncate">{mix.artist}</p>
                         </div>
                         
@@ -1027,14 +1027,14 @@ function SearchResultsContent() {
 
               {/* Quick Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mt-6 sm:mt-8">
-                <div className="card-bg rounded-lg sm:rounded-xl p-4 sm:p-6 text-center border border-gray-800 hover:border-[#FF4D67]/50 transition-colors">
-                  <div className="text-2xl sm:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] mb-1 sm:mb-2">
+                <div className="card-bg rounded-lg sm:rounded-xl p-4 sm:p-6 text-center border border-gray-800 hover:border-[#FF8C00]/50 transition-colors">
+                  <div className="text-2xl sm:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF8C00] to-[#FFB020] mb-1 sm:mb-2">
                     10K+
                   </div>
                   <div className="text-gray-400 text-xs sm:text-sm">Songs</div>
                 </div>
-                <div className="card-bg rounded-lg sm:rounded-xl p-4 sm:p-6 text-center border border-gray-800 hover:border-[#FFCB2B]/50 transition-colors">
-                  <div className="text-2xl sm:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FFCB2B] to-[#FF4D67] mb-1 sm:mb-2">
+                <div className="card-bg rounded-lg sm:rounded-xl p-4 sm:p-6 text-center border border-gray-800 hover:border-[#FFB020]/50 transition-colors">
+                  <div className="text-2xl sm:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FFB020] to-[#FF8C00] mb-1 sm:mb-2">
                     500+
                   </div>
                   <div className="text-gray-400 text-xs sm:text-sm">Artists</div>

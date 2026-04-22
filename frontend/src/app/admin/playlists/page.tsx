@@ -240,7 +240,7 @@ export default function AdminPlaylistMaker() {
   if (!authChecked) {
     return (
       <div className="flex min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF4D67]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF8C00]"></div>
       </div>
     )
   }
@@ -254,8 +254,8 @@ export default function AdminPlaylistMaker() {
     <div className="flex min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black">
       
       <main className="flex-1 flex flex-col w-full min-h-screen transition-all duration-300">
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#FF4D67]/10 rounded-full blur-3xl -z-10"></div>
-        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-[#FFCB2B]/10 rounded-full blur-3xl -z-10"></div>
+        <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#FF8C00]/10 rounded-full blur-3xl -z-10"></div>
+        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-[#FFB020]/10 rounded-full blur-3xl -z-10"></div>
         
         <div className="container mx-auto px-4 sm:px-8 py-6 sm:py-8">
           <div className="mb-6 sm:mb-8">
@@ -306,7 +306,7 @@ export default function AdminPlaylistMaker() {
                         type="text"
                         id="search-query"
                         placeholder="Enter track title, artist, or keywords..."
-                        className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67] pr-10"
+                        className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF8C00] pr-10"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                       />
@@ -330,7 +330,7 @@ export default function AdminPlaylistMaker() {
                       </label>
                       <select
                         id="genre-filter"
-                        className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+                        className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF8C00]"
                         value={searchGenre}
                         onChange={(e) => setSearchGenre(e.target.value)}
                       >
@@ -349,7 +349,7 @@ export default function AdminPlaylistMaker() {
                       </label>
                       <select
                         id="type-filter"
-                        className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+                        className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FF8C00]"
                         value={searchType}
                         onChange={(e) => setSearchType(e.target.value)}
                       >
@@ -388,7 +388,7 @@ export default function AdminPlaylistMaker() {
                           }
                         })
                       }}
-                      className="text-xs px-3 py-1 bg-[#FF4D67] hover:bg-[#FF4D67]/90 text-white rounded-lg transition-colors"
+                      className="text-xs px-3 py-1 bg-[#FF8C00] hover:bg-[#FF8C00]/90 text-white rounded-lg transition-colors"
                     >
                       Add All Visible
                     </button>
@@ -397,7 +397,7 @@ export default function AdminPlaylistMaker() {
                 
                 {searchLoading ? (
                   <div className="flex justify-center items-center py-12">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF4D67]"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF8C00]"></div>
                   </div>
                 ) : searchResults.length === 0 ? (
                   <div className="text-center py-12 text-gray-500">
@@ -412,7 +412,7 @@ export default function AdminPlaylistMaker() {
                     {searchResults.map((track) => (
                       <div 
                         key={track._id} 
-                        className="flex items-center gap-3 p-3 bg-gray-800/50 rounded-lg hover:bg-gray-700/50 transition-all duration-200 group border border-transparent hover:border-[#FF4D67]/30"
+                        className="flex items-center gap-3 p-3 bg-gray-800/50 rounded-lg hover:bg-gray-700/50 transition-all duration-200 group border border-transparent hover:border-[#FF8C00]/30"
                       >
                         {/* Track Cover */}
                         {track.coverURL ? (
@@ -422,7 +422,7 @@ export default function AdminPlaylistMaker() {
                             className="w-14 h-14 rounded-lg object-cover flex-shrink-0"
                           />
                         ) : (
-                          <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-[#FF4D67] to-[#FFCB2B] flex items-center justify-center flex-shrink-0">
+                          <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-[#FF8C00] to-[#FFB020] flex items-center justify-center flex-shrink-0">
                             <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
                             </svg>
@@ -453,7 +453,7 @@ export default function AdminPlaylistMaker() {
                           className={`px-3 py-1.5 text-sm rounded-lg transition-all flex-shrink-0 flex items-center gap-1 ${
                             selectedTracks.some(t => t._id === track._id)
                               ? 'bg-green-900/30 text-green-400 cursor-not-allowed'
-                              : 'bg-[#FF4D67] hover:bg-[#FF4D67]/90 text-white hover:scale-105'
+                              : 'bg-[#FF8C00] hover:bg-[#FF8C00]/90 text-white hover:scale-105'
                           }`}
                         >
                           {selectedTracks.some(t => t._id === track._id) ? (
@@ -494,7 +494,7 @@ export default function AdminPlaylistMaker() {
                       type="text"
                       id="playlist-name"
                       placeholder="Enter playlist name..."
-                      className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+                      className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF8C00]"
                       value={playlistName}
                       onChange={(e) => setPlaylistName(e.target.value)}
                       required
@@ -509,7 +509,7 @@ export default function AdminPlaylistMaker() {
                       id="playlist-description"
                       placeholder="Enter playlist description..."
                       rows={3}
-                      className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D67]"
+                      className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF8C00]"
                       value={playlistDescription}
                       onChange={(e) => setPlaylistDescription(e.target.value)}
                     />
@@ -519,7 +519,7 @@ export default function AdminPlaylistMaker() {
                     <input
                       type="checkbox"
                       id="is-public"
-                      className="w-4 h-4 text-[#FF4D67] bg-gray-800 border-gray-700 rounded focus:ring-[#FF4D67] focus:ring-2"
+                      className="w-4 h-4 text-[#FF8C00] bg-gray-800 border-gray-700 rounded focus:ring-[#FF8C00] focus:ring-2"
                       checked={isPublic}
                       onChange={(e) => setIsPublic(e.target.checked)}
                     />
@@ -605,7 +605,7 @@ export default function AdminPlaylistMaker() {
               <button
                 onClick={createPlaylist}
                 disabled={creating || !playlistName.trim() || selectedTracks.length === 0}
-                className="w-full py-3 bg-gradient-to-r from-[#FF4D67] to-[#FFCB2B] hover:opacity-90 text-white font-medium rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-3 bg-gradient-to-r from-[#FF8C00] to-[#FFB020] hover:opacity-90 text-white font-medium rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {creating ? 'Creating Playlist...' : `Create Playlist (${selectedTracks.length} tracks)`}
               </button>
