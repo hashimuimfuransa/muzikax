@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useAudioPlayer } from '@/contexts/AudioPlayerContext'
+import { useLanguage } from '@/contexts/LanguageContext'
 import { FaPlay, FaPause, FaHeart } from 'react-icons/fa'
 
 interface Track {
@@ -26,6 +27,7 @@ export default function PopularMixes() {
   const [error, setError] = useState<string | null>(null)
 
   const { currentTrack, isPlaying, playTrack, setCurrentPlaylist, favorites, favoritesLoading, addToFavorites, removeFromFavorites } = useAudioPlayer()
+  const { t } = useLanguage()
 
   // State for tracking which tracks are favorited
   const [favoriteStatus, setFavoriteStatus] = useState<Record<string, boolean>>({})
@@ -131,7 +133,7 @@ export default function PopularMixes() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black pt-20 sm:pt-6">
         {/* Hero Section - Hidden on mobile */}
         <div className="relative py-6 sm:py-10 lg:py-16 overflow-hidden hidden sm:block">
           {/* Background image with gradient overlay */}
@@ -147,7 +149,7 @@ export default function PopularMixes() {
           <div className="container mx-auto px-3 sm:px-6 lg:px-8 relative z-10">
             <div className="max-w-3xl mx-auto text-center">
               <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#FF8C00] to-[#FFB020] mb-2 sm:mb-3 md:mb-4">
-                Popular Mixes
+                {t('mixes') || 'Popular Mixes'}
               </h1>
               <p className="text-sm sm:text-base lg:text-lg text-gray-300 max-w-2xl mx-auto mb-4 sm:mb-6 md:mb-8 px-2">
                 Discover the best mixes from Rwandan DJs and music curators
@@ -157,12 +159,12 @@ export default function PopularMixes() {
         </div>
         
         {/* Loading Grid */}
-        <div className="container mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-10 lg:py-12 pt-16 sm:pt-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
+        <div className="container mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-8 lg:py-12">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
             {[...Array(8)].map((_, index) => (
               <div key={index} className="group card-bg rounded-xl sm:rounded-2xl overflow-hidden transition-all duration-300">
                 <div className="relative">
-                  <div className="w-full h-40 sm:h-44 md:h-48 bg-gray-700 animate-pulse"></div>
+                  <div className="w-full h-32 sm:h-40 md:h-44 lg:h-48 bg-gray-700 animate-pulse"></div>
                 </div>
                 
                 <div className="p-3 sm:p-4 md:p-5">
@@ -185,15 +187,15 @@ export default function PopularMixes() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black flex items-center justify-center px-4 pt-20">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">Error Loading Mixes</h2>
-          <p className="text-red-500 mb-4">Error: {error}</p>
+          <h2 className="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4">Error Loading Mixes</h2>
+          <p className="text-red-500 text-sm sm:text-base mb-4 px-2">Error: {error}</p>
           <button 
             onClick={() => window.location.reload()} 
-            className="px-4 py-2 bg-[#FF8C00] text-white rounded-lg hover:bg-[#FFB020] transition-colors"
+            className="px-5 py-2.5 sm:px-6 sm:py-3 bg-[#FF8C00] text-white rounded-lg hover:bg-[#FFB020] transition-colors active:scale-95 touch-manipulation text-sm sm:text-base"
           >
-            Retry
+            {t('retry') || 'Retry'}
           </button>
         </div>
       </div>
@@ -201,7 +203,7 @@ export default function PopularMixes() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black pt-20 sm:pt-6">
       {/* Hero Section - Hidden on mobile */}
       <div className="relative py-6 sm:py-10 lg:py-16 overflow-hidden hidden sm:block">
         {/* Background image with gradient overlay */}
@@ -217,7 +219,7 @@ export default function PopularMixes() {
         <div className="container mx-auto px-3 sm:px-6 lg:px-8 relative z-10">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#FF8C00] to-[#FFB020] mb-2 sm:mb-3 md:mb-4">
-              Popular Mixes
+              {t('mixes') || 'Popular Mixes'}
             </h1>
             <p className="text-sm sm:text-base lg:text-lg text-gray-300 max-w-2xl mx-auto mb-4 sm:mb-6 md:mb-8 px-2">
               Discover the best mixes from Rwandan DJs and music curators
@@ -226,20 +228,30 @@ export default function PopularMixes() {
         </div>
       </div>
 
+      {/* Mobile Hero - Visible only on mobile */}
+      <div className="sm:hidden px-3 py-4">
+        <h1 className="text-xl sm:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF8C00] to-[#FFB020] mb-1">
+          {t('mixes') || 'Popular Mixes'}
+        </h1>
+        <p className="text-xs sm:text-sm text-gray-400">
+          Discover the best mixes
+        </p>
+      </div>
+
       {/* Mixes Grid */}
-      <div className="container mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-10 lg:py-12 pt-16 sm:pt-6">
+      <div className="container mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-8 lg:py-12">
         {mixTracks.length === 0 ? (
-          <div className="text-center py-12 px-4">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 rounded-full bg-white/5 flex items-center justify-center">
-              <svg className="w-8 h-8 sm:w-10 sm:h-10 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="text-center py-10 sm:py-12 px-4">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 mx-auto mb-4 sm:mb-5 rounded-full bg-white/5 flex items-center justify-center">
+              <svg className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
               </svg>
             </div>
-            <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">No Mixes Found</h2>
-            <p className="text-sm sm:text-base text-gray-400">Check back later for new mixes</p>
+            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-2">No Mixes Found</h2>
+            <p className="text-sm sm:text-base text-gray-400 px-2">Check back later for new mixes</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
             {mixTracks.map((track) => {
               const artistName = typeof track.creatorId === 'object' && track.creatorId !== null 
                 ? (track.creatorId as any).name 
@@ -255,28 +267,28 @@ export default function PopularMixes() {
                       <img 
                         src={track.coverURL} 
                         alt={track.title} 
-                        className="w-full h-40 sm:h-44 md:h-48 object-cover"
+                        className="w-full h-32 sm:h-40 md:h-44 lg:h-48 object-cover"
                       />
                     ) : (
-                      <div className="w-full h-40 sm:h-44 md:h-48 bg-gradient-to-br from-[#FF8C00] to-[#FFB020] flex items-center justify-center">
-                        <span className="text-xl sm:text-2xl font-bold text-white">
+                      <div className="w-full h-32 sm:h-40 md:h-44 lg:h-48 bg-gradient-to-br from-[#FF8C00] to-[#FFB020] flex items-center justify-center">
+                        <span className="text-lg sm:text-xl md:text-2xl font-bold text-white">
                           {track.title.charAt(0).toUpperCase()}
                         </span>
                       </div>
                     )}
                     
-                    {/* Play Button Overlay - Touch-friendly on mobile */}
+                    {/* Play Button Overlay - Always visible on mobile, hover on desktop */}
                     <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center sm:opacity-0 sm:group-hover:opacity-100">
                       <button
                         onClick={() => handlePlayTrack(track)}
-                        className="w-12 h-12 sm:w-14 sm:h-14 rounded-full gradient-primary flex items-center justify-center text-white opacity-0 group-hover:opacity-100 sm:transform sm:translate-y-2 sm:group-hover:translate-y-0 sm:transition-all sm:duration-300 touch-manipulation"
+                        className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full gradient-primary flex items-center justify-center text-white sm:transform sm:translate-y-2 sm:group-hover:translate-y-0 sm:transition-all sm:duration-300 touch-manipulation active:scale-90"
                         disabled={!track.audioURL}
                         aria-label={`Play ${track.title}`}
                       >
                         {currentTrack?.id === track._id && isPlaying ? (
-                          <FaPause className="w-5 h-5" />
+                          <FaPause className="w-4 h-4 sm:w-5 sm:h-5" />
                         ) : (
-                          <FaPlay className="w-5 h-5 ml-1" />
+                          <FaPlay className="w-4 h-4 sm:w-5 sm:h-5 ml-0.5 sm:ml-1" />
                         )}
                       </button>
                     </div>
@@ -288,25 +300,25 @@ export default function PopularMixes() {
                           e.stopPropagation();
                           toggleFavorite(track._id, track);
                         }}
-                        className="p-2 sm:p-2 rounded-full bg-black/40 sm:bg-black/30 sm:backdrop-blur-sm text-white sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 hover:scale-110 active:scale-90 touch-manipulation"
+                        className="p-1.5 sm:p-2 rounded-full bg-black/40 sm:bg-black/30 sm:backdrop-blur-sm text-white sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 hover:scale-110 active:scale-90 touch-manipulation"
                         aria-label={favoriteStatus[track._id] ? 'Remove from favorites' : 'Add to favorites'}
                       >
                         <FaHeart 
-                          className={`w-4 h-4 sm:w-5 sm:h-5 ${favoriteStatus[track._id] ? 'text-red-500 fill-current scale-110' : 'text-white'}`}
+                          className={`w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 ${favoriteStatus[track._id] ? 'text-red-500 fill-current scale-110' : 'text-white'}`}
                         />
                       </button>
                     </div>
                   </div>
                   
-                  <div className="p-3 sm:p-4 md:p-5">
-                    <h3 className="font-bold text-white text-base sm:text-lg mb-1 truncate" title={track.title}>{track.title}</h3>
-                    <p className="text-gray-400 text-xs sm:text-sm md:text-base mb-2 truncate" title={artistName}>{artistName}</p>
+                  <div className="p-2.5 sm:p-3 md:p-4 lg:p-5">
+                    <h3 className="font-bold text-white text-sm sm:text-base md:text-lg mb-1 truncate" title={track.title}>{track.title}</h3>
+                    <p className="text-gray-400 text-[10px] sm:text-xs md:text-sm mb-2 truncate" title={artistName}>{artistName}</p>
                     
                     {/* Stats */}
-                    <div className="flex justify-between text-xs sm:text-sm text-gray-500">
+                    <div className="flex justify-between text-[10px] sm:text-xs md:text-sm text-gray-500">
                       <span>{(track.plays || 0).toLocaleString()} plays</span>
                       <div className="flex items-center gap-1">
-                        <FaHeart className="w-3 h-3" />
+                        <FaHeart className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                         <span>{track.likes || 0}</span>
                       </div>
                     </div>
