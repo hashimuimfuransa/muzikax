@@ -74,6 +74,13 @@ export interface ChartsResponse {
   genre?: string;
   total: number;
   updatedAt: string;
+  queryTimeMs?: number;
+  cached?: boolean;
+  dataFreshness?: {
+    lastCalculated: string;
+    nextUpdateIn: string;
+    autoRefresh: boolean;
+  };
 }
 
 export interface TrendingTrack extends ChartTrack {

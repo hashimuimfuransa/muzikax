@@ -251,104 +251,135 @@ async function getCountryCharts(countryCode, timeWindow = 'weekly', limit = 50) 
     
     const startTime = Date.now();
     
-    // Use pre-calculated ChartScore data for better performance
-    const sortField = `${timeWindow}Score`;
+    // Calculate date range based on time window
+    const now = new Date();
+    let startDate = new Date();
     
-    // Get fresh chart data from the last 7 days (ensure recent data)
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    
-    const chartData = await ChartScore.find({
-      lastUpdated: { $gte: sevenDaysAgo }
-    })
-    .sort({ [sortField]: -1, lastUpdated: -1 })
-    .limit(limit * 3) // Get more to filter by country
-    .select('trackId dailyScore weeklyScore monthlyScore totalPlays uniqueListeners likes shares reposts playlistAdditions playVelocity growthRate globalRank lastUpdated')
-    .lean();
-    
-    console.log(`   📊 Found ${chartData.length} ChartScore documents (filtered by lastUpdated)`);
-    
-    if (chartData.length === 0) {
-      // Fallback to calculation if no chart scores exist
-      console.log(`No ChartScore data found, calculating on-the-fly for ${countryCode}`);
-      return await getCountryChartsFallback(countryCode, timeWindow, limit);
+    switch (timeWindow) {
+      case 'daily':
+        startDate.setHours(0, 0, 0, 0); // Start of today
+        break;
+      case 'weekly':
+        startDate.setDate(now.getDate() - 7);
+        break;
+      case 'monthly':
+        startDate.setMonth(now.getMonth() - 1);
+        break;
+      default:
+        startDate.setDate(now.getDate() - 7);
     }
     
-    // Extract track IDs for batch query
-    const trackIds = chartData.map(chart => chart.trackId);
+    console.log(`   📅 Date range: ${startDate.toISOString()} to ${now.toISOString()}`);
     
-    // BATCH QUERY: Get all ListenerGeography data in ONE query using aggregation
+    // Step 1: Get ListenerGeography data for this country in the time period
     const ListenerGeography = require('../models/ListenerGeography');
+    
     const countryStatsAgg = await ListenerGeography.aggregate([
       {
         $match: {
-          trackId: { $in: trackIds },
-          country: countryCode.toUpperCase()
+          country: countryCode.toUpperCase(),
+          timestamp: { $gte: startDate, $lte: now }
         }
       },
       {
         $group: {
           _id: '$trackId',
-          plays: { $sum: 1 },
-          uniqueListeners: { $addToSet: '$ipAddress' },
-          uniqueUserIds: { $addToSet: '$userId' }
+          countryPlays: { $sum: 1 },
+          uniqueIPs: { $addToSet: '$ipAddress' },
+          creatorId: { $first: '$creatorId' }
         }
       },
       {
         $project: {
           trackId: '$_id',
-          plays: 1,
-          uniqueListeners: { $size: '$uniqueListeners' },
-          uniqueUserIds: { $size: '$uniqueUserIds' },
+          countryPlays: 1,
+          countryUniqueListeners: { $size: '$uniqueIPs' },
+          creatorId: 1,
           _id: 0
         }
+      },
+      {
+        $sort: { countryPlays: -1 }
+      },
+      {
+        $limit: limit
       }
     ]);
     
-    console.log(`   📍 Batch query returned ${countryStatsAgg.length} tracks with listeners in ${countryCode}`);
+    console.log(`   📍 Found ${countryStatsAgg.length} tracks with plays in ${countryCode} (${timeWindow})`);
     
-    // Create a map for fast lookup
-    const countryStatsMap = new Map();
-    countryStatsAgg.forEach(stat => {
-      countryStatsMap.set(stat.trackId.toString(), stat);
+    if (countryStatsAgg.length > 0) {
+      console.log(`   📊 Top 3 tracks by plays:`);
+      countryStatsAgg.slice(0, 3).forEach((stat, idx) => {
+        console.log(`      ${idx + 1}. Track ${stat.trackId}: ${stat.countryPlays} plays, ${stat.countryUniqueListeners} unique listeners`);
+      });
+    }
+    
+    if (countryStatsAgg.length === 0) {
+      console.log(`   ⚠️ No plays found for ${countryCode} in ${timeWindow} period`);
+      return [];
+    }
+    
+    // Step 2: Get track details for these tracks
+    const trackIds = countryStatsAgg.map(stat => stat.trackId);
+    
+    const tracks = await Track.find({
+      _id: { $in: trackIds },
+      isPublic: { $ne: false }
+    })
+    .populate('creatorId', 'name avatar whatsappContact')
+    .select('title genre type coverURL audioURL plays likes shares reposts playlistAdditions creatorId createdAt')
+    .lean();
+    
+    console.log(`   🎵 Retrieved ${tracks.length} track details`);
+    
+    // Step 3: Create a map for fast lookup
+    const trackMap = new Map();
+    tracks.forEach(track => {
+      trackMap.set(track._id.toString(), track);
     });
     
-    // Filter and format results
+    // Step 4: Merge country stats with track info and calculate country score
     const countryTracks = [];
     
-    for (const chart of chartData) {
-      const stats = countryStatsMap.get(chart.trackId.toString());
+    for (const stat of countryStatsAgg) {
+      const track = trackMap.get(stat.trackId.toString());
       
-      if (stats && stats.plays > 0) {
-        const countryScore = (stats.plays * 0.6) + (stats.uniqueListeners * 0.4);
+      if (track) {
+        // Country score based primarily on plays from this country
+        // Weight: 70% plays, 30% unique listeners
+        const countryScore = (stat.countryPlays * 0.7) + (stat.countryUniqueListeners * 0.3);
         
         countryTracks.push({
-          _id: chart.trackId,
+          ...track,
+          _id: track._id,
           countryScore,
-          countryPlays: stats.plays,
-          countryUniqueListeners: Math.max(stats.uniqueListeners, stats.uniqueUserIds || 0),
-          weeklyScore: chart.weeklyScore || 0,
-          dailyScore: chart.dailyScore || 0,
-          monthlyScore: chart.monthlyScore || 0,
-          globalRank: chart.globalRank || 0,
-          totalPlays: chart.totalPlays || 0,
-          uniqueListeners: chart.uniqueListeners || 0,
-          playVelocity: chart.playVelocity || 0,
-          growthRate: chart.growthRate || 0
+          countryPlays: stat.countryPlays,
+          countryUniqueListeners: stat.countryUniqueListeners,
+          country: countryCode,
+          // Include global metrics for reference
+          globalPlays: track.plays || 0,
+          globalLikes: track.likes || 0,
+          globalShares: track.shares || 0
         });
-        
-        // Stop once we have enough tracks
-        if (countryTracks.length >= limit) break;
       }
     }
     
-    // Sort by country score
-    countryTracks.sort((a, b) => b.countryScore - a.countryScore);
+    // Step 5: Sort by country plays (primary) and country score (secondary)
+    countryTracks.sort((a, b) => {
+      // Primary sort: country plays
+      if (b.countryPlays !== a.countryPlays) {
+        return b.countryPlays - a.countryPlays;
+      }
+      // Secondary sort: country score
+      return b.countryScore - a.countryScore;
+    });
     
-    // Assign country ranks
+    // Step 6: Assign ranks
     countryTracks.forEach((track, index) => {
-      track.countryRank = index + 1;
-      track.country = countryCode;
+      track.rank = index + 1;
+      track.previousRank = 0; // Will be updated with historical data
+      track.rankChange = 0;
     });
     
     const endTime = Date.now();
@@ -365,49 +396,104 @@ async function getCountryCharts(countryCode, timeWindow = 'weekly', limit = 50) 
  * Fallback method for country charts (less efficient)
  */
 async function getCountryChartsFallback(countryCode, timeWindow, limit) {
-  const tracksWithScores = await calculateScoresForTimeWindow(timeWindow);
+  console.log(`   🔄 Using fallback method for ${countryCode} (${timeWindow})`);
   
-  // Filter by country using ListenerGeography data
+  // Calculate date range based on time window
+  const now = new Date();
+  let startDate = new Date();
+  
+  switch (timeWindow) {
+    case 'daily':
+      startDate.setHours(0, 0, 0, 0);
+      break;
+    case 'weekly':
+      startDate.setDate(now.getDate() - 7);
+      break;
+    case 'monthly':
+      startDate.setMonth(now.getMonth() - 1);
+      break;
+    default:
+      startDate.setDate(now.getDate() - 7);
+  }
+  
   const ListenerGeography = require('../models/ListenerGeography');
   
-  const countryTracks = [];
-  for (const track of tracksWithScores) {
-    const countryStats = await ListenerGeography.aggregate([
-      {
-        $match: {
-          trackId: track._id,
-          country: countryCode.toUpperCase()
-        }
-      },
-      {
-        $group: {
-          _id: '$trackId',
-          plays: { $sum: 1 },
-          uniqueListeners: { $addToSet: '$ipAddress' }
-        }
+  // Get all tracks with plays in this country during the time period
+  const countryStats = await ListenerGeography.aggregate([
+    {
+      $match: {
+        country: countryCode.toUpperCase(),
+        timestamp: { $gte: startDate, $lte: now }
       }
-    ]);
+    },
+    {
+      $group: {
+        _id: '$trackId',
+        countryPlays: { $sum: 1 },
+        uniqueListeners: { $addToSet: '$ipAddress' },
+        creatorId: { $first: '$creatorId' }
+      }
+    },
+    {
+      $project: {
+        trackId: '$_id',
+        countryPlays: 1,
+        countryUniqueListeners: { $size: '$uniqueListeners' },
+        _id: 0
+      }
+    },
+    {
+      $sort: { countryPlays: -1 }
+    },
+    {
+      $limit: limit
+    }
+  ]);
+  
+  if (countryStats.length === 0) {
+    return [];
+  }
+  
+  // Get track details
+  const trackIds = countryStats.map(stat => stat.trackId);
+  const tracks = await Track.find({
+    _id: { $in: trackIds },
+    isPublic: { $ne: false }
+  })
+  .populate('creatorId', 'name avatar')
+  .lean();
+  
+  const trackMap = new Map();
+  tracks.forEach(track => {
+    trackMap.set(track._id.toString(), track);
+  });
+  
+  // Merge and format
+  const countryTracks = [];
+  
+  for (const stat of countryStats) {
+    const track = trackMap.get(stat.trackId.toString());
     
-    if (countryStats.length > 0) {
-      const stats = countryStats[0];
-      const countryScore = (stats.plays * 0.6) + (stats.uniqueListeners.length * 0.4);
+    if (track) {
+      const countryScore = (stat.countryPlays * 0.7) + (stat.countryUniqueListeners * 0.3);
       
       countryTracks.push({
         ...track,
         countryScore,
-        countryPlays: stats.plays,
-        countryUniqueListeners: stats.uniqueListeners.length
+        countryPlays: stat.countryPlays,
+        countryUniqueListeners: stat.countryUniqueListeners,
+        country: countryCode
       });
     }
   }
   
-  // Sort by country score
-  countryTracks.sort((a, b) => b.countryScore - a.countryScore);
+  // Sort by country plays
+  countryTracks.sort((a, b) => b.countryPlays - a.countryPlays);
   
-  // Assign country ranks
+  // Assign ranks
   countryTracks.forEach((track, index) => {
     track.countryRank = index + 1;
-    track.country = countryCode;
+    track.rank = index + 1;
   });
   
   return countryTracks.slice(0, limit);

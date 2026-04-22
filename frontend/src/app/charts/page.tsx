@@ -15,7 +15,7 @@ import {
 import ChartTrackCard from "../../components/ChartTrackCard";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { useWebSocket } from "../../hooks/useWebSocket";
-import { FaArrowLeft } from "react-icons/fa";
+import { FaArrowLeft, FaSyncAlt, FaPauseCircle, FaPlayCircle } from "react-icons/fa";
 
 type ChartType = "global" | "country" | "genre" | "trending";
 type CountryCode = "RW" | "US" | "KE" | "TZ" | "UG" | "NG" | "GH" | "ZA";
@@ -53,6 +53,9 @@ export default function ChartsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<string>("");
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
+  const [dataFreshness, setDataFreshness] = useState<any>(null);
 
   const { playTrack, setCurrentPlaylist } = useAudioPlayer();
   
@@ -62,6 +65,18 @@ export default function ChartsPage() {
   useEffect(() => {
     fetchCharts();
   }, [chartType, timeWindow, selectedCountry, selectedGenre]);
+
+  // Auto-refresh charts every 60 seconds
+  useEffect(() => {
+    if (!autoRefreshEnabled) return;
+    
+    const interval = setInterval(() => {
+      console.log('🔄 Auto-refreshing charts...');
+      fetchCharts(true); // Silent refresh
+    }, 60000); // Every 60 seconds
+
+    return () => clearInterval(interval);
+  }, [autoRefreshEnabled, chartType, timeWindow, selectedCountry, selectedGenre]);
 
   // Handle real-time chart updates
   useEffect(() => {
@@ -76,8 +91,11 @@ export default function ChartsPage() {
     }
   }, [latestUpdate]);
 
-  const fetchCharts = async () => {
-    setLoading(true);
+  const fetchCharts = async (silent = false) => {
+    if (!silent) {
+      setLoading(true);
+    }
+    setIsRefreshing(silent);
     setError(null);
 
     try {
@@ -99,20 +117,37 @@ export default function ChartsPage() {
       }
 
       if (response && 'charts' in response) {
-        setCharts(response.charts as ChartTrack[]);
+        // Only update if data has changed
+        const newCharts = response.charts as ChartTrack[];
+        const hasChanges = JSON.stringify(newCharts) !== JSON.stringify(charts);
+        
+        if (hasChanges || !silent) {
+          setCharts(newCharts);
+          if (!silent) {
+            console.log(`✅ Charts loaded: ${newCharts.length} tracks`);
+          }
+        }
+        
         if ('updatedAt' in response) {
           setLastUpdated(response.updatedAt || new Date().toISOString());
         } else {
           setLastUpdated(new Date().toISOString());
         }
+        
+        if ('dataFreshness' in response) {
+          setDataFreshness(response.dataFreshness);
+        }
       }
     } catch (err) {
       console.error("Error fetching charts:", err);
-      setError(
-        err instanceof Error ? err.message : "Failed to load charts. Please try again."
-      );
+      if (!silent) {
+        setError(
+          err instanceof Error ? err.message : "Failed to load charts. Please try again."
+        );
+      }
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
   };
 
@@ -178,9 +213,32 @@ export default function ChartsPage() {
           {/* Title */}
           <div className="flex items-center justify-between">
             <h1 className="text-2xl md:text-3xl font-bold">{t('charts')} Charts</h1>
-            <p className="text-xs md:text-sm text-gray-400 hidden md:block">
-              Discover trending tracks
-            </p>
+            <div className="flex items-center gap-2">
+              {/* Auto-refresh toggle */}
+              <button
+                onClick={() => setAutoRefreshEnabled(!autoRefreshEnabled)}
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all text-sm min-h-[44px] ${
+                  autoRefreshEnabled
+                    ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
+                    : 'bg-gray-800/50 text-gray-400 hover:bg-gray-700/50'
+                }`}
+                title={autoRefreshEnabled ? 'Disable auto-refresh' : 'Enable auto-refresh'}
+              >
+                {autoRefreshEnabled ? <FaPauseCircle className="text-sm" /> : <FaPlayCircle className="text-sm" />}
+                <span className="hidden md:inline text-xs">{autoRefreshEnabled ? 'Auto' : 'Manual'}</span>
+              </button>
+              
+              {/* Manual refresh button */}
+              <button
+                onClick={() => fetchCharts(false)}
+                disabled={isRefreshing}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-800/50 text-gray-400 hover:text-white hover:bg-gray-700/50 transition-all text-sm min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+                title="Refresh charts now"
+              >
+                <FaSyncAlt className={`text-sm ${isRefreshing ? 'animate-spin' : ''}`} />
+                <span className="hidden md:inline text-xs">Refresh</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -264,8 +322,22 @@ export default function ChartsPage() {
         </div>
 
         {/* Last Updated - Mobile friendly */}
-        <div className="mt-4 text-xs md:text-sm text-gray-400">
-          Last updated: {new Date(lastUpdated).toLocaleString()}
+        <div className="mt-4 flex items-center justify-between text-xs md:text-sm text-gray-400">
+          <div className="flex items-center gap-2">
+            <span>Last updated:</span>
+            <span className="text-white font-medium">
+              {new Date(lastUpdated).toLocaleTimeString()}
+            </span>
+            {isRefreshing && (
+              <span className="text-[#FF8C00] animate-pulse">• Updating...</span>
+            )}
+          </div>
+          {dataFreshness && (
+            <div className="hidden md:flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+              <span>Auto-refresh: {dataFreshness.nextUpdateIn}</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -287,7 +359,24 @@ export default function ChartsPage() {
           </div>
         ) : charts.length === 0 ? (
           <div className="text-center py-20 px-4">
-            <p className="text-gray-400 text-sm md:text-base">No charts available</p>
+            <div className="mb-6">
+              <div className="text-6xl mb-4">🎵</div>
+              <h3 className="text-xl font-semibold text-white mb-2">
+                {chartType === 'country' ? `No charts available for ${COUNTRIES.find(c => c.code === selectedCountry)?.name}` : 'No charts available'}
+              </h3>
+              <p className="text-gray-400 text-sm md:text-base max-w-md mx-auto mb-6">
+                {chartType === 'country' 
+                  ? `Tracks need to be played from ${COUNTRIES.find(c => c.code === selectedCountry)?.name} to appear in the charts. Start playing and sharing music!`
+                  : 'Start playing, sharing, and engaging with music to see tracks appear in the charts.'
+                }
+              </p>
+              <button
+                onClick={() => fetchCharts(false)}
+                className="px-6 py-3 bg-[#FF8C00] hover:bg-[#FF7A00] rounded-lg transition-colors text-sm md:text-base min-h-[44px] font-medium"
+              >
+                Refresh Charts
+              </button>
+            </div>
           </div>
         ) : (
           <div className="space-y-2 md:space-y-3">

@@ -48,5 +48,7 @@ ListenerGeographySchema.index({ trackId: 1 });
 ListenerGeographySchema.index({ creatorId: 1 });
 ListenerGeographySchema.index({ country: 1 });
 ListenerGeographySchema.index({ timestamp: -1 });
+ListenerGeographySchema.index({ country: 1, timestamp: -1 }); // Compound index for country + time queries
+ListenerGeographySchema.index({ country: 1, trackId: 1, timestamp: -1 }); // For country chart aggregations
 
 module.exports = mongoose.model('ListenerGeography', ListenerGeographySchema);

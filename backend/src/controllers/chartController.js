@@ -30,12 +30,20 @@ const getGlobalCharts = async (req, res) => {
     const cachedData = await redisCache.getCachedCharts('global', { timeWindow, limit });
     
     if (cachedData) {
-      console.log('📦 Cache hit: Global charts');
-      return res.json({
-        ...cachedData,
-        cached: true,
-        timestamp: new Date()
-      });
+      // Check cache freshness - invalidate if older than 2 minutes
+      const cacheAge = Date.now() - new Date(cachedData.timestamp || cachedData.updatedAt).getTime();
+      const maxCacheAge = 2 * 60 * 1000; // 2 minutes
+      
+      if (cacheAge > maxCacheAge) {
+        console.log(`⏰ Global cache expired (${Math.round(cacheAge/1000)}s old), fetching fresh data`);
+      } else {
+        console.log('📦 Cache hit: Global charts');
+        return res.json({
+          ...cachedData,
+          cached: true,
+          timestamp: new Date()
+        });
+      }
     }
     
     console.log('💾 Cache miss: Fetching from database');
@@ -125,11 +133,16 @@ const getGlobalCharts = async (req, res) => {
       charts: validCharts,
       timeWindow,
       total: validCharts.length,
-      updatedAt: charts[0]?.lastUpdated || new Date(),
-      queryTimeMs: queryTime
+      updatedAt: charts[0]?.lastUpdated || new Date().toISOString(),
+      queryTimeMs: queryTime,
+      dataFreshness: {
+        lastCalculated: new Date().toISOString(),
+        nextUpdateIn: '5 minutes',
+        autoRefresh: true
+      }
     };
     
-    // Cache the result
+    // Cache the result with shorter TTL for fresher data
     await redisCache.cacheCharts('global', { timeWindow, limit }, response);
     
     res.set('Cache-Control', 'public, max-age=300'); // 5 minutes
@@ -164,12 +177,20 @@ const getCountryCharts = async (req, res) => {
     const cachedData = await redisCache.getCachedCharts('country', { countryCode, timeWindow, limit });
     
     if (cachedData) {
-      console.log(`📦 Cache hit: Country charts (${countryCode}) - ${cachedData.charts?.length || 0} tracks`);
-      return res.json({
-        ...cachedData,
-        cached: true,
-        timestamp: new Date()
-      });
+      // Check cache freshness - invalidate if older than 2 minutes
+      const cacheAge = Date.now() - new Date(cachedData.timestamp || cachedData.updatedAt).getTime();
+      const maxCacheAge = 2 * 60 * 1000; // 2 minutes
+      
+      if (cacheAge > maxCacheAge) {
+        console.log(`⏰ Cache expired for ${countryCode} (${Math.round(cacheAge/1000)}s old), fetching fresh data`);
+      } else {
+        console.log(`📦 Cache hit: Country charts (${countryCode}) - ${cachedData.charts?.length || 0} tracks`);
+        return res.json({
+          ...cachedData,
+          cached: true,
+          timestamp: new Date()
+        });
+      }
     }
     
     console.log(`💾 Cache miss: Fetching from database for ${countryCode}`);
@@ -180,56 +201,32 @@ const getCountryCharts = async (req, res) => {
     console.log(`📊 Retrieved ${charts.length} tracks for ${countryCode} from database in ${queryTime}ms`);
     
     if (charts.length === 0) {
-      console.warn(`⚠️ No chart data found for country: ${countryCode}. This could mean:`);
-      console.warn(`   1. No tracks have listeners from ${countryCode}`);
-      console.warn(`   2. ListenerGeography collection is empty for this country`);
-      console.warn(`   3. ChartScore data hasn't been calculated yet`);
-      console.warn(`   Run: node seed-country-data.js to populate test data`);
+      console.warn(`⚠️ No chart data found for country: ${countryCode} in ${timeWindow} period`);
+      console.warn(`   This means no tracks have been played from ${countryCode} during this time period`);
     }
     
-    // Populate track data efficiently using batch populate
-    const Track = require('../models/Track');
-    const trackIds = charts.map(c => c._id);
-    const tracks = await Track.find({ _id: { $in: trackIds } })
-      .select('title genre type coverURL audioURL plays likes shares reposts playlistAdditions creatorId createdAt')
-      .lean();
-    
-    // Create a map for fast lookup
-    const trackMap = new Map();
-    tracks.forEach(track => {
-      trackMap.set(track._id.toString(), track);
-    });
-    
-    // Merge chart data with track info
-    const mergedCharts = charts.map(chart => {
-      const track = trackMap.get(chart._id.toString());
-      if (!track) return null;
-      return {
-        ...track,
-        countryScore: chart.countryScore,
-        countryPlays: chart.countryPlays,
-        countryUniqueListeners: chart.countryUniqueListeners,
-        countryRank: chart.countryRank,
-        weeklyScore: chart.weeklyScore,
-        dailyScore: chart.dailyScore,
-        monthlyScore: chart.monthlyScore,
-        globalRank: chart.globalRank,
-        playVelocity: chart.playVelocity,
-        growthRate: chart.growthRate
-      };
-    }).filter(c => c !== null);
-    
-    // Sign URLs and format
+    // The service now returns complete track data with creator populated
+    // Just sign URLs and format
     const formattedCharts = await Promise.all(
-      mergedCharts.map(async (track, index) => {
+      charts.map(async (track, index) => {
         const signedTrack = await signTrackUrls(track);
         return {
           ...signedTrack,
-          rank: index + 1,
+          rank: track.rank || index + 1,
+          previousRank: track.previousRank || 0,
+          rankChange: track.rankChange || 0,
           country: countryCode,
           countryScore: track.countryScore,
           countryPlays: track.countryPlays,
-          countryUniqueListeners: track.countryUniqueListeners
+          countryUniqueListeners: track.countryUniqueListeners,
+          // Include metrics showing this is country-specific data
+          metrics: {
+            totalPlays: track.countryPlays,
+            uniqueListeners: track.countryUniqueListeners,
+            globalPlays: track.globalPlays || track.plays || 0,
+            likes: track.likes || 0,
+            shares: track.shares || 0
+          }
         };
       })
     );
@@ -240,11 +237,16 @@ const getCountryCharts = async (req, res) => {
       countryName: getCountryName(countryCode),
       timeWindow,
       total: formattedCharts.length,
-      updatedAt: new Date(),
-      queryTimeMs: queryTime
+      updatedAt: new Date().toISOString(),
+      queryTimeMs: queryTime,
+      dataFreshness: {
+        lastCalculated: new Date().toISOString(),
+        nextUpdateIn: '5 minutes',
+        autoRefresh: true
+      }
     };
     
-    // Cache the result
+    // Cache the result with shorter TTL for fresher data
     await redisCache.cacheCharts('country', { countryCode, timeWindow, limit }, response);
     
     res.set('Cache-Control', 'public, max-age=300'); // 5 minutes
