@@ -2,7 +2,8 @@ import * as express from 'express';
 import { 
   getPublicCreators,
   getPublicCreatorProfile,
-  getPublicCreatorStats
+  getPublicCreatorStats,
+  getPublicUserProfile
 } from '../controllers/publicController';
 
 console.log('PUBLIC ROUTES FILE LOADED');
@@ -21,6 +22,12 @@ router.use((_req, _res, next) => {
 router.get('/health', (_req, res) => {
   console.log('PUBLIC HEALTH CHECK ROUTE HIT');
   res.json({ message: 'Public routes are working' });
+});
+
+// Public endpoint for ANY user profile - no authentication required
+router.get('/user/:id', (req, res, next) => {
+  console.log('Public user profile route hit, no auth required');
+  getPublicUserProfile(req, res).catch(next);
 });
 
 // Public endpoints for creators - no authentication required

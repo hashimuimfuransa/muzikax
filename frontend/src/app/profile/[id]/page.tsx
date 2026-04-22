@@ -80,22 +80,17 @@ export default function UserProfile() {
         })
         
         if (!response.ok) {
-          if (response.status === 401) {
-            setError('Please log in to view user profiles')
+          if (response.status === 404) {
+            setError('User not found')
             return
           }
-          setError('User not found')
+          setError('Failed to load user profile')
           return
         }
 
         const data = await response.json()
         
-        // If user is an artist/creator, redirect to artist profile
-        if (data.role === 'creator' || data.creatorType) {
-          router.replace(`/artists/${userId}`)
-          return
-        }
-        
+        // Set profile for ALL users (not just creators)
         setProfile(data)
 
         const tracksResponse = await fetch(
@@ -214,9 +209,16 @@ export default function UserProfile() {
 
             {/* Name & Stats */}
             <div className={`flex-1 ${isCompact ? 'py-2' : 'mt-4 md:mt-6'}`}>
-              <h1 className={`${isCompact ? 'text-xl' : 'text-3xl md:text-4xl'} font-black text-white tracking-tight transition-all duration-300`}>
-                {profile.name}
-              </h1>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className={`${isCompact ? 'text-xl' : 'text-3xl md:text-4xl'} font-black text-white tracking-tight transition-all duration-300`}>
+                  {profile.name}
+                </h1>
+                {profile.role === 'creator' && profile.creatorType && (
+                  <span className="px-2 py-1 bg-gradient-to-r from-[#FF8C00] to-[#FFB020] text-white text-xs font-bold rounded-full uppercase tracking-wide">
+                    {profile.creatorType}
+                  </span>
+                )}
+              </div>
               
               {!isCompact && (
                 <div className="flex flex-wrap gap-4 mt-3 text-sm text-gray-400">

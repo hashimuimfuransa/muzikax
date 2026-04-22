@@ -33,6 +33,17 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     
     let translation = langTranslations[key] || englishTranslations[key] || key;
     
+    // Handle special pluralization cases
+    if (key === 'followersCount' && replacements?.count !== undefined) {
+      const count = Number(replacements.count);
+      return count === 1 ? '1 follower' : `${count} followers`;
+    }
+    
+    if (key === 'followingCount' && replacements?.count !== undefined) {
+      const count = Number(replacements.count);
+      return count === 1 ? '1 creator' : `${count} creators`;
+    }
+    
     if (replacements) {
       Object.entries(replacements).forEach(([k, v]) => {
         translation = translation.replace(`{${k}}`, String(v));

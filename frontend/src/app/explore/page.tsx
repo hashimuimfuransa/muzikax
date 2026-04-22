@@ -511,8 +511,8 @@ function ExploreContent() {
               <FaArrowLeft className="w-5 h-5" />
             </button>
             <div>
-              <h1 className="text-xl font-black text-black">Explore</h1>
-              <p className="text-xs text-black/80">Discover new music</p>
+              <h1 className="text-xl font-black text-black">{t('explore')}</h1>
+              <p className="text-xs text-black/80">{t('discoverNewMusic')}</p>
             </div>
           </div>
         </div>
@@ -529,7 +529,7 @@ function ExploreContent() {
                 : 'bg-white/5 text-white/80 hover:text-white hover:bg-white/10 border border-white/10'
             }`}
           >
-            All
+            {t('all')}
           </button>
           {categories.slice(0, 15).map((category) => (
             <button

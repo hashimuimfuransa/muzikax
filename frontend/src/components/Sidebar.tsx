@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter, usePathname } from 'next/navigation'
@@ -11,11 +11,28 @@ import { useOffline } from '../contexts/OfflineContext'
 
 export default function Sidebar() {
   const [isHovered, setIsHovered] = useState(false)
+  const [isExpanded, setIsExpanded] = useState(() => {
+    // Persist sidebar state in localStorage
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('sidebarExpanded')
+      return saved ? JSON.parse(saved) : false
+    }
+    return false
+  })
   const { isAuthenticated, user } = useAuth()
   const { t } = useLanguage()
   const { isOnline } = useOffline()
   const router = useRouter()
   const pathname = usePathname()
+
+  // Save sidebar state to localStorage
+  useEffect(() => {
+    localStorage.setItem('sidebarExpanded', JSON.stringify(isExpanded))
+  }, [isExpanded])
+
+  const toggleSidebar = () => {
+    setIsExpanded(!isExpanded)
+  }
 
   // Navigation items
   const navItems = [
@@ -91,18 +108,46 @@ export default function Sidebar() {
 
   const isActive = (href: string) => pathname === href
 
+  // Show sidebar when expanded OR hovered
+  const showExpanded = isExpanded || isHovered
+
   return (
     <motion.aside 
       initial={false}
-      animate={{ width: isHovered ? 200 : 64 }}
+      animate={{ width: showExpanded ? 200 : 64 }}
       transition={{ duration: 0.3, ease: "easeInOut" }}
       className={`hidden md:flex flex-col fixed top-16 left-0 h-[calc(100vh-64px)] z-30 
         bg-[#0B0F14] border-r border-[#1F2937]
         overflow-y-auto scrollbar-hide sidebar-scrollbar-hide shadow-xl`}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseEnter={() => !isExpanded && setIsHovered(true)}
+      onMouseLeave={() => !isExpanded && setIsHovered(false)}
       style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
     >
+      {/* Toggle Button - Hamburger Menu */}
+      <div className="p-2 border-b border-[#1F2937]">
+        <button
+          onClick={toggleSidebar}
+          className={`w-full flex items-center gap-3 px-2.5 py-2 rounded-xl 
+            text-[#9CA3AF] hover:text-white hover:bg-[#1A2330] 
+            transition-all duration-300
+            ${!showExpanded && 'justify-center'}`}
+          title={showExpanded ? 'Minimize Sidebar' : 'Maximize Sidebar'}
+        >
+          <svg className="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            {showExpanded ? (
+              // Close/Minimize icon
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+            ) : (
+              // Hamburger/Menu icon
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+            )}
+          </svg>
+          {showExpanded && (
+            <span className="font-medium text-sm">{showExpanded ? 'Minimize' : 'Menu'}</span>
+          )}
+        </button>
+      </div>
+
       {/* Main Navigation */}
       <nav className="space-y-1 p-2 flex-1">
         {navItems.map((item) => (
@@ -127,7 +172,7 @@ export default function Sidebar() {
               <div className="flex-shrink-0 w-6 h-6 flex items-center justify-center">
                 {item.icon}
               </div>
-              {isHovered && (
+              {showExpanded && (
                 <span className="font-medium text-sm whitespace-nowrap">
                   {item.name}
                 </span>
@@ -152,7 +197,7 @@ export default function Sidebar() {
             <svg className="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-3.244m16.942-12.73a9 9 0 00-12.728 0m0 0l2.829 2.829m-2.829-2.829L3 3m5.658 16.942a9 9 0 01-2.83-1.414" />
             </svg>
-            {isHovered && (
+            {showExpanded && (
               <span className="font-medium text-sm">Offline Player</span>
             )}
           </Link>
@@ -176,14 +221,14 @@ export default function Sidebar() {
           <svg className="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
           </svg>
-          {isHovered && (
+          {showExpanded && (
             <span className="font-medium text-sm">{t('upload')}</span>
           )}
         </button>
       </nav>
 
       {/* Categories Section - Compact Grid */}
-      {isHovered && (
+      {showExpanded && (
         <div className="px-2 py-3">
           <h2 className="text-[9px] uppercase tracking-[0.2em] text-[#6B7280] font-bold mb-2 px-2">
             {t('categories')}
@@ -205,7 +250,7 @@ export default function Sidebar() {
       )}
 
       {/* Library Section - Compact */}
-      {isHovered && (
+      {showExpanded && (
         <div className="px-2 py-3">
           <h2 className="text-[9px] uppercase tracking-[0.2em] text-[#6B7280] font-bold mb-2 px-2">
             {t('library')}
@@ -232,7 +277,7 @@ export default function Sidebar() {
       )}
 
       {/* User Profile Card - Minimal */}
-      {isHovered && isAuthenticated && user && (
+      {showExpanded && isAuthenticated && user && (
         <div className="mt-auto p-2">
           <div className="bg-[#121821] rounded-xl p-2.5 flex items-center gap-2.5 border border-[#1F2937]">
             {user.avatar ? (

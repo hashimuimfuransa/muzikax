@@ -27,6 +27,46 @@ export const getPublicCreators = async (req: Request, res: Response): Promise<vo
 };
 
 /**
+ * Get a specific user's public profile by ID (works for ALL users, not just creators)
+ * This endpoint is completely public and requires no authentication
+ */
+export const getPublicUserProfile = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.params['id'];
+    console.log('Fetching user profile for ID:', userId);
+    
+    let user;
+    
+    if (!userId) {
+      res.status(400).json({ message: 'User ID is required' });
+      return;
+    }
+    
+    // Check if the ID is a valid ObjectId format
+    if (mongoose.Types.ObjectId.isValid(userId)) {
+      // If it's a valid ObjectId, search by ID
+      user = await User.findById(userId).select('-password').maxTimeMS(5000);
+    } else {
+      // If it's not a valid ObjectId, search by name
+      user = await User.findOne({ name: userId }).select('-password').maxTimeMS(5000);
+    }
+    
+    // Check if user exists (no role restriction)
+    if (!user) {
+      console.log('User not found for ID:', userId);
+      res.status(404).json({ message: 'User not found' });
+      return;
+    }
+
+    console.log('Successfully fetched user profile for ID:', userId);
+    res.json(user);
+  } catch (error: any) {
+    console.error('Error fetching public user profile:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/**
  * Get a specific creator's public profile by ID
  * This endpoint is completely public and requires no authentication
  */

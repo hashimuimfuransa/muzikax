@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function ContactPage() {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -45,43 +47,43 @@ export default function ContactPage() {
 
   const contactMethods = [
     {
-      title: "General Inquiries",
+      title: t('generalInquiries'),
       email: "info@muzikax.com",
-      description: "For general questions about our platform and services"
+      description: t('generalInquiriesDesc')
     },
     {
-      title: "Artist Support",
+      title: t('artistSupport'),
       email: "artists@muzikax.com",
-      description: "For artists looking to join or questions about creator tools"
+      description: t('artistSupportDesc')
     },
     {
-      title: "Technical Support",
+      title: t('technicalSupportTitle'),
       email: "support@muzikax.com",
-      description: "For technical issues, bugs, or platform problems"
+      description: t('technicalSupportDesc')
     },
     {
-      title: "Press & Media",
+      title: t('pressMedia'),
       email: "press@muzikax.com",
-      description: "For media inquiries, press releases, and partnership opportunities"
+      description: t('pressMediaDesc')
     }
   ];
 
   const faqItems = [
     {
-      question: "How do I upload my music to MuzikaX?",
-      answer: "Sign up for an account, complete your creator profile, then use the 'Upload' button in your dashboard to share your tracks. Make sure you have the rights to all content you upload."
+      question: t('uploadMusicTitle'),
+      answer: t('uploadMusicAnswer')
     },
     {
-      question: "What formats are supported for music uploads?",
-      answer: "We support MP3, WAV, FLAC, and AAC formats. Maximum file size is 100MB per track. For best quality, we recommend uploading high-quality files (320kbps or higher)."
+      question: t('supportedFormats'),
+      answer: t('supportedFormatsAnswer')
     },
     {
-      question: "How does the revenue sharing work?",
-      answer: "Creators earn revenue based on streams and downloads. Premium subscribers generate higher payouts per stream. Detailed analytics and earnings reports are available in your creator dashboard."
+      question: t('revenueSharing'),
+      answer: t('revenueSharingAnswer')
     },
     {
-      question: "Can I update my uploaded tracks?",
-      answer: "Yes, you can edit track metadata, artwork, and descriptions through your dashboard. For major changes like replacing audio files, please contact our artist support team."
+      question: t('updateTracks'),
+      answer: t('updateTracksAnswer')
     }
   ];
 
@@ -91,9 +93,9 @@ export default function ContactPage() {
       <div className="bg-gradient-to-r from-[#FF8C00] to-[#FFB020] py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">Contact Us</h1>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">{t('contactUsTitle')}</h1>
             <p className="text-xl text-white/90 max-w-3xl mx-auto">
-              Have questions or feedback? We'd love to hear from you. Get in touch with our team.
+              {t('contactUsSubtitle')}
             </p>
           </div>
         </div>
@@ -104,7 +106,7 @@ export default function ContactPage() {
           
           {/* Contact Form */}
           <div className="bg-gray-800/30 backdrop-blur-lg rounded-xl p-8 border border-gray-700">
-            <h2 className="text-2xl font-bold mb-6 text-[#FF8C00]">Send us a Message</h2>
+            <h2 className="text-2xl font-bold mb-6 text-[#FF8C00]">{t('sendUsMessage')}</h2>
             
             {submitStatus === "success" && (
               <div className="mb-6 p-4 bg-green-900/30 border border-green-700 rounded-lg">
@@ -112,7 +114,7 @@ export default function ContactPage() {
                   <svg className="w-5 h-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
                   </svg>
-                  <span className="text-green-300">Message sent successfully! We'll get back to you soon.</span>
+                  <span className="text-green-300">{t('messageSentSuccess')}</span>
                 </div>
               </div>
             )}
@@ -123,7 +125,7 @@ export default function ContactPage() {
                   <svg className="w-5 h-5 text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
                   </svg>
-                  <span className="text-red-300">Something went wrong. Please try again.</span>
+                  <span className="text-red-300">{t('somethingWentWrong')}</span>
                 </div>
               </div>
             )}
@@ -131,7 +133,7 @@ export default function ContactPage() {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
-                  Full Name *
+                  {t('fullName')} *
                 </label>
                 <input
                   type="text"
@@ -141,13 +143,13 @@ export default function ContactPage() {
                   onChange={handleInputChange}
                   required
                   className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg focus:ring-2 focus:ring-[#FF8C00] focus:border-transparent text-white placeholder-gray-400"
-                  placeholder="Enter your full name"
+                  placeholder={t('enterFullName')}
                 />
               </div>
 
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
-                  Email Address *
+                  {t('emailAddress')} *
                 </label>
                 <input
                   type="email"
@@ -157,13 +159,13 @@ export default function ContactPage() {
                   onChange={handleInputChange}
                   required
                   className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg focus:ring-2 focus:ring-[#FF8C00] focus:border-transparent text-white placeholder-gray-400"
-                  placeholder="Enter your email address"
+                  placeholder={t('enterEmail')}
                 />
               </div>
 
               <div>
                 <label htmlFor="subject" className="block text-sm font-medium text-gray-300 mb-2">
-                  Subject *
+                  {t('subject')} *
                 </label>
                 <select
                   id="subject"
@@ -173,20 +175,20 @@ export default function ContactPage() {
                   required
                   className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg focus:ring-2 focus:ring-[#FF8C00] focus:border-transparent text-white"
                 >
-                  <option value="">Select a subject</option>
-                  <option value="general">General Inquiry</option>
-                  <option value="artist">Artist Registration</option>
-                  <option value="technical">Technical Support</option>
-                  <option value="billing">Billing/Payment</option>
-                  <option value="partnership">Partnership Opportunity</option>
-                  <option value="feedback">Feedback/Suggestions</option>
-                  <option value="other">Other</option>
+                  <option value="">{t('selectSubject')}</option>
+                  <option value="general">{t('generalInquiry')}</option>
+                  <option value="artist">{t('artistRegistration')}</option>
+                  <option value="technical">{t('technicalSupport')}</option>
+                  <option value="billing">{t('billingPayment')}</option>
+                  <option value="partnership">{t('partnershipOpportunity')}</option>
+                  <option value="feedback">{t('feedbackSuggestions')}</option>
+                  <option value="other">{t('other')}</option>
                 </select>
               </div>
 
               <div>
                 <label htmlFor="message" className="block text-sm font-medium text-gray-300 mb-2">
-                  Message *
+                  {t('message')} *
                 </label>
                 <textarea
                   id="message"
@@ -196,7 +198,7 @@ export default function ContactPage() {
                   required
                   rows={6}
                   className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg focus:ring-2 focus:ring-[#FF8C00] focus:border-transparent text-white placeholder-gray-400 resize-vertical"
-                  placeholder="Tell us how we can help you..."
+                  placeholder={t('howWeCanHelp')}
                 ></textarea>
               </div>
 
@@ -211,10 +213,10 @@ export default function ContactPage() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Sending...
+                    {t('sending')}
                   </div>
                 ) : (
-                  "Send Message"
+                  t('sendMessage')
                 )}
               </button>
             </form>
@@ -223,7 +225,7 @@ export default function ContactPage() {
           {/* Contact Information */}
           <div>
             <div className="bg-gray-800/30 backdrop-blur-lg rounded-xl p-8 border border-gray-700 mb-8">
-              <h2 className="text-2xl font-bold mb-6 text-[#FF8C00]">Contact Methods</h2>
+              <h2 className="text-2xl font-bold mb-6 text-[#FF8C00]">{t('contactMethods')}</h2>
               
               <div className="space-y-6">
                 {contactMethods.map((method, index) => (
@@ -236,21 +238,21 @@ export default function ContactPage() {
               </div>
 
               <div className="mt-8 pt-6 border-t border-gray-700">
-                <h3 className="font-semibold text-white mb-4">Contact Information</h3>
+                <h3 className="font-semibold text-white mb-4">{t('contactInfo')}</h3>
                 <div className="text-gray-300 space-y-3">
                   <div>
-                    <p className="font-medium text-white">Phone:</p>
+                    <p className="font-medium text-white">{t('phone')}:</p>
                     <a href="tel:+250793828834" className="text-[#FF8C00] hover:underline">
                       +250 793 828 834
                     </a>
                   </div>
                   <div>
-                    <p className="font-medium text-white">Office Location:</p>
+                    <p className="font-medium text-white">{t('officeLocation')}:</p>
                     <p>Kigali, Rwanda</p>
                   </div>
                   <div>
-                    <p className="font-medium text-white">Hours:</p>
-                    <p className="text-sm text-gray-400">Monday-Friday, 9:00 AM - 5:00 PM CAT</p>
+                    <p className="font-medium text-white">{t('hours')}:</p>
+                    <p className="text-sm text-gray-400">{t('officeHours')}</p>
                   </div>
                 </div>
               </div>
@@ -258,7 +260,7 @@ export default function ContactPage() {
 
             {/* Social Links */}
             <div className="bg-gray-800/30 backdrop-blur-lg rounded-xl p-8 border border-gray-700">
-              <h2 className="text-2xl font-bold mb-6 text-[#FF8C00]">Connect With Us</h2>
+              <h2 className="text-2xl font-bold mb-6 text-[#FF8C00]">{t('connectWithUs')}</h2>
               
               <div className="flex space-x-4">
                 <a href="#" className="flex items-center justify-center w-12 h-12 bg-[#1DA1F2] rounded-full hover:bg-[#1a91da] transition-colors">
@@ -288,7 +290,7 @@ export default function ContactPage() {
 
         {/* FAQ Section */}
         <div className="mt-16">
-          <h2 className="text-3xl font-bold mb-8 text-center text-[#FF8C00]">Frequently Asked Questions</h2>
+          <h2 className="text-3xl font-bold mb-8 text-center text-[#FF8C00]">{t('faqTitle')}</h2>
           
           <div className="grid md:grid-cols-2 gap-8">
             {faqItems.map((item, index) => (
@@ -301,12 +303,12 @@ export default function ContactPage() {
 
           <div className="text-center mt-8">
             <p className="text-gray-300">
-              Still have questions?{" "}
+              {t('stillHaveQuestions')}{" "}
               <button 
                 onClick={() => document.getElementById('contact-form')?.scrollIntoView({ behavior: 'smooth' })}
                 className="text-[#FF8C00] hover:underline font-medium"
               >
-                Contact us directly
+                {t('contactUsDirectly')}
               </button>
             </p>
           </div>

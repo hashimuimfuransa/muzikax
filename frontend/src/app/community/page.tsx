@@ -29,10 +29,11 @@ interface Vibe {
 
 const CommunityContent = () => {
   const { t } = useLanguage();
-  const { user, fetchUserProfile } = useAuth();
+  const { user, fetchUserProfile, isLoading } = useAuth();
   const searchParams = useSearchParams();
   const router = useRouter();
   const postIdFromUrl = searchParams.get('postId');
+  const [authChecked, setAuthChecked] = useState(false);
   
   const [vibes, setVibes] = useState<Vibe[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -527,15 +528,23 @@ const CommunityContent = () => {
     return t('daysAgo', { count: Math.floor(seconds / 86400) });
   };
 
+  // Check authentication after auth context has time to initialize
   useEffect(() => {
-    if (!user) {
-      const currentPath = typeof window !== 'undefined' ? window.location.pathname + window.location.search : '/community';
-      window.location.href = `/login?redirect=${encodeURIComponent(currentPath)}`;
-    }
-  }, [user]);
+    const timer = setTimeout(() => {
+      setAuthChecked(true);
+      
+      // Only redirect if we're not loading AND user is not authenticated
+      if (!isLoading && !user) {
+        const currentPath = typeof window !== 'undefined' ? window.location.pathname + window.location.search : '/community';
+        window.location.href = `/login?redirect=${encodeURIComponent(currentPath)}`;
+      }
+    }, 100);
 
-  // Show loading spinner while redirecting
-  if (!user) {
+    return () => clearTimeout(timer);
+  }, [user, isLoading]);
+
+  // Show loading spinner while checking auth or during initial load
+  if (!authChecked || isLoading || !user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background-deep via-background to-surface flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
