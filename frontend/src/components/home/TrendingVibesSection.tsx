@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "../../contexts/LanguageContext";
-import { FaHeart, FaComment, FaFire, FaImage, FaVideo, FaMicrophone } from "react-icons/fa";
+import { FaHeart, FaComment, FaFire, FaImage, FaVideo, FaMicrophone, FaQuoteLeft } from "react-icons/fa";
 
 interface Vibe {
   id: string;
@@ -63,18 +63,16 @@ export default function TrendingVibesSection({ limit = 5 }: TrendingVibesSection
     fetchTrendingVibes();
   }, [limit]);
 
+  // Brand-toned fallbacks — deep charcoal with a warm gold cast, so a missing
+  // thumbnail still reads as MuzikaX instead of a random pastel.
   const getVideoFallbackThumbnail = (vibeId: string) => {
     const gradients = [
-      "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-      "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
-      "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
-      "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
-      "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
-      "linear-gradient(135deg, #30cfd0 0%, #330867 100%)",
-      "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)",
-      "linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)",
+      "linear-gradient(135deg, #1c1408 0%, #0d0d0d 60%, #241705 100%)",
+      "linear-gradient(135deg, #221803 0%, #111111 55%, #14100a 100%)",
+      "linear-gradient(135deg, #14100a 0%, #0d0d0d 50%, #2a1c06 100%)",
+      "linear-gradient(135deg, #1a1305 0%, #151515 60%, #0d0d0d 100%)",
     ];
-    
+
     const index = vibeId.charCodeAt(vibeId.length - 1) % gradients.length;
     return gradients[index];
   };
@@ -92,36 +90,38 @@ export default function TrendingVibesSection({ limit = 5 }: TrendingVibesSection
     }
   };
 
+  const sectionHeading = (
+    <div className="flex items-center gap-2.5 sm:gap-3">
+      <span className="flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-[#FFD700] via-[#FFA500] to-[#FF8C00] flex items-center justify-center shadow-lg shadow-[#FF8C00]/20">
+        <FaFire className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-black" />
+      </span>
+      <h2 className="text-lg sm:text-xl font-bold tracking-tight bg-gradient-to-r from-[#FFD700] via-[#FFA500] to-[#FF8C00] bg-clip-text text-transparent">
+        {t('trendingVibes')}
+      </h2>
+    </div>
+  );
+
   if (loading) {
     return (
       <section className="space-y-4">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight flex items-center gap-2">
-            <span className="bg-gradient-to-r from-[#FFD700] to-[#FFA500] bg-clip-text text-transparent">
-              🔥 Trending Vibes
-            </span>
-            <div className="h-px flex-1 max-w-[100px] bg-gradient-to-r from-[#FFD700]/50 to-transparent hidden sm:block" />
-          </h2>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="flex items-center justify-between mb-4">{sectionHeading}</div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
           {Array.from({ length: limit }).map((_, i) => (
-            <div key={i} className="bg-gradient-to-br from-[#0a0604] to-[#121821] rounded-2xl border border-[#1F2937] p-4 animate-pulse">
-              <div className="flex items-center space-x-3 mb-3">
-                <div className="w-10 h-10 rounded-full bg-gray-700 shadow-md" />
-                <div className="flex-1">
-                  <div className="h-4 bg-gray-700 rounded w-24 mb-2" />
-                  <div className="h-3 bg-gray-700 rounded w-16" />
+            <div key={i} className="rounded-2xl border border-white/[0.06] bg-[#121212] overflow-hidden animate-pulse">
+              <div className="aspect-[4/3] w-full bg-white/[0.04]" />
+              <div className="flex items-center gap-2.5 px-3 py-2.5">
+                <div className="w-8 h-8 rounded-full bg-white/[0.06]" />
+                <div className="flex-1 space-y-1.5">
+                  <div className="h-3 bg-white/[0.06] rounded w-24" />
+                  <div className="h-2 bg-white/[0.04] rounded w-16" />
                 </div>
               </div>
-              <div className="h-32 bg-[#121821] rounded-xl mb-3 shadow-lg" />
-              <div className="h-3 bg-[#121821] rounded w-full mb-2" />
-              <div className="h-3 bg-[#121821] rounded w-2/3" />
-              <div className="flex justify-between items-center pt-3 mt-3 border-t border-[#1F2937]/50">
-                <div className="flex space-x-3">
-                  <div className="h-7 w-16 bg-[#121821] rounded-full" />
-                  <div className="h-7 w-16 bg-[#121821] rounded-full" />
+              <div className="flex justify-between items-center border-t border-white/[0.06] px-3 py-2.5">
+                <div className="flex gap-3">
+                  <div className="h-3 w-8 bg-white/[0.05] rounded-full" />
+                  <div className="h-3 w-8 bg-white/[0.05] rounded-full" />
                 </div>
-                <div className="h-4 w-20 bg-[#121821] rounded" />
+                <div className="h-3 w-14 bg-white/[0.05] rounded" />
               </div>
             </div>
           ))}
@@ -136,150 +136,126 @@ export default function TrendingVibesSection({ limit = 5 }: TrendingVibesSection
 
   return (
     <section className="space-y-4">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight flex items-center gap-2">
-          <span className="bg-gradient-to-r from-[#FFD700] to-[#FFA500] bg-clip-text text-transparent">
-            🔥 {t('trendingVibes')}
-          </span>
-          <div className="h-px flex-1 max-w-[100px] bg-gradient-to-r from-[#FFD700]/50 to-transparent hidden sm:block" />
-        </h2>
+      <div className="flex items-center justify-between gap-3 mb-4">
+        {sectionHeading}
         <button
           onClick={() => router.push("/community")}
-          className="text-xs font-semibold text-white/70 hover:text-[#FFD700] transition-colors uppercase tracking-widest hover:underline decoration-[#FFD700] decoration-2 underline-offset-4"
+          className="flex-shrink-0 inline-flex items-center gap-1.5 rounded-full border border-white/10 px-3 py-1.5 text-[11px] sm:text-xs font-semibold text-gray-300 hover:text-black hover:bg-gradient-to-r hover:from-[#FFD700] hover:to-[#FF8C00] hover:border-transparent transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8C00]"
         >
           {t('viewAll')}
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+          </svg>
         </button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
         {vibes.map((vibe) => {
           const firstLetter = vibe.userName ? vibe.userName.charAt(0).toUpperCase() : "?";
-          
+          const hasMedia = Boolean(vibe.mediaUrl) && (vibe.postType === "image" || vibe.postType === "video");
+
           return (
             <button
               key={vibe.id}
               onClick={() => router.push(`/community?postId=${vibe.id}`)}
-              className="group flex flex-col bg-gradient-to-br from-[#0a0604] to-[#121821] backdrop-blur-md border border-[#1F2937] rounded-2xl overflow-hidden hover:border-[#F59E0B]/60 hover:shadow-lg hover:shadow-[#F59E0B]/10 transition-all duration-500 text-left relative"
+              aria-label={`${t('viewPost' as any)} — ${vibe.userName}`}
+              // Block (not flex) layout: the cover's aspect-ratio only resolves
+              // reliably when the slot is a normal block box.
+              className="group relative block overflow-hidden rounded-2xl border border-white/[0.06] bg-[#121212] text-left transition-all duration-300 hover:-translate-y-1 hover:border-[#FF8C00]/40 hover:shadow-xl hover:shadow-black/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8C00] focus-visible:ring-offset-2 focus-visible:ring-offset-black"
             >
-              {/* Animated gradient border effect */}
-              <div className="absolute inset-0 bg-gradient-to-br from-[#F59E0B]/0 via-[#F59E0B]/0 to-[#F59E0B]/0 group-hover:from-[#F59E0B]/5 group-hover:via-[#F59E0B]/5 group-hover:to-[#F59E0B]/5 transition-all duration-500 pointer-events-none" />
-              
-              <div className="p-4 flex flex-col h-full relative z-10">
-                {/* User Info */}
-                <div className="flex items-center space-x-3 mb-3">
-                  <div className="relative shrink-0">
-                    {vibe.userAvatar ? (
+              {/* Cover — identical footprint on every card, whatever the post type */}
+              <div className="relative w-full aspect-[4/3] overflow-hidden bg-[#0d0d0d]">
+                {hasMedia ? (
+                  <>
+                    {vibe.postType === "image" ? (
                       <img
-                        src={vibe.userAvatar}
-                        alt={vibe.userName}
-                        className="w-10 h-10 rounded-full object-cover border-2 border-[#F59E0B]/40 group-hover:border-[#F59E0B] transition-all duration-500 shadow-md shadow-black/20"
+                        src={vibe.mediaUrl}
+                        alt=""
+                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                       />
                     ) : (
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#F59E0B] via-[#FFB020] to-[#F59E0B] flex items-center justify-center border-2 border-[#F59E0B]/40 group-hover:border-[#F59E0B] transition-all duration-500 shadow-lg shadow-[#F59E0B]/30">
-                        <span className="text-black font-bold text-sm">{firstLetter}</span>
-                      </div>
+                      <>
+                        {vibe.mediaThumbnail ? (
+                          <img
+                            src={vibe.mediaThumbnail}
+                            alt=""
+                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                          />
+                        ) : (
+                          <div className="absolute inset-0" style={{ background: getVideoFallbackThumbnail(vibe.id) }} />
+                        )}
+                        <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-black/50 backdrop-blur-sm ring-1 ring-white/20 flex items-center justify-center text-white transition-all duration-300 group-hover:bg-[#FF8C00] group-hover:text-black group-hover:scale-110">
+                          <svg className="w-4 h-4 fill-current ml-0.5" viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z" />
+                          </svg>
+                        </span>
+                      </>
                     )}
-                    {vibe.postType !== "text" && (
-                      <div className="absolute -bottom-1 -right-1 bg-gradient-to-br from-[#F59E0B] to-[#FFB020] text-black text-[10px] p-1.5 rounded-full border-2 border-black/20 flex items-center justify-center shadow-lg">
-                        {getPostTypeIcon(vibe.postType)}
-                      </div>
+                    {/* Caption rides on the artwork, so the card needs no extra row */}
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/75 to-transparent px-3 pb-2.5 pt-10">
+                      <p className="line-clamp-2 text-[13px] leading-snug text-white/90">{vibe.content}</p>
+                    </div>
+                  </>
+                ) : (
+                  <div className="absolute inset-0 flex flex-col justify-center bg-gradient-to-br from-[#1c1408] via-[#141414] to-[#0d0d0d] px-4 py-5">
+                    <FaQuoteLeft className="mb-2.5 w-3.5 h-3.5 shrink-0 text-[#FF8C00]/60" />
+                    <p className="line-clamp-4 text-sm leading-relaxed text-gray-200">{vibe.content}</p>
+                    {vibe.postType === "audio" && (
+                      <span className="mt-3 inline-flex w-fit items-center gap-1.5 rounded-full bg-[#FF8C00]/15 px-2.5 py-1 text-[11px] font-medium text-[#FFA500]">
+                        <FaMicrophone className="w-2.5 h-2.5" />
+                        {t('voiceNote' as any)}
+                      </span>
                     )}
                   </div>
-                  <div className="overflow-hidden flex-1 min-w-0">
-                    <h3 className="font-semibold text-white text-sm truncate group-hover:text-[#F59E0B] transition-colors duration-300">
-                      {vibe.userName}
-                    </h3>
-                    <p className="text-[10px] text-gray-400 uppercase tracking-wider font-medium">{t('communityVibe' as any)}</p>
-                  </div>
-                  {vibe.category === "trending" && (
-                    <div className="bg-gradient-to-r from-[#F59E0B] to-[#FFB020] text-black text-[10px] font-bold px-2.5 py-1.5 rounded-full flex items-center gap-1 shadow-lg shadow-[#F59E0B]/30 whitespace-nowrap">
-                      <FaFire className="w-3 h-3" />
-                      <span>{t('trending')}</span>
-                    </div>
-                  )}
-                </div>
+                )}
 
-                {/* Content Preview */}
-                <div className="flex-1 mb-4">
-                  {vibe.mediaUrl && (vibe.postType === "image" || vibe.postType === "video") ? (
-                    <div className="relative w-full aspect-video rounded-xl overflow-hidden mb-3 shadow-lg shadow-black/40 group-hover:shadow-xl group-hover:shadow-[#F59E0B]/20 transition-all duration-500">
-                      {vibe.postType === "image" ? (
-                        <img
-                          src={vibe.mediaUrl}
-                          alt="Vibe media"
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                        />
-                      ) : (
-                        <div className="relative w-full h-full">
-                          {vibe.mediaThumbnail ? (
-                            <img
-                              src={vibe.mediaThumbnail}
-                              alt="Video thumbnail"
-                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                            />
-                          ) : (
-                            <div
-                              className="w-full h-full relative"
-                              style={{ background: getVideoFallbackThumbnail(vibe.id) }}
-                            >
-                              <div className="absolute inset-0 flex items-center justify-center">
-                                <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
-                                  <svg className="w-8 h-8 fill-current text-white" viewBox="0 0 24 24">
-                                    <path d="M8 5v14l11-7z" />
-                                  </svg>
-                                </div>
-                              </div>
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
-                            </div>
-                          )}
-                          <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/50 transition-all duration-300">
-                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#F59E0B] to-[#FFB020] flex items-center justify-center text-black transform group-hover:scale-125 group-hover:shadow-lg group-hover:shadow-[#F59E0B]/50 transition-all duration-300 shadow-lg">
-                              <svg className="w-6 h-6 fill-current ml-0.5" viewBox="0 0 24 24">
-                                <path d="M8 5v14l11-7z" />
-                              </svg>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-gray-900/20 to-transparent"></div>
-                    </div>
-                  ) : vibe.postType === "audio" ? (
-                    <div className="bg-gradient-to-br from-[#121821] to-[#0a0604] rounded-xl p-3 mb-3 flex items-center space-x-3 border border-[#1F2937] group-hover:border-[#10B981]/40 transition-all duration-300">
-                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#10B981]/20 to-[#10B981]/30 flex items-center justify-center text-[#10B981] group-hover:from-[#10B981]/30 group-hover:to-[#10B981]/40 transition-all duration-300 shadow-md">
-                        <FaMicrophone className="w-4 h-4" />
-                      </div>
-                      <span className="text-xs text-gray-300 font-medium">{t('voiceNote' as any)}</span>
-                    </div>
-                  ) : null}
-                  
-                  <p className="text-[#9CA3AF] text-sm line-clamp-3 leading-relaxed italic bg-gradient-to-r from-[#121821]/30 to-[#0a0604]/30 p-3 rounded-xl border border-[#1F2937]/30 group-hover:border-[#F59E0B]/20 transition-all duration-300">
-                    "{vibe.content}"
-                  </p>
-                </div>
+                {/* Post type */}
+                {vibe.postType !== "text" && (
+                  <span className="absolute right-2.5 top-2.5 flex items-center justify-center w-6 h-6 rounded-lg bg-black/55 backdrop-blur-sm text-white ring-1 ring-white/15">
+                    {getPostTypeIcon(vibe.postType)}
+                  </span>
+                )}
+              </div>
 
-                {/* Stats */}
-                <div className="flex items-center justify-between pt-3 border-t border-[#1F2937]/50 text-[#9CA3AF] text-xs mt-auto">
-                  <div className="flex items-center space-x-4">
-                    <div className="flex items-center space-x-1.5 group/stat cursor-pointer">
-                      <div className="w-7 h-7 rounded-full bg-[#121821] group-hover/stat:bg-[#F59E0B]/20 flex items-center justify-center transition-all duration-300">
-                        <FaHeart className="group-hover/stat:text-[#F59E0B] transition-colors text-[10px]" />
-                      </div>
-                      <span className="font-medium group-hover/stat:text-[#F59E0B] transition-colors">{vibe.likes}</span>
-                    </div>
-                    <div className="flex items-center space-x-1.5 group/stat cursor-pointer">
-                      <div className="w-7 h-7 rounded-full bg-[#121821] group-hover/stat:bg-blue-500/20 flex items-center justify-center transition-all duration-300">
-                        <FaComment className="group-hover/stat:text-blue-400 transition-colors text-[10px]" />
-                      </div>
-                      <span className="font-medium group-hover/stat:text-blue-400 transition-colors">{vibe.commentCount}</span>
-                    </div>
+              {/* Author */}
+              <div className="flex items-center gap-2.5 px-3 py-2.5">
+                {vibe.userAvatar ? (
+                  <img
+                    src={vibe.userAvatar}
+                    alt=""
+                    className="w-8 h-8 shrink-0 rounded-full object-cover ring-1 ring-white/10 transition-all duration-300 group-hover:ring-[#FF8C00]/60"
+                  />
+                ) : (
+                  <div className="w-8 h-8 shrink-0 rounded-full bg-gradient-to-br from-[#FFD700] via-[#FFA500] to-[#FF8C00] flex items-center justify-center ring-1 ring-white/10 transition-all duration-300 group-hover:ring-[#FF8C00]/60">
+                    <span className="text-black font-bold text-xs">{firstLetter}</span>
                   </div>
-                  <div className="flex items-center space-x-1.5 text-[#F59E0B] font-semibold group-hover:text-[#FFB020] transition-colors duration-300">
-                    <span className="text-xs">{t('viewPost' as any)}</span>
-                    <svg className="w-3.5 h-3.5 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <h3 className="truncate text-[13px] font-semibold text-white transition-colors duration-300 group-hover:text-[#FFA500]">
+                    {vibe.userName}
+                  </h3>
+                  <p className="truncate text-[11px] text-gray-500">{t('communityVibe' as any)}</p>
                 </div>
+              </div>
+
+              {/* Stats */}
+              <div className="flex items-center justify-between border-t border-white/[0.06] px-3 py-2.5">
+                <div className="flex items-center gap-4 text-xs">
+                  <span className="flex items-center gap-1.5">
+                    <FaHeart className="w-3 h-3 text-[#FF8C00]/80" />
+                    <span className="font-medium text-gray-400">{vibe.likes}</span>
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <FaComment className="w-3 h-3 text-gray-600" />
+                    <span className="font-medium text-gray-400">{vibe.commentCount}</span>
+                  </span>
+                </div>
+                <span className="flex items-center gap-1 text-[11px] font-semibold text-gray-500 transition-colors duration-300 group-hover:text-[#FFA500]">
+                  {t('viewPost' as any)}
+                  <svg className="w-3 h-3 transition-transform duration-300 group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                  </svg>
+                </span>
               </div>
             </button>
           );

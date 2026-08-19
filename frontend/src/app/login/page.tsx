@@ -466,12 +466,24 @@ function LoginContent() {
           )}
         </div>
 
-        <div className="flex bg-[#1a1a1a]/80 backdrop-blur-sm rounded-lg p-0.75 sm:p-1 shadow-inner border border-[#2a2a2a]/40">
+        <div
+          role="tablist"
+          aria-label="Authentication mode"
+          className="relative flex items-center bg-[#101010]/90 backdrop-blur-sm rounded-xl p-1 shadow-inner shadow-black/40 border border-[#2a2a2a]/60"
+        >
+          {/* Sliding highlight */}
+          <span
+            aria-hidden="true"
+            className={`pointer-events-none absolute inset-y-1 left-1 w-[calc(50%_-_0.25rem)] rounded-lg bg-gradient-to-r from-[#FFD700] via-[#FFA500] to-[#FF8C00] shadow-lg shadow-[#FF8C00]/30 transition-transform duration-300 ease-out will-change-transform ${
+              isLogin ? 'translate-x-0' : 'translate-x-full'
+            }`}
+          />
           <button
-            className={`flex-1 py-1.75 sm:py-2 px-2 sm:px-3 rounded-md text-xs font-semibold transition-all duration-300 touch-manipulation ${
-              isLogin 
-                ? 'bg-gradient-to-r from-[#FFD700] to-[#FF8C00] text-white shadow-md shadow-[#FF8C00]/25' 
-                : 'text-gray-500 hover:text-gray-300 hover:bg-[#252525]/50'
+            type="button"
+            role="tab"
+            aria-selected={isLogin}
+            className={`relative z-10 flex-1 py-2.5 px-3 rounded-lg text-sm font-semibold tracking-wide transition-colors duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8C00] focus-visible:ring-offset-2 focus-visible:ring-offset-[#141414] touch-manipulation ${
+              isLogin ? 'text-[#1a1200]' : 'text-gray-400 hover:text-white'
             }`}
             onClick={() => {
               setIsLogin(true)
@@ -481,10 +493,11 @@ function LoginContent() {
             {t('login') || 'Login'}
           </button>
           <button
-            className={`flex-1 py-1.75 sm:py-2 px-2 sm:px-3 rounded-md text-xs font-semibold transition-all duration-300 touch-manipulation ${
-              !isLogin 
-                ? 'bg-gradient-to-r from-[#FFD700] to-[#FF8C00] text-white shadow-md shadow-[#FF8C00]/25' 
-                : 'text-gray-500 hover:text-gray-300 hover:bg-[#252525]/50'
+            type="button"
+            role="tab"
+            aria-selected={!isLogin}
+            className={`relative z-10 flex-1 py-2.5 px-3 rounded-lg text-sm font-semibold tracking-wide transition-colors duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8C00] focus-visible:ring-offset-2 focus-visible:ring-offset-[#141414] touch-manipulation ${
+              !isLogin ? 'text-[#1a1200]' : 'text-gray-400 hover:text-white'
             }`}
             onClick={() => {
               setIsLogin(false)
