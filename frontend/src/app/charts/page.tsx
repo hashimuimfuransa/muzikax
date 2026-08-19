@@ -351,7 +351,7 @@ export default function ChartsPage() {
           <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4 md:p-6 text-center">
             <p className="text-red-400 text-sm md:text-base">{error}</p>
             <button
-              onClick={fetchCharts}
+              onClick={ ()=> fetchCharts()}
               className="mt-4 px-6 py-2.5 bg-red-500 hover:bg-red-600 rounded-lg transition-colors text-sm md:text-base min-h-[44px]"
             >
               Try Again
