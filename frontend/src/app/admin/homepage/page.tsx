@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { useAuth } from '../../../contexts/AuthContext'
 import { convertImageUrl } from '../../../utils/imageUtils'
 
@@ -32,11 +31,9 @@ interface HomepageContent {
 }
 
 export default function HomepageManagement() {
-  const router = useRouter()
   const { isAuthenticated, userRole } = useAuth()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [authChecked, setAuthChecked] = useState(false)
   const [content, setContent] = useState<HomepageContent>({
     slides: [],
     currentSlide: 0,
@@ -75,22 +72,10 @@ export default function HomepageManagement() {
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingSlideId, setEditingSlideId] = useState<number | null>(null)
 
-  // Check authentication and role on component mount
+  // Access control is handled once in src/app/admin/layout.tsx.
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setAuthChecked(true)
-      
-      if (!isAuthenticated) {
-        router.push('/login')
-      } else if (userRole !== 'admin') {
-        router.push('/')
-      } else {
-        fetchHomepageContent()
-      }
-    }, 100)
-
-    return () => clearTimeout(timer)
-  }, [isAuthenticated, userRole, router])
+    fetchHomepageContent()
+  }, [])
 
   const fetchHomepageContent = async () => {
     try {
@@ -289,23 +274,17 @@ export default function HomepageManagement() {
     }
   }
 
-  if (!authChecked || loading) {
+  if (loading) {
     return (
-      <div className="flex min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black items-center justify-center">
+      <div className="flex min-h-[60vh] items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF8C00]"></div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black text-white p-6">
+    <div className="w-full">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-[#FF8C00] to-[#FFB020]">
-            Homepage Management
-          </h1>
-          <p className="text-gray-400">Manage hero section slider and homepage content</p>
-        </div>
 
         {/* Slides Management */}
         <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 mb-8">

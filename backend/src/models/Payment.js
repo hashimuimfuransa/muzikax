@@ -30,9 +30,9 @@ const paymentSchema = new mongoose.Schema({
     default: 'pending'
   },
   momoTransactionId: {
-    type: String,
-    sparse: true
-    // Note: Don't use unique: true here as we create the index below to avoid duplicate index warning
+    type: String
+    // Note: no index options here (index/unique/sparse each create an index) -
+    // the index is declared once below to avoid a duplicate index warning
   },
   momoReferenceId: {
     type: String
@@ -64,7 +64,7 @@ const paymentSchema = new mongoose.Schema({
 
 // Index for faster queries
 paymentSchema.index({ trackId: 1, buyerId: 1 });
-paymentSchema.index({ momoTransactionId: 1 });
+paymentSchema.index({ momoTransactionId: 1 }, { sparse: true });
 paymentSchema.index({ status: 1 });
 
 module.exports = mongoose.model('Payment', paymentSchema);

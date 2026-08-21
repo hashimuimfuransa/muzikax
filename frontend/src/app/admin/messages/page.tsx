@@ -1,9 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../contexts/AuthContext';
-import Link from 'next/link';
 
 interface ContactMessage {
   _id: string;
@@ -18,12 +16,10 @@ interface ContactMessage {
 }
 
 export default function AdminMessages() {
-  const router = useRouter();
   const { isAuthenticated, userRole } = useAuth();
   const [messages, setMessages] = useState<ContactMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [authChecked, setAuthChecked] = useState(false);
   const [selectedMessage, setSelectedMessage] = useState<ContactMessage | null>(null);
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterType, setFilterType] = useState('all');
@@ -35,21 +31,11 @@ export default function AdminMessages() {
     byType: Array<{ _id: string; count: number }>;
   }>({ total: 0, byStatus: [], byType: [] });
 
+  // Access control is handled once in src/app/admin/layout.tsx.
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setAuthChecked(true);
-      if (!isAuthenticated) {
-        router.push('/login');
-      } else if (userRole !== 'admin') {
-        router.push('/');
-      } else {
-        fetchMessages();
-        fetchStats();
-      }
-    }, 100);
-
-    return () => clearTimeout(timer);
-  }, [isAuthenticated, userRole, router]);
+    fetchMessages();
+    fetchStats();
+  }, []);
 
   const fetchMessages = async () => {
     try {
@@ -177,27 +163,10 @@ export default function AdminMessages() {
     }
   };
 
-  if (!authChecked) {
-    return (
-      <div className="flex min-h-screen bg-gray-900 items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex min-h-screen bg-gray-900 text-white">
-      <div className="flex-1 p-4 sm:p-8 overflow-auto transition-all duration-300">
-        <div className="max-w-7xl">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">Contact Messages</h1>
-              <p className="text-gray-400">Manage user feedback and inquiries</p>
-            </div>
-            <Link href="/admin" className="text-gray-400 hover:text-white">
-              ← Back
-            </Link>
-          </div>
+    <div className="w-full">
+      <div className="w-full">
+        <div className="w-full">
 
           {/* Stats */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
@@ -272,7 +241,7 @@ export default function AdminMessages() {
             <div className="lg:col-span-2 space-y-4">
               {loading ? (
                 <div className="text-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto"></div>
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF8C00] mx-auto"></div>
                 </div>
               ) : messages.length === 0 ? (
                 <div className="bg-gray-800 rounded-lg p-8 text-center text-gray-400">

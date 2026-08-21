@@ -106,22 +106,17 @@ export default function ChartsAnalyticsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="flex min-h-[60vh] items-center justify-center">
         <div className="text-white text-xl">Loading analytics...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-8">
-      {/* Header */}
-      <div className="max-w-7xl mx-auto mb-8">
-        <h1 className="text-4xl font-bold mb-2">Charts Analytics Dashboard</h1>
-        <p className="text-gray-400">Real-time insights into chart performance and user engagement</p>
-      </div>
+    <div className="w-full">
 
       {/* Stats Grid */}
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard
           title="Total Tracks Tracked"
           value={stats?.totalChartsTracked.toLocaleString() || "0"}
@@ -149,7 +144,7 @@ export default function ChartsAnalyticsPage() {
       </div>
 
       {/* Performance Metrics */}
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700">
           <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
             <span>📊</span> Performance Metrics
@@ -193,7 +188,7 @@ export default function ChartsAnalyticsPage() {
       </div>
 
       {/* Top 10 Charts Table */}
-      <div className="max-w-7xl mx-auto">
+      <div className="w-full">
         <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700">
           <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
             <span>🏆</span> Top 10 Global Charts
@@ -245,7 +240,7 @@ export default function ChartsAnalyticsPage() {
       </div>
 
       {/* System Health */}
-      <div className="max-w-7xl mx-auto mt-8">
+      <div className="mt-8">
         <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700">
           <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
             <span>💚</span> System Health

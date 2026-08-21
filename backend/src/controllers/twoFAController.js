@@ -3,6 +3,7 @@ const User = require('../models/User');
 const { sendOTPEmail } = require('../services/emailService');
 const { generateAccessToken, generateRefreshToken } = require('../utils/jwt');
 const bcrypt = require('bcryptjs');
+const { isTwoFactorEnabled, requiresTwoFactor } = require('../config/twoFactor');
 
 /**
  * Request OTP for login
@@ -24,10 +25,12 @@ const requestOTP = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Check if user is an artist or admin (both require 2FA)
-    if ((user.role !== 'creator' || user.creatorType !== 'artist') && user.role !== 'admin') {
+    // Is this account under 2FA? (see config/twoFactor.js)
+    if (!requiresTwoFactor(user)) {
       return res.status(403).json({ 
-        message: '2FA is only required for artist and admin accounts',
+        message: isTwoFactorEnabled()
+          ? '2FA is only required for artist accounts'
+          : '2FA is currently disabled',
         requires2FA: false
       });
     }
@@ -86,9 +89,13 @@ const verifyOTPAndLogin = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Check if user is an artist or admin
-    if ((user.role !== 'creator' || user.creatorType !== 'artist') && user.role !== 'admin') {
-      return res.status(403).json({ message: '2FA login is only for artist and admin accounts' });
+    // Is this account under 2FA? (see config/twoFactor.js)
+    if (!requiresTwoFactor(user)) {
+      return res.status(403).json({
+        message: isTwoFactorEnabled()
+          ? '2FA login is only for artist accounts'
+          : '2FA is currently disabled - sign in with email and password'
+      });
     }
 
     // First verify password
@@ -159,8 +166,13 @@ const resendOTP = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    if ((user.role !== 'creator' || user.creatorType !== 'artist') && user.role !== 'admin') {
-      return res.status(403).json({ message: '2FA is only for artist and admin accounts' });
+    // Is this account under 2FA? (see config/twoFactor.js)
+    if (!requiresTwoFactor(user)) {
+      return res.status(403).json({
+        message: isTwoFactorEnabled()
+          ? '2FA is only for artist accounts'
+          : '2FA is currently disabled'
+      });
     }
 
     // Generate new OTP

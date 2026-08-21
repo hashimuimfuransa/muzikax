@@ -93,7 +93,7 @@ const MonetizationSchema = new mongoose_1.Schema({
     timestamps: true
 });
 // Indexes for better query performance
-MonetizationSchema.index({ userId: 1 });
+// Note: userId is indexed by `unique: true` on the path above.
 MonetizationSchema.index({ status: 1 });
 MonetizationSchema.index({ createdAt: -1 });
 module.exports = mongoose_1.default.model('Monetization', MonetizationSchema);

@@ -127,9 +127,9 @@ export default function AdminReportsPage() {
     }
   };
 
-  if (isLoading || !isAuthenticated || userRole !== 'admin') {
+  if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black flex items-center justify-center">
+      <div className="flex min-h-[60vh] items-center justify-center">
         <div className="text-white">Loading...</div>
       </div>
     );
@@ -137,9 +137,8 @@ export default function AdminReportsPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-8">
+      <div className="w-full">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-3xl font-bold text-white mb-6">Report Management</h1>
           <div className="bg-red-900/30 border border-red-700 rounded-lg p-4 text-red-400">
             Error: {error}
           </div>
@@ -149,11 +148,10 @@ export default function AdminReportsPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black">
-      <div className="flex-1 p-4 sm:p-8 transition-all duration-300">
+    <div className="w-full">
+      <div className="w-full">
         <div className="max-w-7xl mx-auto w-full">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-white">Report Management</h1>
+        <div className="flex justify-end mb-6">
           <div className="text-white">
             Total Reports: <span className="text-[#FF8C00]">{totalReports}</span>
           </div>

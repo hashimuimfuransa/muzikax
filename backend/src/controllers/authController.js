@@ -10,6 +10,7 @@ const jwt_1 = require("../utils/jwt");
 const OTP = require("../models/OTP");
 const crypto = require('crypto');
 const emailService_1 = require("../services/emailService");
+const { requiresTwoFactor } = require("../config/twoFactor");
 // Register user
 const register = async (req, res) => {
     try {
@@ -148,9 +149,11 @@ const login = async (req, res) => {
             res.status(401).json({ message: 'Invalid email or password' });
             return;
         }
-        // Check if user is an artist or admin - requires 2FA
-        if ((user.role === 'creator' && user.creatorType === 'artist') || user.role === 'admin') {
-            // For artists and admins, don't complete login yet - send OTP first
+        // Does this account need an OTP challenge? Currently never - 2FA is
+        // switched off for everyone in config/twoFactor.js while SendGrid is
+        // over its credit limit and cannot deliver OTP emails.
+        if (requiresTwoFactor(user)) {
+            // Don't complete login yet - send OTP first
             const otpRecord = await OTP.createOTP({
                 email: user.email,
                 purpose: 'login',
@@ -222,8 +225,8 @@ const refreshToken = async (req, res) => {
             res.status(401).json({ message: 'Invalid refresh token' });
             return;
         }
-        // Check if user is an artist or admin who needs 2FA
-        if ((user.role === 'creator' && user.creatorType === 'artist') || user.role === 'admin') {
+        // Accounts under 2FA must re-login rather than silently refreshing
+        if (requiresTwoFactor(user)) {
             res.status(403).json({ 
                 message: 'This account requires 2FA verification. Please login again.',
                 requiresRelogin: true

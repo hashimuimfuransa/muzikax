@@ -41,28 +41,11 @@ export default function AdminDashboard() {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [authChecked, setAuthChecked] = useState(false)
 
-  // Check authentication and role on component mount
+  // Access control is handled once in src/app/admin/layout.tsx.
   useEffect(() => {
-    // Small delay to ensure AuthContext has time to initialize
-    const timer = setTimeout(() => {
-      setAuthChecked(true)
-      
-      if (!isAuthenticated) {
-        // If not authenticated, redirect to login
-        router.push('/login')
-      } else if (userRole !== 'admin') {
-        // If authenticated but not an admin, redirect to home
-        router.push('/')
-      } else {
-        // Fetch admin data
-        fetchAdminData()
-      }
-    }, 100)
-
-    return () => clearTimeout(timer)
-  }, [isAuthenticated, userRole, router])
+    fetchAdminData()
+  }, [])
 
   const fetchAdminData = async () => {
     try {
@@ -89,20 +72,6 @@ export default function AdminDashboard() {
     }
   }
 
-  // Don't render the dashboard until auth check is complete
-  if (!authChecked) {
-    return (
-      <div className="flex min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF8C00]"></div>
-      </div>
-    )
-  }
-
-  // Don't render the dashboard if not authenticated or not authorized
-  if (!isAuthenticated || userRole !== 'admin') {
-    return null
-  }
-  
   // Stats data based on real analytics
   const stats = analytics ? [
     { title: 'Total Users', value: analytics.totalUsers.toString(), change: '+12%', icon: 'users', color: 'from-[#FF8C00] to-[#FF8C00]' },
@@ -113,10 +82,6 @@ export default function AdminDashboard() {
 
   return (
     <div>
-      <div className="mb-6 sm:mb-8">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white">Admin Dashboard</h1>
-            <p className="text-gray-400 text-sm sm:text-base">Manage platform users and monitor system performance</p>
-          </div>
 
           {/* Time Range Selector */}
           <div className="flex justify-end mb-6 sm:mb-8">

@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import AdminSidebar from '../../../components/AdminSidebar'
 import { useAuth } from '../../../contexts/AuthContext'
 import { 
   getPendingApplications,
@@ -204,50 +203,27 @@ export default function AdminMonetization() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black flex items-center justify-center">
+      <div className="flex min-h-[60vh] items-center justify-center">
         <div className="text-white">Loading...</div>
-      </div>
-    )
-  }
-
-  if (!isAuthenticated || user?.role !== 'admin') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black flex items-center justify-center">
-        <div className="text-white text-center">
-          <h2 className="text-2xl font-bold mb-4">Access Denied</h2>
-          <p>Admin access required.</p>
-        </div>
       </div>
     )
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black py-8">
-        <div className="container mx-auto px-4">
-          <div className="text-white text-center">Loading monetization data...</div>
-        </div>
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF8C00]"></div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black py-8 md:ml-20 transition-all duration-300">
-      <AdminSidebar />
+    <div className="w-full">
       <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#FF8C00]/10 rounded-full blur-3xl -z-10"></div>
       <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-[#FFB020]/10 rounded-full blur-3xl -z-10"></div>
       
-      <div className="container mx-auto px-4">
+      <div className="w-full">
         <div className="max-w-6xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF8C00] to-[#FFB020] mb-2">
-              Monetization Management
-            </h1>
-            <p className="text-gray-400">
-              Review and manage creator monetization applications
-            </p>
-          </div>
 
           {error && (
             <div className="mb-6 p-4 bg-red-900/30 border border-red-700 rounded-lg">

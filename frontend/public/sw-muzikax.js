@@ -3,7 +3,7 @@
  * Caches app shell, API responses, and enables offline music playback
  */
 
-const CACHE_NAME = 'muzikax-v1';
+const CACHE_NAME = 'muzikax-v2';
 const AUDIO_CACHE_NAME = 'muzikax-audio-v1';
 const API_CACHE_NAME = 'muzikax-api-v1';
 
@@ -75,6 +75,19 @@ self.addEventListener('fetch', (event) => {
 
   // Skip non-GET requests
   if (request.method !== 'GET') {
+    return;
+  }
+
+  // Let Next.js handle its own traffic. RSC payloads (client-side navigation),
+  // build output and HMR must never be served from cache or rewritten into a
+  // synthetic error response - doing so breaks the router.
+  if (isNextInternalRequest(url, request)) {
+    return;
+  }
+
+  // Admin is authenticated and always dynamic: never cache it, never fake a
+  // response for it.
+  if (url.pathname === '/admin' || url.pathname.startsWith('/admin/')) {
     return;
   }
 
@@ -187,6 +200,18 @@ async function handleNavigationRequest(request) {
 /**
  * Check if request is for audio file
  */
+function isNextInternalRequest(url, request) {
+  if (url.pathname.startsWith('/_next/')) {
+    return true;
+  }
+  // React Server Component payload requests
+  if (url.searchParams.has('_rsc') || request.headers.get('RSC') === '1') {
+    return true;
+  }
+  const accept = request.headers.get('accept') || '';
+  return accept.includes('text/x-component');
+}
+
 function isAudioRequest(request) {
   const url = new URL(request.url);
   return (
@@ -329,14 +354,11 @@ async function handleDefaultRequest(request) {
       return cachedResponse;
     }
 
-    // Don't return 503 for API requests, let them fail naturally
-    // This prevents false 503 errors when backend is temporarily unavailable
-    if (request.url.includes('/api/')) {
-      console.log('[ServiceWorker] API request failed, not intercepting:', request.url);
-      throw error; // Re-throw to let the app handle it
-    }
-
-    return new Response('Offline', { status: 503 });
+    // Never synthesize a 503. A fabricated error response is indistinguishable
+    // from a real server failure to the app, so let the genuine network error
+    // surface and be handled by the caller.
+    console.log('[ServiceWorker] No cached copy, propagating network error:', request.url);
+    throw error;
   }
 }
 

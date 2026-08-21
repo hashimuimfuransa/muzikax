@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { useAuth } from '../../../contexts/AuthContext'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
 
@@ -93,27 +92,12 @@ export default function AnalyticsPage() {
   const [geographicData, setGeographicData] = useState<GeographicData | null>(null);
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const router = useRouter()
   const { isAuthenticated, userRole } = useAuth()
-  const [authChecked, setAuthChecked] = useState(false)
 
-  // Check authentication and role on component mount
+  // Access control is handled once in src/app/admin/layout.tsx.
   useEffect(() => {
-    // Small delay to ensure AuthContext has time to initialize
-    const timer = setTimeout(() => {
-      setAuthChecked(true)
-      
-      if (!isAuthenticated) {
-        router.push('/login')
-      } else if (userRole !== 'admin') {
-        router.push('/')
-      } else {
-        fetchAnalyticsData()
-      }
-    }, 100)
-
-    return () => clearTimeout(timer)
-  }, [isAuthenticated, userRole, router])
+    fetchAnalyticsData()
+  }, [])
 
   const fetchAnalyticsData = async () => {
     try {
@@ -197,20 +181,6 @@ export default function AnalyticsPage() {
     }
   }
 
-  // Don't render the page until auth check is complete
-  if (!authChecked) {
-    return (
-      <div className="flex min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF8C00]"></div>
-      </div>
-    )
-  }
-
-  // Don't render the page if not authenticated or not authorized
-  if (!isAuthenticated || userRole !== 'admin') {
-    return null
-  }
-
   // Prepare data for charts
   const userRoleColors = ['#FF8C00', '#FFB020', '#6366F1'];
   const creatorTypeColors = ['#10B981', '#8B5CF6', '#EC4899'];
@@ -228,16 +198,7 @@ export default function AnalyticsPage() {
   const totalUniquePlays = mostPlayedTracks.reduce((sum, track) => sum + (track.uniquePlays || 0), 0);
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black">
-      <main className="flex-1 flex flex-col w-full min-h-screen transition-all duration-300">
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#FF8C00]/10 rounded-full blur-3xl -z-10"></div>
-        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-[#FFB020]/10 rounded-full blur-3xl -z-10"></div>
-        
-        <div className="container mx-auto px-4 sm:px-8 py-6 sm:py-8">
-          <div className="mb-6 sm:mb-8">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white">Analytics Dashboard</h1>
-            <p className="text-gray-400 text-sm sm:text-base">Platform insights and performance metrics</p>
-          </div>
+    <div className="w-full">
 
           {/* Time Range Selector */}
           <div className="flex justify-end mb-6 sm:mb-8">
@@ -744,7 +705,5 @@ export default function AnalyticsPage() {
             </div>
           </div>
         </div>
-      </main>
-    </div>
   )
 }

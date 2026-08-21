@@ -1,34 +1,18 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { useAuth } from '../../../contexts/AuthContext'
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('general')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const router = useRouter()
   const { isAuthenticated, userRole } = useAuth()
-  const [authChecked, setAuthChecked] = useState(false)
 
-  // Check authentication and role on component mount
+  // Access control is handled once in src/app/admin/layout.tsx.
   useEffect(() => {
-    // Small delay to ensure AuthContext has time to initialize
-    const timer = setTimeout(() => {
-      setAuthChecked(true)
-      
-      if (!isAuthenticated) {
-        router.push('/login')
-      } else if (userRole !== 'admin') {
-        router.push('/')
-      } else {
-        setLoading(false)
-      }
-    }, 100)
-
-    return () => clearTimeout(timer)
-  }, [isAuthenticated, userRole, router])
+    setLoading(false)
+  }, [])
 
   // Form states
   const [generalSettings, setGeneralSettings] = useState({
@@ -68,32 +52,8 @@ export default function SettingsPage() {
     alert('Notification settings saved!')
   }
 
-  // Don't render the page until auth check is complete
-  if (!authChecked) {
-    return (
-      <div className="flex min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF8C00]"></div>
-      </div>
-    )
-  }
-
-  // Don't render the page if not authenticated or not authorized
-  if (!isAuthenticated || userRole !== 'admin') {
-    return null
-  }
-
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black">
-      
-      <main className="flex-1 flex flex-col w-full min-h-screen transition-all duration-300">
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#FF8C00]/10 rounded-full blur-3xl -z-10"></div>
-        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-[#FFB020]/10 rounded-full blur-3xl -z-10"></div>
-        
-        <div className="container mx-auto px-4 sm:px-8 py-6 sm:py-8">
-          <div className="mb-6 sm:mb-8">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white">System Settings</h1>
-            <p className="text-gray-400 text-sm sm:text-base">Configure platform-wide settings and preferences</p>
-          </div>
+    <div className="w-full">
 
           {/* Tabs */}
           <div className="card-bg rounded-2xl p-4 sm:p-6 mb-6">
@@ -396,7 +356,5 @@ export default function SettingsPage() {
             </div>
           </div>
         </div>
-      </main>
-    </div>
   )
 }

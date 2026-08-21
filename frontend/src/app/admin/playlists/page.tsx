@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { useAuth } from '../../../contexts/AuthContext'
 
 
@@ -24,9 +23,7 @@ interface PlaylistTrack extends Track {
 }
 
 export default function AdminPlaylistMaker() {
-  const router = useRouter()
   const { isAuthenticated, userRole } = useAuth()
-  const [authChecked, setAuthChecked] = useState(false)
   
   // Form states
   const [playlistName, setPlaylistName] = useState('')
@@ -50,20 +47,6 @@ export default function AdminPlaylistMaker() {
   const genres = ['all', 'afrobeat', 'hip-hop', 'r&b', 'afropop', 'gospel', 'dancehall', 'reggae', 'pop', 'rock', 'electronic']
   const types = ['all', 'song', 'beat', 'mix']
 
-  // Check authentication
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setAuthChecked(true)
-      
-      if (!isAuthenticated) {
-        router.push('/login')
-      } else if (userRole !== 'admin') {
-        router.push('/')
-      }
-    }, 100)
-    
-    return () => clearTimeout(timer)
-  }, [isAuthenticated, userRole, router])
 
   // Search tracks function
   const searchTracks = async () => {
@@ -236,32 +219,8 @@ export default function AdminPlaylistMaker() {
     }
   }
 
-  // Don't render until auth is checked
-  if (!authChecked) {
-    return (
-      <div className="flex min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF8C00]"></div>
-      </div>
-    )
-  }
-
-  // Don't render if not authorized
-  if (!isAuthenticated || userRole !== 'admin') {
-    return null
-  }
-
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black">
-      
-      <main className="flex-1 flex flex-col w-full min-h-screen transition-all duration-300">
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#FF8C00]/10 rounded-full blur-3xl -z-10"></div>
-        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-[#FFB020]/10 rounded-full blur-3xl -z-10"></div>
-        
-        <div className="container mx-auto px-4 sm:px-8 py-6 sm:py-8">
-          <div className="mb-6 sm:mb-8">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white">Playlist Maker</h1>
-            <p className="text-gray-400 text-sm sm:text-base">Create and manage playlists for your platform</p>
-          </div>
+    <div className="w-full">
 
           {successMessage && (
             <div className="mb-6 p-4 bg-green-900/30 border border-green-500/50 rounded-lg">
@@ -612,7 +571,5 @@ export default function AdminPlaylistMaker() {
             </div>
           </div>
         </div>
-      </main>
-    </div>
   )
 }

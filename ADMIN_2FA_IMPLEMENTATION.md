@@ -1,5 +1,7 @@
 # Admin Two-Factor Authentication (2FA) Implementation
 
+> **STATUS: DISABLED (as of 2026-08-21).** 2FA is currently switched off for **all** accounts — admins *and* artists — so everyone signs in with email + password only. Admin 2FA was disabled by request; artist 2FA followed because the SendGrid account hit "Maximum credits exceeded", so OTP emails could not be delivered and artist logins were failing with a 500. Re-enable artist 2FA by setting `TWO_FACTOR_ENABLED=true` once SendGrid has credits again; see `backend/src/config/twoFactor.js`. The document below describes the behaviour that returns when it is switched back on.
+
 ## Overview
 Two-factor authentication (2FA) using OTP email verification has been implemented for admin users logging into the MuzikaX platform. This adds an extra layer of security to admin accounts.
 

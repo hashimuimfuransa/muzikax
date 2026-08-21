@@ -3,7 +3,6 @@
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
-import AdminSidebar from './AdminSidebar';
 
 export default function ConditionalSidebar() {
   const pathname = usePathname();
@@ -22,11 +21,8 @@ export default function ConditionalSidebar() {
   const isLoginPage = pathname === '/login';
   const isRegisterPage = pathname === '/register';
   
-  if (isAdminPage) {
-    return <AdminSidebar />;
-  }
-  
-  if (isPlayerPage || isLoginPage || isRegisterPage) {
+  // Admin routes render their own sidebar from src/app/admin/layout.tsx.
+  if (isAdminPage || isPlayerPage || isLoginPage || isRegisterPage) {
     return null;
   }
   

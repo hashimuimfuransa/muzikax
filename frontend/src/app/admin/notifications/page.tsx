@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { useAuth } from '../../../contexts/AuthContext'
 import notificationService from '../../../services/notificationService'
 
@@ -48,15 +47,9 @@ export default function AdminNotificationsPage() {
   const [sendToAllCreators, setSendToAllCreators] = useState(false)
   const [sendToAllUsers, setSendToAllUsers] = useState(false)
   
-  const router = useRouter()
   const { isAuthenticated, userRole } = useAuth()
 
-  // Check authentication and role
-  useEffect(() => {
-    if (!isAuthenticated || userRole !== 'admin') {
-      router.push('/login')
-    }
-  }, [isAuthenticated, userRole, router])
+  // Access control is handled once in src/app/admin/layout.tsx.
 
   // Fetch sent notifications
   useEffect(() => {
@@ -209,26 +202,8 @@ export default function AdminNotificationsPage() {
     )
   }
 
-  if (!isAuthenticated || userRole !== 'admin') {
-    return (
-      <div className="flex min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF8C00]"></div>
-      </div>
-    )
-  }
-
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black">
-      
-      <main className="flex-1 flex flex-col w-full min-h-screen transition-all duration-300">
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#FF8C00]/10 rounded-full blur-3xl -z-10"></div>
-        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-[#FFB020]/10 rounded-full blur-3xl -z-10"></div>
-        
-        <div className="container mx-auto px-4 sm:px-8 py-6 sm:py-8">
-          <div className="mb-6 sm:mb-8">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white">Notification Management</h1>
-            <p className="text-gray-400 text-sm sm:text-base">Send notifications to users and manage sent messages</p>
-          </div>
+    <div className="w-full">
 
           {error && (
             <div className="mb-6 p-4 bg-red-500/10 border border-red-500/50 rounded-lg">
@@ -439,7 +414,5 @@ export default function AdminNotificationsPage() {
             </div>
           </div>
         </div>
-      </main>
-    </div>
   )
 }

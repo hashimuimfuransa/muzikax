@@ -35,7 +35,7 @@ const pushSubscriptionSchema = new mongoose.Schema({
 });
 
 // Index for efficient querying
+// Note: endpoint is indexed by `unique: true` on the path above.
 pushSubscriptionSchema.index({ userId: 1 });
-pushSubscriptionSchema.index({ endpoint: 1 });
 
 module.exports = mongoose.model('PushSubscription', pushSubscriptionSchema);
